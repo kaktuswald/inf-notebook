@@ -13,7 +13,7 @@ pip install numpy keyboard pillow PySimpleGUI pyautogui google-cloud-storage
 
 ### 使う
 ```
-python main.py
+python main.pyw
 ```
 
 ## ビルド
@@ -45,9 +45,15 @@ pip install google-cloud-storage
 ```
 python generate_service_account_info.py ファイル名.json
 ```
+
 - (方法2)base64でエンコードした文字列を引数にする
 ```
 python generate_service_account_info.py 文字列
+```
+
+- (おまけ)ダウンロードしたファイルをエンコードする
+```
+python encode.py ファイル名.json
 ```
 
 ### アップロード設定
@@ -57,10 +63,16 @@ python generate_service_account_info.py 文字列
   "data_collection": true
 }
 ```
+
 ### 収集画像を回収する
 Cloud Storage上の画像を全てcollection_data下に保存し、削除する。
 ```
 python download.py
+```
+
+### アノテーションする
+```
+python annotation.pyw
 ```
 
 ### 学習させる

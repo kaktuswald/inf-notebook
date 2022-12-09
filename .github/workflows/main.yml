@@ -56,7 +56,7 @@ jobs:
 
       - name: Zip
         run: |
-          zip -r inf-notebook-${{ github.ref}}.zip ./inf-notebook
+          zip -r inf-notebook-${{ github.ref_name }}.zip ./inf-notebook
 
       - name: Append Binary
         uses: actions/upload-release-asset@v1
@@ -64,6 +64,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./inf-notebook-${{ github.ref}}.zip
-          asset_name: inf-notebook-${{ github.ref}}.zip
+          asset_path: ./inf-notebook-${{ github.ref_name }}.zip
+          asset_name: inf-notebook-${{ github.ref_name }}.zip
           asset_content_type: application/zip
