@@ -31,7 +31,7 @@ def save_larning_source(screen):
 def get_larning_sources():
     labels = larning_source_label()
     ret = []
-    for filepath in glob.glob(os.path.join(larning_sources_basepath, '*.bmp')):
+    for filepath in glob.glob(os.path.join(larning_sources_basepath, '*.png')):
         filename = os.path.basename(filepath)
         if filename in labels.all():
             ret.append({
@@ -74,10 +74,10 @@ def larning(key, targets):
 
     mask_image = Image.fromarray(mask)
 
-    larning_filepath = os.path.join(larning_dirpath, f"{key}.bmp")
+    larning_filepath = os.path.join(larning_dirpath, f"{key}.png")
     mask_image.save(larning_filepath)
 
-    mask_image_filepath = os.path.join(mask_images_dirpath, f"{key}.bmp")
+    mask_image_filepath = os.path.join(mask_images_dirpath, f"{key}.png")
     mask_image.save(mask_image_filepath)
 
     print(f"[{key}]source count: {len(targets)} / pattern count: {len(patterns)}")

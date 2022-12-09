@@ -67,7 +67,7 @@ if __name__ == '__main__':
         image.save(bytes, format='PNG')
         images[key] = bytes.getvalue()
 
-    files = glob.glob('larning_sources/*.bmp')
+    files = glob.glob('larning_sources/*.png')
     filenames = [*map(os.path.basename, files)]
 
     selectable_value_list = {}
