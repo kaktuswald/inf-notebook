@@ -23,7 +23,7 @@ class Screenshot:
 
     def find(self, target):
         image = ImageGrab.grab(all_screens=True)
-        return pgui.locate(target, image)
+        return pgui.locate(target, image, grayscale=True)
 
     def shot(self):
         image = ImageGrab.grab(all_screens=True)
@@ -32,7 +32,7 @@ class Screenshot:
         image = image.convert('RGBA')
 
         now = datetime.now()
-        filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.bmp"
+        filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.png"
 
         return Screen(image, filename)
     

@@ -62,7 +62,7 @@ def save_find_image(key, image):
         finds[key] = {'area': areas['find'][key]}
     finds[key]['image'] = image
 
-    filepath = os.path.join(finds_dirpath, f'{key}.png')
+    filepath = os.path.join(finds_dirpath, f'{key}.bmp')
     image.save(filepath)
 
 if is_embedded():

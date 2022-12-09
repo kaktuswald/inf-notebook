@@ -277,7 +277,7 @@ class Recognition():
         option, clear_type, dj_level, score, miss_count, clear_type_new, dj_level_new, score_new, miss_count_new = self.get_details(trim_details)
 
         return Result(
-            screen.original,
+            screen.original.convert('RGB'),
             {
                 'play_mode': play_mode,
                 'difficulty': difficulty,
