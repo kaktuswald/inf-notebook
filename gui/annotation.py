@@ -154,7 +154,7 @@ def layout_manage(value_list, keys):
             sg.Column([
                 [sg.Column(manage_label_define, size=(390,560), background_color='#7799fd')],
             ],pad=0)
-        ],
+        ]
     ]
 
 def generate_window(value_list, keys):

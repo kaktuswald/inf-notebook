@@ -41,9 +41,7 @@ class Result():
         self.image.save(filepath)
     
     def filter(self):
-        if hasattr(self, 'image'):
-            blured = blur(self.image, self.play_side, self.rival)
-            filepath = os.path.join(filterd_basepath, self.filename)
-            blured.save(filepath)
-            return blured
-        return
+        blured = blur(self.image, self.play_side, self.rival)
+        filepath = os.path.join(filterd_basepath, self.filename)
+        blured.save(filepath)
+        return blured

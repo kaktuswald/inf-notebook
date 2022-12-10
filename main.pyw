@@ -4,6 +4,7 @@ import PySimpleGUI as sg
 import threading
 from queue import Queue
 import io
+import os
 import logging
 import PySimpleGUI as pgui
 
@@ -35,38 +36,28 @@ from recog import recog
 from larning import create_larning_source_directory,save_larning_source
 from storage import StorageAccessor
 
-screenshot = Screenshot()
-
 thread_time_start = 1
 thread_time_normal = 0.35
 thread_time_wait = 5
 
-display_screenshot_enable = False
-
-results = {}
-list_results = []
-
-storage = StorageAccessor()
-
-class MyThread(threading.Thread):
+class ThreadMain(threading.Thread):
     positioned = False
     waiting = False
     finded = False
     processed = False
     logs = []
 
-    def __init__(self, event_close, queue_log, queue_image, queue_result):
+    def __init__(self, event_close, queues):
         self.event_close = event_close
-        self.queue_log = queue_log
-        self.queue_image = queue_image
-        self.queue_result = queue_result
+        self.queues = queues
 
         threading.Thread.__init__(self)
+
         self.start()
 
     def run(self):
         self.sleep_time = thread_time_start
-        self.queue_log.put('start thread')
+        self.queues['log'].put('start thread')
         while not self.event_close.isSet():
             time.sleep(self.sleep_time)
             self.routine()
@@ -77,8 +68,8 @@ class MyThread(threading.Thread):
                 box = screenshot.find(target['image'])
                 if not box is None:
                     self.positioned = True
-                    self.queue_log.put(f'find window: {key}')
-                    self.queue_log.put(f'position: {box}')
+                    self.queues['log'].put(f'find window: {key}')
+                    self.queues['log'].put(f'position: {box}')
                     left = box.left - target['area'][0]
                     top = box.top - target['area'][1]
                     screenshot.region = (
@@ -87,29 +78,29 @@ class MyThread(threading.Thread):
                         left + screenshot.width,
                         top + screenshot.height
                     )
-                    self.queue_log.put(f'region = {screenshot.region}')
+                    self.queues['log'].put(f'region = {screenshot.region}')
                     self.sleep_time = thread_time_normal
-                    self.queue_log.put(f'change sleep time: {self.sleep_time}')
+                    self.queues['log'].put(f'change sleep time: {self.sleep_time}')
                     break
             return
 
         screen = screenshot.shot()
         if display_screenshot_enable:
-            self.queue_image.put(screen.original)
+            self.queues['display_image'].put(screen.original)
         
         starting = recog.get_starting(screen.image)
-        if not self.waiting and starting == 'recognized loading':
+        if not self.waiting and starting == 'loading':
             self.finded = False
             self.processed = False
             self.waiting = True
-            self.queue_log.put('find loading: start waiting')
+            self.queues['log'].put('find loading: start waiting')
             self.sleep_time = thread_time_wait
-            self.queue_log.put(f'change sleep time: {self.sleep_time}')
-        if self.waiting and starting == 'recognized warning':
+            self.queues['log'].put(f'change sleep time: {self.sleep_time}')
+        if self.waiting and starting == 'warning':
             self.waiting = False
-            self.queue_log.put('find warning: end waiting')
+            self.queues['log'].put('find warning: end waiting')
             self.sleep_time = thread_time_normal
-            self.queue_log.put(f'change sleep time: {self.sleep_time}')
+            self.queues['log'].put(f'change sleep time: {self.sleep_time}')
 
         if not self.waiting:
             if recog.is_result(screen.image):
@@ -119,13 +110,7 @@ class MyThread(threading.Thread):
                 if self.finded and not self.processed:
                     if time.time() - self.find_time > thread_time_normal*2-0.1:
                         self.processed = True
-                        if setting.manage:
-                            save_larning_source(screen)
-                        result = result_process(screen)
-                        if result is not None:
-                            self.queue_result.put(result)
-                            if setting.display_saved_result:
-                                self.queue_image.put(screen.original)
+                        self.queues['result_screen'].put(screen)
             else:
                 if self.finded:
                     self.finded = False
@@ -137,29 +122,27 @@ def result_process(screen):
         storage.upload_collection(screen, result)
     if not setting.save_newrecord_only or result.hasNewRecord():
         result.save()
-        logger.debug(f'save: {result.filename}')
-        return result
-    
-    return None
+        log_debug(f'save result: {result.filename}')
+        insert_results(result)
+        if setting.display_saved_result:
+            display_image(result.original)
 
 def insert_results(result):
-    if not result.filename in results.keys():
-        results[result.filename] = result
-        list_results.append([
-            result.filename,
-            '☑' if result.details['clear_type_new'] else '',
-            '☑' if result.details['dj_level_new'] else '',
-            '☑' if result.details['score_new'] else '',
-            '☑' if result.details['miss_count_new'] else ''
-        ])
+    results[result.filename] = result
+    list_results.append([
+        result.filename,
+        '☑' if result.details['clear_type_new'] else '',
+        '☑' if result.details['dj_level_new'] else '',
+        '☑' if result.details['score_new'] else '',
+        '☑' if result.details['miss_count_new'] else ''
+    ])
     window['table_results'].update(values=list_results)
 
 def active_screenshot():
     screen = screenshot.shot()
     save_larning_source(screen)
-    logger.debug(f'save: {screen.filename}')
-    if display_screenshot_enable:
-        display_image(screen.original)
+    log_debug(f'save screen: {screen.filename}')
+    display_image(screen.original)
 
 def display_image(image):
     scale = window['scale'].get()
@@ -172,6 +155,11 @@ def display_image(image):
     image.save(bytes, format='PNG')
 
     window['screenshot'].update(size=image.size, data=bytes.getvalue())
+
+def log_debug(message):
+    logger.debug(message)
+    if setting.manage:
+        print(message)
 
 if __name__ == '__main__':
     if setting.manage:
@@ -188,12 +176,29 @@ if __name__ == '__main__':
         enable_close_attempted_event=True
     )
 
+    display_screenshot_enable = False
+
+    screenshot = Screenshot()
+
+    result = None
+    results = {}
+    list_results = []
+
     queue_log = Queue()
-    queue_image = Queue()
-    queue_result = Queue()
+    queue_display_image = Queue()
+    queue_result_screen = Queue()
+
+    storage = StorageAccessor()
 
     event_close = threading.Event()
-    thread = MyThread(event_close, queue_log, queue_image, queue_result)
+    thread = ThreadMain(
+        event_close,
+        queues = {
+            'log': queue_log,
+            'display_image': queue_display_image,
+            'result_screen': queue_result_screen
+        }
+    )
 
     if not setting.has_key('data_collection'):
         ret = pgui.popup_yes_no(
@@ -219,7 +224,7 @@ if __name__ == '__main__':
             if not thread is None:
                 event_close.set()
                 thread.join()
-                logger.debug(f'end')
+                log_debug(f'end')
             break
         if event == 'check_display_screenshot':
             display_screenshot_enable = values['check_display_screenshot']
@@ -228,26 +233,23 @@ if __name__ == '__main__':
         if event == 'check_save_newrecord_only':
             setting.save_newrecord_only = values['check_save_newrecord_only']
         if event == 'text_file_path':
-            screen = screenshot.open(values['text_file_path'])
-            display_image(screen.original)
-            if recog.is_result(screen.image):
-                result = result_process(screen)
-                if result is not None:
-                    insert_results(result)
+            if os.path.exists(values['text_file_path']):
+                screen = screenshot.open(values['text_file_path'])
+                display_image(screen.original)
+                if recog.is_result(screen.image):
+                    result_process(screen)
         if event == 'button_filter' and not result is None:
-            ret = result.filter()
-            if not ret is None:
-                display_image(ret)
+            display_image(result.filter())
         if event == 'table_results':
             if len(values['table_results']) > 0:
                 result = results[list_results[values['table_results'][0]][0]]
                 display_image(result.image)
         if event == 'timeout':
             if not queue_log.empty():
-                logger.debug(queue_log.get_nowait())
-            if not queue_result.empty():
-                insert_results(queue_result.get_nowait())
-            if not queue_image.empty():
-                display_image(queue_image.get_nowait())
+                log_debug(queue_log.get_nowait())
+            if not queue_display_image.empty():
+                display_image(queue_display_image.get_nowait())
+            if not queue_result_screen.empty():
+                result_process(queue_result_screen.get_nowait())
     
     window.close()

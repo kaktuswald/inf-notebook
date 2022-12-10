@@ -1,4 +1,4 @@
-# infinite-memorise
+# inf-notebook
 
 ## 使い方
 
@@ -8,7 +8,7 @@
 ### 必要なモジュールをインストール
 ```
 python -m pip install --upgrade pip
-pip install numpy keyboard pillow PySimpleGUI pyautogui google-cloud-storage
+pip install numpy keyboard pillow PyAutoGUI PySimpleGUI
 ```
 
 ### 使う
@@ -16,9 +16,22 @@ pip install numpy keyboard pillow PySimpleGUI pyautogui google-cloud-storage
 python main.pyw
 ```
 
+### マネージモード
+設定ファイルに記述を追加するとmain.pywがマネージモードで走る。
+```json:setting.json
+{
+  "manage": true
+}
+```
+- スクリーンショットのリアルタイム更新ができる
+- スクリーンショット代わりにpngが開ける
+- Ctrl+F10でスクリーンショットを撮ってファイル保存する
+- 標準出力がウィンドウに表示される
+
 ## ビルド
 
 ### 実行ファイル化
+WindowsのPowerShellで
 ```
 pip install cx_Freeze
 echo 0.0.0.0 > VERSION.txt
@@ -70,6 +83,8 @@ Cloud Storage上の画像を全てcollection_data下に保存し、削除する�
 python download.py
 ```
 
+<!--
+大幅仕様変更に未対応のためコメントアウト中
 ### アノテーションする
 ```
 python annotation.pyw
@@ -86,3 +101,4 @@ defineフォルダに各種画像ファイルを作成される
 python evaluate.py
 ```
 結果ファイルのevaluate.csvが作成される
+-->
