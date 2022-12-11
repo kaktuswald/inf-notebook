@@ -5,6 +5,7 @@ import threading
 from queue import Queue
 import os
 import logging
+from urllib import request
 
 from setting import Setting
 
@@ -27,7 +28,8 @@ logger = logging.getLogger()
 logger.debug('loaded main.py')
 logger.debug('mode: manage')
 
-from gui.main import generate_window,error_message,collection_request,display_image
+from version import version
+import gui.main as gui
 from resources import finds
 from screenshot import Screenshot
 from recog import recog
@@ -37,6 +39,8 @@ from storage import StorageAccessor
 thread_time_start = 1
 thread_time_normal = 0.35
 thread_time_wait = 5
+
+latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 
 class ThreadMain(threading.Thread):
     positioned = False
@@ -123,13 +127,13 @@ def result_process(screen):
             result.save()
         except Exception as ex:
             logger.exception(ex)
-            error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
+            gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
             return
         
         log_debug(f'save result: {result.filename}')
         insert_results(result)
         if setting.display_saved_result:
-            display_image(result.original)
+            gui.display_image(result.original)
 
 def insert_results(result):
     results[result.filename] = result
@@ -146,18 +150,28 @@ def active_screenshot():
     screen = screenshot.shot()
     save_raw(screen)
     log_debug(f'save screen: {screen.filename}')
-    display_image(screen.original)
+    gui.display_image(screen.original)
 
 def log_debug(message):
     logger.debug(message)
     if setting.manage:
         print(message)
 
+def get_latest_version():
+    with request.urlopen(latest_url) as response:
+        url = response.geturl()
+        version = url.split('/')[-1]
+        print(version)
+        if version[0] == 'v':
+            return version.replace('v', '')
+        else:
+            return None
+
 if __name__ == '__main__':
     if setting.manage:
         keyboard.add_hotkey('ctrl+F10', active_screenshot)
 
-    window = generate_window(setting)
+    window = gui.generate_window(setting, version)
 
     display_screenshot_enable = False
 
@@ -184,7 +198,10 @@ if __name__ == '__main__':
     )
 
     if not setting.has_key('data_collection'):
-        setting.data_collection = collection_request('resources/annotation.png')
+        setting.data_collection = gui.collection_request('resources/annotation.png')
+
+    if get_latest_version() != version:
+        gui.find_latest_version(latest_url)
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
@@ -204,7 +221,7 @@ if __name__ == '__main__':
         if event == 'text_file_path':
             if os.path.exists(values['text_file_path']):
                 screen = screenshot.open(values['text_file_path'])
-                display_image(screen.original)
+                gui.display_image(screen.original)
                 if recog.is_result(screen.image):
                     result_process(screen)
         if event == 'button_filter' and result is not None:
@@ -212,19 +229,19 @@ if __name__ == '__main__':
                 filtered = result.filter()
             except Exception as ex:
                 logger.exception(ex)
-                error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
+                gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
                 continue
-            display_image(filtered)
+            gui.display_image(filtered)
             log_debug(f'save filtered result: {result.filename}')
         if event == 'table_results':
             if len(values['table_results']) > 0:
                 result = results[list_results[values['table_results'][0]][0]]
-                display_image(result.image)
+                gui.display_image(result.image)
         if event == 'timeout':
             if not queue_log.empty():
                 log_debug(queue_log.get_nowait())
             if not queue_display_image.empty():
-                display_image(queue_display_image.get_nowait())
+                gui.display_image(queue_display_image.get_nowait())
             if not queue_result_screen.empty():
                 result_process(queue_result_screen.get_nowait())
     

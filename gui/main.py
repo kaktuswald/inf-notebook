@@ -21,11 +21,11 @@ def layout_main(setting):
                     sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
                 ],
                 [
-                    sg.Text('画像表示スケール'),
-                    sg.Combo(scales, key='scale', default_value='1/2', readonly=True)
-                ],
-                [
                     sg.Column([
+                        [
+                            sg.Text('画像表示スケール'),
+                            sg.Combo(scales, key='scale', default_value='1/2', readonly=True)
+                        ],
                         [sg.Checkbox('保存されたリザルトを都度表示する', key='check_display_saved_result', default=setting.display_saved_result, enable_events=True)],
                         [sg.Checkbox('更新があるときのみリザルトを保存する', key='check_save_newrecord_only', default=setting.save_newrecord_only, enable_events=True)],
                         [sg.Image(key='screenshot', size=(640, 360))],
@@ -38,7 +38,7 @@ def layout_main(setting):
                         auto_size_columns=False,
                         vertical_scroll_only=True,
                         col_widths=column_widths,
-                        num_rows=26,
+                        num_rows=30,
                         justification='center',
                         enable_events=True
                     ),
@@ -48,11 +48,11 @@ def layout_main(setting):
         ]
     ]
 
-def generate_window(setting):
+def generate_window(setting, version):
     global window
 
     window = sg.Window(
-        title,
+        f'{title} ({version})',
         layout_main(setting),
         icon=icon_path,
         grab_anywhere=True,
@@ -81,6 +81,18 @@ def collection_request(image):
     )
 
     return True if ret == 'Yes' else False
+
+def find_latest_version(latest_url):
+    sg.popup(
+        '\n'.join([
+            u'最新バージョンが見つかりました。',
+            u'以下URLから最新バージョンをダウンロードしてください。',
+            u'\n',
+            latest_url
+        ]),
+        title=u'最新バージョンのお知らせ',
+        icon=icon_path
+    )
 
 def error_message(title, message, exception):
     sg.popup(

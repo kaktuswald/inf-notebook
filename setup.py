@@ -1,6 +1,7 @@
 import sys
-import os
 from cx_Freeze import setup, Executable
+
+from version import version
 
 # Dependencies are automatically detected, but it might need fine tuning.
 # 'packages': ['os'] is used as example only
@@ -25,11 +26,6 @@ build_exe_options = {
 base = None
 if sys.platform == 'win32':
     base = 'Win32GUI'
-
-if not os.path.exists('VERSION.txt'):
-    sys.exit()
-with open('VERSION.txt') as f:
-    version = f.read()
 
 executables = (
     [

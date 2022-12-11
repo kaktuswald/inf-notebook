@@ -133,6 +133,5 @@ larning/
 *.exe
 
 /log.txt
-/VERSION.txt
 
 /*.json

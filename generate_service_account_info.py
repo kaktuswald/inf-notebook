@@ -4,8 +4,6 @@ from base64 import b64decode
 
 generate_filename = 'service_account_info.py'
 
-"service_account_info = "
-
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         sys.exit()

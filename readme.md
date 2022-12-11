@@ -30,11 +30,16 @@ python main.pyw
 
 ## ビルド
 
-### 実行ファイル化
-WindowsのPowerShellで
+WindowsのPowerShellで操作する
+
+### バージョンの更新
+```shell
+python generate_version.py v0.0.0.0
 ```
+
+### 実行ファイル化
+```shell
 pip install cx_Freeze
-echo 0.0.0.0 > VERSION.txt
 python setup.py build
 ```
 
