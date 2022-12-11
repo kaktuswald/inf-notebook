@@ -116,12 +116,28 @@ class ThreadMain(threading.Thread):
                     self.finded = False
                     self.processed = False
 
+def error_message(title, message, exception):
+    pgui.popup(
+        '\n'.join([
+            message,
+            '\n',
+            str(exception)
+        ]),
+        title=title
+    )
+
 def result_process(screen):
     result = recog.get_result(screen)
     if setting.data_collection:
         storage.upload_collection(screen, result)
     if not setting.save_newrecord_only or result.hasNewRecord():
-        result.save()
+        try:
+            result.save()
+        except Exception as ex:
+            logger.exception(ex)
+            error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
+            return
+        
         log_debug(f'save result: {result.filename}')
         insert_results(result)
         if setting.display_saved_result:
@@ -203,15 +219,15 @@ if __name__ == '__main__':
     if not setting.has_key('data_collection'):
         ret = pgui.popup_yes_no(
             '\n'.join([
-                '画像処理の精度向上のために大量のリザルト画像を欲しています。',
-                'リザルト画像を上画像のように切り取ってクラウドにアップロードします。',
-                'もちろん、他の目的に使用することはしません。'
-                '\n',
-                '実現できるかどうかはわかりませんが、',
-                '曲名を含めてあらゆる情報を画像から抽出して',
-                '過去のリザルトの検索などできるようにしたいと考えています。'
+                u'画像処理の精度向上のために大量のリザルト画像を欲しています。',
+                u'リザルト画像を上画像のように切り取ってクラウドにアップロードします。',
+                u'もちろん、他の目的に使用することはしません。'
+                u'\n',
+                u'実現できるかどうかはわかりませんが、',
+                u'曲名を含めてあらゆる情報を画像から抽出して',
+                u'過去のリザルトの検索などできるようにしたいと考えています。'
             ]),
-            title='おねがい',
+            title=u'おねがい',
             image='resources/annotation.png'
         )
 
@@ -238,8 +254,15 @@ if __name__ == '__main__':
                 display_image(screen.original)
                 if recog.is_result(screen.image):
                     result_process(screen)
-        if event == 'button_filter' and not result is None:
-            display_image(result.filter())
+        if event == 'button_filter' and result is not None:
+            try:
+                filtered = result.filter()
+            except Exception as ex:
+                logger.exception(ex)
+                error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
+                continue
+            display_image(filtered)
+            log_debug(f'save filtered result: {result.filename}')
         if event == 'table_results':
             if len(values['table_results']) > 0:
                 result = results[list_results[values['table_results'][0]][0]]

@@ -27,7 +27,7 @@ class Screenshot:
 
     def shot(self):
         image = ImageGrab.grab(all_screens=True)
-        if not self.region is None:
+        if self.region is not None:
             image = image.crop(self.region)
         image = image.convert('RGBA')
 

@@ -12,11 +12,6 @@ from filter import blur
 results_basepath = 'results'
 filterd_basepath = 'filtered'
 
-if not os.path.exists(results_basepath):
-    os.mkdir(results_basepath)
-if not os.path.exists(filterd_basepath):
-    os.mkdir(filterd_basepath)
-
 class Result():
     def __init__(self, image, informations, play_side, rival, details):
         self.image = image
@@ -37,11 +32,18 @@ class Result():
         ])
 
     def save(self):
+        if not os.path.exists(results_basepath):
+            os.mkdir(results_basepath)
+
         filepath = os.path.join(results_basepath, self.filename)
         self.image.save(filepath)
-    
+            
     def filter(self):
+        if not os.path.exists(filterd_basepath):
+            os.mkdir(filterd_basepath)
+
         blured = blur(self.image, self.play_side, self.rival)
         filepath = os.path.join(filterd_basepath, self.filename)
         blured.save(filepath)
+
         return blured

@@ -245,7 +245,11 @@ class Recognition():
         difficulty = self.difficulty.find(crop_difficulty)
         if difficulty is not None:
             crop_level = image_informations.crop(informations_areas['level'])
-            difficulty, level = self.level[difficulty].find(crop_level).split('-')
+            difficulty_level = self.level[difficulty].find(crop_level)
+            if '-' in difficulty_level:
+                difficulty, level = difficulty_level.split('-')
+            else:
+                difficulty, level = None, None
         else:
             level = None
 

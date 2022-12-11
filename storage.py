@@ -7,8 +7,8 @@ from PIL import Image
 from threading import Thread
 from logging import getLogger
 
-logger = getLogger().getChild('uploader')
-logger.debug('loaded uploader.py')
+logger = getLogger().getChild('storage')
+logger.debug('loaded storage.py')
 
 from service_account_info import service_account_info
 from recog import informations_trimarea,details_trimarea
@@ -26,6 +26,9 @@ class StorageAccessor():
     bucket_details = None
 
     def connect_client(self):
+        if self.client is not None:
+            return
+        
         if service_account_info is None:
             logger.info('no define service_account_info')
             return
@@ -77,6 +80,10 @@ class StorageAccessor():
         logger.debug(f'upload details image {object_name}')
 
     def upload_collection(self, screen, result):
+        self.connect_client()
+        if self.client is None:
+            return
+        
         object_name = f'{uuid.uuid1()}.png'
 
         informations_trim = True
@@ -113,6 +120,8 @@ class StorageAccessor():
 
     def download_and_delete_all(self, basedir):
         self.connect_client()
+        if self.client is None:
+            return
 
         if not os.path.exists(basedir):
             os.mkdir(basedir)
@@ -129,3 +138,5 @@ class StorageAccessor():
         for blob in blobs:
             self.save_image(details_dirpath, blob)
             blob.delete()
+
+        print('complete')
