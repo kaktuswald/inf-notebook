@@ -3,10 +3,8 @@ import time
 import PySimpleGUI as sg
 import threading
 from queue import Queue
-import io
 import os
 import logging
-import PySimpleGUI as pgui
 
 from setting import Setting
 
@@ -29,11 +27,11 @@ logger = logging.getLogger()
 logger.debug('loaded main.py')
 logger.debug('mode: manage')
 
-from gui.main import layout_main
+from gui.main import generate_window,error_message,collection_request,display_image
 from resources import finds
 from screenshot import Screenshot
 from recog import recog
-from larning import create_larning_source_directory,save_larning_source
+from larning import save_raw
 from storage import StorageAccessor
 
 thread_time_start = 1
@@ -116,16 +114,6 @@ class ThreadMain(threading.Thread):
                     self.finded = False
                     self.processed = False
 
-def error_message(title, message, exception):
-    pgui.popup(
-        '\n'.join([
-            message,
-            '\n',
-            str(exception)
-        ]),
-        title=title
-    )
-
 def result_process(screen):
     result = recog.get_result(screen)
     if setting.data_collection:
@@ -156,21 +144,9 @@ def insert_results(result):
 
 def active_screenshot():
     screen = screenshot.shot()
-    save_larning_source(screen)
+    save_raw(screen)
     log_debug(f'save screen: {screen.filename}')
     display_image(screen.original)
-
-def display_image(image):
-    scale = window['scale'].get()
-    if scale == '1/2':
-        image = image.resize((image.width // 2, image.height // 2))
-    if scale == '1/4':
-        image = image.resize((image.width // 3, image.height // 3))
-    
-    bytes = io.BytesIO()
-    image.save(bytes, format='PNG')
-
-    window['screenshot'].update(size=image.size, data=bytes.getvalue())
 
 def log_debug(message):
     logger.debug(message)
@@ -179,18 +155,9 @@ def log_debug(message):
 
 if __name__ == '__main__':
     if setting.manage:
-        create_larning_source_directory()
         keyboard.add_hotkey('ctrl+F10', active_screenshot)
 
-    window = sg.Window(
-        'beatmaniaIIDX INFINITAS リザルト手帳',
-        layout_main(setting),
-        grab_anywhere=True,
-        return_keyboard_events=True,
-        resizable=False,
-        finalize=True,
-        enable_close_attempted_event=True
-    )
+    window = generate_window(setting)
 
     display_screenshot_enable = False
 
@@ -217,21 +184,7 @@ if __name__ == '__main__':
     )
 
     if not setting.has_key('data_collection'):
-        ret = pgui.popup_yes_no(
-            '\n'.join([
-                u'画像処理の精度向上のために大量のリザルト画像を欲しています。',
-                u'リザルト画像を上画像のように切り取ってクラウドにアップロードします。',
-                u'もちろん、他の目的に使用することはしません。'
-                u'\n',
-                u'実現できるかどうかはわかりませんが、',
-                u'曲名を含めてあらゆる情報を画像から抽出して',
-                u'過去のリザルトの検索などできるようにしたいと考えています。'
-            ]),
-            title=u'おねがい',
-            image='resources/annotation.png'
-        )
-
-        setting.data_collection = True if ret == 'Yes' else False
+        setting.data_collection = collection_request('resources/annotation.png')
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')

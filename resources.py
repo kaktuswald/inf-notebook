@@ -19,6 +19,9 @@ areas_filename = 'areas.json'
 finds_dirname = 'finds'
 masks_dirname = 'masks'
 
+title = u'beatmaniaIIDX INFINITAS リザルト手帳'
+icon_path = 'icon.ico'
+
 def is_embedded():
     return hasattr(sys, '_MEIPASS')
 

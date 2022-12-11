@@ -1,9 +1,7 @@
 import PySimpleGUI as sg
 import pyautogui as pgui
-import io
 import glob
 import os
-from PIL import Image
 import logging
 
 logging.basicConfig(
@@ -18,11 +16,11 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.manage as gui
-from resources import areas,finds,masks,save_areas,save_find_image
-from define import value_list,option_widths
+from resources import areas,finds,save_areas,save_find_image
+from define import option_widths
 from recog import recog
-from labels import larning_source_label
 from screenshot import Screenshot
+from larning import raws_basepath,raw_label
 
 screenshot = Screenshot()
 
@@ -50,42 +48,12 @@ def find():
         window[f'find_{key}'].update(visible=result)
 
 if __name__ == '__main__':
-    labels = larning_source_label()
+    labels = raw_label()
     
-    images = {}
-    for key in ['loading', 'music_select', 'result']:
-        if key in finds.keys():
-            bytes = io.BytesIO()
-            finds[key]['image'].save(bytes, format='PNG')
-            images[f'find_{key}'] = bytes.getvalue()
-        else:
-            images[f'find_{key}'] = None
-
-    for key in ['trigger', 'cutin_mission', 'cutin_bit']:
-        image = Image.fromarray(masks[key].value)
-        bytes = io.BytesIO()
-        image.save(bytes, format='PNG')
-        images[key] = bytes.getvalue()
-
-    files = glob.glob('larning_sources/*.png')
+    files = glob.glob(os.path.join(raws_basepath, '*.png'))
     filenames = [*map(os.path.basename, files)]
 
-    selectable_value_list = {}
-    for key, values in value_list.items():
-        selectable_value_list[key] = ['', *values]
-    selectable_value_list['all_options'] = [
-        '',
-        *value_list['options_arrange'],
-        *value_list['options_arrange_dp'],
-        *value_list['options_arrange_sync'],
-        *value_list['options_flip'],
-        *value_list['options_assist'],
-        'BATTLE',
-        'H-RANDOM'
-    ]
-    selectable_value_list['delimita'] = ['', ',', '/']
-
-    window = gui.generate_window([*areas.keys()], selectable_value_list, images, filenames)
+    window = gui.generate_window([*areas.keys()], filenames)
 
     while True:
         event, values = window.read()
@@ -96,7 +64,7 @@ if __name__ == '__main__':
             if values['list_screens'][0] in screens:
                 screen = screens[values['list_screens'][0]]
             else:
-                filepath = os.path.join('larning_sources', values['list_screens'][0])
+                filepath = os.path.join(raws_basepath, values['list_screens'][0])
                 sc = screenshot.open(filepath)
                 if not sc is None:
                     screen = sc

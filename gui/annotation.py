@@ -3,11 +3,27 @@ import io
 
 from define import value_list
 from recog import recog,informations_trimsize,details_trimsize
+from .static import title,icon_path
 
 default_box = (0, 0, 1280, 720)
 scales = ['1/1', '1/2', '1/4']
 
-def layout_manage(value_list, keys):
+def layout_manage(keys):
+    selectable_value_list = {}
+    for key, values in value_list.items():
+        selectable_value_list[key] = ['', *values]
+    selectable_value_list['all_options'] = [
+        '',
+        *value_list['options_arrange'],
+        *value_list['options_arrange_dp'],
+        *value_list['options_arrange_sync'],
+        *value_list['options_flip'],
+        *value_list['options_assist'],
+        'BATTLE',
+        'H-RANDOM'
+    ]
+    selectable_value_list['delimita'] = ['', ',', '/']
+
     result_informations = [
         [
             sg.Text('プレイモード', size=(18, 1)),
@@ -67,12 +83,12 @@ def layout_manage(value_list, keys):
     manage_label_define = [
         [
             sg.Text('プレイモード', size=(15, 1)),
-            sg.Combo(value_list['play_modes'], key='play_mode', readonly=True, enable_events=True)
+            sg.Combo(selectable_value_list['play_modes'], key='play_mode', readonly=True, enable_events=True)
         ],
         [
             sg.Text('難易度', size=(15, 1)),
-            sg.Combo(value_list['difficulties'], key='difficulty', size=(13, 1), readonly=True),
-            sg.Combo(value_list['levels'], key='level', readonly=True)
+            sg.Combo(selectable_value_list['difficulties'], key='difficulty', size=(13, 1), readonly=True),
+            sg.Combo(selectable_value_list['levels'], key='level', readonly=True)
         ],
         [
             sg.Text('曲名', size=(15, 1)),
@@ -83,25 +99,25 @@ def layout_manage(value_list, keys):
             sg.Column([
                 [
                     sg.Text('SP配置', size=(11, 1)),
-                    sg.Combo(value_list['options_arrange'], key='option_arrange', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange'], key='option_arrange', size=(10, 1), readonly=True)
                 ],
                 [
                     sg.Text('DP配置', size=(11, 1)),
-                    sg.Combo(value_list['options_arrange_dp'], key='option_arrange_1p', size=(6, 1), readonly=True),
+                    sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_1p', size=(6, 1), readonly=True),
                     sg.Text('/', background_color='#7799fd',pad=0),
-                    sg.Combo(value_list['options_arrange_dp'], key='option_arrange_2p', size=(6, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_2p', size=(6, 1), readonly=True)
                 ],
                 [
                     sg.Text('BATTLE配置', size=(11, 1)),
-                    sg.Combo(value_list['options_arrange_sync'], key='option_arrange_sync', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange_sync'], key='option_arrange_sync', size=(10, 1), readonly=True)
                 ],
                 [
                     sg.Text('フリップ', size=(11, 1)),
-                    sg.Combo(value_list['options_flip'], key='option_flip', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_flip'], key='option_flip', size=(10, 1), readonly=True)
                 ],
                 [
                     sg.Text('アシスト', size=(11, 1)),
-                    sg.Combo(value_list['options_assist'], key='option_assist', size=(8, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_assist'], key='option_assist', size=(8, 1), readonly=True)
                 ]
             ], background_color='#7799fd', pad=0)
         ],
@@ -112,12 +128,12 @@ def layout_manage(value_list, keys):
         ],
         [
             sg.Text('クリアタイプ', size=(15, 1)),
-            sg.Combo(value_list['clear_types'], key='clear_type', size=(11, 1), readonly=True),
+            sg.Combo(selectable_value_list['clear_types'], key='clear_type', size=(11, 1), readonly=True),
             sg.Checkbox('NEW', key='clear_type_new')
         ],
         [
             sg.Text('DJレベル', size=(15, 1)),
-            sg.Combo(value_list['dj_levels'], key='dj_level', size=(11, 1), readonly=True),
+            sg.Combo(selectable_value_list['dj_levels'], key='dj_level', size=(11, 1), readonly=True),
             sg.Checkbox('NEW', key='dj_level_new')
         ],
         [
@@ -157,12 +173,13 @@ def layout_manage(value_list, keys):
         ]
     ]
 
-def generate_window(value_list, keys):
+def generate_window(keys):
     global window
 
     window = sg.Window(
-        'beatmaniaIIDX INFINITAS リザルト手帳',
-        layout_manage(value_list, keys),
+        title,
+        layout_manage(keys),
+        icon=icon_path,
         grab_anywhere=True,
         return_keyboard_events=True,
         resizable=False,

@@ -2,8 +2,8 @@ from PIL import Image
 import os
 import numpy as np
 import shutil
-import glob
 from logging import getLogger
+import json
 
 logger_child_name = 'larning'
 
@@ -12,33 +12,54 @@ logger.debug('loaded larning.py')
 
 from resources import areas,create_resource_directory,create_masks_directory,save_mask
 from define import value_list,option_widths
-from labels import larning_source_label
 
-larning_sources_basepath = 'larning_sources'
+raws_basepath = 'raws'
 
 larningbase_direpath = 'larning'
 mask_images_dirpath = os.path.join(larningbase_direpath, 'mask_images')
 
-def create_larning_source_directory():
-    if not os.path.exists(larning_sources_basepath):
-        os.mkdir(larning_sources_basepath)
+label_filepath = os.path.join(raws_basepath, 'label.json')
 
-def save_larning_source(screen):
-    filepath = os.path.join(larning_sources_basepath, screen.filename)
+class raw_label:
+    labels = {}
+
+    def __init__(self):
+        self.load()
+
+    def load(self):
+        try:
+            with open(label_filepath) as f:
+                self.labels = json.load(f)
+        except Exception:
+            self.labels = {}
+
+    def save(self):
+        with open(label_filepath, 'w') as f:
+            json.dump(self.labels, f, indent=2)
+
+    def get(self, filename):
+        if filename in self.labels:
+            return self.labels[filename]
+        
+        return None
+    
+    def all(self):
+        return self.labels.keys()
+
+    def remove(self, filename):
+        if filename in self.labels:
+            del self.labels[filename]
+
+    def update(self, filename, values):
+        self.labels[filename] = values
+
+def save_raw(screen):
+    if not os.path.exists(raws_basepath):
+        os.mkdir(raws_basepath)
+
+    filepath = os.path.join(raws_basepath, screen.filename)
     if not os.path.exists(filepath):
         screen.original.save(filepath)
-
-def get_larning_sources():
-    labels = larning_source_label()
-    ret = []
-    for filepath in glob.glob(os.path.join(larning_sources_basepath, '*.png')):
-        filename = os.path.basename(filepath)
-        if filename in labels.all():
-            ret.append({
-                'filepath': filepath,
-                'label': labels.get(filename),
-            })
-    return ret
 
 def larning(key, targets):
     if len(targets) == 0:
@@ -298,7 +319,7 @@ def larning_number():
 
 
 if __name__ == '__main__':
-    labels = larning_source_label()
+    labels = raw_label()
 
     if not os.path.exists(larningbase_direpath):
         os.mkdir(larningbase_direpath)
@@ -311,7 +332,7 @@ if __name__ == '__main__':
 
     images = {}
     for filename in filenames:
-        filepath = os.path.join('larning_sources', filename)
+        filepath = os.path.join('raws', filename)
         if os.path.isfile(filepath):
             image = Image.open(filepath)
             images[filename] = image.convert('L')

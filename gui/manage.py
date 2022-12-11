@@ -1,13 +1,46 @@
 import PySimpleGUI as sg
 import io
+from PIL import Image
 
 from define import value_list
+from resources import finds,masks
 from recog import recog
+from .static import title,icon_path
 
 default_box = (0, 0, 1280, 720)
 scales = ['1/1', '1/2', '1/4']
 
-def layout_manage(area_names, value_list, images, filenames):
+def layout_manage(area_names, filenames):
+    selectable_value_list = {}
+    for key, values in value_list.items():
+        selectable_value_list[key] = ['', *values]
+    selectable_value_list['all_options'] = [
+        '',
+        *value_list['options_arrange'],
+        *value_list['options_arrange_dp'],
+        *value_list['options_arrange_sync'],
+        *value_list['options_flip'],
+        *value_list['options_assist'],
+        'BATTLE',
+        'H-RANDOM'
+    ]
+    selectable_value_list['delimita'] = ['', ',', '/']
+
+    images = {}
+    for key in ['loading', 'music_select', 'result']:
+        if key in finds.keys():
+            bytes = io.BytesIO()
+            finds[key]['image'].save(bytes, format='PNG')
+            images[f'find_{key}'] = bytes.getvalue()
+        else:
+            images[f'find_{key}'] = None
+
+    for key in ['trigger', 'cutin_mission', 'cutin_bit']:
+        image = Image.fromarray(masks[key].value)
+        bytes = io.BytesIO()
+        image.save(bytes, format='PNG')
+        images[key] = bytes.getvalue()
+
     result = [
         [
             sg.Text('ライバル挑戦状', size=(22, 1)),
@@ -85,16 +118,16 @@ def layout_manage(area_names, value_list, images, filenames):
             sg.Text('オプション幅', size=(12, 1)),
             sg.Column([
                 [
-                    sg.Combo(value_list['all_options'], key='area_option1', size=(11, 1), readonly=True, enable_events=True),
-                    sg.Combo(value_list['delimita'], key='area_delimita1', size=(2, 1), readonly=True, enable_events=True)
+                    sg.Combo(selectable_value_list['all_options'], key='area_option1', size=(11, 1), readonly=True, enable_events=True),
+                    sg.Combo(selectable_value_list['delimita'], key='area_delimita1', size=(2, 1), readonly=True, enable_events=True)
                 ],
                 [
-                    sg.Combo(value_list['all_options'], key='area_option2', size=(11, 1), readonly=True, enable_events=True),
-                    sg.Combo(value_list['delimita'], key='area_delimita2', size=(2, 1), readonly=True, enable_events=True)
+                    sg.Combo(selectable_value_list['all_options'], key='area_option2', size=(11, 1), readonly=True, enable_events=True),
+                    sg.Combo(selectable_value_list['delimita'], key='area_delimita2', size=(2, 1), readonly=True, enable_events=True)
                 ],
                 [
-                    sg.Combo(value_list['all_options'], key='area_option3', size=(11, 1), readonly=True, enable_events=True),
-                    sg.Combo(value_list['delimita'], key='area_delimita3', size=(2, 1), readonly=True, enable_events=True)
+                    sg.Combo(selectable_value_list['all_options'], key='area_option3', size=(11, 1), readonly=True, enable_events=True),
+                    sg.Combo(selectable_value_list['delimita'], key='area_delimita3', size=(2, 1), readonly=True, enable_events=True)
                 ]
             ], background_color='#7799fd'),
         ],
@@ -115,7 +148,7 @@ def layout_manage(area_names, value_list, images, filenames):
     ]
 
     manage_label_define = [
-        [sg.Text('起動', size=(15, 1)), sg.Combo(value_list['startings'], key='starting', readonly=True)],
+        [sg.Text('起動', size=(15, 1)), sg.Combo(selectable_value_list['startings'], key='starting', readonly=True)],
         [sg.Text('リザルト判定', size=(15, 1)), sg.Checkbox('認識可能', key='trigger', default=True)],
         [
             sg.Text('カットイン', size=(15, 1)),
@@ -125,12 +158,12 @@ def layout_manage(area_names, value_list, images, filenames):
         [sg.Text('ライバル挑戦状', size=(15, 1)), sg.Checkbox('表示中', key='rival', default=False)],
         [
             sg.Text('プレイモード', size=(15, 1)),
-            sg.Combo(value_list['play_modes'], key='play_mode', readonly=True, enable_events=True)
+            sg.Combo(selectable_value_list['play_modes'], key='play_mode', readonly=True, enable_events=True)
         ],
         [
             sg.Text('難易度', size=(15, 1)),
-            sg.Combo(value_list['difficulties'], key='difficulty', size=(13, 1), readonly=True),
-            sg.Combo(value_list['levels'], key='level', readonly=True)
+            sg.Combo(selectable_value_list['difficulties'], key='difficulty', size=(13, 1), readonly=True),
+            sg.Combo(selectable_value_list['levels'], key='level', readonly=True)
         ],
         [
             sg.Text('曲名', size=(15, 1)),
@@ -147,25 +180,25 @@ def layout_manage(area_names, value_list, images, filenames):
             sg.Column([
                 [
                     sg.Text('SP配置', size=(11, 1)),
-                    sg.Combo(value_list['options_arrange'], key='option_arrange', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange'], key='option_arrange', size=(10, 1), readonly=True)
                 ],
                 [
                     sg.Text('DP配置', size=(11, 1)),
-                    sg.Combo(value_list['options_arrange_dp'], key='option_arrange_1p', size=(6, 1), readonly=True),
+                    sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_1p', size=(6, 1), readonly=True),
                     sg.Text('/', background_color='#7799fd'),
-                    sg.Combo(value_list['options_arrange_dp'], key='option_arrange_2p', size=(6, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_2p', size=(6, 1), readonly=True)
                 ],
                 [
                     sg.Text('BATTLE配置', size=(11, 1)),
-                    sg.Combo(value_list['options_arrange_sync'], key='option_arrange_sync', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange_sync'], key='option_arrange_sync', size=(10, 1), readonly=True)
                 ],
                 [
                     sg.Text('フリップ', size=(11, 1)),
-                    sg.Combo(value_list['options_flip'], key='option_flip', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_flip'], key='option_flip', size=(10, 1), readonly=True)
                 ],
                 [
                     sg.Text('アシスト', size=(11, 1)),
-                    sg.Combo(value_list['options_assist'], key='option_assist', size=(8, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_assist'], key='option_assist', size=(8, 1), readonly=True)
                 ]
             ], background_color='#7799fd', pad=0)
         ],
@@ -176,12 +209,12 @@ def layout_manage(area_names, value_list, images, filenames):
         ],
         [
             sg.Text('クリアタイプ', size=(15, 1)),
-            sg.Combo(value_list['clear_types'], key='clear_type', size=(11, 1), readonly=True),
+            sg.Combo(selectable_value_list['clear_types'], key='clear_type', size=(11, 1), readonly=True),
             sg.Checkbox('NEW', key='clear_type_new')
         ],
         [
             sg.Text('DJレベル', size=(15, 1)),
-            sg.Combo(value_list['dj_levels'], key='dj_level', size=(11, 1), readonly=True),
+            sg.Combo(selectable_value_list['dj_levels'], key='dj_level', size=(11, 1), readonly=True),
             sg.Checkbox('NEW', key='dj_level_new')
         ],
         [
@@ -241,27 +274,28 @@ def layout_manage(area_names, value_list, images, filenames):
                     sg.Column([
                         [sg.Text('画像表示スケール'), sg.Combo(scales, default_value='1/2', readonly=True, key='scale')],
                         [sg.Image(key='screenshot', size=(640, 360))]
-                    ]),
-                    sg.Listbox(filenames, key='list_screens', size=(20, 20), enable_events=True),
+                    ],pad=0),
+                    sg.Listbox(filenames, key='list_screens', size=(27, 20), enable_events=True),
                 ],
                 [
                     sg.Column(area_define, size=(300, 410), background_color='#7799fd'),
                     sg.Column(manage_result, size=(310, 410), background_color='#7799fd'),
-                    sg.Column(result, size=(340, 410), background_color='#7799fd')
+                    sg.Column(result, size=(380, 410), background_color='#7799fd')
                 ],
-            ]),
+            ],pad=0),
             sg.Column([
                 [sg.Column(manage_label_define, size=(450, 815), background_color='#7799fd')],
-            ])
+            ],pad=0)
         ],
     ]
 
-def generate_window(area_names, value_list, images, filenames):
+def generate_window(area_names, filenames):
     global window
 
     window = sg.Window(
-        'beatmaniaIIDX INFINITAS リザルト手帳',
-        layout_manage(area_names, value_list, images, filenames),
+        title,
+        layout_manage(area_names, filenames),
+        icon=icon_path,
         grab_anywhere=True,
         return_keyboard_events=True,
         resizable=False,
@@ -327,7 +361,7 @@ def set_result(result):
     window['trigger'].update(True)
     window['cutin_mission'].update(False)
     window['cutin_bit'].update(False)
-    window['rival'].update(result.informations['rival'])
+    window['rival'].update(result.rival)
     window['play_mode'].update(result.informations['play_mode'])
     window['difficulty'].update(result.informations['difficulty'])
     window['level'].update(result.informations['level'])

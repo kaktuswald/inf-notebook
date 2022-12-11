@@ -5,8 +5,9 @@ import os
 
 from define import value_list
 from recog import Recognition
+from larning import raws_basepath
 
-labels_filepath = 'larning_sources/label.json'
+labels_filepath = os.path.join(raws_basepath, 'label.json')
 result_filepath = 'evaluate.csv'
 
 keys_number = ['score', 'miss_count']
@@ -222,7 +223,7 @@ if __name__ == '__main__':
 
     output.append(f"ファイル名,{','.join(headers)}\n")
     for filename in filenames:
-        filepath = os.path.join('larning_sources', filename)
+        filepath = os.path.join(raws_basepath, filename)
         if not os.path.isfile(filepath):
             continue
 

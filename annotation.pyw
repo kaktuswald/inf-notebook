@@ -17,7 +17,6 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.annotation as gui
-from define import value_list
 
 collection_basepath = 'collection_data'
 
@@ -55,22 +54,7 @@ if __name__ == '__main__':
         key = os.path.basename(filepath).replace('.png', '')
         images[key] = None
 
-    selectable_value_list = {}
-    for key, values in value_list.items():
-        selectable_value_list[key] = ['', *values]
-    selectable_value_list['all_options'] = [
-        '',
-        *value_list['options_arrange'],
-        *value_list['options_arrange_dp'],
-        *value_list['options_arrange_sync'],
-        *value_list['options_flip'],
-        *value_list['options_assist'],
-        'BATTLE',
-        'H-RANDOM'
-    ]
-    selectable_value_list['delimita'] = ['', ',', '/']
-
-    window = gui.generate_window(selectable_value_list, [*images.keys()])
+    window = gui.generate_window([*images.keys()])
 
     while True:
         event, values = window.read()
