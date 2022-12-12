@@ -17,19 +17,14 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.annotation as gui
-
-collection_basepath = 'collection_data'
-
-annotations_filepath = os.path.join(collection_basepath, 'annotations.json')
-informations_basepath = os.path.join(collection_basepath, 'informations')
-details_basepath = os.path.join(collection_basepath, 'details')
+import data_collection as dc
 
 images = {}
-annotations = {}
+labels = {}
 target_key = None
 
 def update_annotation():
-    global annotations
+    global labels
 
 def load_image(basedir, key):
     filename = f'{key}.png'
@@ -41,16 +36,16 @@ def load_image(basedir, key):
     return Image.open(filepath)
 
 if __name__ == '__main__':
-    if os.path.exists(annotations_filepath):
-        with open(annotations_filepath) as f:
-            annotations = json.load(f)
+    if os.path.exists(dc.label_filepath):
+        with open(dc.label_filepath) as f:
+            labels = json.load(f)
     
-    logger.debug(f'current annotation count: {len(annotations)}')
+    logger.debug(f'current annotation count: {len(labels)}')
     
-    for filepath in glob(os.path.join(informations_basepath, '*')):
+    for filepath in glob(os.path.join(dc.informations_basepath, '*')):
         key = os.path.basename(filepath).replace('.png', '')
         images[key] = None
-    for filepath in glob(os.path.join(details_basepath, '*')):
+    for filepath in glob(os.path.join(dc.details_basepath, '*')):
         key = os.path.basename(filepath).replace('.png', '')
         images[key] = None
 
@@ -65,24 +60,28 @@ if __name__ == '__main__':
             target_key = values['list_keys'][0]
             if images[target_key] is None:
                 images[target_key] = {
-                    'informations': load_image(informations_basepath, target_key),
-                    'details': load_image(details_basepath, target_key)
+                    'informations': load_image(dc.informations_basepath, target_key),
+                    'details': load_image(dc.details_basepath, target_key)
                 }
             
             informations = images[target_key]['informations']
             details = images[target_key]['details']
 
-            gui.set_labels(annotations[target_key] if target_key in annotations else{})
+            gui.set_labels(labels[target_key] if target_key in labels else {})
             gui.display_informations(informations)
             gui.display_details(details)
 
             if informations is not None:
                 gui.set_informations(images[target_key]['informations'])
+            else:
+                gui.reset_informations()
             if details is not None:
                 gui.set_details(images[target_key]['details'])
+            else:
+                gui.reset_details()
         
         if event == 'button_label_overwrite' and not target_key is None:
-            annotations[target_key] = {
+            labels[target_key] = {
                 'play_mode': values['play_mode'],
                 'difficulty': values['difficulty'],
                 'level': values['level'],
@@ -103,8 +102,8 @@ if __name__ == '__main__':
                 'score_new': values['score_new'],
                 'miss_count_new': values['miss_count_new']
             }
-            with open(annotations_filepath, 'w') as f:
-                json.dump(annotations, f, indent=2)
+            with open(dc.label_filepath, 'w') as f:
+                json.dump(labels, f, indent=2)
         if event == 'button_recog' and not target_key is None:
             gui.set_result()
 

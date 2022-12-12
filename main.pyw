@@ -33,11 +33,11 @@ import gui.main as gui
 from resources import finds
 from screenshot import Screenshot
 from recog import recog
-from larning import save_raw
+from raw_image import save_raw
 from storage import StorageAccessor
 
 thread_time_start = 1
-thread_time_normal = 0.35
+thread_time_normal = 0.36
 thread_time_wait = 5
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'

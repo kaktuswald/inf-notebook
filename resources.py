@@ -19,9 +19,6 @@ areas_filename = 'areas.json'
 finds_dirname = 'finds'
 masks_dirname = 'masks'
 
-title = u'beatmaniaIIDX INFINITAS リザルト手帳'
-icon_path = 'icon.ico'
-
 def is_embedded():
     return hasattr(sys, '_MEIPASS')
 
@@ -32,23 +29,6 @@ def create_resource_directory():
 
     if not os.path.exists(resources_dirpath):
         os.mkdir(resources_dirpath)
-
-def save_areas():
-    if is_embedded():
-        logger.error(f"Can't save {areas_filepath}")
-        return
-
-    create_resource_directory()
-
-    with open(areas_filepath, 'w') as f:
-        json.dump(areas, f, indent=2)
-
-def create_masks_directory():
-    if not os.path.exists(masks_dirpath):
-        os.mkdir(masks_dirpath)
-
-def save_mask(key, value):
-    np.save(os.path.join(masks_dirpath, key), value)
 
 def save_find_image(key, image):
     if is_embedded():

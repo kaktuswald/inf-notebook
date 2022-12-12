@@ -16,11 +16,10 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.manage as gui
-from resources import areas,finds,save_areas,save_find_image
+from resources import areas,finds,save_find_image
 from define import option_widths
-from recog import recog
 from screenshot import Screenshot
-from larning import raws_basepath,raw_label
+from larning import RawLabel,raws_basepath
 
 screenshot = Screenshot()
 
@@ -48,9 +47,9 @@ def find():
         window[f'find_{key}'].update(visible=result)
 
 if __name__ == '__main__':
-    labels = raw_label()
+    labels = RawLabel()
     
-    files = glob.glob(os.path.join(raws_basepath, '*.png'))
+    files = glob.glob(os.path.join(raws_basepath, '*.bmp'))
     filenames = [*map(os.path.basename, files)]
 
     window = gui.generate_window([*areas.keys()], filenames)
@@ -99,18 +98,6 @@ if __name__ == '__main__':
                             area[0] += option_widths[option] + option_widths[delimita]
                             area[2] += option_widths[option] + option_widths[delimita]
                 gui.display_trim(image.crop(area))
-        if event == 'button_define_overwrite':
-            area = [int(value) for value in [values['left'], values['top'], values['right'], values['bottom']]]
-
-            if type(areas[values['key1']]) is list:
-                areas[values['key1']] = area
-            else:
-                if type(areas[values['key1']][values['key2']]) is list:
-                    areas[values['key1']][values['key2']] = area
-                else:
-                    areas[values['key1']][values['key2']][values['key3']] = area
-            
-            save_areas()
         if event == 'button_label_overwrite' and not screen is None:
             playside = None
             if values['play_side_none']:
@@ -120,14 +107,6 @@ if __name__ == '__main__':
             if values['play_side_2p']:
                 playside = '2P'
 
-            use_option = False
-            for key in ['option_arrange', 'option_arrange_1p', 'option_arrange_2p', 'option_arrange_sync', 'option_flip', 'option_assist']:
-                if values[key] != '':
-                    use_option = True
-            for key in ['option_battle', 'option_h-random']:
-                if values[key]:
-                    use_option = True
-            
             labels.update(
                 screen.filename,
                 {
@@ -136,32 +115,11 @@ if __name__ == '__main__':
                     'cutin_mission': values['cutin_mission'],
                     'cutin_bit': values['cutin_bit'],
                     'rival': values['rival'],
-                    'play_mode': values['play_mode'],
-                    'difficulty': values['difficulty'],
-                    'level': values['level'],
-                    'music': values['music'],
-                    'play_side': playside,
-                    'use_option': use_option,
-                    'option_arrange': values['option_arrange'],
-                    'option_arrange_dp': f"{values['option_arrange_1p']}/{values['option_arrange_2p']}",
-                    'option_arrange_sync': values['option_arrange_sync'],
-                    'option_flip': values['option_flip'],
-                    'option_assist': values['option_assist'],
-                    'option_battle': values['option_battle'],
-                    'option_h-random': values['option_h-random'],
-                    'clear_type': values['clear_type'],
-                    'dj_level': values['dj_level'],
-                    'score': values['score'],
-                    'miss_count': values['miss_count'],
-                    'clear_type_new': values['clear_type_new'],
-                    'dj_level_new': values['dj_level_new'],
-                    'score_new': values['score_new'],
-                    'miss_count_new': values['miss_count_new']
+                    'play_side': playside
                 }
             )
             labels.save()
-        if event == 'button_recog' and not screen is None:
-            if recog.is_result(screen.image):
-                gui.set_result(recog.get_result(screen))
+        if event == 'button_feedback' and not screen is None:
+            gui.feedback()
 
     window.close()

@@ -14,6 +14,7 @@ informations_trimsize = (460, 71)
 details_trimsize = (350, 245)
 
 option_trimsize = (57, 4)
+number_trimsize = (24, 15)
 
 informmations_trimpos = (410, 633)
 details_trimpos = {

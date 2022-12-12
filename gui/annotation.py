@@ -236,6 +236,12 @@ def update_image(name, image):
     image.save(bytes, format='PNG')
     window[name].update(data=bytes.getvalue())
 
+def reset_informations():
+    window['result_play_mode'].update('')
+    window['result_difficulty'].update('')
+    window['result_level'].update('')
+    window['result_music'].update('')
+
 def set_informations(image):
     play_mode, difficulty, level, music = recog.get_informations(image)
 
@@ -243,6 +249,21 @@ def set_informations(image):
     window['result_difficulty'].update(difficulty)
     window['result_level'].update(level)
     window['result_music'].update(music)
+
+def reset_details(image):
+    window['result_option_arrange'].update('')
+    window['result_option_flip'].update('')
+    window['result_option_assist'].update('')
+    window['result_option_battle'].update(visible=False)
+    window['result_option_h-random'].update(visible=False)
+    window['result_clear_type'].update('')
+    window['result_dj_level'].update('')
+    window['result_score'].update('')
+    window['result_miss_count'].update('')
+    window['result_clear_type_new'].update(visible=False)
+    window['result_dj_level_new'].update(visible=False)
+    window['result_score_new'].update(visible=False)
+    window['result_miss_count_new'].update(visible=False)
 
 def set_details(image):
     option, clear_type, dj_level, score, miss_count, clear_type_new, dj_level_new, score_new, miss_count_new = recog.get_details(image)
