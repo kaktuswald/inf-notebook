@@ -42,8 +42,11 @@ class StorageAccessor():
         if self.client is None:
             return
         
-        self.bucket_informations = self.client.bucket(bucket_name_informations)
-        logger.debug('connect bucket informations')
+        try:
+            self.bucket_informations = self.client.get_bucket(bucket_name_informations)
+            logger.debug('connect bucket informations')
+        except Exception as ex:
+            logger.exception(ex)
 
     def connect_bucket_details(self):
         if self.client is None:
@@ -51,8 +54,11 @@ class StorageAccessor():
         if self.client is None:
             return
         
-        self.bucket_details = self.client.bucket(bucket_name_details)
-        logger.debug('connect bucket details')
+        try:
+            self.bucket_details = self.client.get_bucket(bucket_name_details)
+            logger.debug('connect bucket details')
+        except Exception as ex:
+            logger.exception(ex)
 
     def upload_image(self, blob, image):
         bytes = io.BytesIO()
@@ -65,9 +71,12 @@ class StorageAccessor():
         if self.bucket_informations is None:
             return
 
-        blob = self.bucket_informations.blob(object_name)
-        self.upload_image(blob, image)
-        logger.debug(f'upload information image {object_name}')
+        try:
+            blob = self.bucket_informations.blob(object_name)
+            self.upload_image(blob, image)
+            logger.debug(f'upload information image {object_name}')
+        except Exception as ex:
+            logger.exception(ex)
 
     def upload_details(self, object_name, image):
         if self.bucket_details is None:
@@ -75,9 +84,12 @@ class StorageAccessor():
         if self.bucket_details is None:
             return
 
-        blob = self.bucket_details.blob(object_name)
-        self.upload_image(blob, image)
-        logger.debug(f'upload details image {object_name}')
+        try:
+            blob = self.bucket_details.blob(object_name)
+            self.upload_image(blob, image)
+            logger.debug(f'upload details image {object_name}')
+        except Exception as ex:
+            logger.exception(ex)
 
     def upload_collection(self, screen, result):
         self.connect_client()
@@ -121,6 +133,7 @@ class StorageAccessor():
     def download_and_delete_all(self, basedir):
         self.connect_client()
         if self.client is None:
+            print('connect client failed')
             return
 
         if not os.path.exists(basedir):

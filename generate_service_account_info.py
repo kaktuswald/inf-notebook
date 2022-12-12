@@ -6,6 +6,7 @@ generate_filename = 'service_account_info.py'
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
+        print('please specify json file or encoded string from argment')
         sys.exit()
     
     if os.path.exists(sys.argv[1]):
@@ -20,3 +21,5 @@ if __name__ == '__main__':
     f.write(info.decode('utf-8'))
 
     f.close()
+
+    print('generated service_account_info.py')
