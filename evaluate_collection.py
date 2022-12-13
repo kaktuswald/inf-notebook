@@ -47,12 +47,11 @@ def evaluate(filename, informations, details, label):
         if not 'music' in label.keys():
             results.append('none')
         else:
-            results.append('')
-            # if play_mode == label['music']:
-            #     results.append('ok')
-            # else:
-            #     results.append(f"{music} {label['music']}")
-            #     failure = True
+            if music == label['music']:
+                results.append('ok')
+            else:
+                results.append(f"{music} {label['music']}")
+                # failure = True
     else:
         results.append('')
         results.append('')
@@ -295,6 +294,6 @@ if __name__ == '__main__':
     output.append(f'result, {not failure}')
     print(not failure)
     
-    with open(result_filepath, 'w') as f:
+    with open(result_filepath, 'w', encoding='utf-8') as f:
         f.writelines(output)
         f.close()

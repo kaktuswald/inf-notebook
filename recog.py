@@ -1,4 +1,6 @@
 import numpy as np
+import json
+from base64 import b64encode
 from logging import getLogger
 
 logger_child_name = 'recog'
@@ -7,7 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import value_list,option_widths
-from resources import areas,masks
+from resources import areas,masks,recog_music_filename
 from result import Result
 
 informations_trimsize = (460, 71)
@@ -15,6 +17,8 @@ details_trimsize = (350, 245)
 
 option_trimsize = (57, 4)
 number_trimsize = (24, 15)
+
+music_block_size = 16
 
 informmations_trimpos = (410, 633)
 details_trimpos = {
@@ -42,7 +46,7 @@ informations_areas = {
     'play_mode': [82, 55, 102, 65],
     'difficulty': [196, 55, 229, 65],
     'level': [231, 55, 252, 65],
-    'music': [0, 2, 460, 4]
+    'music': [150, 0, 310, 16]
 }
 
 details_areas = {
@@ -58,6 +62,8 @@ details_areas = {
 }
 
 option_trimwidth = 57
+
+music_color_define = [245,244,238,231,224,218,211,205,198,191,185,178,171,165,158,152]
 
 class Recog():
     def __init__(self, mask):
@@ -131,6 +137,11 @@ class Recognition():
             list = [masks[f'{difficulty}-{level}'] for level in value_list['levels'] if f'{difficulty}-{level}' in masks.keys()]
             self.level[difficulty] = RecogMultiValue(list)
 
+        with open(recog_music_filename) as f:
+            self.music = json.load(f)
+
+        self.generate_music_materials()
+
         self.use_option = Recog(masks['use_option'])
 
         masks_option = [masks[key] for key in option_widths.keys() if key in masks.keys()]
@@ -142,6 +153,27 @@ class Recognition():
         self.number = RecogNumber([masks[str(key)] for key in range(10)], 4)
 
         self.new = Recog(masks['new'])
+
+    def generate_music_materials(self):
+        width = informations_areas['music'][2] - informations_areas['music'][0]
+        height = informations_areas['music'][3] - informations_areas['music'][1]
+        x_count = int(width / music_block_size)
+        y_count = int(height / music_block_size)
+
+        self.music_mask = np.zeros((height, width), dtype=np.uint8)
+        for i in range(len(music_color_define)):
+            self.music_mask[i,:] = music_color_define[i]
+
+        self.music_trimblocks = []
+        for x in range(x_count):
+            for y in range(y_count):
+                x_p = int(x_count / 2 - (int(x / 2) + 1) if x % 2 else x_count /2 + int(x / 2))
+                self.music_trimblocks.append([
+                    x_p * music_block_size,
+                    y * music_block_size,
+                    (x_p + 1) * music_block_size,
+                    (y + 1) * music_block_size
+                ])
 
     def get_starting(self, image_result):
         crop = image_result.crop(areas['starting'])
@@ -190,6 +222,24 @@ class Recognition():
             crop_level = image_level.crop(areas['level'])
             return difficulty, self.level[difficulty].find(crop_level).split('-')[1]
         return difficulty, None
+    
+    def get_music(self, image_music):
+        np_value = np.array(image_music)
+        masked = np.where(np_value==self.music_mask,self.music_mask, 0)
+
+        try:
+            target = self.music
+            for block in self.music_trimblocks:
+                np_trim = masked[block[1]:block[3],block[0]:block[2]].astype(np.uint8)
+                key = b64encode(np_trim).decode('utf-8')
+                if not key in target:
+                    return None
+                target = target[key]
+            return target
+        except Exception as ex:
+            logger.exception(ex)
+            print(ex)
+            return None
 
     def get_option(self, image_options):
         ret = {'arrange': None, 'flip': None, 'assist': None, 'battle': False, 'h-random': False}
@@ -238,14 +288,14 @@ class Recognition():
             return 'F-COMBO'
         return result
 
-    def get_informations(self, image_informations):
-        crop_play_mode = image_informations.crop(informations_areas['play_mode'])
+    def get_informations(self, image):
+        crop_play_mode = image.crop(informations_areas['play_mode'])
         play_mode = self.play_mode.find(crop_play_mode)
 
-        crop_difficulty = image_informations.crop(informations_areas['difficulty'])
+        crop_difficulty = image.crop(informations_areas['difficulty'])
         difficulty = self.difficulty.find(crop_difficulty)
         if difficulty is not None:
-            crop_level = image_informations.crop(informations_areas['level'])
+            crop_level = image.crop(informations_areas['level'])
             difficulty_level = self.level[difficulty].find(crop_level)
             if difficulty_level is not None:
                 difficulty, level = difficulty_level.split('-')
@@ -254,20 +304,20 @@ class Recognition():
         else:
             level = None
 
-        music = ''
+        music = self.get_music(image.crop(informations_areas['music']))
 
         return play_mode, difficulty, level, music
 
-    def get_details(self, image_details):
-        option = self.get_option(image_details.crop(details_areas['option']))
-        clear_type = self.get_clear_type(image_details.crop(details_areas['clear_type']))
-        dj_level = self.dj_level.find(image_details.crop(details_areas['dj_level']))
-        score = self.number.find(image_details.crop(details_areas['score']))
-        miss_count = self.number.find(image_details.crop(details_areas['miss_count']))
-        clear_type_new = not self.new.find(image_details.crop(details_areas['clear_type_new']))
-        dj_level_new = not self.new.find(image_details.crop(details_areas['dj_level_new']))
-        score_new = not self.new.find(image_details.crop(details_areas['score_new']))
-        miss_count_new = not self.new.find(image_details.crop(details_areas['miss_count_new']))
+    def get_details(self, image):
+        option = self.get_option(image.crop(details_areas['option']))
+        clear_type = self.get_clear_type(image.crop(details_areas['clear_type']))
+        dj_level = self.dj_level.find(image.crop(details_areas['dj_level']))
+        score = self.number.find(image.crop(details_areas['score']))
+        miss_count = self.number.find(image.crop(details_areas['miss_count']))
+        clear_type_new = not self.new.find(image.crop(details_areas['clear_type_new']))
+        dj_level_new = not self.new.find(image.crop(details_areas['dj_level_new']))
+        score_new = not self.new.find(image.crop(details_areas['score_new']))
+        miss_count_new = not self.new.find(image.crop(details_areas['miss_count_new']))
 
         return option, clear_type, dj_level, score, miss_count, clear_type_new, dj_level_new, score_new, miss_count_new
 

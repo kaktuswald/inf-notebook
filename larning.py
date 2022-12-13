@@ -148,26 +148,3 @@ def is_result_ok(label):
         return False
     
     return True
-    
-# def larning_by_side(key):
-#     targets = {}
-#     for filename, image in images.items():
-#         label = labels.get(filename)
-#         if is_result_ok(label) and key in label.keys() and label[key]:
-#             targets[filename] = image.crop(areas[label['play_side']][key])
-
-#     larning(key, targets)
-
-# def larning_values_by_side(key, value_list):
-#     targets = {}
-#     for value_name in value_list:
-#         targets[value_name] = {}
-    
-#     for filename, image in images.items():
-#         label = labels.get(filename)
-#         if is_result_ok(label):
-#             if key in label.keys() and label[key] in value_list:
-#                 targets[label[key]][filename] = image.crop(areas[label['play_side']][key])
-    
-#     for value_name in value_list:
-#         larning(value_name, targets[value_name])

@@ -245,12 +245,12 @@ def reset_informations():
 def set_informations(image):
     play_mode, difficulty, level, music = recog.get_informations(image)
 
-    window['result_play_mode'].update(play_mode)
-    window['result_difficulty'].update(difficulty)
-    window['result_level'].update(level)
-    window['result_music'].update(music)
+    window['result_play_mode'].update(play_mode if play_mode is not None else '')
+    window['result_difficulty'].update(difficulty if difficulty is not None else '')
+    window['result_level'].update(level if level is not None else '')
+    window['result_music'].update(music if music is not None else '')
 
-def reset_details(image):
+def reset_details():
     window['result_option_arrange'].update('')
     window['result_option_flip'].update('')
     window['result_option_assist'].update('')

@@ -88,7 +88,7 @@ Cloud Storage上の画像を全てcollection_data下に保存し、削除する�
 python download.py
 ```
 
-## アノテーションする
+## 学習する
 
 ### 基本的なところ
 - INFINITAS画面位置の検出
@@ -133,6 +133,7 @@ python annotation.pyw
 #### 学習する
 ```
 python larning_collection.py
+python larning_music.py
 ```
 
 #### 学習結果とラベルの照合

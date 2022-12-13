@@ -19,6 +19,8 @@ areas_filename = 'areas.json'
 finds_dirname = 'finds'
 masks_dirname = 'masks'
 
+recog_music_filename = os.path.join(resources_dirname, 'musics.json')
+
 def is_embedded():
     return hasattr(sys, '_MEIPASS')
 
