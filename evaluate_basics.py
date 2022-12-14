@@ -2,7 +2,11 @@ from PIL import Image
 import json
 import sys
 import os
+import pyautogui as pgui
+from PIL import Image
 
+from define import define
+from resources import find_images
 from recog import Recognition
 from larning import raws_basepath,label_basics_filepath
 
@@ -14,66 +18,69 @@ def evaluate(filename, image, label):
     global failure
 
     results = [filename]
+
+    if not 'screen' in label.keys():
+        results.append('none')
+    else:
+        screen_results = []
+        for key in define.screen_areas.keys():
+            if pgui.locate(find_images[key], image, grayscale=True) is not None:
+                screen_results.append(key)
+        if len(screen_results) == 1 and screen_results[0] == label['screen']:
+            results.append('ok')
+        else:
+            results.append(','.join(screen_results))
+            failure = True
     
-    starting = recog.get_starting(image)
-    if starting is not None:
-        if not 'startinig' in label.keys() or starting == label['starting']:
-            results.append('ok')
+    targets = {
+        'loading': recog.search_loading,
+        'warning': recog.search_warning,
+        'music_select': recog.search_music_select,
+        'result': recog.search_result
+    }
+    for key, value in targets.items():
+        if not 'screen' in label.keys():
+            results.append('none')
         else:
-            results.append(f"{starting} {label['starting']}")
-            failure = True
-
-        results.append('')
-        results.append('')
-        results.append('')
-        results.append('')
-        results.append('')
-        results.append('')
-        results.append('!')
-        return results
-
-    results.append('ok')
-
-    if not 'trigger' in label.keys():
-        results.append('none')
-    else:
-        trigger = recog.search_trigger(image)
-        if trigger == label['trigger']:
-            results.append('ok')
-        else:
-            results.append(f"{trigger} {label['trigger']}")
-            failure = True
-
-    if not 'cutin_mission' in label.keys():
-        results.append('none')
-    else:
-        cutin_mission = recog.search_cutin_mission(image)
-        if cutin_mission == label['cutin_mission']:
-            results.append('ok')
-        else:
-            results.append(f"{cutin_mission} {label['cutin_mission']}")
-            failure = True
-
-    if not 'cutin_bit' in label.keys():
-        results.append('none')
-    else:
-        cutin_bit = recog.search_cutin_bit(image)
-        if cutin_bit == label['cutin_bit']:
-            results.append('ok')
-        else:
-            results.append(f"{cutin_bit} {label['cutin_bit']}")
-            failure = True
-
-    if not trigger or cutin_mission or cutin_bit:
+            if label['screen'] != key:
+                results.append('')
+            else:
+                if value(image):
+                    results.append('ok')
+                else:
+                    results.append('ng')
+                    failure = True
+    
+    if not 'screen' in label.keys() or label['screen'] != 'result':
         results.append('not result')
         results.append('')
         results.append('')
+        results.append('')
+        results.append('')
+        results.append('')
         results.append('!')
         return results
-    
+
     results.append('')
 
-    if not 'play_side' in label.keys():
+    targets = {
+        'trigger': recog.search_trigger,
+        'cutin_mission': recog.search_cutin_mission,
+        'cutin_bit': recog.search_cutin_bit,
+        'rival': recog.search_rival
+    }
+    for key, value in targets.items():
+        if not key in label.keys():
+            results.append('none')
+        else:
+            trigger = value(image)
+            if trigger == label[key]:
+                results.append('ok')
+            else:
+                results.append(f"{trigger} {label[key]}")
+                failure = True
+
+    if not 'play_side' in label.keys() or not 'cutin_mission' in label.keys() or label['cutin_mission']:
         results.append('none')
         play_side = None
     else:
@@ -82,16 +89,6 @@ def evaluate(filename, image, label):
             results.append('ok')
         else:
             results.append(f"{play_side} {label['play_side']}")
-            failure = True
-
-    if not 'rival' in label.keys():
-        results.append('none')
-    else:
-        result = recog.search_rival(image)
-        if result == label['rival']:
-            results.append('ok')
-        else:
-            results.append(f"{result} {label['rival']}")
             failure = True
 
     results.append('!')
@@ -118,17 +115,21 @@ if __name__ == '__main__':
     print(f"file count: {len(filenames)}")
 
     headers = [
-        'starting',
+        'screen',
+        'loading',
+        'warning',
+        'music_select',
+        'result',
+        '',
         'trigger',
         'cutin_mission',
         'cutin_bit',
-        '',
-        'play_side',
         'rival',
+        'play_side',
         'result'
     ]
 
-    output.append(f"ファイル名,{','.join(headers)}\n")
+    output.append(f"file name,{','.join(headers)}\n")
     for filename in filenames:
         filepath = os.path.join(raws_basepath, filename)
         if not os.path.isfile(filepath):

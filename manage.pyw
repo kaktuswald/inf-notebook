@@ -16,8 +16,8 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.manage as gui
-from resources import areas,finds,save_find_image
-from define import option_widths
+from resources import areas,find_images
+from define import define
 from screenshot import Screenshot
 from larning import RawLabel,raws_basepath
 
@@ -38,13 +38,14 @@ def screenshot_process():
     gui.set_recognition(screen)
 
 def find():
-    for key in finds.keys():
-        box = pgui.locate(finds[key]['image'], screen.image, grayscale=True)
-        area = areas['find'][key]
-        result = False
+    window['result_screen'].update('')
+    for key in find_images.keys():
+        box = pgui.locate(find_images[key], screen.image, grayscale=True)
+        area = define.screen_areas[key]
         if not box is None and box.left == area[0] and box.top == area[1]:
-            result = True
-        window[f'find_{key}'].update(visible=result)
+            window['result_screen'].update(key)
+            window['result_screen_masterpos'].update(f'{area[0]}, {area[1]}')
+            window['result_screen_findpos'].update(f'{box.left}, {box.top}')
 
 if __name__ == '__main__':
     labels = RawLabel()
@@ -79,13 +80,6 @@ if __name__ == '__main__':
         if event == 'area_second':
             gui.set_area(areas[values['area_top']][values['area_second']])
             gui.switch_option_widths_view()
-        if event == 'button_find_save' and not screen is None:
-            if values['area_top'] == 'find':
-                area = [int(value) for value in [values['left'], values['top'], values['right'], values['bottom']]]
-                if area[0] < area[2] and area[1] < area[3]:
-                    trim = screen.image.crop(area)
-                    save_find_image(values['area_second'], trim)
-                    gui.update_image(f"find_{values['area_second']}", trim)
         if event == 'button_trim' and not screen is None:
             image = screen.original
             area = [int(value) for value in [values['left'], values['top'], values['right'], values['bottom']]]
@@ -95,10 +89,14 @@ if __name__ == '__main__':
                         option = values[f'area_option{number}']
                         delimita = values[f'area_delimita{number}']
                         if option != '' and delimita != '':
-                            area[0] += option_widths[option] + option_widths[delimita]
-                            area[2] += option_widths[option] + option_widths[delimita]
+                            area[0] += define.option_widths[option] + define.option_widths[delimita]
+                            area[2] += define.option_widths[option] + define.option_widths[delimita]
                 gui.display_trim(image.crop(area))
         if event == 'button_label_overwrite' and not screen is None:
+            screen_name = None
+            for key in ['none', 'warning', 'music_select', 'result']:
+                if values[f'screen_{key}']:
+                    screen_name = key
             playside = None
             if values['play_side_none']:
                 playside = ''
@@ -110,7 +108,7 @@ if __name__ == '__main__':
             labels.update(
                 screen.filename,
                 {
-                    'starting': values['starting'],
+                    'screen': screen_name,
                     'trigger': values['trigger'],
                     'cutin_mission': values['cutin_mission'],
                     'cutin_bit': values['cutin_bit'],

@@ -30,7 +30,8 @@ logger.debug('mode: manage')
 
 from version import version
 import gui.main as gui
-from resources import finds
+from define import define
+from resources import find_images
 from screenshot import Screenshot
 from recog import recog
 from raw_image import save_raw
@@ -66,14 +67,14 @@ class ThreadMain(threading.Thread):
 
     def routine(self):
         if not self.positioned:
-            for key, target in finds.items():
-                box = screenshot.find(target['image'])
+            for key in define.screen_areas.keys():
+                box = screenshot.find(find_images[key])
                 if not box is None:
                     self.positioned = True
                     self.queues['log'].put(f'find window: {key}')
                     self.queues['log'].put(f'position: {box}')
-                    left = box.left - target['area'][0]
-                    top = box.top - target['area'][1]
+                    left = box.left - define.screen_areas[key][0]
+                    top = box.top - define.screen_areas[key][1]
                     screenshot.region = (
                         left,
                         top,
@@ -90,33 +91,36 @@ class ThreadMain(threading.Thread):
         if display_screenshot_enable:
             self.queues['display_image'].put(screen.original)
         
-        starting = recog.get_starting(screen.image)
-        if not self.waiting and starting == 'loading':
+        if self.waiting:
+            if not recog.is_ended_waiting(screen.image):
+                return
+
+            self.waiting = False
+            self.queues['log'].put('find warning: end waiting')
+            self.sleep_time = thread_time_normal
+            self.queues['log'].put(f'change sleep time: {self.sleep_time}')
+
+        if recog.search_loading(screen.image):
             self.finded = False
             self.processed = False
             self.waiting = True
             self.queues['log'].put('find loading: start waiting')
             self.sleep_time = thread_time_wait
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
-        if self.waiting and starting == 'warning':
-            self.waiting = False
-            self.queues['log'].put('find warning: end waiting')
-            self.sleep_time = thread_time_normal
-            self.queues['log'].put(f'change sleep time: {self.sleep_time}')
+            return
 
-        if not self.waiting:
-            if recog.is_result(screen.image):
-                if not self.finded:
-                    self.finded = True
-                    self.find_time = time.time()
-                if self.finded and not self.processed:
-                    if time.time() - self.find_time > thread_time_normal*2-0.1:
-                        self.processed = True
-                        self.queues['result_screen'].put(screen)
-            else:
-                if self.finded:
-                    self.finded = False
-                    self.processed = False
+        if recog.is_result(screen.image):
+            if not self.finded:
+                self.finded = True
+                self.find_time = time.time()
+            if self.finded and not self.processed:
+                if time.time() - self.find_time > thread_time_normal*2-0.1:
+                    self.processed = True
+                    self.queues['result_screen'].put(screen)
+        else:
+            if self.finded:
+                self.finded = False
+                self.processed = False
 
 def result_process(screen):
     result = recog.get_result(screen)
@@ -161,7 +165,7 @@ def get_latest_version():
     with request.urlopen(latest_url) as response:
         url = response.geturl()
         version = url.split('/')[-1]
-        print(version)
+        print(f'latest version: {version}')
         if version[0] == 'v':
             return version.replace('v', '')
         else:

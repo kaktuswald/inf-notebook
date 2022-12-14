@@ -8,7 +8,7 @@ logger_child_name = 'recog'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
-from define import value_list,option_widths
+from define import define
 from resources import areas,masks,recog_music_filename
 from result import Result
 
@@ -114,14 +114,16 @@ class Recognition():
         logger.debug('generate Recognition')
         self.areas = areas
 
-        self.starting = RecogMultiValue([masks[key] for key in value_list['startings']])
-
+        self.loading = Recog(masks['loading'])
+        self.warning = Recog(masks['warning'])
+        self.music_select = Recog(masks['music_select'])
+        self.result = Recog(masks['result'])
         self.trigger = Recog(masks['trigger'])
         self.cutin_mission = Recog(masks['cutin_mission'])
         self.cutin_bit = Recog(masks['cutin_bit'])
 
         self.play_sides = []
-        for play_side in value_list['play_sides']:
+        for play_side in define.value_list['play_sides']:
             self.play_sides.append({
                 'play_side': play_side,
                 'area': areas[play_side]['play_side'],
@@ -129,12 +131,12 @@ class Recognition():
             })
         
         self.rival = Recog(masks['rival'])
-        self.play_mode = RecogMultiValue([masks[key] for key in value_list['play_modes']])
-        self.difficulty = RecogMultiValue([masks[key] for key in value_list['difficulties'] if key in masks.keys()])
+        self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
+        self.difficulty = RecogMultiValue([masks[key] for key in define.value_list['difficulties'] if key in masks.keys()])
         self.level = {}
 
-        for difficulty in value_list['difficulties']:
-            list = [masks[f'{difficulty}-{level}'] for level in value_list['levels'] if f'{difficulty}-{level}' in masks.keys()]
+        for difficulty in define.value_list['difficulties']:
+            list = [masks[f'{difficulty}-{level}'] for level in define.value_list['levels'] if f'{difficulty}-{level}' in masks.keys()]
             self.level[difficulty] = RecogMultiValue(list)
 
         with open(recog_music_filename) as f:
@@ -142,13 +144,11 @@ class Recognition():
 
         self.generate_music_materials()
 
-        self.use_option = Recog(masks['use_option'])
-
-        masks_option = [masks[key] for key in option_widths.keys() if key in masks.keys()]
+        masks_option = [masks[key] for key in define.option_widths.keys() if key in masks.keys()]
         self.option = RecogMultiValue(masks_option)
 
-        self.clear_type = RecogMultiValue([masks[key] for key in value_list['clear_types'] if key in masks.keys()])
-        self.dj_level = RecogMultiValue([masks[key] for key in value_list['dj_levels']])
+        self.clear_type = RecogMultiValue([masks[key] for key in define.value_list['clear_types'] if key in masks.keys()])
+        self.dj_level = RecogMultiValue([masks[key] for key in define.value_list['dj_levels']])
 
         self.number = RecogNumber([masks[str(key)] for key in range(10)], 4)
 
@@ -175,13 +175,35 @@ class Recognition():
                     (y + 1) * music_block_size
                 ])
 
-    def get_starting(self, image_result):
-        crop = image_result.crop(areas['starting'])
-        return self.starting.find(crop)
-    
+    def search_loading(self, image_result):
+        crop = image_result.crop(define.screen_areas['loading'])
+        return self.loading.find(crop)
+
+    def search_warning(self, image_result):
+        crop = image_result.crop(define.screen_areas['warning'])
+        return self.warning.find(crop)
+
+    def search_music_select(self, image_result):
+        crop = image_result.crop(define.screen_areas['music_select'])
+        return self.music_select.find(crop)
+
+    def search_result(self, image_result):
+        crop = image_result.crop(define.screen_areas['result'])
+        return self.result.find(crop)
+
     def search_trigger(self, image_result):
         crop = image_result.crop(areas['trigger'])
         return self.trigger.find(crop)
+
+    def is_ended_waiting(self, image_result):
+        if self.search_warning(image_result):
+            return True
+        if self.search_music_select(image_result):
+            return True
+        if self.search_trigger(image_result):
+            return True
+        
+        return False
 
     def search_cutin_mission(self, image_result):
         crop = image_result.crop(areas['cutin_mission'])
@@ -199,6 +221,9 @@ class Recognition():
         return None
 
     def is_result(self, image_result):
+        if not self.search_result(image_result):
+            return False
+
         if not self.search_trigger(image_result):
             return False
         if self.search_cutin_mission(image_result):
@@ -255,30 +280,30 @@ class Recognition():
                 last = True
                 continue
             
-            if op in value_list['options_arrange']:
+            if op in define.value_list['options_arrange']:
                 ret['arrange'] = op
-            if op in value_list['options_arrange_dp']:
+            if op in define.value_list['options_arrange_dp']:
                 if left is None:
                     left = op
                 else:
                     ret['arrange'] = f'{left}/{op}'
                     left = None
-            if op in value_list['options_arrange_sync']:
+            if op in define.value_list['options_arrange_sync']:
                 ret['arrange'] = op
-            if op in value_list['options_flip']:
+            if op in define.value_list['options_flip']:
                 ret['flip'] = op
-            if op in value_list['options_assist']:
+            if op in define.value_list['options_assist']:
                 ret['assist'] = op
             if op == 'BATTLE':
                 ret['battle'] = True
             if op == 'H-RANDOM':
                 ret['h-random'] = True
 
-            area_left += option_widths[op]
+            area_left += define.option_widths[op]
             if left is None:
-                area_left += option_widths[',']
+                area_left += define.option_widths[',']
             else:
-                area_left += option_widths['/']
+                area_left += define.option_widths['/']
         
         return ret
 
@@ -304,7 +329,8 @@ class Recognition():
         else:
             level = None
 
-        music = self.get_music(image.crop(informations_areas['music']))
+        # music = self.get_music(image.crop(informations_areas['music']))
+        music = None
 
         return play_mode, difficulty, level, music
 
