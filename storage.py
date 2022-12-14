@@ -98,24 +98,25 @@ class StorageAccessor():
         
         object_name = f'{uuid.uuid1()}.png'
 
-        informations_trim = True
+        informations_trim = False
+        details_trim = False
+
+        for key in ['play_mode', 'difficulty', 'level', 'music']:
+            if result.informations[key] is None:
+                informations_trim = True
+
+        if result.informations['play_mode'] == 'DP':
+            details_trim = True
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            if result.details[key] is None:
+                details_trim = True
+        if result.details['clear_type'] == 'F-COMBO':
+            details_trim = True
 
         if informations_trim:
             trim = screen.image.crop(informations_trimarea)
             Thread(target=self.upload_informations, args=(object_name, trim,)).start()
 
-        details_trim = False
-        details = result.details
-        if details['use_option']:
-            details_trim = True
-        
-        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            if details[key] is None:
-                details_trim = True
-        if details['clear_type'] == 'F-COMBO':
-            details_trim = True
-
-        details_trim = True
         if details_trim:
             play_side = result.play_side
             trim = screen.image.crop(details_trimarea[play_side])
