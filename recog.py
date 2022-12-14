@@ -46,7 +46,7 @@ informations_areas = {
     'play_mode': [82, 55, 102, 65],
     'difficulty': [196, 55, 229, 65],
     'level': [231, 55, 252, 65],
-    'music': [150, 0, 310, 16]
+    'music': [150, 0, 310, 18]
 }
 
 details_areas = {

@@ -126,7 +126,7 @@ raws*/
 collection_data/
 results/
 filtered/
-larning/
+larning*/
 
 *.csv
 *.zip
