@@ -128,6 +128,9 @@ def larning(key, targets):
     larning_filepath = os.path.join(larning_dirpath, f"{key}.png")
     mask_image.save(larning_filepath)
 
+    if not os.path.exists(mask_images_dirpath):
+        os.mkdir(mask_images_dirpath)
+
     mask_image_filepath = os.path.join(mask_images_dirpath, f"{key}.png")
     mask_image.save(mask_image_filepath)
 
