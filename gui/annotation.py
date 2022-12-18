@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 import io
 
-from define import value_list
+from define import define
 from recog import recog,informations_trimsize,details_trimsize
 from .static import title,icon_path
 
@@ -10,15 +10,15 @@ scales = ['1/1', '1/2', '1/4']
 
 def layout_manage(keys):
     selectable_value_list = {}
-    for key, values in value_list.items():
+    for key, values in define.value_list.items():
         selectable_value_list[key] = ['', *values]
     selectable_value_list['all_options'] = [
         '',
-        *value_list['options_arrange'],
-        *value_list['options_arrange_dp'],
-        *value_list['options_arrange_sync'],
-        *value_list['options_flip'],
-        *value_list['options_assist'],
+        *define.value_list['options_arrange'],
+        *define.value_list['options_arrange_dp'],
+        *define.value_list['options_arrange_sync'],
+        *define.value_list['options_flip'],
+        *define.value_list['options_assist'],
         'BATTLE',
         'H-RANDOM'
     ]
@@ -292,13 +292,13 @@ def set_result():
     window['option_arrange_1p'].update('')
     window['option_arrange_2p'].update('')
     window['option_arrange_sync'].update('')
-    if window['result_option_arrange'].get() in value_list['options_arrange']:
+    if window['result_option_arrange'].get() in define.value_list['options_arrange']:
         window['option_arrange'].update(window['result_option_arrange'].get())
     if '/' in window['result_option_arrange'].get():
         left, right = window['result_option_arrange'].get().split('/')
         window['option_arrange_1p'].update(left)
         window['option_arrange_2p'].update(right)
-    if window['result_option_arrange'].get() in value_list['options_arrange_sync']:
+    if window['result_option_arrange'].get() in define.value_list['options_arrange_sync']:
         window['option_arrange_sync'].update(window['result_option_arrange'].get())
 
     window['option_flip'].update(window['result_option_flip'].get())
@@ -313,6 +313,8 @@ def set_result():
     window['dj_level_new'].update(window['result_dj_level_new'].visible)
     window['score_new'].update(window['result_score_new'].visible)
     window['miss_count_new'].update(window['result_miss_count_new'].visible)
+
+    window['music'].set_focus()
 
 def set_labels(label):
     window['play_mode'].update('')
