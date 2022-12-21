@@ -10,7 +10,9 @@ from .static import title,icon_path
 default_box = (0, 0, 1280, 720)
 scales = ['1/1', '1/2', '1/4']
 
-def layout_manage(area_names, filenames):
+def layout_manage(filenames):
+    areas_firstkeys = [*define.areas.keys()]
+
     selectable_value_list = {}
     for key, values in define.value_list.items():
         selectable_value_list[key] = ['', *values]
@@ -37,7 +39,7 @@ def layout_manage(area_names, filenames):
         [
             sg.Text('領域', size=(12, 1)),
             sg.Column([
-                [sg.Combo(area_names, key='area_top', size=(11, 1), readonly=True, enable_events=True)],
+                [sg.Combo(areas_firstkeys, key='area_top', size=(11, 1), readonly=True, enable_events=True)],
                 [sg.Combo([], key='area_second', size=(13, 1), readonly=True, enable_events=True)]
             ], background_color='#7799fd')
         ],
@@ -79,6 +81,7 @@ def layout_manage(area_names, filenames):
             ], pad=0, background_color='#7799fd'),
             sg.Column([
                 [sg.Radio('選曲', key='screen_music_select', group_id='screen')],
+                [sg.Radio('プレイ中', key='screen_playing', group_id='screen')],
                 [sg.Radio('リザルト', key='screen_result', group_id='screen', default=True)]
             ], pad=0, background_color='#7799fd')
         ],
@@ -102,7 +105,8 @@ def layout_manage(area_names, filenames):
             sg.Text('プレイサイド', size=(16, 1)),
             sg.Radio('なし', key='play_side_none', group_id='play_side', default=True),
             sg.Radio('1P', key='play_side_1p', group_id='play_side'),
-            sg.Radio('2P', key='play_side_2p', group_id='play_side')
+            sg.Radio('2P', key='play_side_2p', group_id='play_side'),
+            sg.Radio('DP', key='play_side_dp', group_id='play_side'),
         ],
         [
             sg.Button('アノテーション保存', key='button_label_overwrite'),
@@ -173,12 +177,12 @@ def layout_manage(area_names, filenames):
         ],
     ]
 
-def generate_window(area_names, filenames):
+def generate_window(filenames):
     global window
 
     window = sg.Window(
         title,
-        layout_manage(area_names, filenames),
+        layout_manage(filenames),
         icon=icon_path,
         grab_anywhere=True,
         return_keyboard_events=True,
@@ -284,6 +288,8 @@ def set_labels(label):
                 window['play_side_1p'].update(True)
             if label['play_side'] == '2P':
                 window['play_side_2p'].update(True)
+            if label['play_side'] == 'DP':
+                window['play_side_dp'].update(True)
 
 def set_recognition(screen):
     loading = recog.search_loading(screen.image)

@@ -13,6 +13,22 @@ class Define():
         'result': [784, 689, 790, 697]
     }
 
+    areas = {
+        "trigger": [494,18,580,30],
+        "cutin_mission": [10,10,30,25],
+        "cutin_bit": [55,49,89,64],
+        "rival": [542,578,611,592],
+        "play_side": {
+            "1P": [15,142,21,149],
+            "2P": [1260,141,1266,148]
+        },
+        "turntable": {
+            "1P": [48, 559, 82, 562],
+            "2P": [1199, 559, 1233, 562],
+            "DP": [304, 559, 338, 562]
+        }
+    }
+
     value_list = {
         'play_modes': ['SP', 'DP'],
         'difficulties': ['BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA'],

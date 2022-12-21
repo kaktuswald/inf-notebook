@@ -9,7 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import areas,masks,recog_music_filename
+from resources import masks,recog_music_filename
 from result import Result
 
 informations_trimsize = (460, 71)
@@ -112,11 +112,11 @@ class RecogNumber():
 class Recognition():
     def __init__(self):
         logger.debug('generate Recognition')
-        self.areas = areas
 
         self.loading = Recog(masks['loading'])
         self.warning = Recog(masks['warning'])
         self.music_select = Recog(masks['music_select'])
+        self.turntable = Recog(masks['turntable'])
         self.result = Recog(masks['result'])
         self.trigger = Recog(masks['trigger'])
         self.cutin_mission = Recog(masks['cutin_mission'])
@@ -126,7 +126,7 @@ class Recognition():
         for play_side in define.value_list['play_sides']:
             self.play_sides.append({
                 'play_side': play_side,
-                'area': areas[play_side]['play_side'],
+                'area': define.areas['play_side'][play_side],
                 'recog': Recog(masks['play_side'])
             })
         
@@ -187,30 +187,33 @@ class Recognition():
         crop = image_result.crop(define.screen_areas['music_select'])
         return self.music_select.find(crop)
 
+    def search_turntable(self, image_result):
+        for key in ['1P', '2P', 'DP']:
+            crop = image_result.crop(define.areas['turntable'][key])
+            if self.turntable.find(crop):
+                return True
+        return False
+
     def search_result(self, image_result):
         crop = image_result.crop(define.screen_areas['result'])
         return self.result.find(crop)
 
     def search_trigger(self, image_result):
-        crop = image_result.crop(areas['trigger'])
+        crop = image_result.crop(define.areas['trigger'])
         return self.trigger.find(crop)
 
     def is_ended_waiting(self, image_result):
-        if self.search_warning(image_result):
-            return True
-        if self.search_music_select(image_result):
-            return True
-        if self.search_trigger(image_result):
+        if self.search_turntable(image_result):
             return True
         
         return False
 
     def search_cutin_mission(self, image_result):
-        crop = image_result.crop(areas['cutin_mission'])
+        crop = image_result.crop(define.areas['cutin_mission'])
         return self.cutin_mission.find(crop)
 
     def search_cutin_bit(self, image_result):
-        crop = image_result.crop(areas['cutin_bit'])
+        crop = image_result.crop(define.areas['cutin_bit'])
         return self.cutin_bit.find(crop)
 
     def get_play_side(self, image_result):
@@ -237,14 +240,14 @@ class Recognition():
         return False
     
     def search_rival(self, image_result):
-        crop = image_result.crop(areas['rival'])
+        crop = image_result.crop(define.areas['rival'])
         return self.rival.find(crop)
     
     def get_level(self, image_level):
-        crop_difficulty = image_level.crop(areas['difficulty'])
+        crop_difficulty = image_level.crop(define.areas['difficulty'])
         difficulty = self.difficulty.find(crop_difficulty)
         if difficulty is not None:
-            crop_level = image_level.crop(areas['level'])
+            crop_level = image_level.crop(define.areas['level'])
             return difficulty, self.level[difficulty].find(crop_level).split('-')[1]
         return difficulty, None
     
