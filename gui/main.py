@@ -83,7 +83,7 @@ def collection_request(image):
     return True if ret == 'Yes' else False
 
 def find_latest_version(latest_url):
-    sg.popup(
+    ret = sg.popup_scrolled(
         '\n'.join([
             u'最新バージョンが見つかりました。',
             u'以下URLから最新バージョンをダウンロードしてください。',
@@ -91,7 +91,8 @@ def find_latest_version(latest_url):
             latest_url
         ]),
         title=u'最新バージョンのお知らせ',
-        icon=icon_path
+        icon=icon_path,
+        size=(60, 6)
     )
 
 def error_message(title, message, exception):

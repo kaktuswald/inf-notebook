@@ -39,7 +39,7 @@ from storage import StorageAccessor
 
 thread_time_start = 1
 thread_time_normal = 0.36
-thread_time_wait = 5
+thread_time_wait = 30
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 
@@ -96,7 +96,7 @@ class ThreadMain(threading.Thread):
                 return
 
             self.waiting = False
-            self.queues['log'].put('find warning: end waiting')
+            self.queues['log'].put('find playing: end waiting')
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
 
@@ -165,7 +165,7 @@ def get_latest_version():
     with request.urlopen(latest_url) as response:
         url = response.geturl()
         version = url.split('/')[-1]
-        print(f'latest version: {version}')
+        print(f'released latest version: {version}')
         if version[0] == 'v':
             return version.replace('v', '')
         else:

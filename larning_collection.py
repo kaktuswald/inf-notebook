@@ -9,7 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded larning.py')
 
 from resources import create_resource_directory
-from define import value_list,option_widths
+from define import define
 from data_collection import informations_basepath,details_basepath,label_filepath
 from recog import option_trimsize,number_trimsize,informations_areas,details_areas
 from larning import create_masks_directory,larning
@@ -64,22 +64,22 @@ if __name__ == '__main__':
     create_masks_directory()
 
     play_modes = {}
-    for key in value_list['play_modes']:
+    for key in define.value_list['play_modes']:
         play_modes[key] = {}
     
     difficulties = {}
     levels = {}
-    for key_d in value_list['difficulties']:
+    for key_d in define.value_list['difficulties']:
         difficulties[key_d] = {}
-        for key_l in value_list['levels']:
+        for key_l in define.value_list['levels']:
             levels[f'{key_d}-{key_l}'] = {}
     
     option_value_list = [
-        *value_list['options_arrange'],
-        *value_list['options_arrange_dp'],
-        *value_list['options_arrange_sync'],
-        *value_list['options_flip'],
-        *value_list['options_assist'],
+        *define.value_list['options_arrange'],
+        *define.value_list['options_arrange_dp'],
+        *define.value_list['options_arrange_sync'],
+        *define.value_list['options_flip'],
+        *define.value_list['options_assist'],
         'BATTLE',
         'H-RANDOM'
     ]
@@ -88,11 +88,11 @@ if __name__ == '__main__':
         options[key] = {}
 
     clear_types = {}
-    for key in value_list['clear_types']:
+    for key in define.value_list['clear_types']:
         clear_types[key] = {}
     
     dj_levels = {}
-    for key in value_list['dj_levels']:
+    for key in define.value_list['dj_levels']:
         dj_levels[key] = {}
     
     numbers = {}
@@ -122,36 +122,36 @@ if __name__ == '__main__':
             if 'option_battle' in label.keys() and label['option_battle']:
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options['option_battle'][collection.key] = option_image.crop(area)
-                left += option_widths['BATTLE']
+                left += define.option_widths['BATTLE']
             if 'option_arrange' in label.keys() and label['option_arrange'] != '':
                 key = label['option_arrange']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += option_widths[key]
+                left += define.option_widths[key]
             if 'option_arrange_dp' in label.keys() and label['option_arrange_dp'] != '/':
                 key = label['option_arrange_dp']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += option_widths[key]
+                left += define.option_widths[key]
             if 'option_arrange_sync' in label.keys() and label['option_arrange_sync'] != '':
                 key = label['option_arrange_sync']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += option_widths[key]
+                left += define.option_widths[key]
             if 'option_h-random' in label.keys() and label['option_h-random']:
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options['option_h-random'][collection.key] = option_image.crop(area)
-                left += option_widths['h-random']
+                left += define.option_widths['h-random']
             if 'option_flip' in label.keys() and label['option_flip'] != '':
                 key = label['option_flip']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += option_widths[key]
+                left += define.option_widths[key]
             if 'option_assist' in label.keys() and label['option_assist'] != '':
                 key = label['option_assist']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += option_widths[key]
+                left += define.option_widths[key]
             if 'clear_type' in label.keys() and label['clear_type'] != '':
                 if label['clear_type'] != 'F-COMBO':
                     crop = image.crop(details_areas['clear_type'])

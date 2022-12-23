@@ -16,7 +16,7 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.manage as gui
-from resources import areas,find_images
+from resources import find_images
 from define import define
 from screenshot import Screenshot
 from larning import RawLabel,raws_basepath
@@ -50,10 +50,10 @@ def find():
 if __name__ == '__main__':
     labels = RawLabel()
     
-    files = glob.glob(os.path.join(raws_basepath, '*.bmp'))
+    files = glob.glob(os.path.join(raws_basepath, '*.png'))
     filenames = [*map(os.path.basename, files)]
 
-    window = gui.generate_window([*areas.keys()], filenames)
+    window = gui.generate_window(filenames)
 
     while True:
         event, values = window.read()
@@ -71,14 +71,13 @@ if __name__ == '__main__':
                     screens[values['list_screens'][0]] = screen
             screenshot_process()
         if event == 'area_top':
-            if type(areas[values['area_top']]) is list:
+            if type(define.areas[values['area_top']]) is list:
                 window['area_second'].update(visible=False)
-                gui.set_area(areas[values['area_top']])
+                gui.set_area(define.areas[values['area_top']])
             else:
-                window['area_second'].update(values=[*areas[values['area_top']].keys()], visible=True)
-            window['button_find_save'].update(visible=(values['area_top'] == 'find'))
+                window['area_second'].update(values=[*define.areas[values['area_top']].keys()], visible=True)
         if event == 'area_second':
-            gui.set_area(areas[values['area_top']][values['area_second']])
+            gui.set_area(define.areas[values['area_top']][values['area_second']])
             gui.switch_option_widths_view()
         if event == 'button_trim' and not screen is None:
             image = screen.original
@@ -94,7 +93,7 @@ if __name__ == '__main__':
                 gui.display_trim(image.crop(area))
         if event == 'button_label_overwrite' and not screen is None:
             screen_name = None
-            for key in ['none', 'warning', 'music_select', 'result']:
+            for key in ['none', 'warning', 'music_select', 'playing', 'result']:
                 if values[f'screen_{key}']:
                     screen_name = key
             playside = None
@@ -104,6 +103,8 @@ if __name__ == '__main__':
                 playside = '1P'
             if values['play_side_2p']:
                 playside = '2P'
+            if values['play_side_dp']:
+                playside = 'DP'
 
             labels.update(
                 screen.filename,

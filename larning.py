@@ -98,6 +98,9 @@ def larning(key, targets):
     pattern_count = 0
     patterns = []
 
+    if not os.path.exists(larningbase_direpath):
+        os.mkdir(larningbase_direpath)
+
     larning_dirpath = os.path.join(larningbase_direpath, key)
     if os.path.exists(larning_dirpath):
         try:

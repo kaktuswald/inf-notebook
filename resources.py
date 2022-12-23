@@ -15,8 +15,6 @@ from mask import Mask
 
 resources_dirname = 'resources'
 
-areas_filename = 'areas.json'
-
 masks_dirname = 'masks'
 
 recog_music_filename = os.path.join(resources_dirname, 'musics.json')
@@ -37,18 +35,9 @@ if is_embedded():
 else:
     resources_dirpath = resources_dirname
 
-areas_filepath = os.path.join(resources_dirpath, areas_filename)
 masks_dirpath = os.path.join(resources_dirpath, masks_dirname)
 
 logger.debug(f'resource basepath: {resources_dirpath}')
-
-try:
-    with open(areas_filepath) as file:
-        areas = json.load(file)
-except Exception as e:
-    areas = None
-    logger.exception(e)
-    logger.exception(f'failed load: {areas_filepath}')
 
 masks = {}
 for filename in os.listdir(masks_dirpath):
