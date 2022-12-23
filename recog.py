@@ -46,7 +46,7 @@ informations_areas = {
     'play_mode': [82, 55, 102, 65],
     'difficulty': [196, 55, 229, 65],
     'level': [231, 55, 252, 65],
-    'music': [150, 0, 310, 16]
+    'music': [150, 0, 310, 18]
 }
 
 details_areas = {
@@ -63,7 +63,7 @@ details_areas = {
 
 option_trimwidth = 57
 
-music_color_define = [245,244,238,231,224,218,211,205,198,191,185,178,171,165,158,152]
+music_trim_positions = [16, 32, 35, 36, 38, 43, 51, 52, 64, 78, 111, 126]
 
 class Recog():
     def __init__(self, mask):
@@ -142,8 +142,6 @@ class Recognition():
         with open(recog_music_filename) as f:
             self.music = json.load(f)
 
-        self.generate_music_materials()
-
         masks_option = [masks[key] for key in define.option_widths.keys() if key in masks.keys()]
         self.option = RecogMultiValue(masks_option)
 
@@ -153,27 +151,6 @@ class Recognition():
         self.number = RecogNumber([masks[str(key)] for key in range(10)], 4)
 
         self.new = Recog(masks['new'])
-
-    def generate_music_materials(self):
-        width = informations_areas['music'][2] - informations_areas['music'][0]
-        height = informations_areas['music'][3] - informations_areas['music'][1]
-        x_count = int(width / music_block_size)
-        y_count = int(height / music_block_size)
-
-        self.music_mask = np.zeros((height, width), dtype=np.uint8)
-        for i in range(len(music_color_define)):
-            self.music_mask[i,:] = music_color_define[i]
-
-        self.music_trimblocks = []
-        for x in range(x_count):
-            for y in range(y_count):
-                x_p = int(x_count / 2 - (int(x / 2) + 1) if x % 2 else x_count /2 + int(x / 2))
-                self.music_trimblocks.append([
-                    x_p * music_block_size,
-                    y * music_block_size,
-                    (x_p + 1) * music_block_size,
-                    (y + 1) * music_block_size
-                ])
 
     def search_loading(self, image_result):
         crop = image_result.crop(define.screen_areas['loading'])
@@ -253,12 +230,11 @@ class Recognition():
     
     def get_music(self, image_music):
         np_value = np.array(image_music)
-        masked = np.where(np_value==self.music_mask,self.music_mask, 0)
 
         try:
             target = self.music
-            for block in self.music_trimblocks:
-                np_trim = masked[block[1]:block[3],block[0]:block[2]].astype(np.uint8)
+            for position in music_trim_positions:
+                np_trim = np_value[:,position].astype(np.uint8)
                 key = b64encode(np_trim).decode('utf-8')
                 if not key in target:
                     return None
@@ -332,8 +308,7 @@ class Recognition():
         else:
             level = None
 
-        # music = self.get_music(image.crop(informations_areas['music']))
-        music = None
+        music = self.get_music(image.crop(informations_areas['music']))
 
         return play_mode, difficulty, level, music
 

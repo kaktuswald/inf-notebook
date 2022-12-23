@@ -3,7 +3,7 @@ import json
 import sys
 import os
 
-from define import value_list
+from define import define
 from recog import Recognition
 import data_collection as dc
 
@@ -44,14 +44,14 @@ def evaluate(filename, informations, details, label):
                 results.append(f"{level} {label['level']}")
                 failure = True
 
-        if not 'music' in label.keys():
+        if not 'music' in label.keys() or label['music'] == '':
             results.append('none')
         else:
             if music == label['music']:
                 results.append('ok')
             else:
                 results.append(f"{music} {label['music']}")
-                # failure = True
+                failure = True
     else:
         results.append('')
         results.append('')
@@ -73,7 +73,7 @@ def evaluate(filename, informations, details, label):
             if not 'option_arrange' in label.keys():
                 results.append('none')
             else:
-                if option['arrange'] in value_list['options_arrange']:
+                if option['arrange'] in define.value_list['options_arrange']:
                     if option['arrange'] == label['option_arrange']:
                         results.append('ok')
                     else:
@@ -97,7 +97,7 @@ def evaluate(filename, informations, details, label):
             if not 'option_arrange_sync' in label.keys():
                 results.append('none')
             else:
-                if option['arrange'] in value_list['options_arrange_sync']:
+                if option['arrange'] in define.value_list['options_arrange_sync']:
                     if option['arrange'] == label['option_arrange_sync']:
                         results.append('ok')
                     else:
@@ -269,7 +269,7 @@ if __name__ == '__main__':
         'result'
     ]
 
-    output.append(f"ファイル名,{','.join(headers)}\n")
+    output.append(f"file name,{','.join(headers)}\n")
     for key in keys:
         filename = f'{key}.png'
 

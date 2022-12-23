@@ -1,5 +1,6 @@
 from PIL import Image
 import os
+from sys import argv,exit
 from logging import getLogger
 import json
 
@@ -52,6 +53,10 @@ def load_collections():
     return collections
 
 if __name__ == '__main__':
+    if len(argv) == 1:
+        print('please argment.')
+        exit()
+
     collections = load_collections()
 
     if not os.path.exists(larningbase_direpath):
@@ -182,25 +187,33 @@ if __name__ == '__main__':
                 if key in label.keys() and not label[key]:
                     news[f"{key}-{collection.key}"] = image.crop(details_areas[key])
 
-    for key in play_modes.keys():
-        larning(key, play_modes[key])
+    if '-playmode' in argv:
+        for key in play_modes.keys():
+            larning(key, play_modes[key])
 
-    for key in difficulties.keys():
-        larning(key, difficulties[key])
+    if '-difficulty' in argv:
+        for key in difficulties.keys():
+            larning(key, difficulties[key])
 
-    for key in levels.keys():
-        larning(key, levels[key])
+    if '-level' in argv:
+        for key in levels.keys():
+            larning(key, levels[key])
     
-    for key in options.keys():
-        larning(key, options[key])
+    if '-option' in argv:
+        for key in options.keys():
+            larning(key, options[key])
 
-    for key in clear_types.keys():
-        larning(key, clear_types[key])
+    if '-cleartype' in argv:
+        for key in clear_types.keys():
+            larning(key, clear_types[key])
 
-    for key in dj_levels.keys():
-        larning(key, dj_levels[key])
+    if '-djlevel' in argv:
+        for key in dj_levels.keys():
+            larning(key, dj_levels[key])
 
-    for key in numbers.keys():
-        larning(key, numbers[key])
+    if '-numbers' in argv:
+        for key in numbers.keys():
+            larning(key, numbers[key])
 
-    larning('new', news)
+    if '-new' in argv:
+        larning('new', news)
