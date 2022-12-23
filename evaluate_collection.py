@@ -44,14 +44,14 @@ def evaluate(filename, informations, details, label):
                 results.append(f"{level} {label['level']}")
                 failure = True
 
-        if not 'music' in label.keys():
+        if not 'music' in label.keys() or label['music'] == '':
             results.append('none')
         else:
             if music == label['music']:
                 results.append('ok')
             else:
                 results.append(f"{music} {label['music']}")
-                # failure = True
+                failure = True
     else:
         results.append('')
         results.append('')
@@ -269,7 +269,7 @@ if __name__ == '__main__':
         'result'
     ]
 
-    output.append(f"ファイル名,{','.join(headers)}\n")
+    output.append(f"file name,{','.join(headers)}\n")
     for key in keys:
         filename = f'{key}.png'
 
