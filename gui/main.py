@@ -35,7 +35,7 @@ def layout_main(setting):
                         [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
                         [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
                         [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)],
-                        [sg.Checkbox('曲名を表示する(試用版)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)],
+                        [sg.Checkbox('曲名を表示する(試験運用)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)],
                         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
                         [
                             sg.Button('ファイルに保存する', key='button_save'),

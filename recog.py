@@ -10,7 +10,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import masks,recog_music_backgrounds_basename,recog_music_filename
+from resources import masks,recog_music_filename
 from result import Result
 
 informations_trimsize = (460, 71)
@@ -56,9 +56,6 @@ for play_side in details_trimpos.keys():
         details_trimpos[play_side][0] + details_trimsize[0],
         details_trimpos[play_side][1] + details_trimsize[1]
     ]
-
-music_background_y_position = 42
-music_clean_threshold = 100
 
 option_trimsize = (57, 4)
 number_trimsize = (24, 15)
@@ -129,11 +126,6 @@ class Recognition():
             })
         
         self.rival = Recog(masks['rival'])
-
-        self.backgrounds = {}
-        for filepath in glob(f'{recog_music_backgrounds_basename}-*.npy'):
-            key = int(filepath.split('-')[1].replace('.npy', ''))
-            self.backgrounds[key] = np.load(filepath)
 
         self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
         self.difficulty = RecogMultiValue([masks[key] for key in define.value_list['difficulties'] if key in masks.keys()])
@@ -232,17 +224,13 @@ class Recognition():
             return difficulty, self.level[difficulty].find(crop_level).split('-')[1]
         return difficulty, None
     
-    def get_music(self, image_informations):
-        background_key = image_informations.getpixel((0, music_background_y_position))
-        trim = image_informations.crop(informations_areas['music'])
-        np_value = np.array(trim)
-        masked = np.where(np_value==self.backgrounds[background_key], 0, np_value)
-        cleaned = np.where(masked<music_clean_threshold, 0, masked)
+    def get_music(self, music):
+        np_value = np.array(music)
 
         try:
             target = self.music
-            for position in range(cleaned.shape[1]):
-                np_trim = cleaned[:,position].astype(np.uint8)
+            for position in range(np_value.shape[1]):
+                np_trim = np_value[:,position].astype(np.uint8)
                 key = b64encode(np_trim).decode('utf-8')
                 if not key in target:
                     return None
@@ -316,7 +304,7 @@ class Recognition():
         else:
             level = None
 
-        music = self.get_music(image)
+        music = self.get_music(image.crop(informations_areas['music']))
 
         return play_mode, difficulty, level, music
 
