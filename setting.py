@@ -3,8 +3,10 @@ import json
 setting_filepath = 'setting.json'
 
 default = {
-    'display_saved_result': False,
-    'save_newrecord_only': False
+    'display_result': False,
+    'newrecord_only': False,
+    'autosave': False,
+    'autosave_filtered': False
 }
 
 class Setting():
@@ -18,6 +20,13 @@ class Setting():
         for k in default.keys():
             if not k in self.json.keys():
                 self.json[k] = default[k]
+        
+        if 'display_saved_result' in self.json.keys():
+            self.json['display_result'] = self.json['display_saved_result']
+            del self.json['display_saved_result']
+        if 'save_newrecord_only' in self.json.keys():
+            self.json['newrecord_only'] = self.json['save_newrecord_only']
+            del self.json['save_newrecord_only']
 
     def save(self):
         with open(setting_filepath, 'w') as f:
@@ -41,20 +50,44 @@ class Setting():
         return self.get_value('manage')
 
     @property
-    def display_saved_result(self):
-        return self.get_value('display_saved_result')
+    def display_result(self):
+        return self.get_value('display_result')
 
-    @display_saved_result.setter
-    def display_saved_result(self, value):
-        self.set_value('display_saved_result', value)
+    @display_result.setter
+    def display_result(self, value):
+        self.set_value('display_result', value)
     
     @property
-    def save_newrecord_only(self):
-        return self.get_value('save_newrecord_only')
+    def newrecord_only(self):
+        return self.get_value('newrecord_only')
 
-    @save_newrecord_only.setter
-    def save_newrecord_only(self, value):
-        self.set_value('save_newrecord_only', value)
+    @newrecord_only.setter
+    def newrecord_only(self, value):
+        self.set_value('newrecord_only', value)
+    
+    @property
+    def autosave(self):
+        return self.get_value('autosave')
+
+    @autosave.setter
+    def autosave(self, value):
+        self.set_value('autosave', value)
+    
+    @property
+    def autosave_filtered(self):
+        return self.get_value('autosave_filtered')
+
+    @autosave_filtered.setter
+    def autosave_filtered(self, value):
+        self.set_value('autosave_filtered', value)
+    
+    @property
+    def display_music(self):
+        return self.get_value('display_music')
+
+    @display_music.setter
+    def display_music(self, value):
+        self.set_value('display_music', value)
     
     @property
     def data_collection(self):

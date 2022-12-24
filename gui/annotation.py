@@ -3,10 +3,9 @@ import io
 
 from define import define
 from recog import recog,informations_trimsize,details_trimsize
-from .static import title,icon_path
+from .static import title,icon_path,background_color
 
-default_box = (0, 0, 1280, 720)
-scales = ['1/1', '1/2', '1/4']
+in_area_background_color='#5779dd'
 
 def layout_manage(keys):
     selectable_value_list = {}
@@ -27,56 +26,56 @@ def layout_manage(keys):
     result_informations = [
         [
             sg.Text('プレイモード', size=(18, 1)),
-            sg.Text(key='result_play_mode', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_play_mode', background_color=in_area_background_color)
         ],
         [
             sg.Text('難易度', size=(18, 1)),
-            sg.Text(key='result_difficulty', background_color='#7799fd', text_color='#000000'),
-            sg.Text(key='result_level', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_difficulty', background_color=in_area_background_color),
+            sg.Text(key='result_level', background_color=in_area_background_color)
         ],
         [
             sg.Text('曲名', size=(18, 1)),
-            sg.Text(key='result_music', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_music', background_color=in_area_background_color)
         ]
     ]
 
     result_details = [
         [
             sg.Text('配置オプション', size=(21, 1)),
-            sg.Text(key='result_option_arrange', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_option_arrange', background_color=in_area_background_color)
         ],
         [
             sg.Text('FLIPオプション', size=(21, 1)),
-            sg.Text(key='result_option_flip', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_option_flip', background_color=in_area_background_color)
         ],
         [
             sg.Text('アシストオプション', size=(21, 1)),
-            sg.Text(key='result_option_assist', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_option_assist', background_color=in_area_background_color)
         ],
         [
             sg.Text('特殊オプション', size=(21, 1)),
-            sg.Text('BATTLE', visible=False, key='result_option_battle', background_color='#7799fd', text_color='#000000'),
-            sg.Text('H-RANDOM', visible=False, key='result_option_h-random', background_color='#7799fd', text_color='#000000')
+            sg.Text('BATTLE', visible=False, key='result_option_battle', background_color=in_area_background_color),
+            sg.Text('H-RANDOM', visible=False, key='result_option_h-random', background_color=in_area_background_color)
         ],
         [
             sg.Text('クリアタイプ', size=(21, 1)),
-            sg.Text(key='result_clear_type', size=(10, 1), background_color='#7799fd', text_color='#000000'),
-            sg.Text('NEW', visible=False, key='result_clear_type_new', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_clear_type', size=(10, 1), background_color=in_area_background_color),
+            sg.Text('NEW', visible=False, key='result_clear_type_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('DJレベル', size=(21, 1)),
-            sg.Text(key='result_dj_level', size=(10, 1), background_color='#7799fd', text_color='#000000'),
-            sg.Text('NEW', visible=False, key='result_dj_level_new', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_dj_level', size=(10, 1), background_color=in_area_background_color),
+            sg.Text('NEW', visible=False, key='result_dj_level_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('スコア', size=(21, 1)),
-            sg.Text(key='result_score', size=(10, 1), background_color='#7799fd', text_color='#000000'),
-            sg.Text('NEW', visible=False, key='result_score_new', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_score', size=(10, 1), background_color=in_area_background_color),
+            sg.Text('NEW', visible=False, key='result_score_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('ミスカウント', size=(21, 1)),
-            sg.Text(key='result_miss_count', size=(10, 1), background_color='#7799fd', text_color='#000000'),
-            sg.Text('NEW', visible=False, key='result_miss_count_new', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_miss_count', size=(10, 1), background_color=in_area_background_color),
+            sg.Text('NEW', visible=False, key='result_miss_count_new', background_color=in_area_background_color)
         ]
     ]
 
@@ -104,7 +103,7 @@ def layout_manage(keys):
                 [
                     sg.Text('DP配置', size=(11, 1)),
                     sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_1p', size=(6, 1), readonly=True),
-                    sg.Text('/', background_color='#7799fd',pad=0),
+                    sg.Text('/', background_color=in_area_background_color,pad=0),
                     sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_2p', size=(6, 1), readonly=True)
                 ],
                 [
@@ -119,36 +118,39 @@ def layout_manage(keys):
                     sg.Text('アシスト', size=(11, 1)),
                     sg.Combo(selectable_value_list['options_assist'], key='option_assist', size=(8, 1), readonly=True)
                 ]
-            ], background_color='#7799fd', pad=0)
+            ], background_color=in_area_background_color, pad=0)
         ],
         [
             sg.Text('特殊オプション', size=(15, 1)),
-            sg.Check('BATTLE', key='option_battle'),
-            sg.Check('H-RANDOM', key='option_h-random')
+            sg.Check('BATTLE', key='option_battle', background_color=in_area_background_color),
+            sg.Check('H-RANDOM', key='option_h-random', background_color=in_area_background_color)
         ],
         [
             sg.Text('クリアタイプ', size=(15, 1)),
             sg.Combo(selectable_value_list['clear_types'], key='clear_type', size=(11, 1), readonly=True),
-            sg.Checkbox('NEW', key='clear_type_new')
+            sg.Checkbox('NEW', key='clear_type_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('DJレベル', size=(15, 1)),
             sg.Combo(selectable_value_list['dj_levels'], key='dj_level', size=(11, 1), readonly=True),
-            sg.Checkbox('NEW', key='dj_level_new')
+            sg.Checkbox('NEW', key='dj_level_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('スコア', size=(15, 1)),
             sg.Input(key='score', size=(12, 1)),
-            sg.Checkbox('NEW', key='score_new')
+            sg.Checkbox('NEW', key='score_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('ミスカウント', size=(15, 1)),
             sg.Input(key='miss_count', size=(12, 1)),
-            sg.Checkbox('NEW', key='miss_count_new')
+            sg.Checkbox('NEW', key='miss_count_new', background_color=in_area_background_color)
         ],
         [
             sg.Button('アノテーション保存', key='button_label_overwrite'),
             sg.Button('認識結果から引用', key='button_recog')
+        ],
+        [
+            sg.Checkbox('曲名なしのみ', key='only_undefined_music', enable_events=True, background_color=in_area_background_color)
         ]
     ]
 
@@ -157,19 +159,19 @@ def layout_manage(keys):
             sg.Column([
                 [
                     sg.Column([
-                        [sg.Image(key='image_informations', size=informations_trimsize)],
-                        [sg.Image(key='image_details', size=details_trimsize)]
-                    ]),
+                        [sg.Image(key='image_informations', size=informations_trimsize, background_color=background_color)],
+                        [sg.Image(key='image_details', size=details_trimsize, background_color=background_color)]
+                    ], background_color=background_color),
                     sg.Listbox(keys, key='list_keys', size=(20, 20), enable_events=True),
                 ],
                 [
-                    sg.Column(result_informations, size=(300, 210), background_color='#7799fd'),
-                    sg.Column(result_details, size=(325, 210), background_color='#7799fd')
+                    sg.Column(result_informations, size=(300, 210), background_color=in_area_background_color),
+                    sg.Column(result_details, size=(325, 210), background_color=in_area_background_color)
                 ],
-            ],pad=0),
+            ], pad=0, background_color=background_color),
             sg.Column([
-                [sg.Column(manage_label_define, size=(390,560), background_color='#7799fd')],
-            ],pad=0)
+                [sg.Column(manage_label_define, size=(390,560), background_color=in_area_background_color)],
+            ], pad=0, background_color=background_color)
         ]
     ]
 
@@ -184,7 +186,8 @@ def generate_window(keys):
         return_keyboard_events=True,
         resizable=False,
         finalize=True,
-        enable_close_attempted_event=True
+        enable_close_attempted_event=True,
+        background_color=background_color
     )
 
     return window

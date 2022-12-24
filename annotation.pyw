@@ -106,5 +106,8 @@ if __name__ == '__main__':
                 json.dump(labels, f, indent=2)
         if event == 'button_recog' and not target_key is None:
             gui.set_result()
+        if event == 'only_undefined_music':
+            keys = [key for key in images.keys() if key in labels.keys() and labels[key]['music'] == '']
+            window['list_keys'].update(keys)
 
     window.close()

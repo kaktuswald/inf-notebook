@@ -21,9 +21,9 @@ class Result():
         self.details = details
 
         now = datetime.now()
-        self.filename = f"{now.strftime('%Y%m%d-%H%M%S')}.jpg"
+        self.timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
     
-    def hasNewRecord(self):
+    def has_new_record(self):
         return any([
             self.details['clear_type_new'],
             self.details['dj_level_new'],
@@ -35,7 +35,7 @@ class Result():
         if not os.path.exists(results_basepath):
             os.mkdir(results_basepath)
 
-        filepath = os.path.join(results_basepath, self.filename)
+        filepath = os.path.join(results_basepath, f'{self.timestamp}.jpg')
         self.image.save(filepath)
             
     def filter(self):
@@ -43,7 +43,7 @@ class Result():
             os.mkdir(filterd_basepath)
 
         blured = blur(self.image, self.play_side, self.rival)
-        filepath = os.path.join(filterd_basepath, self.filename)
+        filepath = os.path.join(filterd_basepath, f'{self.timestamp}.jpg')
         blured.save(filepath)
 
         return blured

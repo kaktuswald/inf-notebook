@@ -5,10 +5,11 @@ from PIL import Image
 from define import define
 from resources import masks
 from recog import recog
-from .static import title,icon_path
+from .static import title,icon_path,background_color
 
 default_box = (0, 0, 1280, 720)
 scales = ['1/1', '1/2', '1/4']
+in_area_background_color='#5779dd'
 
 def layout_manage(filenames):
     areas_firstkeys = [*define.areas.keys()]
@@ -41,7 +42,7 @@ def layout_manage(filenames):
             sg.Column([
                 [sg.Combo(areas_firstkeys, key='area_top', size=(11, 1), readonly=True, enable_events=True)],
                 [sg.Combo([], key='area_second', size=(13, 1), readonly=True, enable_events=True)]
-            ], background_color='#7799fd')
+            ], pad=0, background_color=in_area_background_color)
         ],
         [
             sg.Text('オプション幅', size=(12, 1)),
@@ -58,7 +59,7 @@ def layout_manage(filenames):
                     sg.Combo(selectable_value_list['all_options'], key='area_option3', size=(11, 1), readonly=True, enable_events=True),
                     sg.Combo(selectable_value_list['delimita'], key='area_delimita3', size=(2, 1), readonly=True, enable_events=True)
                 ]
-            ], background_color='#7799fd'),
+            ], pad=0, background_color=in_area_background_color),
         ],
         [
             sg.Text('X1', size=(2, 1)), sg.Input(default_box[0], key='left', size=(4, 1)),
@@ -69,44 +70,47 @@ def layout_manage(filenames):
             sg.Text('Y2', size=(2, 1)), sg.Input(default_box[3], key='bottom', size=(4, 1))
         ],
         [sg.Button('トリム', key='button_trim')],
-        [sg.Image(key='trim')]
+        [sg.Image(key='trim', background_color=background_color)]
     ]
 
     manage_label_define = [
         [
+            sg.Text('画面', size=(40, 1)),
+        ],
+        [
             sg.Column([
-                [sg.Radio('なし', key='screen_none', group_id='screen')],
-                [sg.Radio('ローディング', key='screen_loading', group_id='screen')],
-                [sg.Radio('ワーニング', key='screen_warning', group_id='screen')]
-            ], pad=0, background_color='#7799fd'),
+                [sg.Radio('なし', key='screen_none', group_id='screen', background_color=in_area_background_color)],
+                [sg.Radio('ローディング', key='screen_loading', group_id='screen', background_color=in_area_background_color)],
+                [sg.Radio('ワーニング', key='screen_warning', group_id='screen', background_color=in_area_background_color)]
+            ], pad=0, background_color=in_area_background_color),
             sg.Column([
-                [sg.Radio('選曲', key='screen_music_select', group_id='screen')],
-                [sg.Radio('プレイ中', key='screen_playing', group_id='screen')],
-                [sg.Radio('リザルト', key='screen_result', group_id='screen', default=True)]
-            ], pad=0, background_color='#7799fd')
+                [sg.Radio('選曲', key='screen_music_select', group_id='screen', background_color=in_area_background_color)],
+                [sg.Radio('プレイ中', key='screen_playing', group_id='screen', background_color=in_area_background_color)],
+                [sg.Radio('リザルト', key='screen_result', group_id='screen', background_color=in_area_background_color, default=True)]
+            ], pad=0, background_color=in_area_background_color)
         ],
         [
             sg.Text('リザルト判定', size=(16, 1)),
-            sg.Checkbox('認識可能', key='trigger', default=True)
+            sg.Checkbox('認識可能', key='trigger', default=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('ミッション', size=(16, 1)),
-            sg.Checkbox('カットイン', key='cutin_mission'),
+            sg.Checkbox('カットイン', key='cutin_mission', background_color=in_area_background_color),
         ],
         [
             sg.Text('ビット獲得', size=(16, 1)),
-            sg.Checkbox('カットイン', key='cutin_bit')
+            sg.Checkbox('カットイン', key='cutin_bit', background_color=in_area_background_color)
         ],
         [
             sg.Text('ライバル挑戦状', size=(16, 1)),
-            sg.Checkbox('表示中', key='rival', default=False)
+            sg.Checkbox('表示中', key='rival', default=False, background_color=in_area_background_color)
         ],
         [
             sg.Text('プレイサイド', size=(16, 1)),
-            sg.Radio('なし', key='play_side_none', group_id='play_side', default=True),
-            sg.Radio('1P', key='play_side_1p', group_id='play_side'),
-            sg.Radio('2P', key='play_side_2p', group_id='play_side'),
-            sg.Radio('DP', key='play_side_dp', group_id='play_side'),
+            sg.Radio('なし', key='play_side_none', group_id='play_side', default=True, background_color=in_area_background_color),
+            sg.Radio('1P', key='play_side_1p', group_id='play_side', background_color=in_area_background_color),
+            sg.Radio('2P', key='play_side_2p', group_id='play_side', background_color=in_area_background_color),
+            sg.Radio('DP', key='play_side_dp', group_id='play_side', background_color=in_area_background_color),
         ],
         [
             sg.Button('アノテーション保存', key='button_label_overwrite'),
@@ -122,9 +126,9 @@ def layout_manage(filenames):
             sg.Text('検出座標', size=(10, 1), justification='center', pad=1)
         ],
         [
-            sg.Text(key='result_screen', size=(10, 1), justification='center', pad=1, background_color='#7799fd', text_color='#000000'),
-            sg.Text(key='result_screen_masterpos', size=(10, 1), justification='center', pad=1, background_color='#7799fd', text_color='#000000'),
-            sg.Text(key='result_screen_findpos', size=(10, 1), justification='center', pad=1, background_color='#7799fd', text_color='#000000')
+            sg.Text(key='result_screen', size=(10, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='result_screen_masterpos', size=(10, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='result_screen_findpos', size=(10, 1), justification='center', pad=1, background_color=in_area_background_color)
         ],
         [sg.Text('検出画像', size=(30, 1), justification='center', pad=1)],
         [
@@ -134,10 +138,10 @@ def layout_manage(filenames):
             sg.Text('Result', size=(7, 1), justification='center', pad=1)
         ],
         [
-            sg.Text(key='recog_loading', size=(7, 1), justification='center', pad=1, background_color='#7799fd'),
-            sg.Text(key='recog_warning', size=(7, 1), justification='center', pad=1, background_color='#7799fd'),
-            sg.Text(key='recog_music_select', size=(7, 1), justification='center', pad=1, background_color='#7799fd'),
-            sg.Text(key='recog_result', size=(7, 1), justification='center', pad=1, background_color='#7799fd')
+            sg.Text(key='recog_loading', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='recog_warning', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='recog_music_select', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='recog_result', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color)
         ],
         [sg.Text('リザルト認識', size=(30, 1), justification='center', pad=1)],
         [
@@ -147,14 +151,14 @@ def layout_manage(filenames):
             sg.Text('Rival', size=(7, 1), justification='center', pad=1)
         ],
         [
-            sg.Text(key='recog_trigger', size=(7, 1), justification='center', pad=1, background_color='#7799fd'),
-            sg.Text(key='recog_cutin_mission', size=(7, 1), justification='center', pad=1, background_color='#7799fd'),
-            sg.Text(key='recog_cutin_bit', size=(7, 1), justification='center', pad=1, background_color='#7799fd'),
-            sg.Text(key='recog_rival', size=(7, 1), justification='center', pad=1, background_color='#7799fd')
+            sg.Text(key='recog_trigger', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='recog_cutin_mission', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='recog_cutin_bit', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='recog_rival', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color)
         ],
         [
             sg.Text('プレイサイド', size=(20, 1)),
-            sg.Text(key='recog_play_side', background_color='#7799fd', text_color='#000000')
+            sg.Text(key='recog_play_side', background_color=in_area_background_color)
         ]
     ]
 
@@ -163,17 +167,20 @@ def layout_manage(filenames):
             sg.Column([
                 [
                     sg.Column([
-                        [sg.Text('画像表示スケール'), sg.Combo(scales, default_value='1/2', readonly=True, key='scale')],
-                        [sg.Image(key='screenshot', size=(640, 360))]
-                    ],pad=0),
+                        [
+                            sg.Text('画像表示スケール', background_color=background_color),
+                            sg.Combo(scales, default_value='1/2', readonly=True, key='scale')
+                        ],
+                        [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)]
+                    ], pad=0, background_color=background_color),
                     sg.Listbox(filenames, key='list_screens', size=(27, 20), enable_events=True),
                 ],
                 [
-                    sg.Column(area_define, size=(300, 350), background_color='#7799fd'),
-                    sg.Column(manage_label_define, size=(370, 350), background_color='#7799fd'),
-                    sg.Column(manage_result, size=(300, 350), background_color='#7799fd')
+                    sg.Column(area_define, size=(300, 350), background_color=in_area_background_color),
+                    sg.Column(manage_label_define, size=(410, 350), background_color=in_area_background_color),
+                    sg.Column(manage_result, size=(300, 350), background_color=in_area_background_color)
                 ],
-            ],pad=0)
+            ], pad=0, background_color=background_color)
         ],
     ]
 
@@ -188,7 +195,8 @@ def generate_window(filenames):
         return_keyboard_events=True,
         resizable=False,
         finalize=True,
-        enable_close_attempted_event=True
+        enable_close_attempted_event=True,
+        background_color=background_color
     )
 
     window['area_second'].update(visible=False)

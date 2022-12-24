@@ -1,20 +1,25 @@
 import PySimpleGUI as sg
 import io
 
-from .static import title,icon_path
+from .static import title,icon_path,background_color
 
 scales = ['1/1', '1/2', '1/4']
 
 def layout_main(setting):
-    column_headers = ['ファイル名', 'CT', 'DL', 'SC', 'MC']
-    column_widths = [16, 3, 3, 3, 3]
+    column_headers = ['日時', '曲名', 'CT', 'DL', 'SC', 'MC']
+    column_widths = [13, 13, 3, 3, 3, 3]
+
+    if setting.display_music:
+        column_visibles = [False, True, True, True, True, True]
+    else:
+        column_visibles = [True, False, True, True, True, True]
 
     return [
         [
             sg.Column([
                 [
-                    sg.Text('Ctrl+F10でスクリーンショットを保存', visible=setting.manage),
-                    sg.Checkbox('スクリーンショットを常時表示する', key='check_display_screenshot', visible=setting.manage, enable_events=True)
+                    sg.Text('Ctrl+F10でスクリーンショットを保存', visible=setting.manage, background_color=background_color),
+                    sg.Checkbox('スクリーンショットを常時表示する', key='check_display_screenshot', visible=setting.manage, enable_events=True, background_color=background_color)
                 ],
                 [
                     sg.InputText(key='text_file_path', visible=setting.manage, size=(80, 1), enable_events=True),
@@ -23,14 +28,20 @@ def layout_main(setting):
                 [
                     sg.Column([
                         [
-                            sg.Text('画像表示スケール'),
+                            sg.Text('画像表示スケール', background_color=background_color),
                             sg.Combo(scales, key='scale', default_value='1/2', readonly=True)
                         ],
-                        [sg.Checkbox('保存されたリザルトを都度表示する', key='check_display_saved_result', default=setting.display_saved_result, enable_events=True)],
-                        [sg.Checkbox('更新があるときのみリザルトを保存する', key='check_save_newrecord_only', default=setting.save_newrecord_only, enable_events=True)],
-                        [sg.Image(key='screenshot', size=(640, 360))],
-                        [sg.Button('ライバルを隠して別に保存する', key='button_filter')]
-                    ]),
+                        [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
+                        [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
+                        [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
+                        [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)],
+                        [sg.Checkbox('曲名を表示する(試用版)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)],
+                        [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
+                        [
+                            sg.Button('ファイルに保存する', key='button_save'),
+                            sg.Button('ライバルを隠して保存する', key='button_save_filtered')
+                        ]
+                    ], pad=0, background_color=background_color),
                     sg.Table(
                         [],
                         key='table_results',
@@ -38,13 +49,15 @@ def layout_main(setting):
                         auto_size_columns=False,
                         vertical_scroll_only=True,
                         col_widths=column_widths,
+                        visible_column_map=column_visibles,
                         num_rows=30,
                         justification='center',
-                        enable_events=True
+                        enable_events=True,
+                        background_color=background_color
                     ),
                 ]
-            ],pad=0),
-            sg.Output(key='output', size=(30, 32), visible=setting.manage)
+            ], pad=0, background_color=background_color),
+            sg.Output(key='output', size=(30, 34), visible=setting.manage)
         ]
     ]
 
@@ -59,7 +72,8 @@ def generate_window(setting, version):
         return_keyboard_events=True,
         resizable=False,
         finalize=True,
-        enable_close_attempted_event=True
+        enable_close_attempted_event=True,
+        background_color=background_color
     )
 
     return window
@@ -117,3 +131,11 @@ def display_image(image):
     image.save(bytes, format='PNG')
 
     window['screenshot'].update(size=image.size, data=bytes.getvalue())
+
+def switch_table(display_music):
+    if not display_music:
+        displaycolumns = ['日時', 'CT', 'DL', 'SC', 'MC']
+    else:
+        displaycolumns = ['曲名', 'CT', 'DL', 'SC', 'MC']
+
+    window['table_results'].Widget.configure(displaycolumns=displaycolumns)

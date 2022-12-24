@@ -126,23 +126,45 @@ def result_process(screen):
     result = recog.get_result(screen)
     if setting.data_collection:
         storage.upload_collection(screen, result)
-    if not setting.save_newrecord_only or result.hasNewRecord():
-        try:
-            result.save()
-        except Exception as ex:
-            logger.exception(ex)
-            gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
-            return
+    if not setting.newrecord_only or result.has_new_record():
+        image = result.image
+        if setting.autosave:
+            save_result(result)
+        if setting.autosave_filtered:
+            image = save_result_filtered(result)
         
-        log_debug(f'save result: {result.filename}')
         insert_results(result)
-        if setting.display_saved_result:
-            gui.display_image(result.original)
+        if setting.display_result and image is not None:
+            gui.display_image(image)
+            return result
+    return None
+
+def save_result(result):
+    try:
+        result.save()
+    except Exception as ex:
+        logger.exception(ex)
+        gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
+        return
+
+    log_debug(f'save result: {result.timestamp}.jpg')
+
+def save_result_filtered(result):
+    try:
+        filtered = result.filter()
+    except Exception as ex:
+        logger.exception(ex)
+        gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
+        return None
+
+    log_debug(f'save filtered result: {result.timestamp}.jpg')
+    return filtered
 
 def insert_results(result):
-    results[result.filename] = result
+    results[result.timestamp] = result
     list_results.append([
-        result.filename,
+        result.timestamp,
+        result.informations['music'] if result.informations['music'] is not None else '??????',
         '☑' if result.details['clear_type_new'] else '',
         '☑' if result.details['dj_level_new'] else '',
         '☑' if result.details['score_new'] else '',
@@ -204,7 +226,7 @@ if __name__ == '__main__':
     if not setting.has_key('data_collection'):
         setting.data_collection = gui.collection_request('resources/annotation.png')
 
-    if get_latest_version() != version:
+    if version != '0.0.0.0' and get_latest_version() != version:
         gui.find_latest_version(latest_url)
 
     while True:
@@ -218,25 +240,29 @@ if __name__ == '__main__':
             break
         if event == 'check_display_screenshot':
             display_screenshot_enable = values['check_display_screenshot']
-        if event == 'check_display_saved_result':
-            setting.display_saved_result = values['check_display_saved_result']
-        if event == 'check_save_newrecord_only':
-            setting.save_newrecord_only = values['check_save_newrecord_only']
+        if event == 'check_display_result':
+            setting.display_result = values['check_display_result']
+        if event == 'check_newrecord_only':
+            setting.newrecord_only = values['check_newrecord_only']
+        if event == 'check_autosave':
+            setting.autosave = values['check_autosave']
+        if event == 'check_autosave_filtered':
+            setting.autosave_filtered = values['check_autosave_filtered']
+        if event == 'check_display_music':
+            setting.display_music = values['check_display_music']
+            gui.switch_table(setting.display_music)
         if event == 'text_file_path':
             if os.path.exists(values['text_file_path']):
                 screen = screenshot.open(values['text_file_path'])
                 gui.display_image(screen.original)
                 if recog.is_result(screen.image):
                     result_process(screen)
-        if event == 'button_filter' and result is not None:
-            try:
-                filtered = result.filter()
-            except Exception as ex:
-                logger.exception(ex)
-                gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
-                continue
-            gui.display_image(filtered)
-            log_debug(f'save filtered result: {result.filename}')
+        if event == 'button_save' and result is not None:
+            save_result(result)
+        if event == 'button_save_filtered' and result is not None:
+            ret = save_result_filtered(result)
+            if ret is not None:
+                gui.display_image(ret)
         if event == 'table_results':
             if len(values['table_results']) > 0:
                 result = results[list_results[values['table_results'][0]][0]]
@@ -247,6 +273,8 @@ if __name__ == '__main__':
             if not queue_display_image.empty():
                 gui.display_image(queue_display_image.get_nowait())
             if not queue_result_screen.empty():
-                result_process(queue_result_screen.get_nowait())
+                ret = result_process(queue_result_screen.get_nowait())
+                if ret is not None:
+                    result = ret
     
     window.close()
