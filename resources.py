@@ -1,6 +1,5 @@
 import sys
 import os
-import json
 import numpy as np
 from PIL import Image
 from logging import getLogger
@@ -17,6 +16,7 @@ resources_dirname = 'resources'
 
 masks_dirname = 'masks'
 
+recog_music_backgrounds_basename = os.path.join(resources_dirname, 'background')
 recog_music_filename = os.path.join(resources_dirname, 'musics.json')
 
 def is_embedded():

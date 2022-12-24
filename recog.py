@@ -2,6 +2,7 @@ import numpy as np
 import json
 from base64 import b64encode
 from logging import getLogger
+from glob import glob
 
 logger_child_name = 'recog'
 
@@ -9,16 +10,30 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import masks,recog_music_filename
+from resources import masks,recog_music_backgrounds_basename,recog_music_filename
 from result import Result
 
 informations_trimsize = (460, 71)
 details_trimsize = (350, 245)
 
-option_trimsize = (57, 4)
-number_trimsize = (24, 15)
+informations_areas = {
+    'play_mode': [82, 55, 102, 65],
+    'difficulty': [196, 55, 229, 65],
+    'level': [231, 55, 252, 65],
+    'music': [205, 0, 225, 18]
+}
 
-music_block_size = 16
+details_areas = {
+    'option': [10, 12, 337, 16],
+    'clear_type': [215, 82, 315, 87],
+    'dj_level': [227, 130, 308, 140],
+    'score': [219, 170, 315, 185],
+    'miss_count': [219, 218, 315, 233],
+    'clear_type_new': [318, 65, 335, 100],
+    'dj_level_new': [318, 113, 335, 148],
+    'score_new': [318, 161, 335, 196],
+    'miss_count_new': [318, 209, 335, 244]
+}
 
 informmations_trimpos = (410, 633)
 details_trimpos = {
@@ -42,28 +57,11 @@ for play_side in details_trimpos.keys():
         details_trimpos[play_side][1] + details_trimsize[1]
     ]
 
-informations_areas = {
-    'play_mode': [82, 55, 102, 65],
-    'difficulty': [196, 55, 229, 65],
-    'level': [231, 55, 252, 65],
-    'music': [150, 0, 310, 18]
-}
+music_background_y_position = 42
+music_clean_threshold = 100
 
-details_areas = {
-    'option': [10, 12, 337, 16],
-    'clear_type': [215, 82, 315, 87],
-    'dj_level': [227, 130, 308, 140],
-    'score': [219, 170, 315, 185],
-    'miss_count': [219, 218, 315, 233],
-    'clear_type_new': [318, 65, 335, 100],
-    'dj_level_new': [318, 113, 335, 148],
-    'score_new': [318, 161, 335, 196],
-    'miss_count_new': [318, 209, 335, 244]
-}
-
-option_trimwidth = 57
-
-music_trim_positions = [16, 32, 35, 36, 38, 43, 51, 52, 64, 78, 111, 126]
+option_trimsize = (57, 4)
+number_trimsize = (24, 15)
 
 class Recog():
     def __init__(self, mask):
@@ -131,6 +129,12 @@ class Recognition():
             })
         
         self.rival = Recog(masks['rival'])
+
+        self.backgrounds = {}
+        for filepath in glob(f'{recog_music_backgrounds_basename}-*.npy'):
+            key = int(filepath.split('-')[1].replace('.npy', ''))
+            self.backgrounds[key] = np.load(filepath)
+
         self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
         self.difficulty = RecogMultiValue([masks[key] for key in define.value_list['difficulties'] if key in masks.keys()])
         self.level = {}
@@ -228,13 +232,17 @@ class Recognition():
             return difficulty, self.level[difficulty].find(crop_level).split('-')[1]
         return difficulty, None
     
-    def get_music(self, image_music):
-        np_value = np.array(image_music)
+    def get_music(self, image_informations):
+        background_key = image_informations.getpixel((0, music_background_y_position))
+        trim = image_informations.crop(informations_areas['music'])
+        np_value = np.array(trim)
+        masked = np.where(np_value==self.backgrounds[background_key], 0, np_value)
+        cleaned = np.where(masked<music_clean_threshold, 0, masked)
 
         try:
             target = self.music
-            for position in music_trim_positions:
-                np_trim = np_value[:,position].astype(np.uint8)
+            for position in range(cleaned.shape[1]):
+                np_trim = cleaned[:,position].astype(np.uint8)
                 key = b64encode(np_trim).decode('utf-8')
                 if not key in target:
                     return None
@@ -252,7 +260,7 @@ class Recognition():
         left = None
         last = False
         while not last:
-            area = [area_left, 0, area_left + option_trimwidth, image_options.height]
+            area = [area_left, 0, area_left + option_trimsize[0], image_options.height]
             crop = image_options.crop(area)
             op = self.option.find(crop)
             if op is None:
@@ -308,7 +316,7 @@ class Recognition():
         else:
             level = None
 
-        music = self.get_music(image.crop(informations_areas['music']))
+        music = self.get_music(image)
 
         return play_mode, difficulty, level, music
 
