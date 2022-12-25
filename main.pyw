@@ -69,14 +69,10 @@ class ThreadMain(threading.Thread):
     def routine(self):
         if not self.positioned:
             key = [*define.screen_areas.keys()][self.screen_search_keyindex]
-
-            start_time = time.time()
             box = screenshot.find(find_images[key])
-            self.queues['log'].put(f'search time: ({key}){time.time() - start_time:.3f}ms')
 
             if not box is None:
                 self.positioned = True
-                self.queues['notify'].put('INFINITASを検出しました。')
                 self.queues['log'].put(f'find window: {key}')
                 self.queues['log'].put(f'position: {box}')
                 left = box.left - define.screen_areas[key][0]
@@ -123,7 +119,6 @@ class ThreadMain(threading.Thread):
             if self.finded and not self.processed:
                 if time.time() - self.find_time > thread_time_normal*2-0.1:
                     self.processed = True
-                    self.queues['notify'].put('リザルトを記録しました。')
                     self.queues['result_screen'].put(screen)
         else:
             if self.finded:
@@ -218,7 +213,6 @@ if __name__ == '__main__':
     queue_log = Queue()
     queue_display_image = Queue()
     queue_result_screen = Queue()
-    queue_notify = Queue()
 
     storage = StorageAccessor()
 
@@ -228,8 +222,7 @@ if __name__ == '__main__':
         queues = {
             'log': queue_log,
             'display_image': queue_display_image,
-            'result_screen': queue_result_screen,
-            'notify': queue_notify
+            'result_screen': queue_result_screen
         }
     )
 
@@ -286,7 +279,5 @@ if __name__ == '__main__':
                 ret = result_process(queue_result_screen.get_nowait())
                 if ret is not None:
                     result = ret
-            if not queue_notify.empty():
-                gui.notify(queue_notify.get_nowait())
     
     window.close()

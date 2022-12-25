@@ -34,14 +34,16 @@ def layout_main(setting):
                 [
                     sg.Column([
                         [
-                            sg.Text('画像表示スケール', background_color=background_color),
-                            sg.Combo(scales, key='scale', default_value='1/2', readonly=True)
+                            sg.Column([
+                                [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
+                                [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
+                                [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)]
+                            ], pad=0, background_color=background_color, vertical_alignment='top'),
+                            sg.Column([
+                                [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
+                                [sg.Checkbox('曲名を表示する(試験運用)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)]
+                            ], pad=0, background_color=background_color, vertical_alignment='top')
                         ],
-                        [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
-                        [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
-                        [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
-                        [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)],
-                        [sg.Checkbox('曲名を表示する(試験運用)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)],
                         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
                         [
                             sg.Button('ファイルに保存する', key='button_save'),
@@ -145,12 +147,3 @@ def switch_table(display_music):
         displaycolumns = ['曲名', 'CT', 'DL', 'SC', 'MC']
 
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)
-
-def notify(message):
-    sg.popup_notify(
-        message,
-        title='INF-NOTEBOOK',
-        icon=icon_bytes.getvalue(),
-        display_duration_in_ms=1000,
-        fade_in_duration=100
-    )
