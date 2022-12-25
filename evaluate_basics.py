@@ -34,7 +34,6 @@ def evaluate(filename, image, label):
     
     targets = {
         'loading': recog.search_loading,
-        'warning': recog.search_warning,
         'music_select': recog.search_music_select,
         'result': recog.search_result
     }
@@ -53,7 +52,6 @@ def evaluate(filename, image, label):
     
     if not 'screen' in label.keys() or label['screen'] != 'result':
         results.append('not result')
-        results.append('')
         results.append('')
         results.append('')
         results.append('')
@@ -117,7 +115,6 @@ if __name__ == '__main__':
     headers = [
         'screen',
         'loading',
-        'warning',
         'music_select',
         'result',
         '',

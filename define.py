@@ -8,7 +8,6 @@ logger.debug('loaded define.py')
 class Define():
     screen_areas = {
         'loading': [400, 200, 430, 210],
-        'warning': [480, 90, 540, 124],
         'music_select': [24, 512, 34, 536],
         'result': [784, 689, 790, 697]
     }

@@ -93,7 +93,7 @@ if __name__ == '__main__':
                 gui.display_trim(image.crop(area))
         if event == 'button_label_overwrite' and not screen is None:
             screen_name = None
-            for key in ['none', 'warning', 'music_select', 'playing', 'result']:
+            for key in ['none', 'loading', 'music_select', 'playing', 'result']:
                 if values[f'screen_{key}']:
                     screen_name = key
             playside = None

@@ -1,9 +1,15 @@
 import PySimpleGUI as sg
 import io
+from PIL import Image
 
 from .static import title,icon_path,background_color
 
 scales = ['1/1', '1/2', '1/4']
+
+icon_image = Image.open(icon_path)
+resized_icon = icon_image.resize((32, 32))
+icon_bytes = io.BytesIO()
+resized_icon.save(icon_bytes, format='PNG')
 
 def layout_main(setting):
     column_headers = ['日時', '曲名', 'CT', 'DL', 'SC', 'MC']
@@ -97,7 +103,7 @@ def collection_request(image):
     return True if ret == 'Yes' else False
 
 def find_latest_version(latest_url):
-    ret = sg.popup_scrolled(
+    sg.popup_scrolled(
         '\n'.join([
             u'最新バージョンが見つかりました。',
             u'以下URLから最新バージョンをダウンロードしてください。',
@@ -139,3 +145,12 @@ def switch_table(display_music):
         displaycolumns = ['曲名', 'CT', 'DL', 'SC', 'MC']
 
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)
+
+def notify(message):
+    sg.popup_notify(
+        message,
+        title='INF-NOTEBOOK',
+        icon=icon_bytes.getvalue(),
+        display_duration_in_ms=1000,
+        fade_in_duration=100
+    )

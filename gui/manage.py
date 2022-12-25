@@ -80,8 +80,7 @@ def layout_manage(filenames):
         [
             sg.Column([
                 [sg.Radio('なし', key='screen_none', group_id='screen', background_color=in_area_background_color)],
-                [sg.Radio('ローディング', key='screen_loading', group_id='screen', background_color=in_area_background_color)],
-                [sg.Radio('ワーニング', key='screen_warning', group_id='screen', background_color=in_area_background_color)]
+                [sg.Radio('ローディング', key='screen_loading', group_id='screen', background_color=in_area_background_color)]
             ], pad=0, background_color=in_area_background_color),
             sg.Column([
                 [sg.Radio('選曲', key='screen_music_select', group_id='screen', background_color=in_area_background_color)],
@@ -133,13 +132,11 @@ def layout_manage(filenames):
         [sg.Text('検出画像', size=(30, 1), justification='center', pad=1)],
         [
             sg.Text('Loading', size=(7, 1), justification='center', pad=1),
-            sg.Text('Warning', size=(7, 1), justification='center', pad=1),
             sg.Text('Select', size=(7, 1), justification='center', pad=1),
             sg.Text('Result', size=(7, 1), justification='center', pad=1)
         ],
         [
             sg.Text(key='recog_loading', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
-            sg.Text(key='recog_warning', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
             sg.Text(key='recog_music_select', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
             sg.Text(key='recog_result', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color)
         ],
@@ -255,8 +252,6 @@ def update_image(name, image):
 def feedback():
     if window['recog_loading'].visible:
         window['screen_loading'].update(True)
-    if window['recog_warning'].visible:
-        window['screen_warning'].update(True)
     if window['recog_music_select'].visible:
         window['screen_music_select'].update(True)
     if window['recog_trigger'].visible:
@@ -301,7 +296,6 @@ def set_labels(label):
 
 def set_recognition(screen):
     loading = recog.search_loading(screen.image)
-    warning = recog.search_warning(screen.image)
     music_select = recog.search_music_select(screen.image)
     result = recog.search_result(screen.image)
 
@@ -313,7 +307,6 @@ def set_recognition(screen):
     play_side = recog.get_play_side(screen.image)
 
     window['recog_loading'].update('☒' if loading else '')
-    window['recog_warning'].update('☒' if warning else '')
     window['recog_music_select'].update('☒' if music_select else '')
     window['recog_result'].update('☒' if result else '')
 

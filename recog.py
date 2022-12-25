@@ -109,7 +109,6 @@ class Recognition():
         logger.debug('generate Recognition')
 
         self.loading = Recog(masks['loading'])
-        self.warning = Recog(masks['warning'])
         self.music_select = Recog(masks['music_select'])
         self.turntable = Recog(masks['turntable'])
         self.result = Recog(masks['result'])
@@ -151,10 +150,6 @@ class Recognition():
     def search_loading(self, image_result):
         crop = image_result.crop(define.screen_areas['loading'])
         return self.loading.find(crop)
-
-    def search_warning(self, image_result):
-        crop = image_result.crop(define.screen_areas['warning'])
-        return self.warning.find(crop)
 
     def search_music_select(self, image_result):
         crop = image_result.crop(define.screen_areas['music_select'])
