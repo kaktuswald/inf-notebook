@@ -32,6 +32,10 @@ def layout_main(setting):
                     sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
                 ],
                 [
+                    sg.Text('画像表示スケール', background_color=background_color),
+                    sg.Combo(scales, key='scale', default_value='1/2', readonly=True)
+                ],
+                [
                     sg.Column([
                         [
                             sg.Column([
