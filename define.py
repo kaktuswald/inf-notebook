@@ -36,7 +36,7 @@ class Define():
         'play_sides': ['1P', '2P'],
         'options_arrange': ['RANDOM', 'S-RANDOM', 'R-RANDOM', 'MIRROR'],
         'options_arrange_dp': ['OFF', 'RAN', 'S-RAN', 'R-RAN', 'MIR'],
-        'options_arrange_sync': ['SYNC-RAN', 'SYM-RAN'],
+        'options_arrange_sync': ['SYNC-RAN', 'SYMM-RAN'],
         'options_flip': ['FLIP'],
         'options_assist': ['A-SCR', 'LEGACY'],
         'clear_types': ['NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR']
@@ -53,7 +53,7 @@ class Define():
         'R-RAN': 55,
         'MIR': 31,
         'SYNC-RAN': 91,
-        'SYM-RAN': 0,
+        'SYMM-RAN': 93,
         'FLIP': 38,
         'A-SCR': 0,
         'LEGACY': 0,

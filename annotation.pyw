@@ -107,7 +107,16 @@ if __name__ == '__main__':
         if event == 'button_recog' and not target_key is None:
             gui.set_result()
         if event == 'only_undefined_music':
-            keys = [key for key in images.keys() if key in labels.keys() and labels[key]['music'] == '']
+            if values['only_undefined_music']:
+                keys = [key for key in images.keys() if not key in labels.keys() or labels[key]['music'] == '']
+            else:
+                keys = [*images.keys()]
+            window['list_keys'].update(keys)
+        if event == 'only_full_combo':
+            if values['only_full_combo']:
+                keys = [key for key in images.keys() if key in labels.keys() and labels[key]['clear_type'] == 'F-COMBO']
+            else:
+                keys = [*images.keys()]
             window['list_keys'].update(keys)
 
     window.close()

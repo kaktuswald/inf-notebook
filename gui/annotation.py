@@ -149,9 +149,8 @@ def layout_manage(keys):
             sg.Button('アノテーション保存', key='button_label_overwrite'),
             sg.Button('認識結果から引用', key='button_recog')
         ],
-        [
-            sg.Checkbox('曲名なしのみ', key='only_undefined_music', enable_events=True, background_color=in_area_background_color)
-        ]
+        [sg.Radio('曲名なしのみ', key='only_undefined_music', group_id='search', enable_events=True, background_color=in_area_background_color)],
+        [sg.Radio('F-COMBOのみ', key='only_full_combo', group_id='search', enable_events=True, background_color=in_area_background_color)]
     ]
 
     return [

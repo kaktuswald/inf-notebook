@@ -122,41 +122,45 @@ if __name__ == '__main__':
                     levels[key][collection.key] = crop
         if collection.details is not None:
             image = collection.details
+
             option_image = image.crop(details_areas['option'])
             left = 0
             if 'option_battle' in label.keys() and label['option_battle']:
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
-                options['option_battle'][collection.key] = option_image.crop(area)
-                left += define.option_widths['BATTLE']
+                options['BATTLE'][collection.key] = option_image.crop(area)
+                left += define.option_widths['BATTLE'] + define.option_widths[',']
             if 'option_arrange' in label.keys() and label['option_arrange'] != '':
                 key = label['option_arrange']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += define.option_widths[key]
+                left += define.option_widths[key] + define.option_widths[',']
             if 'option_arrange_dp' in label.keys() and label['option_arrange_dp'] != '/':
-                key = label['option_arrange_dp']
+                key_left, key_right = label['option_arrange_dp'].split('/')
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
-                options[key][collection.key] = option_image.crop(area)
-                left += define.option_widths[key]
+                options[key_left][collection.key] = option_image.crop(area)
+                left += define.option_widths[key_left] + define.option_widths['/']
+                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
+                options[key_right][collection.key] = option_image.crop(area)
+                left += define.option_widths[key_right] + define.option_widths[',']
             if 'option_arrange_sync' in label.keys() and label['option_arrange_sync'] != '':
                 key = label['option_arrange_sync']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += define.option_widths[key]
+                left += define.option_widths[key] + define.option_widths[',']
             if 'option_h-random' in label.keys() and label['option_h-random']:
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
-                options['option_h-random'][collection.key] = option_image.crop(area)
-                left += define.option_widths['h-random']
+                options['H-RANDOM'][collection.key] = option_image.crop(area)
+                left += define.option_widths['h-random'] + define.option_widths[',']
             if 'option_flip' in label.keys() and label['option_flip'] != '':
                 key = label['option_flip']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += define.option_widths[key]
+                left += define.option_widths[key] + define.option_widths[',']
             if 'option_assist' in label.keys() and label['option_assist'] != '':
                 key = label['option_assist']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
-                left += define.option_widths[key]
+
             if 'clear_type' in label.keys() and label['clear_type'] != '':
                 if label['clear_type'] != 'F-COMBO':
                     crop = image.crop(details_areas['clear_type'])
