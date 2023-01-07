@@ -17,40 +17,40 @@ def evaluate(filename, informations, details, label):
     results = [filename]
     
     if informations is not None:
-        play_mode, difficulty, level, music = recog.get_informations(informations)
+        recog_informations = recog.get_informations(informations)
 
         if not 'play_mode' in label.keys():
             results.append('none')
         else:
-            if play_mode == label['play_mode']:
+            if recog_informations.play_mode == label['play_mode']:
                 results.append('ok')
             else:
-                results.append(f"{play_mode} {label['play_mode']}")
+                results.append(f"{recog_informations.play_mode} {label['play_mode']}")
                 failure = True
 
         if not 'difficulty' in label.keys() or not 'level' in label.keys():
             results.append('none')
             results.append('none')
         else:
-            if difficulty == label['difficulty']:
+            if recog_informations.difficulty == label['difficulty']:
                 results.append('ok')
             else:
-                results.append(f"{difficulty} {label['difficulty']}")
+                results.append(f"{recog_informations.difficulty} {label['difficulty']}")
                 failure = True
 
-            if level == label['level']:
+            if recog_informations.level == label['level']:
                 results.append('ok')
             else:
-                results.append(f"{level} {label['level']}")
+                results.append(f"{recog_informations.level} {label['level']}")
                 failure = True
 
         if not 'music' in label.keys() or label['music'] == '':
             results.append('none')
         else:
-            if music == label['music']:
+            if recog_informations.music == label['music']:
                 results.append('ok')
             else:
-                results.append(f"{music} {label['music']}")
+                results.append(f"{recog_informations.music} {label['music']}")
                 failure = True
     else:
         results.append('')
@@ -59,9 +59,10 @@ def evaluate(filename, informations, details, label):
         results.append('')
 
     if details is not None:
-        option, clear_type, dj_level, score, miss_count, clear_type_new, dj_level_new, score_new, miss_count_new = recog.get_details(details)
+        recog_details = recog.get_details(details)
 
-        if option is None:
+        recog_options = recog_details.options
+        if recog_options is None:
             results.append('')
             results.append('')
             results.append('')
@@ -73,11 +74,11 @@ def evaluate(filename, informations, details, label):
             if not 'option_arrange' in label.keys():
                 results.append('none')
             else:
-                if option['arrange'] in define.value_list['options_arrange']:
-                    if option['arrange'] == label['option_arrange']:
+                if recog_options.arrange in define.value_list['options_arrange']:
+                    if recog_options.arrange == label['option_arrange']:
                         results.append('ok')
                     else:
-                        results.append(f"{option['arrange']} {label['option_arrange']}")
+                        results.append(f"{recog_options.arrange} {label['option_arrange']}")
                         failure = True
                 else:
                     results.append('ok')
@@ -85,11 +86,11 @@ def evaluate(filename, informations, details, label):
             if not 'option_arrange_dp' in label.keys():
                 results.append('none')
             else:
-                if option['arrange'] is not None and '/' in option['arrange']:
-                    if option['arrange'] == label['option_arrange_dp']:
+                if recog_options.arrange is not None and '/' in recog_options.arrange:
+                    if recog_options.arrange == label['option_arrange_dp']:
                         results.append('ok')
                     else:
-                        results.append(f"{option['arrange']} {label['option_arrange_dp']}")
+                        results.append(f"{recog_options.arrange} {label['option_arrange_dp']}")
                         failure = True
                 else:
                     results.append('ok')
@@ -97,11 +98,11 @@ def evaluate(filename, informations, details, label):
             if not 'option_arrange_sync' in label.keys():
                 results.append('none')
             else:
-                if option['arrange'] in define.value_list['options_arrange_sync']:
-                    if option['arrange'] == label['option_arrange_sync']:
+                if recog_options.arrange in define.value_list['options_arrange_sync']:
+                    if recog_options.arrange == label['option_arrange_sync']:
                         results.append('ok')
                     else:
-                        results.append(f"{option['arrange']} {label['option_arrange_sync']}")
+                        results.append(f"{recog_options.arrange} {label['option_arrange_sync']}")
                         failure = True
                 else:
                     results.append('ok')
@@ -109,103 +110,108 @@ def evaluate(filename, informations, details, label):
             if not 'option_flip' in label.keys():
                 results.append('none')
             else:
-                if (option['flip'] is None and label['option_flip'] == '') or option['flip'] == label['option_flip']:
+                if (recog_options.flip is None and label['option_flip'] == '') or recog_options.flip == label['option_flip']:
                     results.append('ok')
                 else:
-                    results.append(f"{option['flip']} {label['option_flip']}")
+                    results.append(f"{recog_options.flip} {label['option_flip']}")
                     failure = True
             
             if not 'option_assist' in label.keys():
                 results.append('none')
             else:
-                if (option['assist'] is None and label['option_assist'] == '') or option['assist'] == label['option_assist']:
+                if (recog_options.assist is None and label['option_assist'] == '') or recog_options.assist == label['option_assist']:
                     results.append('ok')
                 else:
-                    results.append(f"{option['assist']} {label['option_assist']}")
+                    results.append(f"{recog_options.assist} {label['option_assist']}")
                     failure = True
             
             if not 'option_battle' in label.keys():
                 results.append('none')
             else:
-                if (option['battle'] is None and label['option_battle'] == '') or option['battle'] == label['option_battle']:
+                if (recog_options.battle is None and label['option_battle'] == '') or recog_options.battle == label['option_battle']:
                     results.append('ok')
                 else:
-                    results.append(f"{option['battle']} {label['option_battle']}")
+                    results.append(f"{recog_options.battle} {label['option_battle']}")
                     failure = True
             
             if not 'option_h-random' in label.keys():
                 results.append('none')
             else:
-                if (option['h-random'] is None and label['option_h-random'] == '') or option['h-random'] == label['option_h-random']:
+                if (recog_options.h_random is None and label['option_h-random'] == '') or recog_options.h_random == label['option_h-random']:
                     results.append('ok')
                 else:
-                    results.append(f"{option['h-random']} {label['option_h-random']}")
+                    results.append(f"{recog_options.h_random} {label['option_h-random']}")
                     failure = True
+
+        recog_clear_type = recog_details.clear_type
+        recog_dj_level = recog_details.dj_level
+        recog_score = recog_details.score
+        recog_miss_count = recog_details.miss_count
 
         if not 'clear_type' in label.keys():
             results.append('none')
         else:
-            if (clear_type is None and label['clear_type'] == '') or clear_type == label['clear_type']:
+            if (recog_clear_type.value is None and label['clear_type'] == '') or recog_clear_type.value == label['clear_type']:
                 results.append('ok')
             else:
-                results.append(f"{clear_type} {label['clear_type']}")
+                results.append(f"{recog_clear_type.value} {label['clear_type']}")
                 failure = True
 
         if not 'dj_level' in label.keys():
             results.append('none')
         else:
-            if (dj_level is None and label['dj_level'] == '') or dj_level == label['dj_level']:
+            if (recog_dj_level.value is None and label['dj_level'] == '') or recog_dj_level.value == label['dj_level']:
                 results.append('ok')
             else:
-                results.append(f"{dj_level} {label['dj_level']}")
+                results.append(f"{recog_dj_level.value} {label['dj_level']}")
 
         if not 'score' in label.keys():
             results.append('none')
         else:
-            if (score is None and label['score'] == '') or score == int(label['score']):
+            if (recog_score.value is None and label['score'] == '') or recog_score.value == int(label['score']):
                 results.append('ok')
             else:
-                results.append(f"{score} {label['score']}")
+                results.append(f"{recog_score.value} {label['score']}")
 
         if not 'miss_count' in label.keys():
             results.append('none')
         else:
-            if (miss_count is None and label['miss_count'] == '') or miss_count == int(label['miss_count']):
+            if (recog_miss_count.value is None and label['miss_count'] == '') or recog_miss_count.value == int(label['miss_count']):
                 results.append('ok')
             else:
-                results.append(f"{miss_count} {label['miss_count']}")
+                results.append(f"{recog_miss_count.value} {label['miss_count']}")
 
         if not 'clear_type_new' in label.keys():
             results.append('none')
         else:
-            if clear_type_new == label['clear_type_new']:
+            if recog_clear_type.new == label['clear_type_new']:
                 results.append('ok')
             else:
-                results.append(f"{clear_type_new} {label['clear_type_new']}")
+                results.append(f"{recog_clear_type.new} {label['clear_type_new']}")
         
         if not 'dj_level_new' in label.keys():
             results.append('none')
         else:
-            if dj_level_new == label['dj_level_new']:
+            if recog_dj_level.new == label['dj_level_new']:
                 results.append('ok')
             else:
-                results.append(f"{dj_level_new} {label['dj_level_new']}")
+                results.append(f"{recog_dj_level.new} {label['dj_level_new']}")
         
         if not 'score_new' in label.keys():
             results.append('none')
         else:
-            if score_new == label['score_new']:
+            if recog_score.new == label['score_new']:
                 results.append('ok')
             else:
-                results.append(f"{score_new} {label['score_new']}")
+                results.append(f"{recog_score.new} {label['score_new']}")
         
         if not 'miss_count_new' in label.keys():
             results.append('none')
         else:
-            if miss_count_new == label['miss_count_new']:
+            if recog_miss_count.new == label['miss_count_new']:
                 results.append('ok')
             else:
-                results.append(f"{miss_count_new} {label['miss_count_new']}")
+                results.append(f"{recog_miss_count.new} {label['miss_count_new']}")
     else:
         results.append('')
         results.append('')

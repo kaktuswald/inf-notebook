@@ -36,6 +36,7 @@ from screenshot import Screenshot
 from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
+from record import Record
 
 thread_time_start = 1
 thread_time_normal = 0.36
@@ -137,9 +138,16 @@ def result_process(screen):
             image = save_result_filtered(result)
         
         insert_results(result)
+
+        if result.informations.music is not None:
+            record = Record(result.informations.music)
+            record.insert(result)
+            record.save()
+
         if setting.display_result and image is not None:
             gui.display_image(image)
             return result
+
     return None
 
 def save_result(result):
@@ -167,11 +175,11 @@ def insert_results(result):
     results[result.timestamp] = result
     list_results.append([
         result.timestamp,
-        result.informations['music'] if result.informations['music'] is not None else '??????',
-        '☑' if result.details['clear_type_new'] else '',
-        '☑' if result.details['dj_level_new'] else '',
-        '☑' if result.details['score_new'] else '',
-        '☑' if result.details['miss_count_new'] else ''
+        result.informations.music if result.informations.music is not None else '??????',
+        '☑' if result.details.clear_type.new else '',
+        '☑' if result.details.dj_level.new else '',
+        '☑' if result.details.score.new else '',
+        '☑' if result.details.miss_count.new else ''
     ])
     window['table_results'].update(values=list_results)
 

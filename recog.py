@@ -2,7 +2,6 @@ import numpy as np
 import json
 from base64 import b64encode
 from logging import getLogger
-from glob import glob
 
 logger_child_name = 'recog'
 
@@ -11,7 +10,7 @@ logger.debug('loaded recog.py')
 
 from define import define
 from resources import masks,recog_music_filename
-from result import Result
+from result import ResultInformations,ResultValueNew,ResultDetails,ResultOptions,Result
 
 informations_trimsize = (460, 71)
 details_trimsize = (350, 245)
@@ -236,8 +235,12 @@ class Recognition():
             print(ex)
             return None
 
-    def get_option(self, image_options):
-        ret = {'arrange': None, 'flip': None, 'assist': None, 'battle': False, 'h-random': False}
+    def get_options(self, image_options):
+        arrange = None
+        flip = None
+        assist = None
+        battle = False
+        h_random = False
 
         area_left = 0
         left = None
@@ -251,23 +254,23 @@ class Recognition():
                 continue
             
             if op in define.value_list['options_arrange']:
-                ret['arrange'] = op
+                arrange = op
             if op in define.value_list['options_arrange_dp']:
                 if left is None:
                     left = op
                 else:
-                    ret['arrange'] = f'{left}/{op}'
+                    arrange = f'{left}/{op}'
                     left = None
             if op in define.value_list['options_arrange_sync']:
-                ret['arrange'] = op
+                arrange = op
             if op in define.value_list['options_flip']:
-                ret['flip'] = op
+                flip = op
             if op in define.value_list['options_assist']:
-                ret['assist'] = op
+                assist = op
             if op == 'BATTLE':
-                ret['battle'] = True
+                battle = True
             if op == 'H-RANDOM':
-                ret['h-random'] = True
+                h_random = True
 
             area_left += define.option_widths[op]
             if left is None:
@@ -275,7 +278,7 @@ class Recognition():
             else:
                 area_left += define.option_widths['/']
         
-        return ret
+        return ResultOptions(arrange, flip, assist, battle, h_random) if area_left != 0 else None
 
     def get_clear_type(self, image_details):
         result = self.clear_type.find(image_details)
@@ -301,57 +304,44 @@ class Recognition():
 
         music = self.get_music(image.crop(informations_areas['music']))
 
-        return play_mode, difficulty, level, music
+        return ResultInformations(play_mode, difficulty, level, music)
 
     def get_details(self, image):
-        option = self.get_option(image.crop(details_areas['option']))
-        clear_type = self.get_clear_type(image.crop(details_areas['clear_type']))
-        dj_level = self.dj_level.find(image.crop(details_areas['dj_level']))
-        score = self.number.find(image.crop(details_areas['score']))
-        miss_count = self.number.find(image.crop(details_areas['miss_count']))
-        clear_type_new = not self.new.find(image.crop(details_areas['clear_type_new']))
-        dj_level_new = not self.new.find(image.crop(details_areas['dj_level_new']))
-        score_new = not self.new.find(image.crop(details_areas['score_new']))
-        miss_count_new = not self.new.find(image.crop(details_areas['miss_count_new']))
+        options = self.get_options(image.crop(details_areas['option']))
+        clear_type = ResultValueNew(
+            self.get_clear_type(image.crop(details_areas['clear_type'])),
+            not self.new.find(image.crop(details_areas['clear_type_new']))
+        )
+        dj_level = ResultValueNew(
+            self.dj_level.find(image.crop(details_areas['dj_level'])),
+            not self.new.find(image.crop(details_areas['dj_level_new']))
+        )
+        score = ResultValueNew(
+            self.number.find(image.crop(details_areas['score'])),
+            not self.new.find(image.crop(details_areas['score_new']))
+        )
+        miss_count = ResultValueNew(
+            self.number.find(image.crop(details_areas['miss_count'])),
+            not self.new.find(image.crop(details_areas['miss_count_new']))
+        )
 
-        return option, clear_type, dj_level, score, miss_count, clear_type_new, dj_level_new, score_new, miss_count_new
+        return ResultDetails(options, clear_type, dj_level, score, miss_count)
 
     def get_result(self, screen):
         trim_informations = screen.image.crop(informations_trimarea)
-        play_mode, difficulty, level, music = self.get_informations(trim_informations)
+        information = self.get_informations(trim_informations)
 
         play_side = self.get_play_side(screen.image)
 
         trim_details = screen.image.crop(details_trimarea[play_side])
-
-        option, clear_type, dj_level, score, miss_count, clear_type_new, dj_level_new, score_new, miss_count_new = self.get_details(trim_details)
+        detail = self.get_details(trim_details)
 
         return Result(
             screen.original.convert('RGB'),
-            {
-                'play_mode': play_mode,
-                'difficulty': difficulty,
-                'level': level,
-                'music': music
-            },
+            information,
             play_side,
             self.search_rival(screen.image),
-            {
-                'use_option': option is not None,
-                'option_arrange': option['arrange'] if option is not None else None,
-                'option_flip': option['flip'] if option is not None else None,
-                'option_assist': option['assist'] if option is not None else None,
-                'option_battle': option['battle'] if option is not None else None,
-                'option_h-random': option['h-random'] if option is not None else None,
-                'clear_type': clear_type,
-                'dj_level': dj_level,
-                'score': score,
-                'miss_count': miss_count,
-                'clear_type_new': clear_type_new,
-                'dj_level_new': dj_level_new,
-                'score_new': score_new,
-                'miss_count_new': miss_count_new,
-            }
+            detail
         )
 
 recog = Recognition()

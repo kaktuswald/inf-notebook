@@ -126,6 +126,7 @@ raws*/
 collection_data/
 results/
 filtered/
+records/
 larning*/
 
 *.csv

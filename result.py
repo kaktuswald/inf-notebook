@@ -12,6 +12,34 @@ from filter import blur
 results_basepath = 'results'
 filterd_basepath = 'filtered'
 
+class ResultInformations():
+    def __init__(self, play_mode, difficulty, level, music):
+        self.play_mode = play_mode
+        self.difficulty = difficulty
+        self.level = level
+        self.music = music
+
+class ResultValueNew():
+    def __init__(self, value, new):
+        self.value = value
+        self.new = new
+
+class ResultDetails():
+    def __init__(self, options, clear_type, dj_level, score, miss_count):
+        self.options = options
+        self.clear_type = clear_type
+        self.dj_level = dj_level
+        self.score = score
+        self.miss_count = miss_count
+
+class ResultOptions():
+    def __init__(self, arrange, flip, assist, battle, h_random):
+        self.arrange = arrange
+        self.flip = flip
+        self.assist = assist
+        self.battle = battle
+        self.h_random = h_random
+
 class Result():
     def __init__(self, image, informations, play_side, rival, details):
         self.image = image
@@ -25,10 +53,10 @@ class Result():
     
     def has_new_record(self):
         return any([
-            self.details['clear_type_new'],
-            self.details['dj_level_new'],
-            self.details['score_new'],
-            self.details['miss_count_new']
+            self.details.clear_type.new,
+            self.details.dj_level.new,
+            self.details.score.new,
+            self.details.miss_count.new
         ])
 
     def save(self):

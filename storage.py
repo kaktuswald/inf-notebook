@@ -101,16 +101,22 @@ class StorageAccessor():
         informations_trim = False
         details_trim = False
 
-        for key in ['play_mode', 'difficulty', 'level', 'music']:
-            if result.informations[key] is None:
-                informations_trim = True
+        if result.informations.play_mode is None:
+            informations_trim = True
+        if result.informations.difficulty is None:
+            informations_trim = True
+        if result.informations.level is None:
+            informations_trim = True
+        if result.informations.music is None:
+            informations_trim = True
 
-        if result.informations['play_mode'] == 'DP':
+        if result.informations.play_mode == 'DP':
             details_trim = True
-        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            if result.details[key] is None:
-                details_trim = True
-        if result.details['clear_type'] == 'F-COMBO':
+        if result.details.clear_type.value is None:
+            details_trim = True
+        if result.details.clear_type.value == 'F-COMBO':
+            details_trim = True
+        if result.details.dj_level.value is None:
             details_trim = True
 
         if informations_trim:

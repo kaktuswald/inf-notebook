@@ -245,12 +245,12 @@ def reset_informations():
     window['result_music'].update('')
 
 def set_informations(image):
-    play_mode, difficulty, level, music = recog.get_informations(image)
+    informations = recog.get_informations(image)
 
-    window['result_play_mode'].update(play_mode if play_mode is not None else '')
-    window['result_difficulty'].update(difficulty if difficulty is not None else '')
-    window['result_level'].update(level if level is not None else '')
-    window['result_music'].update(music if music is not None else '')
+    window['result_play_mode'].update(informations.play_mode if informations.play_mode is not None else '')
+    window['result_difficulty'].update(informations.difficulty if informations.difficulty is not None else '')
+    window['result_level'].update(informations.level if informations.level is not None else '')
+    window['result_music'].update(informations.music if informations.music is not None else '')
 
 def reset_details():
     window['result_option_arrange'].update('')
@@ -268,21 +268,26 @@ def reset_details():
     window['result_miss_count_new'].update(visible=False)
 
 def set_details(image):
-    option, clear_type, dj_level, score, miss_count, clear_type_new, dj_level_new, score_new, miss_count_new = recog.get_details(image)
+    details = recog.get_details(image)
+    options = details.options
+    clear_type = details.clear_type
+    dj_level = details.dj_level
+    score = details.score
+    miss_count = details.miss_count
 
-    window['result_option_arrange'].update(option['arrange'] if option['arrange'] is not None else '')
-    window['result_option_flip'].update(option['flip'] if option['flip'] is not None else '')
-    window['result_option_assist'].update(option['assist'] if option['assist'] is not None else '')
-    window['result_option_battle'].update(visible=option['battle'])
-    window['result_option_h-random'].update(visible=option['h-random'])
-    window['result_clear_type'].update(clear_type if clear_type is not None else '')
-    window['result_dj_level'].update(dj_level if dj_level is not None else '')
-    window['result_score'].update(score if score is not None else '')
-    window['result_miss_count'].update(miss_count if miss_count is not None else '')
-    window['result_clear_type_new'].update(visible=clear_type_new)
-    window['result_dj_level_new'].update(visible=dj_level_new)
-    window['result_score_new'].update(visible=score_new)
-    window['result_miss_count_new'].update(visible=miss_count_new)
+    window['result_option_arrange'].update(options.arrange if options.arrange is not None else '')
+    window['result_option_flip'].update(options.flip if options.flip is not None else '')
+    window['result_option_assist'].update(options.assist if options.assist is not None else '')
+    window['result_option_battle'].update(visible=options.battle)
+    window['result_option_h-random'].update(visible=options.h_random)
+    window['result_clear_type'].update(clear_type.value if clear_type.value is not None else '')
+    window['result_dj_level'].update(dj_level.value if dj_level.value is not None else '')
+    window['result_score'].update(score.value if score.value is not None else '')
+    window['result_miss_count'].update(miss_count.value if miss_count.value is not None else '')
+    window['result_clear_type_new'].update(visible=clear_type.new)
+    window['result_dj_level_new'].update(visible=dj_level.new)
+    window['result_score_new'].update(visible=score.new)
+    window['result_miss_count_new'].update(visible=miss_count.new)
 
 def set_result():
     window['play_mode'].update(window['result_play_mode'].get())
