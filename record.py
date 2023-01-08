@@ -45,13 +45,33 @@ class Record():
             },
         }
 
+    def insert_history(self, target, result):
         if not 'timestamps' in target.keys():
             target['timestamps'] = []
         target['timestamps'].append(result.timestamp)
 
         if not 'history' in target.keys():
             target['history'] = {}
-        target['history'][result.timestamp] = target['latest']
+        target['history'][result.timestamp] = {
+            'clear_type': {
+                'value': result.details.clear_type.value,
+                'new': result.details.clear_type.new
+            },
+            'dj_level': {
+                'value': result.details.dj_level.value,
+                'new': result.details.dj_level.new
+            },
+            'score': {
+                'value': result.details.score.value,
+                'new': result.details.score.new
+            },
+            'miss_count': {
+                'value': result.details.miss_count.value,
+                'new': result.details.miss_count.new
+            },
+        }
+
+
 
     def insert_best(self, target, result):
         if not 'best' in target.keys():
@@ -112,6 +132,7 @@ class Record():
         target = target[result.informations.difficulty]
 
         self.insert_latest(target, result)
+        self.insert_history(target, result)
         self.insert_best(target, result)
 
 if __name__ == '__main__':
