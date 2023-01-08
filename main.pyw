@@ -139,7 +139,7 @@ def result_process(screen):
         
         insert_results(result)
 
-        if result.informations.music is not None:
+        if result.informations.music is not None and not result.dead:
             record = Record(result.informations.music)
             record.insert(result)
             record.save()

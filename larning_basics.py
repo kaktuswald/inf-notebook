@@ -17,6 +17,7 @@ if __name__ == '__main__':
     find_targets = {}
     
     play_side_targets = {}
+    dead_targets = {}
 
     turntable_targets = {}
 
@@ -36,10 +37,14 @@ if __name__ == '__main__':
                 crop = source.image.crop(define.areas[key])
                 find_targets[key][source.filename] = crop
         if larning.is_result_ok(source.label) and 'play_side' in source.label and source.label['play_side'] != '':
-            if source.label['play_side'] != 'DP':
+            if source.label['play_side'] != '':
                 play_side = source.label['play_side']
                 crop = source.image.crop(define.areas['play_side'][play_side])
                 play_side_targets[filename] = crop
+
+                if 'dead' in source.label.keys() and source.label['dead']:
+                    crop = source.image.crop(define.areas['dead'][play_side])
+                    dead_targets[filename] = crop
         if 'screen' in source.label and source.label['screen'] == 'playing':
             if 'play_side' in source.label and source.label['play_side'] != '':
                 play_side = source.label['play_side']
@@ -53,4 +58,5 @@ if __name__ == '__main__':
         larning.larning(key, find_targets[key])
     
     larning.larning('play_side', play_side_targets)
+    larning.larning('dead', dead_targets)
     larning.larning('turntable', turntable_targets)

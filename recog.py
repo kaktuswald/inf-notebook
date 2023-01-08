@@ -123,6 +123,7 @@ class Recognition():
                 'recog': Recog(masks['play_side'])
             })
         
+        self.dead = Recog(masks['dead'])
         self.rival = Recog(masks['rival'])
 
         self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
@@ -205,6 +206,10 @@ class Recognition():
             return True
         
         return False
+    
+    def search_dead(self, image_result, play_side):
+        crop = image_result.crop(define.areas['dead'][play_side])
+        return self.dead.find(crop)
     
     def search_rival(self, image_result):
         crop = image_result.crop(define.areas['rival'])
@@ -329,19 +334,17 @@ class Recognition():
 
     def get_result(self, screen):
         trim_informations = screen.image.crop(informations_trimarea)
-        information = self.get_informations(trim_informations)
 
         play_side = self.get_play_side(screen.image)
-
         trim_details = screen.image.crop(details_trimarea[play_side])
-        detail = self.get_details(trim_details)
 
         return Result(
             screen.original.convert('RGB'),
-            information,
+            self.get_informations(trim_informations),
             play_side,
             self.search_rival(screen.image),
-            detail
+            self.search_dead(screen.image, play_side),
+            self.get_details(trim_details)
         )
 
 recog = Recognition()

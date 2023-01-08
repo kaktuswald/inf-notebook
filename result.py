@@ -41,11 +41,12 @@ class ResultOptions():
         self.h_random = h_random
 
 class Result():
-    def __init__(self, image, informations, play_side, rival, details):
+    def __init__(self, image, informations, play_side, rival, dead, details):
         self.image = image
         self.informations = informations
         self.play_side = play_side
         self.rival = rival
+        self.dead = dead
         self.details = details
 
         now = datetime.now()

@@ -96,15 +96,6 @@ if __name__ == '__main__':
             for key in ['none', 'loading', 'music_select', 'playing', 'result']:
                 if values[f'screen_{key}']:
                     screen_name = key
-            playside = None
-            if values['play_side_none']:
-                playside = ''
-            if values['play_side_1p']:
-                playside = '1P'
-            if values['play_side_2p']:
-                playside = '2P'
-            if values['play_side_dp']:
-                playside = 'DP'
 
             labels.update(
                 screen.filename,
@@ -114,11 +105,18 @@ if __name__ == '__main__':
                     'cutin_mission': values['cutin_mission'],
                     'cutin_bit': values['cutin_bit'],
                     'rival': values['rival'],
-                    'play_side': playside
+                    'play_mode': values['play_mode'],
+                    'play_side': values['play_side'],
+                    'dead': values['dead']
                 }
             )
             labels.save()
         if event == 'button_feedback' and not screen is None:
             gui.feedback()
+        if event == 'search_all':
+            window['list_screens'].update(filenames)
+        if event == 'search_only_result':
+            targets = [filename for filename in filenames if labels.get(filename) is not None and 'screen' in labels.get(filename).keys() and labels.get(filename)['screen'] == 'result']
+            window['list_screens'].update(targets)
 
     window.close()

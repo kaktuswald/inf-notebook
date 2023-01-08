@@ -56,6 +56,7 @@ def evaluate(filename, image, label):
         results.append('')
         results.append('')
         results.append('')
+        results.append('')
         results.append('!')
         return results
 
@@ -87,6 +88,17 @@ def evaluate(filename, image, label):
             results.append('ok')
         else:
             results.append(f"{play_side} {label['play_side']}")
+            failure = True
+
+    if not 'play_side' in label.keys() or not 'dead' in label.keys() or not 'cutin_mission' in label.keys() or label['cutin_mission']:
+        results.append('none')
+        play_side = None
+    else:
+        dead = recog.search_dead(image, label['play_side'])
+        if (dead is None and label['dead'] == '') or dead == label['dead']:
+            results.append('ok')
+        else:
+            results.append(f"{dead} {label['dead']}")
             failure = True
 
     results.append('!')
@@ -123,6 +135,7 @@ if __name__ == '__main__':
         'cutin_bit',
         'rival',
         'play_side',
+        'dead',
         'result'
     ]
 

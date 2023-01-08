@@ -93,23 +93,24 @@ def layout_manage(filenames):
             sg.Checkbox('認識可能', key='trigger', default=True, background_color=in_area_background_color)
         ],
         [
-            sg.Text('ミッション', size=(16, 1)),
-            sg.Checkbox('カットイン', key='cutin_mission', background_color=in_area_background_color),
-        ],
-        [
-            sg.Text('ビット獲得', size=(16, 1)),
-            sg.Checkbox('カットイン', key='cutin_bit', background_color=in_area_background_color)
+            sg.Text('カットイン', size=(16, 1)),
+            sg.Checkbox('ミッション', key='cutin_mission', background_color=in_area_background_color),
+            sg.Checkbox('ビット獲得', key='cutin_bit', background_color=in_area_background_color)
         ],
         [
             sg.Text('ライバル挑戦状', size=(16, 1)),
-            sg.Checkbox('表示中', key='rival', default=False, background_color=in_area_background_color)
+            sg.Checkbox('表示あり', key='rival', default=False, background_color=in_area_background_color)
         ],
         [
-            sg.Text('プレイサイド', size=(16, 1)),
-            sg.Radio('なし', key='play_side_none', group_id='play_side', default=True, background_color=in_area_background_color),
-            sg.Radio('1P', key='play_side_1p', group_id='play_side', background_color=in_area_background_color),
-            sg.Radio('2P', key='play_side_2p', group_id='play_side', background_color=in_area_background_color),
-            sg.Radio('DP', key='play_side_dp', group_id='play_side', background_color=in_area_background_color),
+            sg.Text('リザルト', size=(16, 1)),
+            sg.Text('モード', background_color=in_area_background_color),
+            sg.Combo(['', 'SP', 'DP'], key='play_mode'),
+            sg.Text('サイド', background_color=in_area_background_color),
+            sg.Combo(['', '1P', '2P'], key='play_side')
+        ],
+        [
+            sg.Text('途中落ち', size=(16, 1)),
+            sg.Checkbox('表示あり', key='dead', default=False, background_color=in_area_background_color)
         ],
         [
             sg.Button('アノテーション保存', key='button_label_overwrite'),
@@ -156,6 +157,10 @@ def layout_manage(filenames):
         [
             sg.Text('プレイサイド', size=(20, 1)),
             sg.Text(key='recog_play_side', background_color=in_area_background_color)
+        ],
+        [
+            sg.Text('途中落ち', size=(20, 1)),
+            sg.Text(key='recog_dead', background_color=in_area_background_color)
         ]
     ]
 
@@ -171,10 +176,14 @@ def layout_manage(filenames):
                         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)]
                     ], pad=0, background_color=background_color),
                     sg.Listbox(filenames, key='list_screens', size=(27, 20), enable_events=True),
+                    sg.Column([
+                        [sg.Radio('すべて', default=True, key='search_all', group_id='search', enable_events=True)],
+                        [sg.Radio('リザルトのみ', key='search_only_result', group_id='search', enable_events=True)]
+                    ])
                 ],
                 [
                     sg.Column(area_define, size=(300, 350), background_color=in_area_background_color),
-                    sg.Column(manage_label_define, size=(410, 350), background_color=in_area_background_color),
+                    sg.Column(manage_label_define, size=(420, 350), background_color=in_area_background_color),
                     sg.Column(manage_result, size=(300, 350), background_color=in_area_background_color)
                 ],
             ], pad=0, background_color=background_color)
@@ -250,23 +259,18 @@ def update_image(name, image):
     window[name].update(data=bytes.getvalue())
 
 def feedback():
-    if window['recog_loading'].visible:
+    if window['recog_loading'].get() != '':
         window['screen_loading'].update(True)
-    if window['recog_music_select'].visible:
+    if window['recog_music_select'].get() != '':
         window['screen_music_select'].update(True)
-    if window['recog_trigger'].visible:
+    if window['recog_result'].get() != '':
         window['screen_result'].update(True)
-    window['trigger'].update(window['recog_trigger'].visible)
-    window['cutin_mission'].update(window['recog_cutin_mission'].visible)
-    window['cutin_bit'].update(window['recog_cutin_bit'].visible)
-    window['rival'].update(window['recog_rival'].visible)
-    play_side = window['recog_play_side'].get()
-    if play_side == '':
-        window['play_side_none'].update(True)
-    if play_side == '1P':
-        window['play_side_1p'].update(True)
-    if play_side == '2P':
-        window['play_side_2p'].update(True)
+    window['trigger'].update(window['recog_trigger'].get() != '')
+    window['cutin_mission'].update(window['recog_cutin_mission'].get() != '')
+    window['cutin_bit'].update(window['recog_cutin_bit'].get() != '')
+    window['rival'].update(window['recog_rival'].get() != '')
+    window['play_side'].update(window['recog_play_side'].get())
+    window['dead'].update(window['recog_dead'].get() != '')
 
 def set_labels(label):
     window['screen_none'].update(True)
@@ -274,7 +278,9 @@ def set_labels(label):
     window['cutin_mission'].update(False)
     window['cutin_bit'].update(False)
     window['rival'].update(False)
-    window['play_side_none'].update(True)
+    window['play_side'].update('')
+    window['play_mode'].update('')
+    window['dead'].update(False)
     if not label is None:
         if 'screen' in label.keys():
             window[f"screen_{label['screen']}"].update(True)
@@ -287,12 +293,11 @@ def set_labels(label):
         if 'rival' in label.keys():
             window['rival'].update(label['rival'])
         if 'play_side' in label.keys():
-            if label['play_side'] == '1P':
-                window['play_side_1p'].update(True)
-            if label['play_side'] == '2P':
-                window['play_side_2p'].update(True)
-            if label['play_side'] == 'DP':
-                window['play_side_dp'].update(True)
+            window['play_side'].update(label['play_side'])
+        if 'play_mode' in label.keys():
+            window['play_mode'].update(label['play_mode'])
+        if 'dead' in label.keys():
+            window['dead'].update(label['dead'])
 
 def set_recognition(screen):
     loading = recog.search_loading(screen.image)
@@ -305,6 +310,10 @@ def set_recognition(screen):
     rival = recog.search_rival(screen.image)
 
     play_side = recog.get_play_side(screen.image)
+    if play_side is not None:
+        dead = recog.search_dead(screen.image, play_side)
+    else:
+        dead = False
 
     window['recog_loading'].update('☒' if loading else '')
     window['recog_music_select'].update('☒' if music_select else '')
@@ -316,3 +325,4 @@ def set_recognition(screen):
     window['recog_rival'].update('☒' if rival else '')
 
     window['recog_play_side'].update(play_side if play_side is not None else '')
+    window['recog_dead'].update('☒' if dead else '')
