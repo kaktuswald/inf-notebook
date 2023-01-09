@@ -12,13 +12,13 @@ icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
 
 def layout_main(setting):
-    column_headers = ['日時', '曲名', 'CT', 'DL', 'SC', 'MC']
-    column_widths = [13, 13, 3, 3, 3, 3]
+    column_headers = ['日時', '曲名', 'M', 'CT', 'DL', 'SC', 'MC']
+    column_widths = [13, 13, 4, 3, 3, 3, 3]
 
     if setting.display_music:
-        column_visibles = [False, True, True, True, True, True]
+        column_visibles = [False, True, True, True, True, True, True]
     else:
-        column_visibles = [True, False, True, True, True, True]
+        column_visibles = [True, False, True, True, True, True, True]
 
     return [
         [
@@ -146,8 +146,8 @@ def display_image(image):
 
 def switch_table(display_music):
     if not display_music:
-        displaycolumns = ['日時', 'CT', 'DL', 'SC', 'MC']
+        displaycolumns = ['日時', 'M', 'CT', 'DL', 'SC', 'MC']
     else:
-        displaycolumns = ['曲名', 'CT', 'DL', 'SC', 'MC']
+        displaycolumns = ['曲名', 'M', 'CT', 'DL', 'SC', 'MC']
 
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)

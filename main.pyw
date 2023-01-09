@@ -173,9 +173,15 @@ def save_result_filtered(result):
 
 def insert_results(result):
     results[result.timestamp] = result
+
+    play_mode = result.informations.play_mode
+    difficulty = result.informations.difficulty
+    music = result.informations.music
+
     list_results.append([
         result.timestamp,
-        result.informations.music if result.informations.music is not None else '??????',
+        music if music is not None else '??????',
+        f'{play_mode}{difficulty[0]}' if play_mode is not None and difficulty is not None else '???',
         '☑' if result.details.clear_type.new else '',
         '☑' if result.details.dj_level.new else '',
         '☑' if result.details.score.new else '',
