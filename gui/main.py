@@ -3,6 +3,7 @@ import io
 from PIL import Image
 
 from .static import title,icon_path,background_color
+from record import Record
 
 scales = ['1/1', '1/2', '1/4']
 
@@ -19,6 +20,70 @@ def layout_main(setting):
         column_visibles = [False, True, True, True, True, True, True]
     else:
         column_visibles = [True, False, True, True, True, True, True]
+
+    tabs = [[
+        sg.Tab('今日のリザルト', [
+            [sg.Table(
+                [],
+                key='table_results',
+                headings=column_headers,
+                auto_size_columns=False,
+                vertical_scroll_only=True,
+                col_widths=column_widths,
+                visible_column_map=column_visibles,
+                num_rows=30,
+                justification='center',
+                enable_events=True,
+                background_color=background_color
+            )]
+        ], pad=0, background_color=background_color),
+        sg.Tab('曲検索', [
+            [
+                sg.Radio('SP', group_id='play_mode', key='play_mode_sp', enable_events=True, background_color=background_color),
+                sg.Radio('DP', group_id='play_mode', key='play_mode_dp', enable_events=True, background_color=background_color)
+            ],
+            [
+                sg.Radio('BEGINNER', group_id='difficulty', key='difficulty_beginner', enable_events=True, background_color=background_color),
+                sg.Radio('LEGGENDARIA', group_id='difficulty', key='difficulty_leggendaria', enable_events=True, background_color=background_color)
+            ],
+            [
+                sg.Radio('NORMAL', group_id='difficulty', key='difficulty_normal', enable_events=True, background_color=background_color),
+                sg.Radio('HYPER', group_id='difficulty', key='difficulty_hyper', enable_events=True, background_color=background_color),
+                sg.Radio('ANOTHER', group_id='difficulty', key='difficulty_another', enable_events=True, background_color=background_color)
+            ],
+            [
+                sg.Text('曲名(4文字以上)', background_color=background_color),
+                sg.Input(key='search_music', size=(20,1), enable_events=True)
+            ],
+            [
+                sg.Listbox([], key='music_candidates', size=(40,15), enable_events=True)
+            ],
+            [
+                sg.Text('最終プレイ', size=(11, 1)),
+                sg.Text(key='latest', size=(12, 1), background_color=background_color)
+            ],
+            [
+                sg.Text('クリアタイプ', size=(11, 1)),
+                sg.Text(key='clear_type', size=(6, 1), background_color=background_color),
+                sg.Text(key='clear_type_timestamp', size=(12, 1), background_color=background_color, text_color='#dddddd')
+            ],
+            [
+                sg.Text('DJレベル', size=(11, 1)),
+                sg.Text(key='dj_level', size=(6, 1), background_color=background_color),
+                sg.Text(key='dj_level_timestamp', size=(12, 1), background_color=background_color, text_color='#dddddd')
+            ],
+            [
+                sg.Text('スコア', size=(11, 1)),
+                sg.Text(key='score', size=(6, 1), background_color=background_color),
+                sg.Text(key='score_timestamp', size=(12, 1), background_color=background_color, text_color='#dddddd')
+            ],
+            [
+                sg.Text('ミスカウント', size=(11, 1)),
+                sg.Text(key='miss_count', size=(6, 1), background_color=background_color),
+                sg.Text(key='miss_count_timestamp', size=(12, 1), background_color=background_color, text_color='#dddddd')
+            ]
+        ], pad=0, background_color=background_color)
+    ]]
 
     return [
         [
@@ -54,19 +119,7 @@ def layout_main(setting):
                             sg.Button('ライバルを隠して保存する', key='button_save_filtered')
                         ]
                     ], pad=0, background_color=background_color),
-                    sg.Table(
-                        [],
-                        key='table_results',
-                        headings=column_headers,
-                        auto_size_columns=False,
-                        vertical_scroll_only=True,
-                        col_widths=column_widths,
-                        visible_column_map=column_visibles,
-                        num_rows=30,
-                        justification='center',
-                        enable_events=True,
-                        background_color=background_color
-                    ),
+                    sg.TabGroup(tabs, pad=0, background_color=background_color, tab_background_color=background_color, selected_background_color='#245d18')
                 ]
             ], pad=0, background_color=background_color),
             sg.Output(key='output', size=(30, 34), visible=setting.manage)
@@ -151,3 +204,51 @@ def switch_table(display_music):
         displaycolumns = ['曲名', 'M', 'CT', 'DL', 'SC', 'MC']
 
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)
+
+def select_music():
+    selected = window['music_candidates'].get()
+    if len(selected) == 0:
+        return
+
+    music = window['music_candidates'].get()[0]
+    record = Record(music)
+    if record is None:
+        return
+    
+    play_mode = None
+    if window['play_mode_sp'].get():
+        play_mode = 'SP'
+    if window['play_mode_dp'].get():
+        play_mode = 'DP'
+    if play_mode is None:
+        return
+
+    difficulty = None
+    if window['difficulty_normal'].get():
+        difficulty = 'NORMAL'
+    if window['difficulty_hyper'].get():
+        difficulty = 'HYPER'
+    if window['difficulty_another'].get():
+        difficulty = 'ANOTHER'
+    if window['difficulty_leggendaria'].get():
+        difficulty = 'LEGGENDARIA'
+    if difficulty is None:
+        return
+
+    target = record.get(play_mode, difficulty)
+    if target is None:
+        window['latest'].update('')
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            window[key].update('')
+            window[f'{key}_timestamp'].update('')
+        return
+
+    timestamp = target['latest']['timestamp']
+    timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+    window['latest'].update(timestamp)
+    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+        value = target['best'][key]['value']
+        timestamp = target['best'][key]['timestamp']
+        timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+        window[key].update(value)
+        window[f'{key}_timestamp'].update(timestamp)

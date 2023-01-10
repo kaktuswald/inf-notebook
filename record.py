@@ -1,5 +1,6 @@
 import json
 import os
+from glob import glob
 
 records_basepath = 'records'
 string_max_length = 128
@@ -19,6 +20,14 @@ class Record():
                 self.json = json.load(f)
         except Exception:
             self.json = {}
+    
+    def get(self, play_mode, difficulty):
+        if not play_mode in self.json.keys():
+            return None
+        if not difficulty in self.json[play_mode].keys():
+            return None
+        
+        return self.json[play_mode][difficulty]
 
     def save(self):
         with open(self.filepath, 'w') as f:
@@ -70,8 +79,6 @@ class Record():
                 'new': result.details.miss_count.new
             },
         }
-
-
 
     def insert_best(self, target, result):
         if not 'best' in target.keys():
@@ -134,6 +141,12 @@ class Record():
         self.insert_latest(target, result)
         self.insert_history(target, result)
         self.insert_best(target, result)
+
+def get_recode_musics():
+    filepaths = glob(os.path.join(records_basepath, '*.json'))
+    strings = [os.path.basename(filepath).replace('.json', '') for filepath in filepaths]
+    musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
+    return musics
 
 if __name__ == '__main__':
     from result import ResultInformations,ResultValueNew,ResultDetails,Result
