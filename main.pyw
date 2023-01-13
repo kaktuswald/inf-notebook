@@ -38,8 +38,8 @@ from raw_image import save_raw
 from storage import StorageAccessor
 from record import Record,get_recode_musics
 
-thread_time_start = 5
-thread_time_normal = 0.36
+thread_time_start = 2
+thread_time_normal = 0.37
 thread_time_wait = 30
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
@@ -145,7 +145,7 @@ def result_process(screen):
             record.save()
 
         if setting.display_result and image is not None:
-            gui.display_image(image)
+            gui.display_image(image, True)
             return result
 
     return None
@@ -279,11 +279,11 @@ if __name__ == '__main__':
         if event == 'button_save_filtered' and result is not None:
             ret = save_result_filtered(result)
             if ret is not None:
-                gui.display_image(ret)
+                gui.display_image(ret, True)
         if event == 'table_results':
             if len(values['table_results']) > 0:
                 result = results[list_results[values['table_results'][0]][0]]
-                gui.display_image(result.image)
+                gui.display_image(result.image, True)
         if event == 'search_music':
             search_music = window['search_music'].get()
             if(len(search_music) >= 4):
@@ -296,18 +296,12 @@ if __name__ == '__main__':
             gui.select_music()
         if event == 'play_mode_dp':
             gui.select_music()
-        if event == 'difficulty_beginner':
-            gui.select_music()
-        if event == 'difficulty_normal':
-            gui.select_music()
-        if event == 'difficulty_hyper':
-            gui.select_music()
-        if event == 'difficulty_another':
-            gui.select_music()
-        if event == 'difficulty_leggendaria':
+        if event == 'difficulty':
             gui.select_music()
         if event == 'music_candidates':
             gui.select_music()
+        if event == 'history':
+            gui.select_history()
         if event == 'timeout':
             if not queue_log.empty():
                 log_debug(queue_log.get_nowait())

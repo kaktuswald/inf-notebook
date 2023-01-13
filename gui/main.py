@@ -1,9 +1,12 @@
 import PySimpleGUI as sg
 import io
+import os
 from PIL import Image
 
-from .static import title,icon_path,background_color
+from define import define
+from .static import title,icon_path,background_color,background_color_label
 from record import Record
+from result import results_basepath
 
 scales = ['1/1', '1/2', '1/4']
 
@@ -31,7 +34,7 @@ def layout_main(setting):
                 vertical_scroll_only=True,
                 col_widths=column_widths,
                 visible_column_map=column_visibles,
-                num_rows=30,
+                num_rows=26,
                 justification='center',
                 enable_events=True,
                 background_color=background_color
@@ -39,48 +42,49 @@ def layout_main(setting):
         ], pad=0, background_color=background_color),
         sg.Tab('曲検索', [
             [
+                sg.Text('プレイモード', size=(12, 1), background_color=background_color_label),
                 sg.Radio('SP', group_id='play_mode', key='play_mode_sp', enable_events=True, background_color=background_color),
                 sg.Radio('DP', group_id='play_mode', key='play_mode_dp', enable_events=True, background_color=background_color)
             ],
             [
-                sg.Radio('BEGINNER', group_id='difficulty', key='difficulty_beginner', enable_events=True, background_color=background_color),
-                sg.Radio('LEGGENDARIA', group_id='difficulty', key='difficulty_leggendaria', enable_events=True, background_color=background_color)
-            ],
-            [
-                sg.Radio('NORMAL', group_id='difficulty', key='difficulty_normal', enable_events=True, background_color=background_color),
-                sg.Radio('HYPER', group_id='difficulty', key='difficulty_hyper', enable_events=True, background_color=background_color),
-                sg.Radio('ANOTHER', group_id='difficulty', key='difficulty_another', enable_events=True, background_color=background_color)
+                sg.Text('譜面難易度', size=(12, 1), background_color=background_color_label),
+                sg.Combo(define.value_list['difficulties'], key='difficulty', readonly=True, enable_events=True, size=(14, 1))
             ],
             [
                 sg.Text('曲名(4文字以上)', background_color=background_color),
                 sg.Input(key='search_music', size=(20,1), enable_events=True)
             ],
             [
-                sg.Listbox([], key='music_candidates', size=(40,15), enable_events=True)
+                sg.Column([
+                    [
+                        sg.Listbox([], key='music_candidates', size=(18,13), enable_events=True),
+                        sg.Listbox([], key='history', size=(15,13), enable_events=True)
+                    ]
+                ], pad=0)
             ],
             [
-                sg.Text('最終プレイ', size=(11, 1)),
-                sg.Text(key='latest', size=(12, 1), background_color=background_color)
+                sg.Text('最終プレイ', size=(13, 1), background_color=background_color_label),
+                sg.Text(key='latest', size=(13, 1), background_color=background_color)
             ],
             [
-                sg.Text('クリアタイプ', size=(11, 1)),
+                sg.Text('クリアタイプ', size=(13, 1), background_color=background_color_label),
                 sg.Text(key='clear_type', size=(6, 1), background_color=background_color),
-                sg.Text(key='clear_type_timestamp', size=(12, 1), background_color=background_color, text_color='#dddddd')
+                sg.Text(key='clear_type_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
-                sg.Text('DJレベル', size=(11, 1)),
+                sg.Text('DJレベル', size=(13, 1), background_color=background_color_label),
                 sg.Text(key='dj_level', size=(6, 1), background_color=background_color),
-                sg.Text(key='dj_level_timestamp', size=(12, 1), background_color=background_color, text_color='#dddddd')
+                sg.Text(key='dj_level_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
-                sg.Text('スコア', size=(11, 1)),
+                sg.Text('スコア', size=(13, 1), background_color=background_color_label),
                 sg.Text(key='score', size=(6, 1), background_color=background_color),
-                sg.Text(key='score_timestamp', size=(12, 1), background_color=background_color, text_color='#dddddd')
+                sg.Text(key='score_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
-                sg.Text('ミスカウント', size=(11, 1)),
+                sg.Text('ミスカウント', size=(13, 1), background_color=background_color_label),
                 sg.Text(key='miss_count', size=(6, 1), background_color=background_color),
-                sg.Text(key='miss_count_timestamp', size=(12, 1), background_color=background_color, text_color='#dddddd')
+                sg.Text(key='miss_count_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ]
         ], pad=0, background_color=background_color)
     ]]
@@ -97,11 +101,11 @@ def layout_main(setting):
                     sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
                 ],
                 [
-                    sg.Text('画像表示スケール', background_color=background_color),
-                    sg.Combo(scales, key='scale', default_value='1/2', readonly=True)
-                ],
-                [
                     sg.Column([
+                        [
+                            sg.Text('画像表示スケール', background_color=background_color),
+                            sg.Combo(scales, key='scale', default_value='1/2', readonly=True)
+                        ],
                         [
                             sg.Column([
                                 [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
@@ -115,8 +119,8 @@ def layout_main(setting):
                         ],
                         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
                         [
-                            sg.Button('ファイルに保存する', key='button_save'),
-                            sg.Button('ライバルを隠して保存する', key='button_save_filtered')
+                            sg.Button('ファイルに保存する', key='button_save', disabled=True),
+                            sg.Button('ライバルを隠して保存する', key='button_save_filtered', disabled=True)
                         ]
                     ], pad=0, background_color=background_color),
                     sg.TabGroup(tabs, pad=0, background_color=background_color, tab_background_color=background_color, selected_background_color='#245d18')
@@ -185,17 +189,18 @@ def error_message(title, message, exception):
         icon=icon_path
     )
 
-def display_image(image):
-    scale = window['scale'].get()
-    if scale == '1/2':
-        image = image.resize((image.width // 2, image.height // 2))
-    if scale == '1/4':
-        image = image.resize((image.width // 3, image.height // 3))
+def display_image(image, savable=False):
+    subsample = int(window['scale'].get().split('/')[1])
     
-    bytes = io.BytesIO()
-    image.save(bytes, format='PNG')
+    if image is not None:
+        bytes = io.BytesIO()
+        image.save(bytes, format='PNG')
+        window['screenshot'].update(data=bytes.getvalue(), subsample=subsample, visible=True)
+    else:
+        window['screenshot'].update(visible=False)
 
-    window['screenshot'].update(size=image.size, data=bytes.getvalue())
+    window['button_save'].update(disabled=not savable)
+    window['button_save_filtered'].update(disabled=not savable)
 
 def switch_table(display_music):
     if not display_music:
@@ -223,32 +228,49 @@ def select_music():
     if play_mode is None:
         return
 
-    difficulty = None
-    if window['difficulty_normal'].get():
-        difficulty = 'NORMAL'
-    if window['difficulty_hyper'].get():
-        difficulty = 'HYPER'
-    if window['difficulty_another'].get():
-        difficulty = 'ANOTHER'
-    if window['difficulty_leggendaria'].get():
-        difficulty = 'LEGGENDARIA'
-    if difficulty is None:
+    difficulty = window['difficulty'].get()
+    if difficulty == '':
         return
 
     target = record.get(play_mode, difficulty)
     if target is None:
+        display_image(None)
+        window['history'].update([])
         window['latest'].update('')
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
             window[key].update('')
             window[f'{key}_timestamp'].update('')
         return
 
-    timestamp = target['latest']['timestamp']
-    timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
-    window['latest'].update(timestamp)
+    latest_timestamp = target['latest']['timestamp']
+    formatted_timestamp = f'{int(latest_timestamp[0:4])}年{int(latest_timestamp[4:6])}月{int(latest_timestamp[6:8])}日'
+    window['latest'].update(formatted_timestamp)
+
+    window['history'].update([*reversed(target['timestamps'])])
+
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         value = target['best'][key]['value']
         timestamp = target['best'][key]['timestamp']
         timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
         window[key].update(value)
         window[f'{key}_timestamp'].update(timestamp)
+    
+    filepath = os.path.join(results_basepath, f'{latest_timestamp}.jpg')
+    if os.path.exists(filepath):
+        image = Image.open(filepath)
+        display_image(image)
+    else:
+        display_image(None)
+
+def select_history():
+    selected = window['history'].get()
+    if len(selected) == 0:
+        return
+
+    timestamp = selected[0]
+    filepath = os.path.join(results_basepath, f'{timestamp}.jpg')
+    if os.path.exists(filepath):
+        image = Image.open(filepath)
+        display_image(image)
+    else:
+        display_image(None)

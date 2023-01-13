@@ -275,11 +275,18 @@ def set_details(image):
     score = details.score
     miss_count = details.miss_count
 
-    window['result_option_arrange'].update(options.arrange if options.arrange is not None else '')
-    window['result_option_flip'].update(options.flip if options.flip is not None else '')
-    window['result_option_assist'].update(options.assist if options.assist is not None else '')
-    window['result_option_battle'].update(visible=options.battle)
-    window['result_option_h-random'].update(visible=options.h_random)
+    if options is not None:
+        window['result_option_arrange'].update(options.arrange if options.arrange is not None else '')
+        window['result_option_flip'].update(options.flip if options.flip is not None else '')
+        window['result_option_assist'].update(options.assist if options.assist is not None else '')
+        window['result_option_battle'].update(visible=options.battle)
+        window['result_option_h-random'].update(visible=options.h_random)
+    else:
+        window['result_option_arrange'].update('')
+        window['result_option_flip'].update('')
+        window['result_option_assist'].update('')
+        window['result_option_battle'].update(visible=False)
+        window['result_option_h-random'].update(visible=False)
     window['result_clear_type'].update(clear_type.value if clear_type.value is not None else '')
     window['result_dj_level'].update(dj_level.value if dj_level.value is not None else '')
     window['result_score'].update(score.value if score.value is not None else '')
