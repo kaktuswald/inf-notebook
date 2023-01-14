@@ -56,7 +56,7 @@ class Define():
         'S-RAN': 0,
         'R-RAN': 55,
         'MIR': 31,
-        'SYNC-RAN': 91,
+        'SYNC-RAN': 89,
         'SYMM-RAN': 93,
         'FLIP': 38,
         'A-SCR': 0,

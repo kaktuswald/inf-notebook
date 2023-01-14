@@ -5,7 +5,7 @@ from PIL import Image
 
 from define import define
 from .static import title,icon_path,background_color,background_color_label
-from record import Record
+from record import Record,get_recode_musics
 from result import results_basepath
 
 scales = ['1/1', '1/2', '1/4']
@@ -51,7 +51,7 @@ def layout_main(setting):
                 sg.Combo(define.value_list['difficulties'], key='difficulty', readonly=True, enable_events=True, size=(14, 1))
             ],
             [
-                sg.Text('曲名(4文字以上)', background_color=background_color),
+                sg.Text('曲名', size=(12, 1), background_color=background_color),
                 sg.Input(key='search_music', size=(20,1), enable_events=True)
             ],
             [
@@ -63,27 +63,27 @@ def layout_main(setting):
                 ], pad=0)
             ],
             [
-                sg.Text('最終プレイ', size=(13, 1), background_color=background_color_label),
+                sg.Text('最終プレイ', size=(11, 1), background_color=background_color_label),
                 sg.Text(key='latest', size=(13, 1), background_color=background_color)
             ],
             [
-                sg.Text('クリアタイプ', size=(13, 1), background_color=background_color_label),
-                sg.Text(key='clear_type', size=(6, 1), background_color=background_color),
+                sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='clear_type', size=(8, 1), background_color=background_color),
                 sg.Text(key='clear_type_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
-                sg.Text('DJレベル', size=(13, 1), background_color=background_color_label),
-                sg.Text(key='dj_level', size=(6, 1), background_color=background_color),
+                sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='dj_level', size=(8, 1), background_color=background_color),
                 sg.Text(key='dj_level_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
-                sg.Text('スコア', size=(13, 1), background_color=background_color_label),
-                sg.Text(key='score', size=(6, 1), background_color=background_color),
+                sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='score', size=(8, 1), background_color=background_color),
                 sg.Text(key='score_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
-                sg.Text('ミスカウント', size=(13, 1), background_color=background_color_label),
-                sg.Text(key='miss_count', size=(6, 1), background_color=background_color),
+                sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='miss_count', size=(8, 1), background_color=background_color),
                 sg.Text(key='miss_count_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ]
         ], pad=0, background_color=background_color)
@@ -210,6 +210,15 @@ def switch_table(display_music):
 
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)
 
+def search_music_candidates():
+    search_music = window['search_music'].get()
+    if len(search_music) != 0:
+        musics = get_recode_musics()
+        candidates = [music for music in musics if search_music in music]
+        window['music_candidates'].update(values=candidates)
+    else:
+        window['music_candidates'].update(values=[])
+
 def select_music():
     selected = window['music_candidates'].get()
     if len(selected) == 0:
@@ -252,7 +261,7 @@ def select_music():
         value = target['best'][key]['value']
         timestamp = target['best'][key]['timestamp']
         timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
-        window[key].update(value)
+        window[key].update(value if value is not None else '')
         window[f'{key}_timestamp'].update(timestamp)
     
     filepath = os.path.join(results_basepath, f'{latest_timestamp}.jpg')

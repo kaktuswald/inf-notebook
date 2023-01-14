@@ -36,7 +36,7 @@ from screenshot import Screenshot
 from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
-from record import Record,get_recode_musics
+from record import Record
 
 thread_time_start = 2
 thread_time_normal = 0.37
@@ -139,7 +139,7 @@ def result_process(screen):
         
         insert_results(result)
 
-        if result.informations.music is not None and not result.dead:
+        if result.informations.music is not None and (not result.dead or result.has_new_record()):
             record = Record(result.informations.music)
             record.insert(result)
             record.save()
@@ -240,6 +240,8 @@ if __name__ == '__main__':
         }
     )
 
+    music_search_time = None
+
     if not setting.has_key('data_collection'):
         setting.data_collection = gui.collection_request('resources/annotation.png')
 
@@ -285,13 +287,7 @@ if __name__ == '__main__':
                 result = results[list_results[values['table_results'][0]][0]]
                 gui.display_image(result.image, True)
         if event == 'search_music':
-            search_music = window['search_music'].get()
-            if(len(search_music) >= 4):
-                musics = get_recode_musics()
-                candidates = [music for music in musics if search_music in music]
-                window['music_candidates'].update(values=candidates)
-            else:
-                window['music_candidates'].update(values=[])
+            music_search_time = time.time() + 1
         if event == 'play_mode_sp':
             gui.select_music()
         if event == 'play_mode_dp':
@@ -303,6 +299,9 @@ if __name__ == '__main__':
         if event == 'history':
             gui.select_history()
         if event == 'timeout':
+            if music_search_time is not None and time.time() > music_search_time:
+                music_search_time = None
+                gui.search_music_candidates()
             if not queue_log.empty():
                 log_debug(queue_log.get_nowait())
             if not queue_display_image.empty():
