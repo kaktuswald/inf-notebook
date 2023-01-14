@@ -104,7 +104,8 @@ def layout_main(setting):
                     sg.Column([
                         [
                             sg.Text('画像表示スケール', background_color=background_color),
-                            sg.Combo(scales, key='scale', default_value='1/2', readonly=True)
+                            sg.Combo(scales, key='scale', default_value='1/2', readonly=True),
+                            sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
                         ],
                         [
                             sg.Column([

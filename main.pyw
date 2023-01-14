@@ -299,6 +299,8 @@ if __name__ == '__main__':
         if event == 'history':
             gui.select_history()
         if event == 'timeout':
+            if not window['positioned'].visible and thread.positioned:
+                window['positioned'].update(visible=True)
             if music_search_time is not None and time.time() > music_search_time:
                 music_search_time = None
                 gui.search_music_candidates()
