@@ -58,7 +58,7 @@ class Define():
         'MIR': 31,
         'SYNC-RAN': 89,
         'SYMM-RAN': 93,
-        'FLIP': 38,
+        'FLIP': 36,
         'A-SCR': 0,
         'LEGACY': 0,
         'BATTLE': 68,

@@ -68,22 +68,22 @@ def layout_main(setting):
             ],
             [
                 sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='clear_type', size=(8, 1), background_color=background_color),
+                sg.Text(key='clear_type', size=(10, 1), background_color=background_color),
                 sg.Text(key='clear_type_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
                 sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='dj_level', size=(8, 1), background_color=background_color),
+                sg.Text(key='dj_level', size=(10, 1), background_color=background_color),
                 sg.Text(key='dj_level_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
                 sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='score', size=(8, 1), background_color=background_color),
+                sg.Text(key='score', size=(10, 1), background_color=background_color),
                 sg.Text(key='score_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ],
             [
                 sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='miss_count', size=(8, 1), background_color=background_color),
+                sg.Text(key='miss_count', size=(10, 1), background_color=background_color),
                 sg.Text(key='miss_count_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
             ]
         ], pad=0, background_color=background_color)
@@ -258,12 +258,17 @@ def select_music():
 
     window['history'].update([*reversed(target['timestamps'])])
 
-    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-        value = target['best'][key]['value']
-        timestamp = target['best'][key]['timestamp']
-        timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
-        window[key].update(value if value is not None else '')
-        window[f'{key}_timestamp'].update(timestamp)
+    if 'best' in target.keys():
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            value = target['best'][key]['value']
+            timestamp = target['best'][key]['timestamp']
+            timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+            window[key].update(value if value is not None else '')
+            window[f'{key}_timestamp'].update(timestamp)
+    else:
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            window[key].update('')
+            window[f'{key}_timestamp'].update('')
     
     filepath = os.path.join(results_basepath, f'{latest_timestamp}.jpg')
     if os.path.exists(filepath):

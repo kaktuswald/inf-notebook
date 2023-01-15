@@ -123,12 +123,12 @@ dmypy.json
 .pyre/
 
 raws*/
-collection_data/
-results/
-filtered/
-records/
+collection_data*/
+results*/
+filtered*/
+records*/
 larning*/
-backgrounds/
+backgrounds*/
 
 *.csv
 *.zip

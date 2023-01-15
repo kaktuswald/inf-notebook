@@ -33,7 +33,7 @@ class Record():
         with open(self.filepath, 'w') as f:
             json.dump(self.json, f, indent=2)
     
-    def insert_latest(self, target, result):
+    def insert_latest(self, target, result, options):
         target['latest'] = {
             'timestamp': result.timestamp,
             'clear_type': {
@@ -52,9 +52,10 @@ class Record():
                 'value': result.details.miss_count.value,
                 'new': result.details.miss_count.new
             },
+            'options': options
         }
 
-    def insert_history(self, target, result):
+    def insert_history(self, target, result, options):
         if not 'timestamps' in target.keys():
             target['timestamps'] = []
         target['timestamps'].append(result.timestamp)
@@ -78,49 +79,44 @@ class Record():
                 'value': result.details.miss_count.value,
                 'new': result.details.miss_count.new
             },
+            'options': options
         }
 
-    def insert_best(self, target, result):
-        if not 'best' in target.keys():
-            target['best'] = {
-                'clear_type': {
-                    'value': result.details.clear_type.value,
-                    'timestamp': result.timestamp
-                },
-                'dj_level': {
-                    'value': result.details.dj_level.value,
-                    'timestamp': result.timestamp
-                },
-                'score': {
-                    'value': result.details.score.value,
-                    'timestamp': result.timestamp
-                },
-                'miss_count': {
-                    'value': result.details.miss_count.value,
-                    'timestamp': result.timestamp
-                }
-            }
-        
-        if result.details.clear_type.new:
-            target['best']['clear_type'] = {
+    def insert_best(self, target, result, options):
+        current_values = {
+            'clear_type': {
                 'value': result.details.clear_type.value,
-                'timestamp': result.timestamp
-            }
-        if result.details.dj_level.new:
-            target['best']['dj_level'] = {
+                'timestamp': result.timestamp,
+                'options': options
+            },
+            'dj_level': {
                 'value': result.details.dj_level.value,
-                'timestamp': result.timestamp
-            }
-        if result.details.score.new:
-            target['best']['score'] = {
+                'timestamp': result.timestamp,
+                'options': options
+            },
+            'score': {
                 'value': result.details.score.value,
-                'timestamp': result.timestamp
-            }
-        if result.details.miss_count.new:
-            target['best']['miss_count'] = {
+                'timestamp': result.timestamp,
+                'options': options
+            },
+            'miss_count': {
                 'value': result.details.miss_count.value,
-                'timestamp': result.timestamp
+                'timestamp': result.timestamp,
+                'options': options
             }
+        }
+
+        if not 'best' in target.keys():
+            target['best'] = current_values
+        else:
+            if result.details.clear_type.new:
+                target['best']['clear_type'] = current_values['clear_type']
+            if result.details.dj_level.new:
+                target['best']['dj_level'] = current_values['dj_level']
+            if result.details.score.new:
+                target['best']['score'] = current_values['score']
+            if result.details.miss_count.new:
+                target['best']['miss_count'] = current_values['miss_count']
     
     def insert(self, result):
         if result.informations.play_mode is None:
@@ -138,27 +134,25 @@ class Record():
             target[result.informations.difficulty] = {}
         target = target[result.informations.difficulty]
 
-        self.insert_latest(target, result)
-        self.insert_history(target, result)
-        self.insert_best(target, result)
+        options = result.details.options
+        if options is not None:
+            options_value = {
+                'arrange': options.arrange,
+                'flip': options.flip,
+                'assist': options.assist,
+                'battle': options.battle,
+                'h_random': options.h_random
+            }
+        else:
+            options_value = None
+
+        self.insert_latest(target, result, options_value)
+        self.insert_history(target, result, options_value)
+        if options is None or (not options.battle and not options.h_random):
+            self.insert_best(target, result, options_value)
 
 def get_recode_musics():
     filepaths = glob(os.path.join(records_basepath, '*.json'))
     strings = [os.path.basename(filepath).replace('.json', '') for filepath in filepaths]
     musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
     return musics
-
-if __name__ == '__main__':
-    from result import ResultInformations,ResultValueNew,ResultDetails,Result
-    informations = ResultInformations('SP', 'ANOTHER', '12', "Dazzlin' Darlin")
-    details = ResultDetails(
-        None,
-        ResultValueNew('CLEAR', False),
-        ResultValueNew('AAA', False),
-        ResultValueNew('1234', False),
-        ResultValueNew('12', False)
-    )
-    result = Result(None, informations, '1P', False, details)
-    record = Record(result.informations.music)
-    record.insert(result)
-    record.save()
