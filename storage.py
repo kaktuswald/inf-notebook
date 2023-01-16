@@ -91,15 +91,15 @@ class StorageAccessor():
         except Exception as ex:
             logger.exception(ex)
 
-    def upload_collection(self, screen, result):
+    def upload_collection(self, screen, result, force):
         self.connect_client()
         if self.client is None:
             return
         
         object_name = f'{uuid.uuid1()}.png'
 
-        informations_trim = False
-        details_trim = False
+        informations_trim = force
+        details_trim = force
 
         if result.informations.play_mode is None:
             informations_trim = True

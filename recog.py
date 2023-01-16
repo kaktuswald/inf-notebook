@@ -274,8 +274,6 @@ class Recognition():
                 assist = op
             if op == 'BATTLE':
                 battle = True
-            if op == 'H-RANDOM':
-                h_random = True
 
             area_left += define.option_widths[op]
             if left is None:
@@ -283,7 +281,7 @@ class Recognition():
             else:
                 area_left += define.option_widths['/']
         
-        return ResultOptions(arrange, flip, assist, battle, h_random) if area_left != 0 else None
+        return ResultOptions(arrange, flip, assist, battle) if area_left != 0 else None
 
     def get_clear_type(self, image_details):
         result = self.clear_type.find(image_details)

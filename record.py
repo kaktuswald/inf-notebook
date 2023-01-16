@@ -107,16 +107,15 @@ class Record():
         }
 
         if not 'best' in target.keys():
-            target['best'] = current_values
-        else:
-            if result.details.clear_type.new:
-                target['best']['clear_type'] = current_values['clear_type']
-            if result.details.dj_level.new:
-                target['best']['dj_level'] = current_values['dj_level']
-            if result.details.score.new:
-                target['best']['score'] = current_values['score']
-            if result.details.miss_count.new:
-                target['best']['miss_count'] = current_values['miss_count']
+            target['best'] = {}
+        if result.details.clear_type.new:
+            target['best']['clear_type'] = current_values['clear_type']
+        if result.details.dj_level.new:
+            target['best']['dj_level'] = current_values['dj_level']
+        if result.details.score.new:
+            target['best']['score'] = current_values['score']
+        if result.details.miss_count.new:
+            target['best']['miss_count'] = current_values['miss_count']
     
     def insert(self, result):
         if result.informations.play_mode is None:
@@ -141,14 +140,14 @@ class Record():
                 'flip': options.flip,
                 'assist': options.assist,
                 'battle': options.battle,
-                'h_random': options.h_random
+                'special': options.special
             }
         else:
             options_value = None
 
         self.insert_latest(target, result, options_value)
         self.insert_history(target, result, options_value)
-        if options is None or (not options.battle and not options.h_random):
+        if options is None or not options.special:
             self.insert_best(target, result, options_value)
 
 def get_recode_musics():

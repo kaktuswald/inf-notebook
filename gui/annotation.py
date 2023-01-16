@@ -18,8 +18,7 @@ def layout_manage(keys):
         *define.value_list['options_arrange_sync'],
         *define.value_list['options_flip'],
         *define.value_list['options_assist'],
-        'BATTLE',
-        'H-RANDOM'
+        'BATTLE'
     ]
     selectable_value_list['delimita'] = ['', ',', '/']
 
@@ -54,8 +53,7 @@ def layout_manage(keys):
         ],
         [
             sg.Text('特殊オプション', size=(21, 1)),
-            sg.Text('BATTLE', visible=False, key='result_option_battle', background_color=in_area_background_color),
-            sg.Text('H-RANDOM', visible=False, key='result_option_h-random', background_color=in_area_background_color)
+            sg.Text('BATTLE', visible=False, key='result_option_battle', background_color=in_area_background_color)
         ],
         [
             sg.Text('クリアタイプ', size=(21, 1)),
@@ -122,8 +120,7 @@ def layout_manage(keys):
         ],
         [
             sg.Text('特殊オプション', size=(15, 1)),
-            sg.Check('BATTLE', key='option_battle', background_color=in_area_background_color),
-            sg.Check('H-RANDOM', key='option_h-random', background_color=in_area_background_color)
+            sg.Check('BATTLE', key='option_battle', background_color=in_area_background_color)
         ],
         [
             sg.Text('クリアタイプ', size=(15, 1)),
@@ -149,6 +146,8 @@ def layout_manage(keys):
             sg.Button('アノテーション保存', key='button_label_overwrite'),
             sg.Button('認識結果から引用', key='button_recog')
         ],
+        [sg.Radio('すべて', key='all', group_id='search', default=True, enable_events=True, background_color=in_area_background_color)],
+        [sg.Radio('未アノテーションのみ', key='only_not_annotation', group_id='search', enable_events=True, background_color=in_area_background_color)],
         [sg.Radio('曲名なしのみ', key='only_undefined_music', group_id='search', enable_events=True, background_color=in_area_background_color)],
         [sg.Radio('F-COMBOのみ', key='only_full_combo', group_id='search', enable_events=True, background_color=in_area_background_color)]
     ]
@@ -257,7 +256,6 @@ def reset_details():
     window['result_option_flip'].update('')
     window['result_option_assist'].update('')
     window['result_option_battle'].update(visible=False)
-    window['result_option_h-random'].update(visible=False)
     window['result_clear_type'].update('')
     window['result_dj_level'].update('')
     window['result_score'].update('')
@@ -280,13 +278,11 @@ def set_details(image):
         window['result_option_flip'].update(options.flip if options.flip is not None else '')
         window['result_option_assist'].update(options.assist if options.assist is not None else '')
         window['result_option_battle'].update(visible=options.battle)
-        window['result_option_h-random'].update(visible=options.h_random)
     else:
         window['result_option_arrange'].update('')
         window['result_option_flip'].update('')
         window['result_option_assist'].update('')
         window['result_option_battle'].update(visible=False)
-        window['result_option_h-random'].update(visible=False)
     window['result_clear_type'].update(clear_type.value if clear_type.value is not None else '')
     window['result_dj_level'].update(dj_level.value if dj_level.value is not None else '')
     window['result_score'].update(score.value if score.value is not None else '')
@@ -318,7 +314,6 @@ def set_result():
     window['option_flip'].update(window['result_option_flip'].get())
     window['option_assist'].update(window['result_option_assist'].get())
     window['option_battle'].update(window['result_option_battle'].visible)
-    window['option_h-random'].update(window['result_option_h-random'].visible)
     window['clear_type'].update(window['result_clear_type'].get())
     window['dj_level'].update(window['result_dj_level'].get())
     window['score'].update(window['result_score'].get())
@@ -341,7 +336,6 @@ def set_labels(label):
     window['option_flip'].update('')
     window['option_assist'].update('')
     window['option_battle'].update(False)
-    window['option_h-random'].update(False)
     window['clear_type'].update('')
     window['clear_type_new'].update('')
     window['dj_level'].update('')
@@ -376,8 +370,6 @@ def set_labels(label):
             window['option_assist'].update(label['option_assist'])
         if 'option_battle' in label.keys():
             window['option_battle'].update(label['option_battle'])
-        if 'option_h-random' in label.keys():
-            window['option_h-random'].update(label['option_h-random'])
         if 'clear_type' in label.keys():
             window['clear_type'].update(label['clear_type'])
         if 'clear_type_new' in label.keys():

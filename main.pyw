@@ -129,7 +129,7 @@ class ThreadMain(threading.Thread):
 def result_process(screen):
     result = recog.get_result(screen)
     if setting.data_collection:
-        storage.upload_collection(screen, result)
+        storage.upload_collection(screen, result, window['force_upload'].get())
     if not setting.newrecord_only or result.has_new_record():
         image = result.image
         if setting.autosave:

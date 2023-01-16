@@ -92,7 +92,6 @@ if __name__ == '__main__':
                 'option_flip': values['option_flip'],
                 'option_assist': values['option_assist'],
                 'option_battle': values['option_battle'],
-                'option_h-random': values['option_h-random'],
                 'clear_type': values['clear_type'],
                 'dj_level': values['dj_level'],
                 'score': values['score'],
@@ -106,17 +105,16 @@ if __name__ == '__main__':
                 json.dump(labels, f, indent=2)
         if event == 'button_recog' and not target_key is None:
             gui.set_result()
+        if event == 'all':
+            window['list_keys'].update(images.keys())
+        if event == 'only_not_annotation':
+            keys = [key for key in images.keys() if not key in labels.keys()]
+            window['list_keys'].update(keys)
         if event == 'only_undefined_music':
-            if values['only_undefined_music']:
-                keys = [key for key in images.keys() if not key in labels.keys() or labels[key]['music'] == '']
-            else:
-                keys = [*images.keys()]
+            keys = [key for key in images.keys() if key in labels.keys() and labels[key]['music'] == '']
             window['list_keys'].update(keys)
         if event == 'only_full_combo':
-            if values['only_full_combo']:
-                keys = [key for key in images.keys() if key in labels.keys() and labels[key]['clear_type'] == 'F-COMBO']
-            else:
-                keys = [*images.keys()]
+            keys = [key for key in images.keys() if key in labels.keys() and labels[key]['clear_type'] == 'F-COMBO']
             window['list_keys'].update(keys)
 
     window.close()

@@ -69,7 +69,6 @@ def evaluate(filename, informations, details, label):
             results.append('')
             results.append('')
             results.append('')
-            results.append('')
         else:
             if not 'option_arrange' in label.keys():
                 results.append('none')
@@ -132,15 +131,6 @@ def evaluate(filename, informations, details, label):
                     results.append('ok')
                 else:
                     results.append(f"{recog_options.battle} {label['option_battle']}")
-                    failure = True
-            
-            if not 'option_h-random' in label.keys():
-                results.append('none')
-            else:
-                if (recog_options.h_random is None and label['option_h-random'] == '') or recog_options.h_random == label['option_h-random']:
-                    results.append('ok')
-                else:
-                    results.append(f"{recog_options.h_random} {label['option_h-random']}")
                     failure = True
 
         recog_clear_type = recog_details.clear_type
@@ -227,7 +217,6 @@ def evaluate(filename, informations, details, label):
         results.append('')
         results.append('')
         results.append('')
-        results.append('')
     
     results.append('!')
 
@@ -263,7 +252,6 @@ if __name__ == '__main__':
         'option_flip',
         'option_assist',
         'option_battle',
-        'option_h-random',
         'clear_type',
         'dj_level',
         'score',

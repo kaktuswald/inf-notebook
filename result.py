@@ -33,12 +33,12 @@ class ResultDetails():
         self.miss_count = miss_count
 
 class ResultOptions():
-    def __init__(self, arrange, flip, assist, battle, h_random):
+    def __init__(self, arrange, flip, assist, battle):
         self.arrange = arrange
         self.flip = flip
         self.assist = assist
         self.battle = battle
-        self.h_random = h_random
+        self.special = 'H-RAN' in arrange or self.battle
 
 class Result():
     def __init__(self, image, informations, play_side, rival, dead, details):

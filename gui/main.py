@@ -60,7 +60,7 @@ def layout_main(setting):
                         sg.Listbox([], key='music_candidates', size=(18,13), enable_events=True),
                         sg.Listbox([], key='history', size=(15,13), enable_events=True)
                     ]
-                ], pad=0)
+                ], pad=0, background_color=background_color)
             ],
             [
                 sg.Text('最終プレイ', size=(11, 1), background_color=background_color_label),
@@ -121,7 +121,8 @@ def layout_main(setting):
                         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
                         [
                             sg.Button('ファイルに保存する', key='button_save', disabled=True),
-                            sg.Button('ライバルを隠して保存する', key='button_save_filtered', disabled=True)
+                            sg.Button('ライバルを隠して保存する', key='button_save_filtered', disabled=True),
+                            sg.Checkbox('必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
                         ]
                     ], pad=0, background_color=background_color),
                     sg.TabGroup(tabs, pad=0, background_color=background_color, tab_background_color=background_color, selected_background_color='#245d18')
