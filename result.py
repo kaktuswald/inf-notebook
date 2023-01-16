@@ -38,7 +38,7 @@ class ResultOptions():
         self.flip = flip
         self.assist = assist
         self.battle = battle
-        self.special = 'H-RAN' in arrange or self.battle
+        self.special = (arrange is not None and 'H-RAN' in arrange) or self.battle
 
 class Result():
     def __init__(self, image, informations, play_side, rival, dead, details):
