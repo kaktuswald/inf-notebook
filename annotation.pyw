@@ -81,40 +81,60 @@ if __name__ == '__main__':
                 gui.reset_details()
         
         if event == 'button_label_overwrite' and not target_key is None:
+            if values['has_informations']:
+                informations = {
+                    'play_mode': values['play_mode'],
+                    'difficulty': values['difficulty'],
+                    'level': values['level'],
+                    'music': values['music'],
+                }
+            else:
+                informations = None
+            
+            if values['has_details']:
+                display = ""
+                for key in ['default', 'lanes', 'measures']:
+                    if values[f'display_{key}']:
+                        display = key
+
+                details = {
+                    'display': display,
+                    'option_arrange': values['option_arrange'],
+                    'option_arrange_dp': f"{values['option_arrange_1p']}/{values['option_arrange_2p']}",
+                    'option_arrange_sync': values['option_arrange_sync'],
+                    'option_flip': values['option_flip'],
+                    'option_assist': values['option_assist'],
+                    'option_battle': values['option_battle'],
+                    'clear_type': values['clear_type'],
+                    'dj_level': values['dj_level'],
+                    'score': values['score'],
+                    'miss_count': values['miss_count'],
+                    'clear_type_new': values['clear_type_new'],
+                    'dj_level_new': values['dj_level_new'],
+                    'score_new': values['score_new'],
+                    'miss_count_new': values['miss_count_new']
+                }
+            else:
+                details = None
+            
             labels[target_key] = {
-                'play_mode': values['play_mode'],
-                'difficulty': values['difficulty'],
-                'level': values['level'],
-                'music': values['music'],
-                'option_arrange': values['option_arrange'],
-                'option_arrange_dp': f"{values['option_arrange_1p']}/{values['option_arrange_2p']}",
-                'option_arrange_sync': values['option_arrange_sync'],
-                'option_flip': values['option_flip'],
-                'option_assist': values['option_assist'],
-                'option_battle': values['option_battle'],
-                'clear_type': values['clear_type'],
-                'dj_level': values['dj_level'],
-                'score': values['score'],
-                'miss_count': values['miss_count'],
-                'clear_type_new': values['clear_type_new'],
-                'dj_level_new': values['dj_level_new'],
-                'score_new': values['score_new'],
-                'miss_count_new': values['miss_count_new']
+                'informations': informations,
+                'details': details
             }
+
             with open(dc.label_filepath, 'w') as f:
                 json.dump(labels, f, indent=2)
         if event == 'button_recog' and not target_key is None:
             gui.set_result()
-        if event == 'all':
-            window['list_keys'].update(images.keys())
+        if event == 'has_informations':
+            gui.switch_has_informations()
+        if event == 'has_details':
+            gui.switch_has_details()
         if event == 'only_not_annotation':
-            keys = [key for key in images.keys() if not key in labels.keys()]
-            window['list_keys'].update(keys)
+            gui.change_search_condition(images.keys(), labels)
         if event == 'only_undefined_music':
-            keys = [key for key in images.keys() if key in labels.keys() and labels[key]['music'] == '']
-            window['list_keys'].update(keys)
+            gui.change_search_condition(images.keys(), labels)
         if event == 'only_full_combo':
-            keys = [key for key in images.keys() if key in labels.keys() and labels[key]['clear_type'] == 'F-COMBO']
-            window['list_keys'].update(keys)
+            gui.change_search_condition(images.keys(), labels)
 
     window.close()

@@ -110,14 +110,14 @@ if __name__ == '__main__':
         label = collection.label
         if collection.informations is not None:
             image = collection.informations
-            if label['play_mode'] != '':
+            if label['informations']['play_mode'] != '':
                 crop = image.crop(informations_areas['play_mode'])
-                play_modes[label['play_mode']][collection.key] = crop
-            if label['difficulty'] != '':
+                play_modes[label['informations']['play_mode']][collection.key] = crop
+            if label['informations']['difficulty'] != '':
                 crop = image.crop(informations_areas['difficulty'])
-                difficulties[label['difficulty']][collection.key] = crop
-                if label['level'] != '':
-                    key = f"{label['difficulty']}-{label['level']}"
+                difficulties[label['informations']['difficulty']][collection.key] = crop
+                if label['informations']['level'] != '':
+                    key = f"{label['informations']['difficulty']}-{label['informations']['level']}"
                     crop = image.crop(informations_areas['level'])
                     levels[key][collection.key] = crop
         if collection.details is not None:
@@ -125,49 +125,45 @@ if __name__ == '__main__':
 
             option_image = image.crop(details_areas['option'])
             left = 0
-            if 'option_battle' in label.keys() and label['option_battle']:
+            if label['details']['option_battle']:
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options['BATTLE'][collection.key] = option_image.crop(area)
                 left += define.option_widths['BATTLE'] + define.option_widths[',']
-            if 'option_arrange' in label.keys() and label['option_arrange'] != '':
-                key = label['option_arrange']
+            if label['details']['option_arrange'] != '':
+                key = label['details']['option_arrange']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
                 left += define.option_widths[key] + define.option_widths[',']
-            if 'option_arrange_dp' in label.keys() and label['option_arrange_dp'] != '/':
-                key_left, key_right = label['option_arrange_dp'].split('/')
+            if label['details']['option_arrange_dp'] != '/':
+                key_left, key_right = label['details']['option_arrange_dp'].split('/')
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key_left][collection.key] = option_image.crop(area)
                 left += define.option_widths[key_left] + define.option_widths['/']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key_right][collection.key] = option_image.crop(area)
                 left += define.option_widths[key_right] + define.option_widths[',']
-            if 'option_arrange_sync' in label.keys() and label['option_arrange_sync'] != '':
-                key = label['option_arrange_sync']
+            if label['details']['option_arrange_sync'] != '':
+                key = label['details']['option_arrange_sync']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
                 left += define.option_widths[key] + define.option_widths[',']
-            if 'option_h-random' in label.keys() and label['option_h-random']:
-                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
-                options['H-RANDOM'][collection.key] = option_image.crop(area)
-                left += define.option_widths['h-random'] + define.option_widths[',']
-            if 'option_flip' in label.keys() and label['option_flip'] != '':
-                key = label['option_flip']
+            if label['details']['option_flip'] != '':
+                key = label['details']['option_flip']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
                 left += define.option_widths[key] + define.option_widths[',']
-            if 'option_assist' in label.keys() and label['option_assist'] != '':
-                key = label['option_assist']
+            if label['details']['option_assist'] != '':
+                key = label['details']['option_assist']
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
 
-            if 'clear_type' in label.keys() and label['clear_type'] != '':
-                if label['clear_type'] != 'F-COMBO':
+            if label['details']['clear_type'] != '':
+                if label['details']['clear_type'] != 'F-COMBO':
                     crop = image.crop(details_areas['clear_type'])
-                    clear_types[label['clear_type']][collection.key] = crop
-            if 'dj_level' in label.keys() and label['dj_level'] != '':
+                    clear_types[label['details']['clear_type']][collection.key] = crop
+            if label['details']['dj_level'] != '':
                 crop = image.crop(details_areas['dj_level'])
-                dj_levels[label['dj_level']][collection.key] = crop
+                dj_levels[label['details']['dj_level']][collection.key] = crop
             trimareas = []
             for i in range(4):
                 trimareas.append([
@@ -177,9 +173,9 @@ if __name__ == '__main__':
                     number_trimsize[1]
                 ])
             for key in ['score', 'miss_count']:
-                if key in label.keys() and label[key] != '':
+                if label['details'][key] != '':
                     crop1 = image.crop(details_areas[key])
-                    value = int(label[key])
+                    value = int(label['details'][key])
                     digit = 1
                     while int(value) > 0 or digit == 1:
                         number = str(int(value % 10))
@@ -188,7 +184,7 @@ if __name__ == '__main__':
                         value /= 10
                         digit += 1
             for key in ['clear_type_new', 'dj_level_new', 'score_new', 'miss_count_new']:
-                if key in label.keys() and not label[key]:
+                if label['details'][key]:
                     news[f"{key}-{collection.key}"] = image.crop(details_areas[key])
 
     if '-playmode' in argv:

@@ -79,77 +79,85 @@ def layout_manage(keys):
 
     manage_label_define = [
         [
+            sg.Checkbox('曲情報', key='has_informations', enable_events=True, background_color=in_area_background_color),
+            sg.Checkbox('詳細リザルト', key='has_details', enable_events=True, background_color=in_area_background_color),
+        ],
+        [
             sg.Text('プレイモード', size=(15, 1)),
-            sg.Combo(selectable_value_list['play_modes'], key='play_mode', readonly=True, enable_events=True)
+            sg.Combo(selectable_value_list['play_modes'], key='play_mode', readonly=True, enable_events=True, disabled=True)
         ],
         [
             sg.Text('難易度', size=(15, 1)),
-            sg.Combo(selectable_value_list['difficulties'], key='difficulty', size=(13, 1), readonly=True),
-            sg.Combo(selectable_value_list['levels'], key='level', readonly=True)
+            sg.Combo(selectable_value_list['difficulties'], key='difficulty', size=(13, 1), readonly=True, disabled=True),
+            sg.Combo(selectable_value_list['levels'], key='level', readonly=True, disabled=True)
         ],
         [
             sg.Text('曲名', size=(15, 1)),
             sg.Input(key='music', size=(30, 1)),
         ],
         [
+            sg.Radio('デフォルト', group_id='display', key='display_default', disabled=True, background_color=in_area_background_color),
+            sg.Radio('レーン別', group_id='display', key='display_lanes', disabled=True, background_color=in_area_background_color),
+            sg.Radio('小節ごと', group_id='display', key='display_measures', disabled=True, background_color=in_area_background_color)
+        ],
+        [
             sg.Text('オプション', size=(15, 1)),
             sg.Column([
                 [
                     sg.Text('SP配置', size=(11, 1)),
-                    sg.Combo(selectable_value_list['options_arrange'], key='option_arrange', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange'], key='option_arrange', size=(10, 1), readonly=True, disabled=True)
                 ],
                 [
                     sg.Text('DP配置', size=(11, 1)),
-                    sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_1p', size=(6, 1), readonly=True),
+                    sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_1p', size=(6, 1), readonly=True, disabled=True),
                     sg.Text('/', background_color=in_area_background_color,pad=0),
-                    sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_2p', size=(6, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange_dp'], key='option_arrange_2p', size=(6, 1), readonly=True, disabled=True)
                 ],
                 [
                     sg.Text('BATTLE配置', size=(11, 1)),
-                    sg.Combo(selectable_value_list['options_arrange_sync'], key='option_arrange_sync', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_arrange_sync'], key='option_arrange_sync', size=(10, 1), readonly=True, disabled=True)
                 ],
                 [
                     sg.Text('フリップ', size=(11, 1)),
-                    sg.Combo(selectable_value_list['options_flip'], key='option_flip', size=(10, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_flip'], key='option_flip', size=(10, 1), readonly=True, disabled=True)
                 ],
                 [
                     sg.Text('アシスト', size=(11, 1)),
-                    sg.Combo(selectable_value_list['options_assist'], key='option_assist', size=(8, 1), readonly=True)
+                    sg.Combo(selectable_value_list['options_assist'], key='option_assist', size=(8, 1), readonly=True, disabled=True)
                 ]
             ], background_color=in_area_background_color, pad=0)
         ],
         [
             sg.Text('特殊オプション', size=(15, 1)),
-            sg.Check('BATTLE', key='option_battle', background_color=in_area_background_color)
+            sg.Check('BATTLE', key='option_battle', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('クリアタイプ', size=(15, 1)),
-            sg.Combo(selectable_value_list['clear_types'], key='clear_type', size=(11, 1), readonly=True),
-            sg.Checkbox('NEW', key='clear_type_new', background_color=in_area_background_color)
+            sg.Combo(selectable_value_list['clear_types'], key='clear_type', size=(11, 1), readonly=True, disabled=True),
+            sg.Checkbox('NEW', key='clear_type_new', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('DJレベル', size=(15, 1)),
-            sg.Combo(selectable_value_list['dj_levels'], key='dj_level', size=(11, 1), readonly=True),
-            sg.Checkbox('NEW', key='dj_level_new', background_color=in_area_background_color)
+            sg.Combo(selectable_value_list['dj_levels'], key='dj_level', size=(11, 1), readonly=True, disabled=True),
+            sg.Checkbox('NEW', key='dj_level_new', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('スコア', size=(15, 1)),
-            sg.Input(key='score', size=(12, 1)),
-            sg.Checkbox('NEW', key='score_new', background_color=in_area_background_color)
+            sg.Input(key='score', size=(12, 1), disabled=True),
+            sg.Checkbox('NEW', key='score_new', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('ミスカウント', size=(15, 1)),
-            sg.Input(key='miss_count', size=(12, 1)),
-            sg.Checkbox('NEW', key='miss_count_new', background_color=in_area_background_color)
+            sg.Input(key='miss_count', size=(12, 1), disabled=True),
+            sg.Checkbox('NEW', key='miss_count_new', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Button('アノテーション保存', key='button_label_overwrite'),
             sg.Button('認識結果から引用', key='button_recog')
         ],
-        [sg.Radio('すべて', key='all', group_id='search', default=True, enable_events=True, background_color=in_area_background_color)],
-        [sg.Radio('未アノテーションのみ', key='only_not_annotation', group_id='search', enable_events=True, background_color=in_area_background_color)],
-        [sg.Radio('曲名なしのみ', key='only_undefined_music', group_id='search', enable_events=True, background_color=in_area_background_color)],
-        [sg.Radio('F-COMBOのみ', key='only_full_combo', group_id='search', enable_events=True, background_color=in_area_background_color)]
+        [sg.Checkbox('未アノテーションのみ', key='only_not_annotation', enable_events=True, background_color=in_area_background_color)],
+        [sg.Checkbox('曲名なしのみ', key='only_undefined_music', enable_events=True, background_color=in_area_background_color)],
+        [sg.Checkbox('F-COMBOのみ', key='only_full_combo', enable_events=True, background_color=in_area_background_color)]
     ]
 
     return [
@@ -326,63 +334,118 @@ def set_result():
     window['music'].set_focus()
 
 def set_labels(label):
-    window['play_mode'].update('')
-    window['difficulty'].update('')
-    window['level'].update('')
-    window['option_arrange'].update('')
-    window['option_arrange_1p'].update('')
-    window['option_arrange_2p'].update('')
-    window['option_arrange_sync'].update('')
-    window['option_flip'].update('')
-    window['option_assist'].update('')
-    window['option_battle'].update(False)
-    window['clear_type'].update('')
-    window['clear_type_new'].update('')
-    window['dj_level'].update('')
-    window['dj_level_new'].update('')
-    window['score'].update('')
-    window['score_new'].update('')
-    window['miss_count'].update('')
-    window['miss_count_new'].update('')
-    window['music'].update('')
-    if not label is None:
-        if 'play_mode' in label.keys():
-            window['play_mode'].update(label['play_mode'])
-        if 'difficulty' in label.keys():
-            window['difficulty'].update(label['difficulty'])
-        if 'level' in label.keys():
-            window['level'].update(label['level'])
-        if 'music' in label.keys():
-            window['music'].update(label['music'])
-        if 'option_battle' in label.keys():
-            window['option_battle'].update(label['option_battle'])
-        if 'option_arrange' in label.keys():
-            window['option_arrange'].update(label['option_arrange'])
-        if 'option_arrange_dp' in label.keys():
-            left, right = label['option_arrange_dp'].split('/')
-            window['option_arrange_1p'].update(left)
-            window['option_arrange_2p'].update(right)
-        if 'option_arrange_sync' in label.keys():
-            window['option_arrange_sync'].update(label['option_arrange_sync'])
-        if 'option_flip' in label.keys():
-            window['option_flip'].update(label['option_flip'])
-        if 'option_assist' in label.keys():
-            window['option_assist'].update(label['option_assist'])
-        if 'option_battle' in label.keys():
-            window['option_battle'].update(label['option_battle'])
-        if 'clear_type' in label.keys():
-            window['clear_type'].update(label['clear_type'])
-        if 'clear_type_new' in label.keys():
-            window['clear_type_new'].update(label['clear_type_new'])
-        if 'dj_level' in label.keys():
-            window['dj_level'].update(label['dj_level'])
-        if 'dj_level_new' in label.keys():
-            window['dj_level_new'].update(label['dj_level_new'])
-        if 'score' in label.keys():
-            window['score'].update(label['score'])
-        if 'score_new' in label.keys():
-            window['score_new'].update(label['score_new'])
-        if 'miss_count' in label.keys():
-            window['miss_count'].update(label['miss_count'])
-        if 'miss_count_new' in label.keys():
-            window['miss_count_new'].update(label['miss_count_new'])
+    if not 'informations' in label.keys() or not 'details' in label.keys():
+        window['play_mode'].update('')
+        window['difficulty'].update('')
+        window['level'].update('')
+        window['music'].update('')
+        for key in ['default', 'lanes', 'measures']:
+            window[f'display_{key}'].update(False)
+        window['option_arrange'].update('')
+        window['option_arrange_1p'].update('')
+        window['option_arrange_2p'].update('')
+        window['option_arrange_sync'].update('')
+        window['option_flip'].update('')
+        window['option_assist'].update('')
+        window['option_battle'].update(False)
+        window['clear_type'].update('')
+        window['clear_type_new'].update('')
+        window['dj_level'].update('')
+        window['dj_level_new'].update('')
+        window['score'].update('')
+        window['score_new'].update('')
+        window['miss_count'].update('')
+        window['miss_count_new'].update('')
+        return
+
+    window['has_informations'].update(label['informations'] is not None)
+    switch_has_informations()
+    window['has_details'].update(label['details'] is not None)
+    switch_has_details()
+
+    if label['informations'] is not None:
+        window['play_mode'].update(label['informations']['play_mode'])
+        window['difficulty'].update(label['informations']['difficulty'])
+        window['level'].update(label['informations']['level'])
+        window['music'].update(label['informations']['music'])
+    else:
+        window['play_mode'].update('')
+        window['difficulty'].update('')
+        window['level'].update('')
+        window['music'].update('')
+    
+    if label['details'] is not None:
+        window[f"display_{label['details']['display']}"].update(True)
+        window['option_battle'].update(label['details']['option_battle'])
+        window['option_arrange'].update(label['details']['option_arrange'])
+        left, right = label['details']['option_arrange_dp'].split('/')
+        window['option_arrange_1p'].update(left)
+        window['option_arrange_2p'].update(right)
+        window['option_arrange_sync'].update(label['details']['option_arrange_sync'])
+        window['option_flip'].update(label['details']['option_flip'])
+        window['option_assist'].update(label['details']['option_assist'])
+        window['option_battle'].update(label['details']['option_battle'])
+        window['clear_type'].update(label['details']['clear_type'])
+        window['clear_type_new'].update(label['details']['clear_type_new'])
+        window['dj_level'].update(label['details']['dj_level'])
+        window['dj_level_new'].update(label['details']['dj_level_new'])
+        window['score'].update(label['details']['score'])
+        window['score_new'].update(label['details']['score_new'])
+        window['miss_count'].update(label['details']['miss_count'])
+        window['miss_count_new'].update(label['details']['miss_count_new'])
+    else:
+        for key in ['default', 'lanes', 'measures']:
+            window[f'display_{key}'].update(False)
+        window['option_arrange'].update('')
+        window['option_arrange_1p'].update('')
+        window['option_arrange_2p'].update('')
+        window['option_arrange_sync'].update('')
+        window['option_flip'].update('')
+        window['option_assist'].update('')
+        window['option_battle'].update(False)
+        window['clear_type'].update('')
+        window['clear_type_new'].update('')
+        window['dj_level'].update('')
+        window['dj_level_new'].update('')
+        window['score'].update('')
+        window['score_new'].update('')
+        window['miss_count'].update('')
+        window['miss_count_new'].update('')
+
+def switch_has_informations():
+    value = window['has_informations'].get()
+
+    window['play_mode'].update(disabled=not value)
+    window['difficulty'].update(disabled=not value)
+    window['level'].update(disabled=not value)
+    window['music'].update(disabled=not value)
+
+def switch_has_details():
+    value = window['has_details'].get()
+
+    for key in ['default', 'lanes', 'measures']:
+        window[f'display_{key}'].update(disabled=not value)
+    window['option_arrange'].update(disabled=not value)
+    window['option_arrange_1p'].update(disabled=not value)
+    window['option_arrange_2p'].update(disabled=not value)
+    window['option_arrange_sync'].update(disabled=not value)
+    window['option_flip'].update(disabled=not value)
+    window['option_assist'].update(disabled=not value)
+    window['option_battle'].update(disabled=not value)
+    window['clear_type'].update(disabled=not value)
+    window['dj_level'].update(disabled=not value)
+    window['score'].update(disabled=not value)
+    window['miss_count'].update(disabled=not value)
+    window['clear_type_new'].update(disabled=not value)
+    window['dj_level_new'].update(disabled=not value)
+    window['score_new'].update(disabled=not value)
+    window['miss_count_new'].update(disabled=not value)
+
+def change_search_condition(keys, labels):
+    if window['only_not_annotation'].get():
+        keys = [key for key in keys if not key in labels.keys()]
+    if window['only_undefined_music'].get():
+        keys = [key for key in keys if key in labels.keys() and labels[key]['music'] == '']
+    if window['only_full_combo'].get():
+        keys = [key for key in keys if key in labels.keys() and labels[key]['clear_type'] == 'F-COMBO']
+    window['list_keys'].update(keys)

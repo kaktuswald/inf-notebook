@@ -17,9 +17,9 @@ details_trimsize = (350, 245)
 
 informations_areas = {
     'play_mode': [82, 55, 102, 65],
-    'difficulty': [196, 55, 229, 65],
-    'level': [231, 55, 252, 65],
-    'music': [201, 0, 225, 18]
+    'difficulty': [196, 58, 229, 62],
+    'level': [231, 58, 250, 62],
+    'music': [201, 0, 232, 18]
 }
 
 details_areas = {

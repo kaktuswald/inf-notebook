@@ -44,11 +44,11 @@ if __name__ == '__main__':
     map = {}
     for key, value in images.items():
         label = labels[key]
-        if 'music' in label.keys() and label['music'] != '':
+        if label['informations'] is not None and label['informations']['music'] != '':
             trim = value.crop(informations_areas['music'])
             np_value = np.array(trim)
 
-            escape_music_name = label['music'].replace('"', '')
+            escape_music_name = label['informations']['music'].replace('"', '')
             escape_music_name = escape_music_name.replace('/', '')
             escape_music_name = escape_music_name.replace(',', '')
             escape_music_name = escape_music_name.replace('\n', '')
@@ -73,13 +73,13 @@ if __name__ == '__main__':
             np_trim = np_value[:,-1].astype(np.uint8)
             string = b64encode(np_trim).decode('utf-8')
             list.append(string)
-            if string in target.keys() and target[string] != label['music']:
+            if string in target.keys() and target[string] != label['informations']['music']:
                 print('Failure')
-                print(target[string], label['music'], filename)
+                print(target[string], label['informations']['music'], filename)
                 print(list)
                 sys.exit()
 
-            target[string] = label['music']
+            target[string] = label['informations']['music']
 
     with open(recog_music_filename, 'w') as f:
         json.dump(map, f)
