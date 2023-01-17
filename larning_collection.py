@@ -79,6 +79,11 @@ if __name__ == '__main__':
         for key_l in define.value_list['levels']:
             levels[f'{key_d}-{key_l}'] = {}
     
+    graphs = {
+        'graph_lanes': {},
+        'graph_measures': {}
+    }
+
     option_value_list = [
         *define.value_list['options_arrange'],
         *define.value_list['options_arrange_dp'],
@@ -123,6 +128,11 @@ if __name__ == '__main__':
         if collection.details is not None:
             image = collection.details
 
+            if label['details']['display'] != 'default':
+                key = f"graph_{label['details']['display']}"
+                crop = image.crop(details_areas[key])
+                graphs[key][collection.key] = crop
+
             option_image = image.crop(details_areas['option'])
             left = 0
             if label['details']['option_battle']:
@@ -164,6 +174,7 @@ if __name__ == '__main__':
             if label['details']['dj_level'] != '':
                 crop = image.crop(details_areas['dj_level'])
                 dj_levels[label['details']['dj_level']][collection.key] = crop
+
             trimareas = []
             for i in range(4):
                 trimareas.append([
@@ -199,6 +210,10 @@ if __name__ == '__main__':
         for key in levels.keys():
             larning(key, levels[key])
     
+    if '-graph' in argv:
+        for key in graphs.keys():
+            larning(key, graphs[key])
+
     if '-option' in argv:
         for key in options.keys():
             larning(key, options[key])

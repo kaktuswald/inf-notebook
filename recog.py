@@ -23,6 +23,8 @@ informations_areas = {
 }
 
 details_areas = {
+    'graph_lanes': [158, 0, 161, 4],
+    'graph_measures': [4, 0, 8, 4],
     'option': [10, 12, 337, 16],
     'clear_type': [215, 82, 315, 87],
     'dj_level': [227, 130, 308, 140],
@@ -137,6 +139,9 @@ class Recognition():
         with open(recog_music_filename) as f:
             self.music = json.load(f)
 
+        self.graph_lanes = Recog(masks['graph_lanes'])
+        self.graph_measures = Recog(masks['graph_measures'])
+
         masks_option = [masks[key] for key in define.option_widths.keys() if key in masks.keys()]
         self.option = RecogMultiValue(masks_option)
 
@@ -240,12 +245,18 @@ class Recognition():
             print(ex)
             return None
 
+    def get_graph(self, image_details):
+        if self.graph_lanes.find(image_details.crop(details_areas['graph_lanes'])):
+            return 'lanes'
+        if self.graph_measures.find(image_details.crop(details_areas['graph_measures'])):
+            return 'measures'
+        return 'default'
+    
     def get_options(self, image_options):
         arrange = None
         flip = None
         assist = None
         battle = False
-        h_random = False
 
         area_left = 0
         left = None
@@ -281,7 +292,7 @@ class Recognition():
             else:
                 area_left += define.option_widths['/']
         
-        return ResultOptions(arrange, flip, assist, battle) if area_left != 0 else None
+        return ResultOptions(arrange, flip, assist, battle)
 
     def get_clear_type(self, image_details):
         result = self.clear_type.find(image_details)
@@ -310,7 +321,11 @@ class Recognition():
         return ResultInformations(play_mode, difficulty, level, music)
 
     def get_details(self, image):
-        options = self.get_options(image.crop(details_areas['option']))
+        if self.get_graph(image) == 'default':
+            options = self.get_options(image.crop(details_areas['option']))
+        else:
+            options = None
+
         clear_type = ResultValueNew(
             self.get_clear_type(image.crop(details_areas['clear_type'])),
             not self.new.find(image.crop(details_areas['clear_type_new']))

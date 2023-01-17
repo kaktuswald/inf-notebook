@@ -51,6 +51,13 @@ def evaluate(filename, informations, details, label):
     if label['details'] is not None and details is not None:
         recog_details = recog.get_details(details)
 
+        graph = recog.get_graph(details)
+        if graph == label['details']['display']:
+            results.append('ok')
+        else:
+            results.append(f"{graph} {label['details']['display']}")
+            failure = True
+
         recog_options = recog_details.options
         if recog_options is None:
             results.append('')
@@ -120,37 +127,45 @@ def evaluate(filename, informations, details, label):
             results.append('ok')
         else:
             results.append(f"{recog_dj_level.value} {label['details']['dj_level']}")
+            failure = True
 
         if (recog_score.value is None and label['details']['score'] == '') or recog_score.value == int(label['details']['score']):
             results.append('ok')
         else:
             results.append(f"{recog_score.value} {label['details']['score']}")
+            failure = True
 
         if (recog_miss_count.value is None and label['details']['miss_count'] == '') or recog_miss_count.value == int(label['details']['miss_count']):
             results.append('ok')
         else:
             results.append(f"{recog_miss_count.value} {label['details']['miss_count']}")
+            failure = True
 
         if recog_clear_type.new == label['details']['clear_type_new']:
             results.append('ok')
         else:
             results.append(f"{recog_clear_type.new} {label['details']['clear_type_new']}")
+            failure = True
         
         if recog_dj_level.new == label['details']['dj_level_new']:
             results.append('ok')
         else:
             results.append(f"{recog_dj_level.new} {label['details']['dj_level_new']}")
+            failure = True
         
         if recog_score.new == label['details']['score_new']:
             results.append('ok')
         else:
             results.append(f"{recog_score.new} {label['details']['score_new']}")
+            failure = True
         
         if recog_miss_count.new == label['details']['miss_count_new']:
             results.append('ok')
         else:
             results.append(f"{recog_miss_count.new} {label['details']['miss_count_new']}")
+            failure = True
     else:
+        results.append('')
         results.append('')
         results.append('')
         results.append('')

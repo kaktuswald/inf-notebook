@@ -15,6 +15,8 @@ resized_icon = icon_image.resize((32, 32))
 icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
 
+selected_record = None
+
 def layout_main(setting):
     column_headers = ['日時', '曲名', 'M', 'CT', 'DL', 'SC', 'MC']
     column_widths = [13, 13, 4, 3, 3, 3, 3]
@@ -57,8 +59,8 @@ def layout_main(setting):
             [
                 sg.Column([
                     [
-                        sg.Listbox([], key='music_candidates', size=(18,13), enable_events=True),
-                        sg.Listbox([], key='history', size=(15,13), enable_events=True)
+                        sg.Listbox([], key='music_candidates', size=(18,12), enable_events=True),
+                        sg.Listbox([], key='history', size=(15,12), enable_events=True)
                     ]
                 ], pad=0, background_color=background_color)
             ],
@@ -67,24 +69,59 @@ def layout_main(setting):
                 sg.Text(key='latest', size=(13, 1), background_color=background_color)
             ],
             [
-                sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='clear_type', size=(10, 1), background_color=background_color),
-                sg.Text(key='clear_type_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
-            ],
-            [
-                sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='dj_level', size=(10, 1), background_color=background_color),
-                sg.Text(key='dj_level_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
-            ],
-            [
-                sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='score', size=(10, 1), background_color=background_color),
-                sg.Text(key='score_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
-            ],
-            [
-                sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='miss_count', size=(10, 1), background_color=background_color),
-                sg.Text(key='miss_count_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                sg.TabGroup(
+                    [[
+                        sg.Tab('ベスト', [
+                            [
+                                sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='clear_type', size=(10, 1), background_color=background_color),
+                                sg.Text(key='clear_type_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                            ],
+                            [
+                                sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='dj_level', size=(10, 1), background_color=background_color),
+                                sg.Text(key='dj_level_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                            ],
+                            [
+                                sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='score', size=(10, 1), background_color=background_color),
+                                sg.Text(key='score_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                            ],
+                            [
+                                sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='miss_count', size=(10, 1), background_color=background_color),
+                                sg.Text(key='miss_count_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                            ]
+                        ], pad=0, background_color=background_color),
+                        sg.Tab('履歴', [
+                            [
+                                sg.Text('日時', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='history_timestamp', size=(13, 1), background_color=background_color)
+                            ],
+                            [
+                                sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='history_clear_type', size=(10, 1), background_color=background_color)
+                            ],
+                            [
+                                sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='history_dj_level', size=(10, 1), background_color=background_color)
+                            ],
+                            [
+                                sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='history_score', size=(10, 1), background_color=background_color)
+                            ],
+                            [
+                                sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='history_miss_count', size=(10, 1), background_color=background_color)
+                            ],
+                            [
+                                sg.Text('オプション', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                                sg.Text(key='history_options', size=(25, 1), background_color=background_color)
+                            ]
+                        ], pad=0, background_color=background_color)
+                    ]],
+                    pad=0, background_color=background_color, tab_background_color=background_color, selected_background_color='#245d18'
+                )
             ]
         ], pad=0, background_color=background_color)
     ]]
@@ -122,7 +159,7 @@ def layout_main(setting):
                         [
                             sg.Button('ファイルに保存する', key='button_save', disabled=True),
                             sg.Button('ライバルを隠して保存する', key='button_save_filtered', disabled=True),
-                            sg.Checkbox('必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
+                            sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
                         ]
                     ], pad=0, background_color=background_color),
                     sg.TabGroup(tabs, pad=0, background_color=background_color, tab_background_color=background_color, selected_background_color='#245d18')
@@ -222,6 +259,8 @@ def search_music_candidates():
         window['music_candidates'].update(values=[])
 
 def select_music():
+    global selected_record
+
     selected = window['music_candidates'].get()
     if len(selected) == 0:
         return
@@ -243,34 +282,46 @@ def select_music():
     if difficulty == '':
         return
 
-    target = record.get(play_mode, difficulty)
-    if target is None:
+    selected_record = record.get(play_mode, difficulty)
+    if selected_record is None:
         display_image(None)
         window['history'].update([])
         window['latest'].update('')
+        window['history_timestamp'].update('')
+        window['history_options'].update('')
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
             window[key].update('')
             window[f'{key}_timestamp'].update('')
+            window[f'history_{key}'].update('')
         return
 
-    latest_timestamp = target['latest']['timestamp']
+    latest_timestamp = selected_record['latest']['timestamp']
     formatted_timestamp = f'{int(latest_timestamp[0:4])}年{int(latest_timestamp[4:6])}月{int(latest_timestamp[6:8])}日'
     window['latest'].update(formatted_timestamp)
 
-    window['history'].update([*reversed(target['timestamps'])])
+    window['history'].update([*reversed(selected_record['timestamps'])])
 
-    if 'best' in target.keys():
+    if 'best' in selected_record.keys():
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            value = target['best'][key]['value']
-            timestamp = target['best'][key]['timestamp']
-            timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
-            window[key].update(value if value is not None else '')
-            window[f'{key}_timestamp'].update(timestamp)
+            if key in selected_record['best']:
+                value = selected_record['best'][key]['value']
+                timestamp = selected_record['best'][key]['timestamp']
+                timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+                window[key].update(value if value is not None else '')
+                window[f'{key}_timestamp'].update(timestamp)
+            else:
+                window[key].update('')
+                window[f'{key}_timestamp'].update('')
     else:
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
             window[key].update('')
             window[f'{key}_timestamp'].update('')
     
+    window['history_timestamp'].update('')
+    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+        window[f'history_{key}'].update('')
+    window['history_options'].update('')
+
     filepath = os.path.join(results_basepath, f'{latest_timestamp}.jpg')
     if os.path.exists(filepath):
         image = Image.open(filepath)
@@ -290,3 +341,20 @@ def select_history():
         display_image(image)
     else:
         display_image(None)
+
+    formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+    window['history_timestamp'].update(formatted_timestamp)
+
+    target = selected_record['history'][timestamp]
+    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+        window[f'history_{key}'].update(target[key]['value'] if target[key]['value'] is not None else '')
+    if not 'options' in target.keys() or target['options'] is None:
+        window['history_options'].update('不明')
+    else:
+        window['history_options'].update(' '.join([
+            target['options']['arrange'] if target['options']['arrange'] is not None else '',
+            target['options']['flip'] if target['options']['flip'] is not None else '',
+            target['options']['assist'] if target['options']['assist'] is not None else '',
+            'BATTLE' if target['options']['battle'] else ''
+        ]))
+    
