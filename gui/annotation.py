@@ -40,6 +40,10 @@ def layout_manage(keys):
 
     result_details = [
         [
+            sg.Text('グラフ表示', size=(21, 1)),
+            sg.Text(key='result_graph', background_color=in_area_background_color)
+        ],
+        [
             sg.Text('配置オプション', size=(21, 1)),
             sg.Text(key='result_option_arrange', background_color=in_area_background_color)
         ],
@@ -171,12 +175,12 @@ def layout_manage(keys):
                     sg.Listbox(keys, key='list_keys', size=(20, 20), enable_events=True),
                 ],
                 [
-                    sg.Column(result_informations, size=(300, 210), background_color=in_area_background_color),
-                    sg.Column(result_details, size=(325, 210), background_color=in_area_background_color)
+                    sg.Column(result_informations, size=(300, 240), background_color=in_area_background_color),
+                    sg.Column(result_details, size=(325, 240), background_color=in_area_background_color)
                 ],
             ], pad=0, background_color=background_color),
             sg.Column([
-                [sg.Column(manage_label_define, size=(390,560), background_color=in_area_background_color)],
+                [sg.Column(manage_label_define, size=(390,590), background_color=in_area_background_color)],
             ], pad=0, background_color=background_color)
         ]
     ]
@@ -246,12 +250,18 @@ def update_image(name, image):
     window[name].update(data=bytes.getvalue())
 
 def reset_informations():
+    window['has_informations'].update(False)
+    switch_informations_controls()
+
     window['result_play_mode'].update('')
     window['result_difficulty'].update('')
     window['result_level'].update('')
     window['result_music'].update('')
 
 def set_informations(image):
+    window['has_informations'].update(True)
+    switch_informations_controls()
+
     informations = recog.get_informations(image)
 
     window['result_play_mode'].update(informations.play_mode if informations.play_mode is not None else '')
@@ -260,6 +270,10 @@ def set_informations(image):
     window['result_music'].update(informations.music if informations.music is not None else '')
 
 def reset_details():
+    window['has_details'].update(False)
+    switch_details_controls()
+
+    window['result_graph'].update('')
     window['result_option_arrange'].update('')
     window['result_option_flip'].update('')
     window['result_option_assist'].update('')
@@ -274,6 +288,11 @@ def reset_details():
     window['result_miss_count_new'].update(visible=False)
 
 def set_details(image):
+    window['has_details'].update(True)
+    switch_details_controls()
+
+    window['result_graph'].update(recog.get_graph(image))
+
     details = recog.get_details(image)
     options = details.options
     clear_type = details.clear_type
@@ -305,6 +324,8 @@ def set_result():
     window['difficulty'].update(window['result_difficulty'].get())
     window['level'].update(window['result_level'].get())
     window['music'].update(window['result_music'].get())
+
+    window[f"display_{window['result_graph'].get()}"].update(True)
 
     window['option_arrange'].update('')
     window['option_arrange_1p'].update('')
@@ -359,9 +380,9 @@ def set_labels(label):
         return
 
     window['has_informations'].update(label['informations'] is not None)
-    switch_has_informations()
+    switch_informations_controls()
     window['has_details'].update(label['details'] is not None)
-    switch_has_details()
+    switch_details_controls()
 
     if label['informations'] is not None:
         window['play_mode'].update(label['informations']['play_mode'])
@@ -375,7 +396,8 @@ def set_labels(label):
         window['music'].update('')
     
     if label['details'] is not None:
-        window[f"display_{label['details']['display']}"].update(True)
+        if label['details']['display'] != '':
+            window[f"display_{label['details']['display']}"].update(True)
         window['option_battle'].update(label['details']['option_battle'])
         window['option_arrange'].update(label['details']['option_arrange'])
         left, right = label['details']['option_arrange_dp'].split('/')
@@ -412,7 +434,7 @@ def set_labels(label):
         window['miss_count'].update('')
         window['miss_count_new'].update('')
 
-def switch_has_informations():
+def switch_informations_controls():
     value = window['has_informations'].get()
 
     window['play_mode'].update(disabled=not value)
@@ -420,7 +442,7 @@ def switch_has_informations():
     window['level'].update(disabled=not value)
     window['music'].update(disabled=not value)
 
-def switch_has_details():
+def switch_details_controls():
     value = window['has_details'].get()
 
     for key in ['default', 'lanes', 'measures']:

@@ -128,7 +128,7 @@ if __name__ == '__main__':
         if collection.details is not None:
             image = collection.details
 
-            if label['details']['display'] != 'default':
+            if not label['details']['display'] in ['', 'default']:
                 key = f"graph_{label['details']['display']}"
                 crop = image.crop(details_areas[key])
                 graphs[key][collection.key] = crop

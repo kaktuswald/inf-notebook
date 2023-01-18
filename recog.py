@@ -23,8 +23,8 @@ informations_areas = {
 }
 
 details_areas = {
-    'graph_lanes': [158, 0, 161, 4],
-    'graph_measures': [4, 0, 8, 4],
+    'graph_lanes': [182, 19, 185, 20],
+    'graph_measures': [5, 0, 7, 3],
     'option': [10, 12, 337, 16],
     'clear_type': [215, 82, 315, 87],
     'dj_level': [227, 130, 308, 140],
