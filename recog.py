@@ -230,15 +230,15 @@ class Recognition():
     
     def get_music(self, music):
         np_value = np.array(music)
+        summed = np.sum(np_value, axis=1)
 
         try:
             target = self.music
-            for position in range(np_value.shape[1]):
-                np_trim = np_value[:,position].astype(np.uint8)
-                key = b64encode(np_trim).decode('utf-8')
-                if not key in target:
+            for index in range(len(summed)):
+                value = str(summed[index])
+                if not value in target:
                     return None
-                target = target[key]
+                target = target[value]
             return target
         except Exception as ex:
             logger.exception(ex)

@@ -47,6 +47,7 @@ if __name__ == '__main__':
         if label['informations'] is not None and label['informations']['music'] != '':
             trim = value.crop(informations_areas['music'])
             np_value = np.array(trim)
+            summed = np.sum(np_value, axis=1)
 
             escape_music_name = label['informations']['music'].replace('"', '')
             escape_music_name = escape_music_name.replace('/', '')
@@ -61,25 +62,21 @@ if __name__ == '__main__':
 
             target = map
             list = []
-            for index in range(width-1):
-                np_trim = np_value[:,index].astype(np.uint8)
-                string = b64encode(np_trim).decode('utf-8')
-                list.append(string)
-
-                if not string in target.keys():
-                    target[string] = {}
-                target = target[string]
+            for index in range(len(summed)-1):
+                value = str(summed[index])
+                if not value in target.keys():
+                    target[value] = {}
+                target = target[value]
             
-            np_trim = np_value[:,-1].astype(np.uint8)
-            string = b64encode(np_trim).decode('utf-8')
-            list.append(string)
-            if string in target.keys() and target[string] != label['informations']['music']:
+            value = str(summed[-1])
+            list.append(value)
+            if value in target.keys() and target[value] != label['informations']['music']:
                 print('Failure')
-                print(target[string], label['informations']['music'], filename)
+                print(target[value], label['informations']['music'], filename)
                 print(list)
                 sys.exit()
 
-            target[string] = label['informations']['music']
+            target[value] = label['informations']['music']
 
     with open(recog_music_filename, 'w') as f:
         json.dump(map, f)
