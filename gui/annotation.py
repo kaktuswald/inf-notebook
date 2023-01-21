@@ -325,7 +325,8 @@ def set_result():
     window['level'].update(window['result_level'].get())
     window['music'].update(window['result_music'].get())
 
-    window[f"display_{window['result_graph'].get()}"].update(True)
+    if window['result_graph'].get() != '':
+        window[f"display_{window['result_graph'].get()}"].update(True)
 
     window['option_arrange'].update('')
     window['option_arrange_1p'].update('')
@@ -467,7 +468,7 @@ def change_search_condition(keys, labels):
     if window['only_not_annotation'].get():
         keys = [key for key in keys if not key in labels.keys()]
     if window['only_undefined_music'].get():
-        keys = [key for key in keys if key in labels.keys() and labels[key]['music'] == '']
+        keys = [key for key in keys if key in labels.keys() and labels[key]['informations'] is not None and labels[key]['informations']['music'] == '']
     if window['only_full_combo'].get():
-        keys = [key for key in keys if key in labels.keys() and labels[key]['clear_type'] == 'F-COMBO']
+        keys = [key for key in keys if key in labels.keys() and labels[key]['details'] is not None and labels[key]['details']['clear_type'] == 'F-COMBO']
     window['list_keys'].update(keys)
