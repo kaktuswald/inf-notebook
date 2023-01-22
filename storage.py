@@ -149,14 +149,17 @@ class StorageAccessor():
         informations_dirpath = os.path.join(basedir, informations_dirname)
         details_dirpath = os.path.join(basedir, details_dirname)
 
+        count = 0
         blobs = self.client.list_blobs(bucket_name_informations)
         for blob in blobs:
             self.save_image(informations_dirpath, blob)
             blob.delete()
+            count += 1
 
         blobs = self.client.list_blobs(bucket_name_details)
         for blob in blobs:
             self.save_image(details_dirpath, blob)
             blob.delete()
+            count += 1
 
-        print('complete')
+        print(f'download cont: {count}')
