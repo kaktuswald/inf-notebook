@@ -52,11 +52,14 @@ def evaluate(filename, informations, details, label):
         recog_details = recog.get_details(details)
 
         graph = recog.get_graph(details)
-        if graph == label['details']['display']:
-            results.append('ok')
+        if 'display' in label['details'].keys():
+            if graph == label['details']['display']:
+                results.append('ok')
+            else:
+                results.append(f"{graph} {label['details']['display']}")
+                failure = True
         else:
-            results.append(f"{graph} {label['details']['display']}")
-            failure = True
+            results.append('none')
 
         recog_options = recog_details.options
         if recog_options is None:
