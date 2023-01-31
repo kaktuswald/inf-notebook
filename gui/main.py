@@ -26,7 +26,7 @@ def layout_main(setting):
     else:
         column_visibles = [True, False, True, True, True, True, True]
 
-    tabs = [[
+    tabs_main = [[
         sg.Tab('今日のリザルト', [
             [sg.Table(
                 [],
@@ -36,7 +36,7 @@ def layout_main(setting):
                 vertical_scroll_only=True,
                 col_widths=column_widths,
                 visible_column_map=column_visibles,
-                num_rows=26,
+                num_rows=16,
                 justification='center',
                 enable_events=True,
                 background_color=background_color
@@ -63,68 +63,110 @@ def layout_main(setting):
                         sg.Listbox([], key='history', size=(15,12), enable_events=True)
                     ]
                 ], pad=0, background_color=background_color)
-            ],
-            [
-                sg.Text('最終プレイ', size=(11, 1), background_color=background_color_label),
-                sg.Text(key='latest', size=(13, 1), background_color=background_color)
-            ],
-            [
-                sg.TabGroup(
-                    [[
-                        sg.Tab('ベスト', [
-                            [
-                                sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='clear_type', size=(10, 1), background_color=background_color),
-                                sg.Text(key='clear_type_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
-                            ],
-                            [
-                                sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='dj_level', size=(10, 1), background_color=background_color),
-                                sg.Text(key='dj_level_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
-                            ],
-                            [
-                                sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='score', size=(10, 1), background_color=background_color),
-                                sg.Text(key='score_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
-                            ],
-                            [
-                                sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='miss_count', size=(10, 1), background_color=background_color),
-                                sg.Text(key='miss_count_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
-                            ]
-                        ], pad=0, background_color=background_color),
-                        sg.Tab('履歴', [
-                            [
-                                sg.Text('日時', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='history_timestamp', size=(13, 1), background_color=background_color)
-                            ],
-                            [
-                                sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='history_clear_type', size=(10, 1), background_color=background_color)
-                            ],
-                            [
-                                sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='history_dj_level', size=(10, 1), background_color=background_color)
-                            ],
-                            [
-                                sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='history_score', size=(10, 1), background_color=background_color)
-                            ],
-                            [
-                                sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='history_miss_count', size=(10, 1), background_color=background_color)
-                            ],
-                            [
-                                sg.Text('オプション', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                                sg.Text(key='history_options', size=(25, 1), background_color=background_color)
-                            ]
-                        ], pad=0, background_color=background_color)
-                    ]],
-                    pad=0, background_color=background_color, tab_background_color=background_color, selected_background_color='#245d18'
-                )
             ]
         ], pad=0, background_color=background_color)
     ]]
+
+    tabs_sub = [[
+        sg.Tab('ベスト', [
+            [
+                sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='clear_type', size=(10, 1), background_color=background_color),
+                sg.Text(key='clear_type_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+            ],
+            [
+                sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='dj_level', size=(10, 1), background_color=background_color),
+                sg.Text(key='dj_level_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+            ],
+            [
+                sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='score', size=(10, 1), background_color=background_color),
+                sg.Text(key='score_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+            ],
+            [
+                sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='miss_count', size=(10, 1), background_color=background_color),
+                sg.Text(key='miss_count_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+            ]
+        ], pad=0, background_color=background_color),
+        sg.Tab('履歴', [
+            [
+                sg.Text('日時', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='history_timestamp', size=(13, 1), background_color=background_color)
+            ],
+            [
+                sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='history_clear_type', size=(10, 1), background_color=background_color)
+            ],
+            [
+                sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='history_dj_level', size=(10, 1), background_color=background_color)
+            ],
+            [
+                sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='history_score', size=(10, 1), background_color=background_color)
+            ],
+            [
+                sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='history_miss_count', size=(10, 1), background_color=background_color)
+            ],
+            [
+                sg.Text('オプション', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
+                sg.Text(key='history_options', size=(25, 1), background_color=background_color)
+            ]
+        ], pad=0, background_color=background_color)
+    ]]
+
+    pane_left = [
+        [
+            sg.Text('画像表示スケール', background_color=background_color),
+            sg.Combo(scales, key='scale', default_value='1/2', readonly=True),
+            sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
+        ],
+        [
+            sg.Column([
+                [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
+                [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
+                [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)]
+            ], pad=0, background_color=background_color, vertical_alignment='top'),
+            sg.Column([
+                [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
+                [sg.Checkbox('曲名を表示する(試験運用)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)]
+            ], pad=0, background_color=background_color, vertical_alignment='top')
+        ],
+        [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
+        [
+            sg.Button('ファイルに保存する', key='button_save', disabled=True),
+            sg.Button('ライバルを隠して保存する', key='button_save_filtered', disabled=True),
+            sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
+        ]
+    ]
+
+    pane_right = [
+        [
+            sg.TabGroup(
+                tabs_main,
+                pad=0,
+                background_color=background_color,
+                tab_background_color=background_color,
+                selected_background_color='#245d18'
+            )
+        ],
+        [
+            sg.Text('最終プレイ', size=(11, 1), background_color=background_color_label),
+            sg.Text(key='latest', size=(13, 1), background_color=background_color)
+        ],
+        [
+            sg.TabGroup(
+                tabs_sub,
+                pad=0,
+                background_color=background_color,
+                tab_background_color=background_color,
+                selected_background_color='#245d18'
+            )
+        ]
+    ]
 
     return [
         [
@@ -138,31 +180,8 @@ def layout_main(setting):
                     sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
                 ],
                 [
-                    sg.Column([
-                        [
-                            sg.Text('画像表示スケール', background_color=background_color),
-                            sg.Combo(scales, key='scale', default_value='1/2', readonly=True),
-                            sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
-                        ],
-                        [
-                            sg.Column([
-                                [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
-                                [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
-                                [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)]
-                            ], pad=0, background_color=background_color, vertical_alignment='top'),
-                            sg.Column([
-                                [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
-                                [sg.Checkbox('曲名を表示する(試験運用)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)]
-                            ], pad=0, background_color=background_color, vertical_alignment='top')
-                        ],
-                        [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
-                        [
-                            sg.Button('ファイルに保存する', key='button_save', disabled=True),
-                            sg.Button('ライバルを隠して保存する', key='button_save_filtered', disabled=True),
-                            sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
-                        ]
-                    ], pad=0, background_color=background_color),
-                    sg.TabGroup(tabs, pad=0, background_color=background_color, tab_background_color=background_color, selected_background_color='#245d18')
+                    sg.Column(pane_left, pad=0, background_color=background_color),
+                    sg.Column(pane_right, pad=0, background_color=background_color)
                 ]
             ], pad=0, background_color=background_color),
             sg.Output(key='output', size=(30, 34), visible=setting.manage)
@@ -249,6 +268,31 @@ def switch_table(display_music):
 
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)
 
+def select_music_today(result):
+    global selected_record
+
+    informations = result.informations
+    if informations.music is None:
+        reset_record()
+        return
+    
+    record = Record(informations.music)
+    selected_record = record.get(informations.play_mode, informations.difficulty)
+
+    if selected_record is None:
+        reset_record()
+        return
+
+    if informations.play_mode == 'SP':
+        window['play_mode_sp'].update(True)
+    if informations.play_mode == 'DP':
+        window['play_mode_dp'].update(True)
+    
+    window['difficulty'].update(informations.difficulty)
+    window['search_music'].update(informations.music)
+
+    load_record()
+
 def search_music_candidates():
     search_music = window['search_music'].get()
     if len(search_music) != 0:
@@ -258,7 +302,7 @@ def search_music_candidates():
     else:
         window['music_candidates'].update(values=[])
 
-def select_music():
+def select_music_search():
     global selected_record
 
     selected = window['music_candidates'].get()
@@ -284,17 +328,23 @@ def select_music():
 
     selected_record = record.get(play_mode, difficulty)
     if selected_record is None:
-        display_image(None)
-        window['history'].update([])
-        window['latest'].update('')
-        window['history_timestamp'].update('')
-        window['history_options'].update('')
-        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            window[key].update('')
-            window[f'{key}_timestamp'].update('')
-            window[f'history_{key}'].update('')
+        reset_record()
         return
 
+    load_record()
+
+def reset_record():
+    display_image(None)
+    window['history'].update([])
+    window['latest'].update('')
+    window['history_timestamp'].update('')
+    window['history_options'].update('')
+    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+        window[key].update('')
+        window[f'{key}_timestamp'].update('')
+        window[f'history_{key}'].update('')
+
+def load_record():
     latest_timestamp = selected_record['latest']['timestamp']
     formatted_timestamp = f'{int(latest_timestamp[0:4])}年{int(latest_timestamp[4:6])}月{int(latest_timestamp[6:8])}日'
     window['latest'].update(formatted_timestamp)

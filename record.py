@@ -15,6 +15,10 @@ class Record():
         filename = f'{string[:string_max_length]}.json'
         self.filepath = os.path.join(records_basepath, filename)
 
+        if not os.path.exists(self.filepath):
+            self.json = {}
+            return
+        
         try:
             with open(self.filepath) as f:
                 self.json = json.load(f)

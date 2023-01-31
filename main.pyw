@@ -286,16 +286,18 @@ if __name__ == '__main__':
             if len(values['table_results']) > 0:
                 result = results[list_results[values['table_results'][0]][0]]
                 gui.display_image(result.image, True)
+                gui.select_music_today(result)
+                music_search_time = time.time() + 1
         if event == 'search_music':
             music_search_time = time.time() + 1
         if event == 'play_mode_sp':
-            gui.select_music()
+            gui.select_music_search()
         if event == 'play_mode_dp':
-            gui.select_music()
+            gui.select_music_search()
         if event == 'difficulty':
-            gui.select_music()
+            gui.select_music_search()
         if event == 'music_candidates':
-            gui.select_music()
+            gui.select_music_search()
         if event == 'history':
             gui.select_history()
         if event == 'timeout':
