@@ -305,6 +305,8 @@ def search_music_candidates():
 def select_music_search():
     global selected_record
 
+    window['table_results'].update(select_rows=[])
+
     selected = window['music_candidates'].get()
     if len(selected) == 0:
         return
@@ -332,6 +334,14 @@ def select_music_search():
         return
 
     load_record()
+
+    latest_timestamp = selected_record['latest']['timestamp']
+    filepath = os.path.join(results_basepath, f'{latest_timestamp}.jpg')
+    if os.path.exists(filepath):
+        image = Image.open(filepath)
+        display_image(image)
+    else:
+        display_image(None)
 
 def reset_record():
     display_image(None)
@@ -372,17 +382,12 @@ def load_record():
         window[f'history_{key}'].update('')
     window['history_options'].update('')
 
-    filepath = os.path.join(results_basepath, f'{latest_timestamp}.jpg')
-    if os.path.exists(filepath):
-        image = Image.open(filepath)
-        display_image(image)
-    else:
-        display_image(None)
-
 def select_history():
     selected = window['history'].get()
     if len(selected) == 0:
         return
+
+    window['table_results'].update(select_rows=[])
 
     timestamp = selected[0]
     filepath = os.path.join(results_basepath, f'{timestamp}.jpg')
