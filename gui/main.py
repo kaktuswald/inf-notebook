@@ -2,6 +2,9 @@ import PySimpleGUI as sg
 import io
 import os
 from PIL import Image
+from matplotlib import pyplot as plt
+from datetime import datetime
+import numpy as np
 
 from define import define
 from .static import title,icon_path,background_color,background_color_label
@@ -257,8 +260,35 @@ def display_image(image, savable=False):
     else:
         window['screenshot'].update(visible=False)
 
-    window['button_save'].update(disabled=not savable)
-    window['button_save_filtered'].update(disabled=not savable)
+    change_save_buttons(savable)
+
+def display_graph(history):
+    subsample = int(window['scale'].get().split('/')[1])
+
+    x = [datetime.strptime(key, '%Y%m%d-%H%M%S') for key in history.keys()]
+    score = [value['score']['value'] for value in history.values()]
+    miss_count = [value['miss_count']['value'] for value in history.values()]
+
+    fig, ax1 = plt.subplots(figsize=np.array((16, 9))/2, facecolor=background_color)
+    ax1.scatter(x, score)
+    ax1.plot(x, score, color='#0000ff')
+    ax1.set_ylabel('score')
+    ax1.set_ylim(([0,None]))
+    ax1.tick_params(rotation=30)
+
+    ax2 = ax1.twinx()
+    ax2.scatter(x, miss_count)
+    ax2.plot(x, miss_count, color='#ff0000')
+    ax2.set_ylabel('miss count')
+    ax2.set_ylim(([0,None]))
+
+    bytes = io.BytesIO()
+    fig.savefig(bytes, format='PNG', dpi=720/9*2)
+    window['screenshot'].update(data=bytes.getvalue(), subsample=subsample, visible=True)
+
+def change_save_buttons(enabled):
+    window['button_save'].update(disabled=not enabled)
+    window['button_save_filtered'].update(disabled=not enabled)
 
 def switch_table(display_music):
     if not display_music:
@@ -335,14 +365,6 @@ def select_music_search():
 
     load_record()
 
-    latest_timestamp = selected_record['latest']['timestamp']
-    filepath = os.path.join(results_basepath, f'{latest_timestamp}.jpg')
-    if os.path.exists(filepath):
-        image = Image.open(filepath)
-        display_image(image)
-    else:
-        display_image(None)
-
 def reset_record():
     display_image(None)
     window['history'].update([])
@@ -382,6 +404,13 @@ def load_record():
         window[f'history_{key}'].update('')
     window['history_options'].update('')
 
+    if 'history' in selected_record.keys():
+        display_graph(selected_record['history'])
+    else:
+        window['screenshot'].update(visible=False)
+
+    change_save_buttons(False)
+
 def select_history():
     selected = window['history'].get()
     if len(selected) == 0:
@@ -394,8 +423,6 @@ def select_history():
     if os.path.exists(filepath):
         image = Image.open(filepath)
         display_image(image)
-    else:
-        display_image(None)
 
     formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
     window['history_timestamp'].update(formatted_timestamp)
