@@ -1,8 +1,6 @@
-from PIL import Image
 import os
 from sys import argv,exit
 from logging import getLogger
-import json
 
 logger_child_name = 'larning'
 
@@ -11,46 +9,12 @@ logger.debug('loaded larning.py')
 
 from resources import create_resource_directory
 from define import define
-from data_collection import informations_basepath,details_basepath,label_filepath
-from recog import option_trimsize,number_trimsize,informations_areas,details_areas
+from data_collection import load_collections
+from recog import option_trimsize,number_trimsize,informations_areas
 from larning import create_masks_directory,larning
 
 larningbase_direpath = 'larning'
 mask_images_dirpath = os.path.join(larningbase_direpath, 'mask_images')
-
-class Collection():
-    def __init__(self, key, informations, details, label):
-        self.key = key
-        self.informations = informations
-        self.details = details
-        self.label = label
-
-def load_collections():
-    with open(label_filepath) as f:
-        labels = json.load(f)
-
-    keys = [*labels.keys()]
-    print(f"label count: {len(keys)}")
-
-    collections = []
-    for key in keys:
-        filename = f'{key}.png'
-
-        i_filepath = os.path.join(informations_basepath, filename)
-        if os.path.isfile(i_filepath):
-            i_image = Image.open(i_filepath)
-        else:
-            i_image = None
-
-        d_filepath = os.path.join(details_basepath, filename)
-        if os.path.isfile(d_filepath):
-            d_image = Image.open(d_filepath)
-        else:
-            d_image = None
-
-        collections.append(Collection(filename, i_image, d_image, labels[key]))
-    
-    return collections
 
 if __name__ == '__main__':
     if len(argv) == 1:
@@ -97,10 +61,6 @@ if __name__ == '__main__':
     for key in option_value_list:
         options[key] = {}
 
-    clear_types = {}
-    for key in define.value_list['clear_types']:
-        clear_types[key] = {}
-    
     dj_levels = {}
     for key in define.value_list['dj_levels']:
         dj_levels[key] = {}
@@ -130,10 +90,10 @@ if __name__ == '__main__':
 
             if 'display' in label['details'].keys() and not label['details']['display'] in ['', 'default']:
                 key = f"graph_{label['details']['display']}"
-                crop = image.crop(details_areas[key])
+                crop = image.crop(define.details_areas[key])
                 graphs[key][collection.key] = crop
 
-            option_image = image.crop(details_areas['option'])
+            option_image = image.crop(define.details_areas['option'])
             left = 0
             if label['details']['option_battle']:
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
@@ -167,12 +127,8 @@ if __name__ == '__main__':
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
 
-            if label['details']['clear_type'] != '':
-                if label['details']['clear_type'] != 'F-COMBO':
-                    crop = image.crop(details_areas['clear_type'])
-                    clear_types[label['details']['clear_type']][collection.key] = crop
             if label['details']['dj_level'] != '':
-                crop = image.crop(details_areas['dj_level'])
+                crop = image.crop(define.details_areas['dj_level'])
                 dj_levels[label['details']['dj_level']][collection.key] = crop
 
             trimareas = []
@@ -185,7 +141,7 @@ if __name__ == '__main__':
                 ])
             for key in ['score', 'miss_count']:
                 if label['details'][key] != '':
-                    crop1 = image.crop(details_areas[key])
+                    crop1 = image.crop(define.details_areas[key])
                     value = int(label['details'][key])
                     digit = 1
                     while int(value) > 0 or digit == 1:
@@ -196,7 +152,7 @@ if __name__ == '__main__':
                         digit += 1
             for key in ['clear_type_new', 'dj_level_new', 'score_new', 'miss_count_new']:
                 if label['details'][key]:
-                    news[f"{key}-{collection.key}"] = image.crop(details_areas[key])
+                    news[f"{key}-{collection.key}"] = image.crop(define.details_areas[key])
 
     if '-playmode' in argv:
         for key in play_modes.keys():
@@ -217,10 +173,6 @@ if __name__ == '__main__':
     if '-option' in argv:
         for key in options.keys():
             larning(key, options[key])
-
-    if '-cleartype' in argv:
-        for key in clear_types.keys():
-            larning(key, clear_types[key])
 
     if '-djlevel' in argv:
         for key in dj_levels.keys():

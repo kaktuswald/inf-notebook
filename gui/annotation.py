@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 import io
 
 from define import define
-from recog import recog,informations_trimsize,details_trimsize
+from recog import recog,informations_trimsize
 from .static import title,icon_path,background_color
 
 in_area_background_color='#5779dd'
@@ -170,7 +170,7 @@ def layout_manage(keys):
                 [
                     sg.Column([
                         [sg.Image(key='image_informations', size=informations_trimsize, background_color=background_color)],
-                        [sg.Image(key='image_details', size=details_trimsize, background_color=background_color)]
+                        [sg.Image(key='image_details', size=define.details_trimsize, background_color=background_color)]
                     ], background_color=background_color),
                     sg.Listbox(keys, key='list_keys', size=(20, 20), enable_events=True),
                 ],

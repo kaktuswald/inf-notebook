@@ -1,4 +1,6 @@
 import os
+import json
+from PIL import Image
 
 collection_basepath = 'collection_data'
 
@@ -6,3 +8,38 @@ informations_basepath = os.path.join(collection_basepath, 'informations')
 details_basepath = os.path.join(collection_basepath, 'details')
 
 label_filepath = os.path.join(collection_basepath, 'label.json')
+
+class Collection():
+    def __init__(self, key, informations, details, label):
+        self.key = key
+        self.informations = informations
+        self.details = details
+        self.label = label
+
+def load_collections():
+    with open(label_filepath) as f:
+        labels = json.load(f)
+
+    keys = [*labels.keys()]
+    print(f"label count: {len(keys)}")
+
+    collections = []
+    for key in keys:
+        filename = f'{key}.png'
+
+        i_filepath = os.path.join(informations_basepath, filename)
+        if os.path.isfile(i_filepath):
+            i_image = Image.open(i_filepath)
+        else:
+            i_image = None
+
+        d_filepath = os.path.join(details_basepath, filename)
+        if os.path.isfile(d_filepath):
+            d_image = Image.open(d_filepath)
+        else:
+            d_image = None
+
+        collections.append(Collection(filename, i_image, d_image, labels[key]))
+    
+    return collections
+

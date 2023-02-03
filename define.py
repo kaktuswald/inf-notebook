@@ -68,4 +68,19 @@ class Define():
         '/': 9
     }
 
+    details_trimsize = (350, 245)
+    details_areas = {
+        'graph_lanes': [182, 19, 185, 20],
+        'graph_measures': [5, 0, 7, 3],
+        'option': [10, 12, 337, 16],
+        'clear_type': [250, 81, 280, 82],
+        'dj_level': [227, 130, 308, 140],
+        'score': [219, 170, 315, 185],
+        'miss_count': [219, 218, 315, 233],
+        'clear_type_new': [318, 65, 335, 100],
+        'dj_level_new': [318, 113, 335, 148],
+        'score_new': [318, 161, 335, 196],
+        'miss_count_new': [318, 209, 335, 244]
+    }
+
 define = Define()
