@@ -3,8 +3,6 @@ import json
 import sys
 import os
 import numpy as np
-from base64 import b64encode
-from scipy.stats import mode
 
 from resources import recog_music_filename
 from recog import informations_areas

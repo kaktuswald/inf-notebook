@@ -75,14 +75,37 @@ class Define():
         'option': [10, 12, 337, 16],
         'clear_type': [250, 81, 280, 82],
         'dj_level': [227, 120, 308, 139],
-        'score': [219, 170, 315, 185],
-        'miss_count': [219, 218, 315, 233],
+        'score': [220, 170, 316, 186],
+        'miss_count': [220, 218, 316, 234],
         'clear_type_new': [318, 65, 335, 100],
         'dj_level_new': [318, 113, 335, 148],
         'score_new': [318, 161, 335, 196],
         'miss_count_new': [318, 209, 335, 244]
     }
 
+    number_trimsize = (24, 16)
+    number_trimareas = []
+    number_segments = (
+        (0, 11),
+        (7, 11),
+        (14, 11),
+        (4, 3),
+        (10, 3),
+        (4, 19),
+        (10, 19)
+    )
+
     dj_level_pick_color = 255
+    number_pick_color_best = 255
+    number_pick_color_current = 205
+
+    def __init__(self):
+        for i in range(4):
+            self.number_trimareas.append([
+                int(i * self.number_trimsize[0]),
+                0,
+                int((i + 1) * self.number_trimsize[0]),
+                self.number_trimsize[1]
+            ])
 
 define = Define()

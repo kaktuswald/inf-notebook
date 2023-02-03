@@ -11,6 +11,7 @@ from define import define
 from resources import masks,recog_music_filename
 from clear_type import get_clear_type
 from dj_level import get_dj_level
+from number import get_score,get_miss_count
 from result import ResultInformations,ResultValueNew,ResultDetails,ResultOptions,Result
 
 informations_trimsize = (460, 71)
@@ -45,7 +46,6 @@ for play_side in details_trimpos.keys():
     ]
 
 option_trimsize = (57, 4)
-number_trimsize = (24, 15)
 
 class Recog():
     def __init__(self, mask):
@@ -68,28 +68,6 @@ class RecogMultiValue():
                 return mask.key
         
         return None
-
-class RecogNumber():
-    def __init__(self, masks, digit):
-        self.masks = masks
-        self.digit = digit
-    
-    def find(self, image):
-        ret = 0
-        is_number = False
-        for i in range(self.digit):
-            left = image.width * i / self.digit
-            right = image.width * (i + 1) / self.digit
-            crop = image.crop([left, 0, right, image.height])
-            np_value = np.array(crop)
-
-            for mask in self.masks:
-                if mask.eval(np_value):
-                    ret = ret * 10 + int(mask.key)
-                    is_number = True
-                    break
-        
-        return ret if is_number else None
 
 class Recognition():
     def __init__(self):
@@ -130,8 +108,6 @@ class Recognition():
 
         masks_option = [masks[key] for key in define.option_widths.keys() if key in masks.keys()]
         self.option = RecogMultiValue(masks_option)
-
-        self.number = RecogNumber([masks[str(key)] for key in range(10)], 4)
 
         self.new = Recog(masks['new'])
 
@@ -312,11 +288,11 @@ class Recognition():
             not self.new.find(image_details.crop(define.details_areas['dj_level_new']))
         )
         score = ResultValueNew(
-            self.number.find(image_details.crop(define.details_areas['score'])),
+            get_score(image_details),
             not self.new.find(image_details.crop(define.details_areas['score_new']))
         )
         miss_count = ResultValueNew(
-            self.number.find(image_details.crop(define.details_areas['miss_count'])),
+            get_miss_count(image_details),
             not self.new.find(image_details.crop(define.details_areas['miss_count_new']))
         )
 

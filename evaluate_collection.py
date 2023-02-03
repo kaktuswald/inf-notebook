@@ -11,7 +11,7 @@ result_filepath = 'evaluate_collection.csv'
 
 failure = False
 
-def evaluate(filename, informations, details, label):
+def evaluate(filename, informations, details, key, label):
     global failure
 
     results = [filename]
@@ -247,7 +247,7 @@ if __name__ == '__main__':
 
         label = labels[key]
 
-        results = evaluate(filename, informations_image, details_image, label)
+        results = evaluate(filename, informations_image, details_image, key, label)
 
         output.append(f"{','.join(results)}\n")
     

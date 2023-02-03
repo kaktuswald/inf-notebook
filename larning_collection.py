@@ -11,10 +11,11 @@ logger.debug('loaded larning.py')
 from resources import create_resource_directory
 from define import define
 from data_collection import load_collections
-from recog import option_trimsize,number_trimsize,informations_areas
+from recog import option_trimsize,informations_areas
 from larning import create_masks_directory,larning
 from clear_type import larning_clear_type
 from dj_level import larning_dj_level
+from number import larning_number
 
 larningbase_direpath = 'larning'
 mask_images_dirpath = os.path.join(larningbase_direpath, 'mask_images')
@@ -66,10 +67,7 @@ if __name__ == '__main__':
 
     clear_types = {}
     dj_levels = {}
-    
     numbers = {}
-    for key in range(10):
-        numbers[str(key)] = {}
     
     news = {}
     
@@ -141,58 +139,53 @@ if __name__ == '__main__':
                     'np': np.array(image.crop(define.details_areas['dj_level'])),
                 }
 
-            trimareas = []
-            for i in range(4):
-                trimareas.append([
-                    int(i * number_trimsize[0]),
-                    0,
-                    int((i + 1) * number_trimsize[0]),
-                    number_trimsize[1]
-                ])
             for key in ['score', 'miss_count']:
                 if label['details'][key] != '':
                     crop1 = image.crop(define.details_areas[key])
                     value = int(label['details'][key])
                     digit = 1
                     while int(value) > 0 or digit == 1:
-                        number = str(int(value % 10))
-                        crop2 = crop1.crop(trimareas[4-digit])
-                        numbers[number][f"{key}-{digit}-{collection.key}"] = crop2
+                        number = int(value % 10)
+                        crop2 = crop1.crop(define.number_trimareas[4-digit])
+                        numbers[f"{key}-{digit}-{collection.key}"] = {
+                            'value': number,
+                            'np': np.array(crop2)
+                        }
                         value /= 10
                         digit += 1
+
             for key in ['clear_type_new', 'dj_level_new', 'score_new', 'miss_count_new']:
                 if label['details'][key]:
                     news[f"{key}-{collection.key}"] = image.crop(define.details_areas[key])
 
-    if '-playmode' in argv:
+    if '-all' in argv or '-playmode' in argv:
         for key in play_modes.keys():
             larning(key, play_modes[key])
 
-    if '-difficulty' in argv:
+    if '-all' in argv or '-difficulty' in argv:
         for key in difficulties.keys():
             larning(key, difficulties[key])
 
-    if '-level' in argv:
+    if '-all' in argv or '-level' in argv:
         for key in levels.keys():
             larning(key, levels[key])
     
-    if '-graph' in argv:
+    if '-all' in argv or '-graph' in argv:
         for key in graphs.keys():
             larning(key, graphs[key])
 
-    if '-option' in argv:
+    if '-all' in argv or '-option' in argv:
         for key in options.keys():
             larning(key, options[key])
 
-    if '-cleartype' in argv:
+    if '-all' in argv or '-cleartype' in argv:
         larning_clear_type(clear_types)
 
-    if '-djlevel' in argv:
+    if '-all' in argv or '-djlevel' in argv:
         larning_dj_level(dj_levels)
 
-    if '-numbers' in argv:
-        for key in numbers.keys():
-            larning(key, numbers[key])
+    if '-all' in argv or '-number' in argv:
+        larning_number(numbers)
 
-    if '-new' in argv:
+    if '-all' in argv or '-new' in argv:
         larning('new', news)
