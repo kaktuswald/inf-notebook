@@ -20,6 +20,8 @@ resized_icon.save(icon_bytes, format='PNG')
 
 selected_record = None
 
+plt.rcParams['figure.subplot.bottom'] = 0.15
+
 def layout_main(setting):
     column_headers = ['日時', '曲名', 'M', 'CT', 'DL', 'SC', 'MC']
     column_widths = [13, 13, 4, 3, 3, 3, 3]
@@ -158,7 +160,8 @@ def layout_main(setting):
         ],
         [
             sg.Text('最終プレイ', size=(11, 1), background_color=background_color_label),
-            sg.Text(key='latest', size=(13, 1), background_color=background_color)
+            sg.Text(key='latest', size=(13, 1), background_color=background_color),
+            sg.Button('グラフ', key='button_graph')
         ],
         [
             sg.TabGroup(
@@ -262,12 +265,22 @@ def display_image(image, savable=False):
 
     change_save_buttons(savable)
 
-def display_graph(history):
+def display_graph():
+    if selected_record is None:
+        return
+    
+    if not 'history' in selected_record.keys():
+        window['screenshot'].update(visible=False)
+        change_save_buttons(False)
+        return
+
+    history = selected_record['history']
+
     subsample = int(window['scale'].get().split('/')[1])
 
     x = [datetime.strptime(key, '%Y%m%d-%H%M%S') for key in history.keys()]
     score = [value['score']['value'] for value in history.values()]
-    miss_count = [value['miss_count']['value'] for value in history.values()]
+    miss_count = [value['miss_count']['value'] for value in history.values() if value['miss_count']['value'] is not None]
 
     fig, ax1 = plt.subplots(figsize=np.array((16, 9))/2, facecolor=background_color)
     ax1.scatter(x, score)
@@ -276,15 +289,20 @@ def display_graph(history):
     ax1.set_ylim(([0,None]))
     ax1.tick_params(rotation=30)
 
-    ax2 = ax1.twinx()
-    ax2.scatter(x, miss_count)
-    ax2.plot(x, miss_count, color='#ff0000')
-    ax2.set_ylabel('miss count')
-    ax2.set_ylim(([0,None]))
+    if len(miss_count) >= 1:
+        ax2 = ax1.twinx()
+        ax2.scatter(x, miss_count)
+        ax2.plot(x, miss_count, color='#ff0000')
+        ax2.set_ylabel('miss count')
+        ax2.set_ylim(([0,None]))
 
     bytes = io.BytesIO()
     fig.savefig(bytes, format='PNG', dpi=720/9*2)
+    plt.close()
+    
     window['screenshot'].update(data=bytes.getvalue(), subsample=subsample, visible=True)
+
+    change_save_buttons(False)
 
 def change_save_buttons(enabled):
     window['button_save'].update(disabled=not enabled)
@@ -363,6 +381,8 @@ def select_music_search():
         reset_record()
         return
 
+    display_graph()
+
     load_record()
 
 def reset_record():
@@ -403,13 +423,6 @@ def load_record():
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'history_{key}'].update('')
     window['history_options'].update('')
-
-    if 'history' in selected_record.keys():
-        display_graph(selected_record['history'])
-    else:
-        window['screenshot'].update(visible=False)
-
-    change_save_buttons(False)
 
 def select_history():
     selected = window['history'].get()

@@ -288,6 +288,8 @@ if __name__ == '__main__':
                 gui.display_image(result.image, True)
                 gui.select_music_today(result)
                 music_search_time = time.time() + 1
+        if event == 'button_graph':
+            gui.display_graph()
         if event == 'search_music':
             music_search_time = time.time() + 1
         if event == 'play_mode_sp':
