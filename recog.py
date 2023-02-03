@@ -10,6 +10,7 @@ logger.debug('loaded recog.py')
 from define import define
 from resources import masks,recog_music_filename
 from clear_type import get_clear_type
+from dj_level import get_dj_level
 from result import ResultInformations,ResultValueNew,ResultDetails,ResultOptions,Result
 
 informations_trimsize = (460, 71)
@@ -129,8 +130,6 @@ class Recognition():
 
         masks_option = [masks[key] for key in define.option_widths.keys() if key in masks.keys()]
         self.option = RecogMultiValue(masks_option)
-
-        self.dj_level = RecogMultiValue([masks[key] for key in define.value_list['dj_levels']])
 
         self.number = RecogNumber([masks[str(key)] for key in range(10)], 4)
 
@@ -309,7 +308,7 @@ class Recognition():
             not self.new.find(image_details.crop(define.details_areas['clear_type_new']))
         )
         dj_level = ResultValueNew(
-            self.dj_level.find(image_details.crop(define.details_areas['dj_level'])),
+            get_dj_level(image_details),
             not self.new.find(image_details.crop(define.details_areas['dj_level_new']))
         )
         score = ResultValueNew(

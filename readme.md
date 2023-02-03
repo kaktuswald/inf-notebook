@@ -133,7 +133,6 @@ python annotation.pyw
 #### 学習する
 ```
 python larning_collection.py
-python clear_type.py
 python larning_music.py
 ```
 

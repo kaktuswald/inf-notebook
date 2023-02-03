@@ -74,7 +74,7 @@ class Define():
         'graph_measures': [5, 0, 7, 3],
         'option': [10, 12, 337, 16],
         'clear_type': [250, 81, 280, 82],
-        'dj_level': [227, 130, 308, 140],
+        'dj_level': [227, 120, 308, 139],
         'score': [219, 170, 315, 185],
         'miss_count': [219, 218, 315, 233],
         'clear_type_new': [318, 65, 335, 100],
@@ -82,5 +82,7 @@ class Define():
         'score_new': [318, 161, 335, 196],
         'miss_count_new': [318, 209, 335, 244]
     }
+
+    dj_level_pick_color = 255
 
 define = Define()

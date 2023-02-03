@@ -1,6 +1,7 @@
 import os
 from sys import argv,exit
 from logging import getLogger
+import numpy as np
 
 logger_child_name = 'larning'
 
@@ -12,6 +13,8 @@ from define import define
 from data_collection import load_collections
 from recog import option_trimsize,number_trimsize,informations_areas
 from larning import create_masks_directory,larning
+from clear_type import larning_clear_type
+from dj_level import larning_dj_level
 
 larningbase_direpath = 'larning'
 mask_images_dirpath = os.path.join(larningbase_direpath, 'mask_images')
@@ -61,9 +64,8 @@ if __name__ == '__main__':
     for key in option_value_list:
         options[key] = {}
 
+    clear_types = {}
     dj_levels = {}
-    for key in define.value_list['dj_levels']:
-        dj_levels[key] = {}
     
     numbers = {}
     for key in range(10):
@@ -127,9 +129,17 @@ if __name__ == '__main__':
                 area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
 
+            if label['details']['clear_type'] != '':
+                clear_types[collection.key] = {
+                    'value': label['details']['clear_type'],
+                    'np': np.array(image.crop(define.details_areas['clear_type'])),
+                }
+
             if label['details']['dj_level'] != '':
-                crop = image.crop(define.details_areas['dj_level'])
-                dj_levels[label['details']['dj_level']][collection.key] = crop
+                dj_levels[collection.key] = {
+                    'value': label['details']['dj_level'],
+                    'np': np.array(image.crop(define.details_areas['dj_level'])),
+                }
 
             trimareas = []
             for i in range(4):
@@ -174,9 +184,11 @@ if __name__ == '__main__':
         for key in options.keys():
             larning(key, options[key])
 
+    if '-cleartype' in argv:
+        larning_clear_type(clear_types)
+
     if '-djlevel' in argv:
-        for key in dj_levels.keys():
-            larning(key, dj_levels[key])
+        larning_dj_level(dj_levels)
 
     if '-numbers' in argv:
         for key in numbers.keys():
