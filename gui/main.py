@@ -379,6 +379,7 @@ def select_music_search():
     selected_record = record.get(play_mode, difficulty)
     if selected_record is None:
         reset_record()
+        display_image(None)
         return
 
     display_graph()
@@ -386,7 +387,6 @@ def select_music_search():
     load_record()
 
 def reset_record():
-    display_image(None)
     window['history'].update([])
     window['latest'].update('')
     window['history_timestamp'].update('')
