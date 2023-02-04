@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 import io
 
 from define import define
-from recog import recog,informations_trimsize
+from recog import recog
 from .static import title,icon_path,background_color
 
 in_area_background_color='#5779dd'
@@ -31,6 +31,10 @@ def layout_manage(keys):
             sg.Text('難易度', size=(18, 1)),
             sg.Text(key='result_difficulty', background_color=in_area_background_color),
             sg.Text(key='result_level', background_color=in_area_background_color)
+        ],
+        [
+            sg.Text('ノーツ数', size=(18, 1)),
+            sg.Text(key='result_notes', background_color=in_area_background_color)
         ],
         [
             sg.Text('曲名', size=(18, 1)),
@@ -94,6 +98,10 @@ def layout_manage(keys):
             sg.Text('難易度', size=(15, 1)),
             sg.Combo(selectable_value_list['difficulties'], key='difficulty', size=(13, 1), readonly=True, disabled=True),
             sg.Combo(selectable_value_list['levels'], key='level', readonly=True, disabled=True)
+        ],
+        [
+            sg.Text('ノーツ数', size=(15, 1)),
+            sg.Input(key='notes', size=(8, 1)),
         ],
         [
             sg.Text('曲名', size=(15, 1)),
@@ -169,18 +177,18 @@ def layout_manage(keys):
             sg.Column([
                 [
                     sg.Column([
-                        [sg.Image(key='image_informations', size=informations_trimsize, background_color=background_color)],
+                        [sg.Image(key='image_informations', size=define.informations_trimsize, background_color=background_color)],
                         [sg.Image(key='image_details', size=define.details_trimsize, background_color=background_color)]
                     ], background_color=background_color),
                     sg.Listbox(keys, key='list_keys', size=(20, 20), enable_events=True),
                 ],
                 [
-                    sg.Column(result_informations, size=(300, 240), background_color=in_area_background_color),
-                    sg.Column(result_details, size=(325, 240), background_color=in_area_background_color)
+                    sg.Column(result_informations, size=(300, 255), background_color=in_area_background_color),
+                    sg.Column(result_details, size=(325, 255), background_color=in_area_background_color)
                 ],
             ], pad=0, background_color=background_color),
             sg.Column([
-                [sg.Column(manage_label_define, size=(390,590), background_color=in_area_background_color)],
+                [sg.Column(manage_label_define, size=(390,605), background_color=in_area_background_color)],
             ], pad=0, background_color=background_color)
         ]
     ]
@@ -256,6 +264,7 @@ def reset_informations():
     window['result_play_mode'].update('')
     window['result_difficulty'].update('')
     window['result_level'].update('')
+    window['result_notes'].update('')
     window['result_music'].update('')
 
 def set_informations(image):
@@ -267,6 +276,7 @@ def set_informations(image):
     window['result_play_mode'].update(informations.play_mode if informations.play_mode is not None else '')
     window['result_difficulty'].update(informations.difficulty if informations.difficulty is not None else '')
     window['result_level'].update(informations.level if informations.level is not None else '')
+    window['result_notes'].update(informations.notes if informations.notes is not None else '')
     window['result_music'].update(informations.music if informations.music is not None else '')
 
 def reset_details():
@@ -323,6 +333,7 @@ def set_result():
     window['play_mode'].update(window['result_play_mode'].get())
     window['difficulty'].update(window['result_difficulty'].get())
     window['level'].update(window['result_level'].get())
+    window['notes'].update(window['result_notes'].get())
     window['music'].update(window['result_music'].get())
 
     if window['result_graph'].get() != '':
@@ -360,6 +371,7 @@ def set_labels(label):
         window['play_mode'].update('')
         window['difficulty'].update('')
         window['level'].update('')
+        window['notes'].update('')
         window['music'].update('')
         for key in ['default', 'lanes', 'measures']:
             window[f'display_{key}'].update(False)
@@ -389,11 +401,13 @@ def set_labels(label):
         window['play_mode'].update(label['informations']['play_mode'])
         window['difficulty'].update(label['informations']['difficulty'])
         window['level'].update(label['informations']['level'])
+        window['notes'].update(label['informations']['notes'] if 'notes' in label['informations'] else '')
         window['music'].update(label['informations']['music'])
     else:
         window['play_mode'].update('')
         window['difficulty'].update('')
         window['level'].update('')
+        window['notes'].update('')
         window['music'].update('')
     
     if label['details'] is not None:
@@ -441,6 +455,7 @@ def switch_informations_controls():
     window['play_mode'].update(disabled=not value)
     window['difficulty'].update(disabled=not value)
     window['level'].update(disabled=not value)
+    window['notes'].update(disabled=not value)
     window['music'].update(disabled=not value)
 
 def switch_details_controls():

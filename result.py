@@ -13,10 +13,11 @@ results_basepath = 'results'
 filterd_basepath = 'filtered'
 
 class ResultInformations():
-    def __init__(self, play_mode, difficulty, level, music):
+    def __init__(self, play_mode, difficulty, level, notes, music):
         self.play_mode = play_mode
         self.difficulty = difficulty
         self.level = level
+        self.notes = notes
         self.music = music
 
 class ResultValueNew():

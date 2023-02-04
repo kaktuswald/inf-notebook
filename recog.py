@@ -9,43 +9,11 @@ logger.debug('loaded recog.py')
 
 from define import define
 from resources import masks,recog_music_filename
+from notes import get_notes
 from clear_type import get_clear_type
 from dj_level import get_dj_level
 from number import get_score,get_miss_count
 from result import ResultInformations,ResultValueNew,ResultDetails,ResultOptions,Result
-
-informations_trimsize = (460, 71)
-
-informations_areas = {
-    'play_mode': [82, 55, 102, 65],
-    'difficulty': [196, 58, 229, 62],
-    'level': [231, 58, 250, 62],
-    'music': [201, 0, 232, 18]
-}
-
-informmations_trimpos = (410, 633)
-details_trimpos = {
-    '1P': (25, 192),
-    '2P': (905, 192),
-}
-
-informations_trimarea = [
-    informmations_trimpos[0],
-    informmations_trimpos[1],
-    informmations_trimpos[0] + informations_trimsize[0],
-    informmations_trimpos[1] + informations_trimsize[1]
-]
-
-details_trimarea = {}
-for play_side in details_trimpos.keys():
-    details_trimarea[play_side] = [
-        details_trimpos[play_side][0],
-        details_trimpos[play_side][1],
-        details_trimpos[play_side][0] + define.details_trimsize[0],
-        details_trimpos[play_side][1] + define.details_trimsize[1]
-    ]
-
-option_trimsize = (57, 4)
 
 class Recog():
     def __init__(self, mask):
@@ -221,7 +189,7 @@ class Recognition():
         left = None
         last = False
         while not last:
-            area = [area_left, 0, area_left + option_trimsize[0], image_options.height]
+            area = [area_left, 0, area_left + define.option_trimsize[0], image_options.height]
             crop = image_options.crop(area)
             op = self.option.find(crop)
             if op is None:
@@ -253,14 +221,14 @@ class Recognition():
         
         return ResultOptions(arrange, flip, assist, battle)
 
-    def get_informations(self, image):
-        crop_play_mode = image.crop(informations_areas['play_mode'])
+    def get_informations(self, image_informations):
+        crop_play_mode = image_informations.crop(define.informations_areas['play_mode'])
         play_mode = self.play_mode.find(crop_play_mode)
 
-        crop_difficulty = image.crop(informations_areas['difficulty'])
+        crop_difficulty = image_informations.crop(define.informations_areas['difficulty'])
         difficulty = self.difficulty.find(crop_difficulty)
         if difficulty is not None:
-            crop_level = image.crop(informations_areas['level'])
+            crop_level = image_informations.crop(define.informations_areas['level'])
             difficulty_level = self.level[difficulty].find(crop_level)
             if difficulty_level is not None:
                 difficulty, level = difficulty_level.split('-')
@@ -268,10 +236,11 @@ class Recognition():
                 difficulty, level = None, None
         else:
             level = None
+        notes = get_notes(image_informations)
 
-        music = self.get_music(image.crop(informations_areas['music']))
+        music = self.get_music(image_informations.crop(define.informations_areas['music']))
 
-        return ResultInformations(play_mode, difficulty, level, music)
+        return ResultInformations(play_mode, difficulty, level, notes, music)
 
     def get_details(self, image_details):
         if self.get_graph(image_details) == 'default':
@@ -299,10 +268,10 @@ class Recognition():
         return ResultDetails(options, clear_type, dj_level, score, miss_count)
 
     def get_result(self, screen):
-        trim_informations = screen.image.crop(informations_trimarea)
+        trim_informations = screen.image.crop(define.informations_trimarea)
 
         play_side = self.get_play_side(screen.image)
-        trim_details = screen.image.crop(details_trimarea[play_side])
+        trim_details = screen.image.crop(define.details_trimarea[play_side])
 
         return Result(
             screen.original.convert('RGB'),

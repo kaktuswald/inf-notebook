@@ -46,6 +46,31 @@ class Define():
         'clear_types': ['NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR']
     }
 
+    informmations_trimpos = (410, 633)
+    informations_trimsize = (460, 71)
+
+    informations_areas = {
+        'play_mode': [82, 55, 102, 65],
+        'difficulty': [196, 58, 229, 62],
+        'level': [231, 58, 250, 62],
+        'notes': [268, 55, 324, 64],
+        'music': [201, 0, 232, 18]
+    }
+
+    notes_trimsize = (14, 9)
+    notes_trimareas = []
+    notes_segments = (
+        (0, 5),
+        (4, 5),
+        (8, 5),
+        (2, 2),
+        (6, 2),
+        (2, 8),
+        (6, 8)
+    )
+
+    option_trimsize = (57, 4)
+
     option_widths = {
         'RANDOM': 0,
         'S-RANDOM': 0,
@@ -66,6 +91,11 @@ class Define():
         'BATTLE': 68,
         ',': 5,
         '/': 9
+    }
+
+    details_trimpos = {
+        '1P': (25, 192),
+        '2P': (905, 192),
     }
 
     details_trimsize = (350, 245)
@@ -95,11 +125,36 @@ class Define():
         (10, 19)
     )
 
+    notes_color = 255
     dj_level_pick_color = 255
     number_pick_color_best = 255
     number_pick_color_current = 205
 
     def __init__(self):
+        self.informations_trimarea = [
+            self.informmations_trimpos[0],
+            self.informmations_trimpos[1],
+            self.informmations_trimpos[0] + self.informations_trimsize[0],
+            self.informmations_trimpos[1] + self.informations_trimsize[1]
+        ]
+
+        for i in range(4):
+            self.notes_trimareas.append([
+                int(i * self.notes_trimsize[0]),
+                0,
+                int((i + 1) * self.notes_trimsize[0]),
+                self.notes_trimsize[1]
+            ])
+
+        self.details_trimarea = {}
+        for play_side in self.details_trimpos.keys():
+            self.details_trimarea[play_side] = [
+                self.details_trimpos[play_side][0],
+                self.details_trimpos[play_side][1],
+                self.details_trimpos[play_side][0] + self.details_trimsize[0],
+                self.details_trimpos[play_side][1] + self.details_trimsize[1]
+            ]
+
         for i in range(4):
             self.number_trimareas.append([
                 int(i * self.number_trimsize[0]),

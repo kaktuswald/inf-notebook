@@ -86,6 +86,7 @@ if __name__ == '__main__':
                     'play_mode': values['play_mode'],
                     'difficulty': values['difficulty'],
                     'level': values['level'],
+                    'notes': values['notes'],
                     'music': values['music'],
                 }
             else:

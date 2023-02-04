@@ -37,12 +37,23 @@ def evaluate(filename, informations, details, key, label):
             results.append(f"{recog_informations.level} {label['informations']['level']}")
             failure = True
 
+        if 'notes' in label['informations'].keys():
+            if recog_informations.level == label['informations']['level']:
+                results.append('ok')
+            else:
+                results.append(f"{recog_informations.notes} {label['informations']['notes']}")
+                failure = True
+        else:
+            results.append('??')
+
+
         if recog_informations.music == label['informations']['music']:
             results.append('ok')
         else:
             results.append(f"{recog_informations.music} {label['informations']['music']}")
             failure = True
     else:
+        results.append('')
         results.append('')
         results.append('')
         results.append('')
@@ -211,6 +222,7 @@ if __name__ == '__main__':
         'play_mode',
         'difficulty',
         'level',
+        'notes',
         'music',
         'option_arrange',
         'option_arrange_dp',

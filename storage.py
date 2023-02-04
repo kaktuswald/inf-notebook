@@ -11,7 +11,7 @@ logger = getLogger().getChild('storage')
 logger.debug('loaded storage.py')
 
 from service_account_info import service_account_info
-from recog import informations_trimarea,details_trimarea
+from define import define
 
 bucket_name_informations = 'bucket-infinitas-memorise-informations'
 bucket_name_details = 'bucket-infinitas-memorise-details'
@@ -120,12 +120,12 @@ class StorageAccessor():
             details_trim = True
 
         if informations_trim:
-            trim = screen.image.crop(informations_trimarea)
+            trim = screen.image.crop(define.informations_trimarea)
             Thread(target=self.upload_informations, args=(object_name, trim,)).start()
 
         if details_trim:
             play_side = result.play_side
-            trim = screen.image.crop(details_trimarea[play_side])
+            trim = screen.image.crop(define.details_trimarea[play_side])
             Thread(target=self.upload_details, args=(object_name, trim,)).start()
 
     def save_image(self, basepath, blob):

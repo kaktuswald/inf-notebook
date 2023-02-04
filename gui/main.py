@@ -18,6 +18,13 @@ resized_icon = icon_image.resize((32, 32))
 icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
 
+class TargetRecord():
+    def __init__(self, play_mode, difficulty, music, record):
+        self.play_mode = play_mode
+        self.difficulty = difficulty
+        self.music = music
+        self.record = record
+
 selected_record = None
 
 plt.rcParams['figure.subplot.bottom'] = 0.15
@@ -269,12 +276,13 @@ def display_graph():
     if selected_record is None:
         return
     
-    if not 'history' in selected_record.keys():
+    if not 'history' in selected_record.record.keys() or not 'notes' in selected_record.record.keys():
         window['screenshot'].update(visible=False)
         change_save_buttons(False)
         return
 
-    history = selected_record['history']
+    notes = selected_record.record['notes']
+    history = selected_record.record['history']
 
     subsample = int(window['scale'].get().split('/')[1])
 
@@ -282,19 +290,26 @@ def display_graph():
     score = [value['score']['value'] for value in history.values()]
     miss_count = [value['miss_count']['value'] for value in history.values() if value['miss_count']['value'] is not None]
 
+    title = f'{selected_record.music}[{selected_record.play_mode}{selected_record.difficulty[0]}]'
+
     fig, ax1 = plt.subplots(figsize=np.array((16, 9))/2, facecolor=background_color)
-    ax1.scatter(x, score)
-    ax1.plot(x, score, color='#0000ff')
+    ax1.set_title(title, fontname='MS Gothic', fontsize=18)
+    ax1.scatter(x, score, color='#0000ff')
+    ax1.plot(x, score, color='#0000ff', label='score')
     ax1.set_ylabel('score')
-    ax1.set_ylim(([0,None]))
+    ax1.set_ylim(([0,notes*2]))
     ax1.tick_params(rotation=30)
 
     if len(miss_count) >= 1:
         ax2 = ax1.twinx()
-        ax2.scatter(x, miss_count)
-        ax2.plot(x, miss_count, color='#ff0000')
+        ax2.scatter(x, miss_count, color='#ff0000')
+        ax2.plot(x, miss_count, color='#ff0000', label='miss_count')
         ax2.set_ylabel('miss count')
-        ax2.set_ylim(([0,None]))
+        ax2.set_ylim(([0,notes/10]))
+    
+    h1, l1 = ax1.get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    ax1.legend(h1+h2, l1+l2, loc='center left')
 
     bytes = io.BytesIO()
     fig.savefig(bytes, format='PNG', dpi=720/9*2)
@@ -325,11 +340,19 @@ def select_music_today(result):
         return
     
     record = Record(informations.music)
-    selected_record = record.get(informations.play_mode, informations.difficulty)
+    record = record.get(informations.play_mode, informations.difficulty)
 
-    if selected_record is None:
+    if record is None:
+        selected_record = None
         reset_record()
         return
+
+    selected_record = TargetRecord(
+        informations.play_mode,
+        informations.difficulty,
+        informations.music,
+        record
+    )
 
     if informations.play_mode == 'SP':
         window['play_mode_sp'].update(True)
@@ -376,11 +399,14 @@ def select_music_search():
     if difficulty == '':
         return
 
-    selected_record = record.get(play_mode, difficulty)
-    if selected_record is None:
+    record = record.get(play_mode, difficulty)
+    if record is None:
+        selected_record = None
         reset_record()
         display_image(None)
         return
+
+    selected_record = TargetRecord(play_mode, difficulty, music, record)
 
     display_graph()
 
@@ -397,17 +423,17 @@ def reset_record():
         window[f'history_{key}'].update('')
 
 def load_record():
-    latest_timestamp = selected_record['latest']['timestamp']
+    latest_timestamp = selected_record.record['latest']['timestamp']
     formatted_timestamp = f'{int(latest_timestamp[0:4])}年{int(latest_timestamp[4:6])}月{int(latest_timestamp[6:8])}日'
     window['latest'].update(formatted_timestamp)
 
-    window['history'].update([*reversed(selected_record['timestamps'])])
+    window['history'].update([*reversed(selected_record.record['timestamps'])])
 
-    if 'best' in selected_record.keys():
+    if 'best' in selected_record.record.keys():
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            if key in selected_record['best']:
-                value = selected_record['best'][key]['value']
-                timestamp = selected_record['best'][key]['timestamp']
+            if key in selected_record.record['best']:
+                value = selected_record.record['best'][key]['value']
+                timestamp = selected_record.record['best'][key]['timestamp']
                 timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
                 window[key].update(value if value is not None else '')
                 window[f'{key}_timestamp'].update(timestamp)
@@ -440,7 +466,7 @@ def select_history():
     formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
     window['history_timestamp'].update(formatted_timestamp)
 
-    target = selected_record['history'][timestamp]
+    target = selected_record.record['history'][timestamp]
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'history_{key}'].update(target[key]['value'] if target[key]['value'] is not None else '')
     if not 'options' in target.keys() or target['options'] is None:

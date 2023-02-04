@@ -126,6 +126,8 @@ class Record():
             return
         if result.informations.difficulty is None:
             return
+        if result.informations.notes is None:
+            return
         
         target = self.json
 
@@ -136,6 +138,8 @@ class Record():
         if not result.informations.difficulty in target.keys():
             target[result.informations.difficulty] = {}
         target = target[result.informations.difficulty]
+
+        target['notes'] = result.informations.notes
 
         options = result.details.options
         if options is not None:
