@@ -112,11 +112,18 @@ class StorageAccessor():
 
         if result.informations.play_mode == 'DP':
             details_trim = True
-        if result.details.clear_type.value is None:
+        
+        if result.details.clear_type.best is None:
             details_trim = True
-        if result.details.clear_type.value == 'F-COMBO':
+        if result.details.dj_level.best is None:
             details_trim = True
-        if result.details.dj_level.value is None:
+        if result.details.score.best is None:
+            details_trim = True
+        if result.details.clear_type.current is None:
+            details_trim = True
+        if result.details.dj_level.current is None:
+            details_trim = True
+        if result.details.score.current is None:
             details_trim = True
 
         if informations_trim:
