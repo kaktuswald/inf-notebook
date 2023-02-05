@@ -41,19 +41,19 @@ class Record():
         target['latest'] = {
             'timestamp': result.timestamp,
             'clear_type': {
-                'value': result.details.clear_type.value,
+                'value': result.details.clear_type.current,
                 'new': result.details.clear_type.new
             },
             'dj_level': {
-                'value': result.details.dj_level.value,
+                'value': result.details.dj_level.current,
                 'new': result.details.dj_level.new
             },
             'score': {
-                'value': result.details.score.value,
+                'value': result.details.score.current,
                 'new': result.details.score.new
             },
             'miss_count': {
-                'value': result.details.miss_count.value,
+                'value': result.details.miss_count.current,
                 'new': result.details.miss_count.new
             },
             'options': options
@@ -68,58 +68,47 @@ class Record():
             target['history'] = {}
         target['history'][result.timestamp] = {
             'clear_type': {
-                'value': result.details.clear_type.value,
+                'value': result.details.clear_type.current,
                 'new': result.details.clear_type.new
             },
             'dj_level': {
-                'value': result.details.dj_level.value,
+                'value': result.details.dj_level.current,
                 'new': result.details.dj_level.new
             },
             'score': {
-                'value': result.details.score.value,
+                'value': result.details.score.current,
                 'new': result.details.score.new
             },
             'miss_count': {
-                'value': result.details.miss_count.value,
+                'value': result.details.miss_count.current,
                 'new': result.details.miss_count.new
             },
             'options': options
         }
 
     def insert_best(self, target, result, options):
-        current_values = {
+        target['best'] = {
             'clear_type': {
-                'value': result.details.clear_type.value,
+                'value': result.details.clear_type.current if result.details.clear_type.new else result.details.clear_type.best,
                 'timestamp': result.timestamp,
                 'options': options
             },
             'dj_level': {
-                'value': result.details.dj_level.value,
+                'value': result.details.dj_level.current if result.details.dj_level.new else result.details.dj_level.best,
                 'timestamp': result.timestamp,
                 'options': options
             },
             'score': {
-                'value': result.details.score.value,
+                'value': result.details.score.current if result.details.score.new else result.details.score.best,
                 'timestamp': result.timestamp,
                 'options': options
             },
             'miss_count': {
-                'value': result.details.miss_count.value,
+                'value': result.details.miss_count.current if result.details.miss_count.new else result.details.miss_count.best,
                 'timestamp': result.timestamp,
                 'options': options
             }
         }
-
-        if not 'best' in target.keys():
-            target['best'] = {}
-        if result.details.clear_type.new:
-            target['best']['clear_type'] = current_values['clear_type']
-        if result.details.dj_level.new:
-            target['best']['dj_level'] = current_values['dj_level']
-        if result.details.score.new:
-            target['best']['score'] = current_values['score']
-        if result.details.miss_count.new:
-            target['best']['miss_count'] = current_values['miss_count']
     
     def insert(self, result):
         if result.informations.play_mode is None:

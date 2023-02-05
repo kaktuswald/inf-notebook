@@ -65,22 +65,26 @@ def layout_manage(keys):
         ],
         [
             sg.Text('クリアタイプ', size=(21, 1)),
-            sg.Text(key='result_clear_type', size=(10, 1), background_color=in_area_background_color),
+            sg.Text(key='result_clear_type_best', size=(10, 1), background_color=in_area_background_color),
+            sg.Text(key='result_clear_type_current', size=(10, 1), background_color=in_area_background_color),
             sg.Text('NEW', visible=False, key='result_clear_type_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('DJレベル', size=(21, 1)),
-            sg.Text(key='result_dj_level', size=(10, 1), background_color=in_area_background_color),
+            sg.Text(key='result_dj_level_best', size=(10, 1), background_color=in_area_background_color),
+            sg.Text(key='result_dj_level_current', size=(10, 1), background_color=in_area_background_color),
             sg.Text('NEW', visible=False, key='result_dj_level_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('スコア', size=(21, 1)),
-            sg.Text(key='result_score', size=(10, 1), background_color=in_area_background_color),
+            sg.Text(key='result_score_best', size=(10, 1), background_color=in_area_background_color),
+            sg.Text(key='result_score_current', size=(10, 1), background_color=in_area_background_color),
             sg.Text('NEW', visible=False, key='result_score_new', background_color=in_area_background_color)
         ],
         [
             sg.Text('ミスカウント', size=(21, 1)),
-            sg.Text(key='result_miss_count', size=(10, 1), background_color=in_area_background_color),
+            sg.Text(key='result_miss_count_best', size=(10, 1), background_color=in_area_background_color),
+            sg.Text(key='result_miss_count_current', size=(10, 1), background_color=in_area_background_color),
             sg.Text('NEW', visible=False, key='result_miss_count_new', background_color=in_area_background_color)
         ]
     ]
@@ -145,22 +149,26 @@ def layout_manage(keys):
         ],
         [
             sg.Text('クリアタイプ', size=(15, 1)),
-            sg.Combo(selectable_value_list['clear_types'], key='clear_type', size=(11, 1), readonly=True, disabled=True),
+            sg.Combo(selectable_value_list['clear_types'], key='clear_type_best', size=(11, 1), readonly=True, disabled=True),
+            sg.Combo(selectable_value_list['clear_types'], key='clear_type_current', size=(11, 1), readonly=True, disabled=True),
             sg.Checkbox('NEW', key='clear_type_new', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('DJレベル', size=(15, 1)),
-            sg.Combo(selectable_value_list['dj_levels'], key='dj_level', size=(11, 1), readonly=True, disabled=True),
+            sg.Combo(selectable_value_list['dj_levels'], key='dj_level_best', size=(11, 1), readonly=True, disabled=True),
+            sg.Combo(selectable_value_list['dj_levels'], key='dj_level_current', size=(11, 1), readonly=True, disabled=True),
             sg.Checkbox('NEW', key='dj_level_new', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('スコア', size=(15, 1)),
-            sg.Input(key='score', size=(12, 1), disabled=True),
+            sg.Input(key='score_best', size=(12, 1), disabled=True),
+            sg.Input(key='score_current', size=(12, 1), disabled=True),
             sg.Checkbox('NEW', key='score_new', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('ミスカウント', size=(15, 1)),
-            sg.Input(key='miss_count', size=(12, 1), disabled=True),
+            sg.Input(key='miss_count_best', size=(12, 1), disabled=True),
+            sg.Input(key='miss_count_current', size=(12, 1), disabled=True),
             sg.Checkbox('NEW', key='miss_count_new', disabled=True, background_color=in_area_background_color)
         ],
         [
@@ -184,11 +192,11 @@ def layout_manage(keys):
                 ],
                 [
                     sg.Column(result_informations, size=(300, 255), background_color=in_area_background_color),
-                    sg.Column(result_details, size=(325, 255), background_color=in_area_background_color)
+                    sg.Column(result_details, size=(350, 255), background_color=in_area_background_color)
                 ],
             ], pad=0, background_color=background_color),
             sg.Column([
-                [sg.Column(manage_label_define, size=(390,605), background_color=in_area_background_color)],
+                [sg.Column(manage_label_define, size=(410,605), background_color=in_area_background_color)],
             ], pad=0, background_color=background_color)
         ]
     ]
@@ -288,13 +296,17 @@ def reset_details():
     window['result_option_flip'].update('')
     window['result_option_assist'].update('')
     window['result_option_battle'].update(visible=False)
-    window['result_clear_type'].update('')
-    window['result_dj_level'].update('')
-    window['result_score'].update('')
-    window['result_miss_count'].update('')
+    window['result_clear_type_best'].update('')
+    window['result_clear_type_current'].update('')
     window['result_clear_type_new'].update(visible=False)
+    window['result_dj_level_best'].update('')
+    window['result_dj_level_current'].update('')
     window['result_dj_level_new'].update(visible=False)
+    window['result_score_best'].update('')
+    window['result_score_current'].update('')
     window['result_score_new'].update(visible=False)
+    window['result_miss_count_best'].update('')
+    window['result_miss_count_current'].update('')
     window['result_miss_count_new'].update(visible=False)
 
 def set_details(image):
@@ -320,13 +332,17 @@ def set_details(image):
         window['result_option_flip'].update('')
         window['result_option_assist'].update('')
         window['result_option_battle'].update(visible=False)
-    window['result_clear_type'].update(clear_type.value if clear_type.value is not None else '')
-    window['result_dj_level'].update(dj_level.value if dj_level.value is not None else '')
-    window['result_score'].update(score.value if score.value is not None else '')
-    window['result_miss_count'].update(miss_count.value if miss_count.value is not None else '')
+    window['result_clear_type_best'].update(clear_type.best if clear_type.best is not None else '')
+    window['result_clear_type_current'].update(clear_type.current if clear_type.current is not None else '')
     window['result_clear_type_new'].update(visible=clear_type.new)
+    window['result_dj_level_best'].update(dj_level.best if dj_level.best is not None else '')
+    window['result_dj_level_current'].update(dj_level.current if dj_level.current is not None else '')
     window['result_dj_level_new'].update(visible=dj_level.new)
+    window['result_score_best'].update(score.best if score.best is not None else '')
+    window['result_score_current'].update(score.current if score.current is not None else '')
     window['result_score_new'].update(visible=score.new)
+    window['result_miss_count_best'].update(miss_count.best if miss_count.best is not None else '')
+    window['result_miss_count_current'].update(miss_count.current if miss_count.current is not None else '')
     window['result_miss_count_new'].update(visible=miss_count.new)
 
 def set_result():
@@ -355,13 +371,17 @@ def set_result():
     window['option_flip'].update(window['result_option_flip'].get())
     window['option_assist'].update(window['result_option_assist'].get())
     window['option_battle'].update(window['result_option_battle'].visible)
-    window['clear_type'].update(window['result_clear_type'].get())
-    window['dj_level'].update(window['result_dj_level'].get())
-    window['score'].update(window['result_score'].get())
-    window['miss_count'].update(window['result_miss_count'].get())
+    window['clear_type_best'].update(window['result_clear_type_best'].get())
+    window['clear_type_current'].update(window['result_clear_type_current'].get())
     window['clear_type_new'].update(window['result_clear_type_new'].visible)
+    window['dj_level_best'].update(window['result_dj_level_best'].get())
+    window['dj_level_current'].update(window['result_dj_level_current'].get())
     window['dj_level_new'].update(window['result_dj_level_new'].visible)
+    window['score_best'].update(window['result_score_best'].get())
+    window['score_current'].update(window['result_score_current'].get())
     window['score_new'].update(window['result_score_new'].visible)
+    window['miss_count_best'].update(window['result_miss_count_best'].get())
+    window['miss_count_current'].update(window['result_miss_count_current'].get())
     window['miss_count_new'].update(window['result_miss_count_new'].visible)
 
     window['music'].set_focus()
@@ -382,13 +402,17 @@ def set_labels(label):
         window['option_flip'].update('')
         window['option_assist'].update('')
         window['option_battle'].update(False)
-        window['clear_type'].update('')
+        window['clear_type_best'].update('')
+        window['clear_type_current'].update('')
         window['clear_type_new'].update('')
-        window['dj_level'].update('')
+        window['dj_level_best'].update('')
+        window['dj_level_current'].update('')
         window['dj_level_new'].update('')
-        window['score'].update('')
+        window['score_best'].update('')
+        window['score_current'].update('')
         window['score_new'].update('')
-        window['miss_count'].update('')
+        window['miss_count_best'].update('')
+        window['miss_count_current'].update('')
         window['miss_count_new'].update('')
         return
 
@@ -422,13 +446,17 @@ def set_labels(label):
         window['option_flip'].update(label['details']['option_flip'])
         window['option_assist'].update(label['details']['option_assist'])
         window['option_battle'].update(label['details']['option_battle'])
-        window['clear_type'].update(label['details']['clear_type'])
+        window['clear_type_best'].update(label['details']['clear_type_best'] if 'clear_type_best' in label['details'].keys() else '')
+        window['clear_type_current'].update(label['details']['clear_type_current'])
         window['clear_type_new'].update(label['details']['clear_type_new'])
-        window['dj_level'].update(label['details']['dj_level'])
+        window['dj_level_best'].update(label['details']['dj_level_best'] if 'dj_level_best' in label['details'].keys() else '')
+        window['dj_level_current'].update(label['details']['dj_level_current'])
         window['dj_level_new'].update(label['details']['dj_level_new'])
-        window['score'].update(label['details']['score'])
+        window['score_best'].update(label['details']['score_best'] if 'score_best' in label['details'].keys() else '')
+        window['score_current'].update(label['details']['score_current'])
         window['score_new'].update(label['details']['score_new'])
-        window['miss_count'].update(label['details']['miss_count'])
+        window['miss_count_best'].update(label['details']['miss_count_best'] if 'miss_count_best' in label['details'].keys() else '')
+        window['miss_count_current'].update(label['details']['miss_count_current'])
         window['miss_count_new'].update(label['details']['miss_count_new'])
     else:
         for key in ['default', 'lanes', 'measures']:
@@ -440,13 +468,17 @@ def set_labels(label):
         window['option_flip'].update('')
         window['option_assist'].update('')
         window['option_battle'].update(False)
-        window['clear_type'].update('')
+        window['clear_type_best'].update('')
+        window['clear_type_current'].update('')
         window['clear_type_new'].update('')
-        window['dj_level'].update('')
+        window['dj_level_best'].update('')
+        window['dj_level_current'].update('')
         window['dj_level_new'].update('')
-        window['score'].update('')
+        window['score_best'].update('')
+        window['score_current'].update('')
         window['score_new'].update('')
-        window['miss_count'].update('')
+        window['miss_count_best'].update('')
+        window['miss_count_current'].update('')
         window['miss_count_new'].update('')
 
 def switch_informations_controls():
@@ -470,13 +502,17 @@ def switch_details_controls():
     window['option_flip'].update(disabled=not value)
     window['option_assist'].update(disabled=not value)
     window['option_battle'].update(disabled=not value)
-    window['clear_type'].update(disabled=not value)
-    window['dj_level'].update(disabled=not value)
-    window['score'].update(disabled=not value)
-    window['miss_count'].update(disabled=not value)
+    window['clear_type_best'].update(disabled=not value)
+    window['clear_type_current'].update(disabled=not value)
     window['clear_type_new'].update(disabled=not value)
+    window['dj_level_best'].update(disabled=not value)
+    window['dj_level_current'].update(disabled=not value)
     window['dj_level_new'].update(disabled=not value)
+    window['score_best'].update(disabled=not value)
+    window['score_current'].update(disabled=not value)
     window['score_new'].update(disabled=not value)
+    window['miss_count_best'].update(disabled=not value)
+    window['miss_count_current'].update(disabled=not value)
     window['miss_count_new'].update(disabled=not value)
 
 def change_search_condition(keys, labels):

@@ -6,7 +6,8 @@ from data_collection import load_collections
 from define import define
 from resources import resources_dirname
 
-area = define.details_areas['dj_level']
+area_best = define.details_areas['dj_level']['best']
+area_current = define.details_areas['dj_level']['current']
 color = define.dj_level_pick_color
 
 filepath = os.path.join(resources_dirname, 'dj_level.res')
@@ -16,8 +17,20 @@ if os.path.exists(filepath):
 else:
     table = {}
 
-def get_dj_level(image_details):
-    np_value = np.array(image_details.crop(area))
+def get_dj_level_best(image_details):
+    np_value = np.array(image_details.crop(area_best))
+    flattend = np_value.flatten()
+
+    picked = np.where(flattend==color, flattend, 0)
+    sum_value = np.sum(picked)
+
+    if not sum_value in table.keys():
+        return None
+
+    return table[sum_value]
+
+def get_dj_level_current(image_details):
+    np_value = np.array(image_details.crop(area_current))
     flattend = np_value.flatten()
 
     picked = np.where(flattend==color, flattend, 0)
@@ -76,9 +89,14 @@ if __name__ == '__main__':
         if collection.details is not None:
             image = collection.details
 
-            if label['details']['dj_level'] != '':
-                targets[collection.key] = {
-                    'value': label['details']['dj_level'],
+            if label['details']['dj_level_best'] != '':
+                targets[f'{collection.key}_best'] = {
+                    'value': label['details']['dj_level_best'],
+                    'np': np.array(image.crop(area))
+                }
+            if label['details']['dj_level_current'] != '':
+                targets[f'{collection.key}_current'] = {
+                    'value': label['details']['dj_level_current'],
                     'np': np.array(image.crop(area))
                 }
 

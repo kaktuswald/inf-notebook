@@ -38,7 +38,7 @@ def evaluate(filename, informations, details, key, label):
             failure = True
 
         if 'notes' in label['informations'].keys():
-            if recog_informations.level == label['informations']['level']:
+            if recog_informations.notes == int(label['informations']['notes']):
                 results.append('ok')
             else:
                 results.append(f"{recog_informations.notes} {label['informations']['notes']}")
@@ -126,59 +126,48 @@ def evaluate(filename, informations, details, key, label):
                 results.append(f"{recog_options.battle} {label['details']['option_battle']}")
                 failure = True
 
-        recog_clear_type = recog_details.clear_type
-        recog_dj_level = recog_details.dj_level
-        recog_score = recog_details.score
-        recog_miss_count = recog_details.miss_count
+        list = {
+            'clear_type': recog_details.clear_type,
+            'dj_level': recog_details.dj_level,
+            'score': recog_details.score,
+            'miss_count': recog_details.miss_count,
+        }
+        for key, value in list.items():
+            if f'{key}_best' in label['details']:
+                v = label['details'][f'{key}_best']
+                if (value.best is None and v == '') or str(value.best) == v:
+                    results.append('ok')
+                else:
+                    results.append(f"{value.best} {v}")
+                    failure = True
+            else:
+                results.append('??')
 
-        if (recog_clear_type.value is None and label['details']['clear_type'] == '') or recog_clear_type.value == label['details']['clear_type']:
-            results.append('ok')
-        else:
-            results.append(f"{recog_clear_type.value} {label['details']['clear_type']}")
-            failure = True
+            if f'{key}_current' in label['details']:
+                v = label['details'][f'{key}_current']
+                if (value.current is None and v == '') or str(value.current) == v:
+                    results.append('ok')
+                else:
+                    results.append(f"{value.current} {v}")
+                    failure = True
+            else:
+                results.append('??')
 
-        if (recog_dj_level.value is None and label['details']['dj_level'] == '') or recog_dj_level.value == label['details']['dj_level']:
-            results.append('ok')
-        else:
-            results.append(f"{recog_dj_level.value} {label['details']['dj_level']}")
-            failure = True
+            if f'{key}_new' in label['details']:
+                v = label['details'][f'{key}_new']
+                if (value.new is None and v == '') or value.new == v:
+                    results.append('ok')
+                else:
+                    results.append(f"{value.new} {v}")
+                    failure = True
+            else:
+                results.append('??')
 
-        if (recog_score.value is None and label['details']['score'] == '') or recog_score.value == int(label['details']['score']):
-            results.append('ok')
-        else:
-            results.append(f"{recog_score.value} {label['details']['score']}")
-            failure = True
-
-        if (recog_miss_count.value is None and label['details']['miss_count'] == '') or recog_miss_count.value == int(label['details']['miss_count']):
-            results.append('ok')
-        else:
-            results.append(f"{recog_miss_count.value} {label['details']['miss_count']}")
-            failure = True
-
-        if recog_clear_type.new == label['details']['clear_type_new']:
-            results.append('ok')
-        else:
-            results.append(f"{recog_clear_type.new} {label['details']['clear_type_new']}")
-            failure = True
-        
-        if recog_dj_level.new == label['details']['dj_level_new']:
-            results.append('ok')
-        else:
-            results.append(f"{recog_dj_level.new} {label['details']['dj_level_new']}")
-            failure = True
-        
-        if recog_score.new == label['details']['score_new']:
-            results.append('ok')
-        else:
-            results.append(f"{recog_score.new} {label['details']['score_new']}")
-            failure = True
-        
-        if recog_miss_count.new == label['details']['miss_count_new']:
-            results.append('ok')
-        else:
-            results.append(f"{recog_miss_count.new} {label['details']['miss_count_new']}")
-            failure = True
     else:
+        results.append('')
+        results.append('')
+        results.append('')
+        results.append('')
         results.append('')
         results.append('')
         results.append('')
@@ -224,19 +213,24 @@ if __name__ == '__main__':
         'level',
         'notes',
         'music',
+        'display',
         'option_arrange',
         'option_arrange_dp',
         'option_arrange_sync',
         'option_flip',
         'option_assist',
         'option_battle',
-        'clear_type',
-        'dj_level',
-        'score',
-        'miss_count',
+        'clear_type_best',
+        'clear_type_current',
         'clear_type_new',
+        'dj_level_best',
+        'dj_level_current',
         'dj_level_new',
+        'score_best',
+        'score_current',
         'score_new',
+        'miss_count_best',
+        'miss_count_current',
         'miss_count_new',
         'result'
     ]

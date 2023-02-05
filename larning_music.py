@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 from resources import recog_music_filename
-from recog import informations_areas
+from define import define
 import data_collection as dc
 
 if __name__ == '__main__':
@@ -25,8 +25,8 @@ if __name__ == '__main__':
     keys = [*labels.keys()]
     print(f"file count: {len(keys)}")
 
-    width = informations_areas['music'][2] - informations_areas['music'][0]
-    height = informations_areas['music'][3] - informations_areas['music'][1]
+    width = define.informations_areas['music'][2] - define.informations_areas['music'][0]
+    height = define.informations_areas['music'][3] - define.informations_areas['music'][1]
 
     images = {}
     for key in keys:
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     for key, value in images.items():
         label = labels[key]
         if label['informations'] is not None and label['informations']['music'] != '':
-            trim = value.crop(informations_areas['music'])
+            trim = value.crop(define.informations_areas['music'])
             np_value = np.array(trim)
             summed = np.sum(np_value, axis=1)
 

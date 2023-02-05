@@ -106,13 +106,17 @@ if __name__ == '__main__':
                     'option_flip': values['option_flip'],
                     'option_assist': values['option_assist'],
                     'option_battle': values['option_battle'],
-                    'clear_type': values['clear_type'],
-                    'dj_level': values['dj_level'],
-                    'score': values['score'],
-                    'miss_count': values['miss_count'],
+                    'clear_type_best': values['clear_type_best'],
+                    'clear_type_current': values['clear_type_current'],
                     'clear_type_new': values['clear_type_new'],
+                    'dj_level_best': values['dj_level_best'],
+                    'dj_level_current': values['dj_level_current'],
                     'dj_level_new': values['dj_level_new'],
+                    'score_best': values['score_best'],
+                    'score_current': values['score_current'],
                     'score_new': values['score_new'],
+                    'miss_count_best': values['miss_count_best'],
+                    'miss_count_current': values['miss_count_current'],
                     'miss_count_new': values['miss_count_new']
                 }
             else:

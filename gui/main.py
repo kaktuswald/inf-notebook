@@ -5,6 +5,7 @@ from PIL import Image
 from matplotlib import pyplot as plt
 from datetime import datetime
 import numpy as np
+from math import ceil
 
 from define import define
 from .static import title,icon_path,background_color,background_color_label
@@ -292,20 +293,26 @@ def display_graph():
 
     title = f'{selected_record.music}[{selected_record.play_mode}{selected_record.difficulty[0]}]'
 
+    lines = [ceil(notes*2*p/9) for p in [6, 7, 8]]
+    colors = ['#a04444', '#904444', '#804444']
+
     fig, ax1 = plt.subplots(figsize=np.array((16, 9))/2, facecolor=background_color)
     ax1.set_title(title, fontname='MS Gothic', fontsize=18)
-    ax1.scatter(x, score, color='#0000ff')
-    ax1.plot(x, score, color='#0000ff', label='score')
+    ax1.scatter(x, score, color='#ff0000')
+    ax1.plot(x, score, color='#ff0000', label='score')
+    ax1.hlines(lines, ax1.get_xlim()[0], ax1.get_xlim()[1], color=colors, linestyles='dashed')
     ax1.set_ylabel('score')
     ax1.set_ylim(([0,notes*2]))
+    ax1.set_xmargin(0)
     ax1.tick_params(rotation=30)
 
     if len(miss_count) >= 1:
         ax2 = ax1.twinx()
-        ax2.scatter(x, miss_count, color='#ff0000')
-        ax2.plot(x, miss_count, color='#ff0000', label='miss_count')
+        ax2.scatter(x, miss_count, color='#0000ff')
+        ax2.plot(x, miss_count, color='#0000ff', label='miss_count')
         ax2.set_ylabel('miss count')
         ax2.set_ylim(([0,notes/10]))
+        ax2.set_xmargin(0)
     
     h1, l1 = ax1.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()

@@ -20,9 +20,10 @@ class ResultInformations():
         self.notes = notes
         self.music = music
 
-class ResultValueNew():
-    def __init__(self, value, new):
-        self.value = value
+class ResultValues():
+    def __init__(self, best, current, new):
+        self.best = best
+        self.current = current
         self.new = new
 
 class ResultDetails():

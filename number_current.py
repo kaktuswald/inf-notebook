@@ -6,13 +6,12 @@ from data_collection import load_collections
 from define import define
 from resources import resources_dirname
 
-area_score = define.details_areas['score']
-area_miss_count = define.details_areas['miss_count']
+area_score = define.details_areas['score']['current']
+area_miss_count = define.details_areas['miss_count']['current']
 
-color_best = define.number_pick_color_best
 color_current = define.number_pick_color_current
 
-filepath = os.path.join(resources_dirname, 'number.res')
+filepath = os.path.join(resources_dirname, 'number_current.res')
 if os.path.exists(filepath):
     with open(filepath, 'rb') as f:
         table = pickle.load(f)
@@ -22,10 +21,10 @@ else:
 def get(cropped_image):
     ret = 0
     is_number = False
-    for trimarea in define.number_trimareas:
+    for trimarea in define.number_current_trimareas:
         cropped_number = cropped_image.crop(trimarea)
         np_value = np.array(cropped_number)
-        segment_values = np.array([np_value[x,y] for x, y in define.number_segments])
+        segment_values = np.array([np_value[x,y] for x, y in define.number_current_segments])
         picked = np.where(segment_values==color_current)
         squared = np.power(2, picked)
         sum_value = np.sum(squared)
@@ -36,23 +35,23 @@ def get(cropped_image):
     
     return ret if is_number else None
 
-def get_score(image_details):
+def get_current_score(image_details):
     return get(image_details.crop(area_score))
 
-def get_miss_count(image_details):
+def get_current_miss_count(image_details):
     return get(image_details.crop(area_miss_count))
 
-def larning_number(targets):
+def larning_number_current(targets):
     global table
 
-    print('larning number')
+    print('larning current number')
 
     table = {}
     keys = {}
     for key, target in targets.items():
         value = target['value']
         np_value = target['np']
-        segment_values = np.array([np_value[x,y] for x, y in define.number_segments])
+        segment_values = np.array([np_value[x,y] for x, y in define.number_current_segments])
         picked = np.where(segment_values==color_current)
         squared = np.power(2, picked)
         sum_value = np.sum(squared)
@@ -92,13 +91,13 @@ if __name__ == '__main__':
             image = collection.details
 
             for key in ['score', 'miss_count']:
-                if label['details'][key] != '':
-                    cropped_value = image.crop(define.details_areas[key])
-                    value = int(label['details'][key])
+                if f'{key}_current' in label['details'].keys() and label['details'][f'{key}_current'] != '':
+                    cropped_value = image.crop(define.details_areas[key]['current'])
+                    value = int(label['details'][f'{key}_current'])
                     digit = 1
                     while int(value) > 0 or digit == 1:
                         number = int(value % 10)
-                        cropped_number = cropped_value.crop(define.number_trimareas[4-digit])
+                        cropped_number = cropped_value.crop(define.number_current_trimareas[4-digit])
                         targets[f'{collection.key}_{key}_{digit}_{number}'] = {
                             'value': number,
                             'np': np.array(cropped_number)
@@ -106,4 +105,4 @@ if __name__ == '__main__':
                         value /= 10
                         digit += 1
 
-    larning_number(targets)
+    larning_number_current(targets)

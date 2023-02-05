@@ -146,6 +146,7 @@ def result_process(screen):
 
         if setting.display_result and image is not None:
             gui.display_image(image, True)
+            window['table_results'].update(select_rows=[len(results)-1])
             return result
 
     return None

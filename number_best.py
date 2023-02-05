@@ -6,25 +6,26 @@ from data_collection import load_collections
 from define import define
 from resources import resources_dirname
 
-area = define.informations_areas['notes']
-color = define.notes_color
+area_score = define.details_areas['score']['best']
+area_miss_count = define.details_areas['miss_count']['best']
 
-filepath = os.path.join(resources_dirname, 'notes.res')
+color_best = define.number_pick_color_best
+
+filepath = os.path.join(resources_dirname, 'number_best.res')
 if os.path.exists(filepath):
     with open(filepath, 'rb') as f:
         table = pickle.load(f)
 else:
     table = {}
 
-def get_notes(image_informations):
-    cropped_image = image_informations.crop(area)
+def get(cropped_image):
     ret = 0
     is_number = False
-    for trimarea in define.notes_trimareas:
+    for trimarea in define.number_best_trimareas:
         cropped_number = cropped_image.crop(trimarea)
         np_value = np.array(cropped_number)
-        segment_values = np.array([np_value[x,y] for x, y in define.notes_segments])
-        picked = np.where(segment_values==color)
+        segment_values = np.array([np_value[x,y] for x, y in define.number_best_segments])
+        picked = np.where(segment_values==color_best)
         squared = np.power(2, picked)
         sum_value = np.sum(squared)
 
@@ -34,18 +35,24 @@ def get_notes(image_informations):
     
     return ret if is_number else None
 
-def larning_notes(targets):
+def get_best_score(image_details):
+    return get(image_details.crop(area_score))
+
+def get_best_miss_count(image_details):
+    return get(image_details.crop(area_miss_count))
+
+def larning_number_best(targets):
     global table
 
-    print('larning notes')
+    print('larning best number')
 
     table = {}
     keys = {}
     for key, target in targets.items():
         value = target['value']
         np_value = target['np']
-        segment_values = np.array([np_value[x,y] for x, y in define.notes_segments])
-        picked = np.where(segment_values==color)
+        segment_values = np.array([np_value[x,y] for x, y in define.number_best_segments])
+        picked = np.where(segment_values==color_best)
         squared = np.power(2, picked)
         sum_value = np.sum(squared)
 
@@ -80,21 +87,22 @@ if __name__ == '__main__':
     targets = {}
     for collection in collections:
         label = collection.label
-        if collection.informations is not None:
-            image = collection.informations
+        if collection.details is not None:
+            image = collection.details
 
-            if 'notes' in label['informations'].keys() and label['informations']['notes'] != '':
-                cropped_value = image.crop(area)
-                value = int(label['informations']['notes'])
-                digit = 1
-                while int(value) > 0 or digit == 1:
-                    number = int(value % 10)
-                    cropped_number = cropped_value.crop(define.notes_trimareas[4-digit])
-                    targets[f'{collection.key}_{digit}_{number}'] = {
-                        'value': number,
-                        'np': np.array(cropped_number)
-                    }
-                    value /= 10
-                    digit += 1
+            for key in ['score', 'miss_count']:
+                if f'{key}_best' in label['details'].keys() and label['details'][f'{key}_current'] != '':
+                    cropped_value = image.crop(define.details_areas[key]['best'])
+                    value = int(label['details'][f'{key}_best'])
+                    digit = 1
+                    while int(value) > 0 or digit == 1:
+                        number = int(value % 10)
+                        cropped_number = cropped_value.crop(define.number_best_trimareas[4-digit])
+                        targets[f'{collection.key}_{key}_{digit}_{number}'] = {
+                            'value': number,
+                            'np': np.array(cropped_number)
+                        }
+                        value /= 10
+                        digit += 1
 
-    larning_notes(targets)
+    larning_number_best(targets)

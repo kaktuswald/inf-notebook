@@ -10,10 +10,11 @@ logger.debug('loaded recog.py')
 from define import define
 from resources import masks,recog_music_filename
 from notes import get_notes
-from clear_type import get_clear_type
-from dj_level import get_dj_level
-from number import get_score,get_miss_count
-from result import ResultInformations,ResultValueNew,ResultDetails,ResultOptions,Result
+from clear_type import get_clear_type_best,get_clear_type_current
+from dj_level import get_dj_level_best,get_dj_level_current
+from number_best import get_best_score,get_best_miss_count
+from number_current import get_current_score,get_current_miss_count
+from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,Result
 
 class Recog():
     def __init__(self, mask):
@@ -248,21 +249,25 @@ class Recognition():
         else:
             options = None
 
-        clear_type = ResultValueNew(
-            get_clear_type(image_details),
-            not self.new.find(image_details.crop(define.details_areas['clear_type_new']))
+        clear_type = ResultValues(
+            get_clear_type_best(image_details),
+            get_clear_type_current(image_details),
+            not self.new.find(image_details.crop(define.details_areas['clear_type']['new']))
         )
-        dj_level = ResultValueNew(
-            get_dj_level(image_details),
-            not self.new.find(image_details.crop(define.details_areas['dj_level_new']))
+        dj_level = ResultValues(
+            get_dj_level_best(image_details),
+            get_dj_level_current(image_details),
+            not self.new.find(image_details.crop(define.details_areas['dj_level']['new']))
         )
-        score = ResultValueNew(
-            get_score(image_details),
-            not self.new.find(image_details.crop(define.details_areas['score_new']))
+        score = ResultValues(
+            get_best_score(image_details),
+            get_current_score(image_details),
+            not self.new.find(image_details.crop(define.details_areas['score']['new']))
         )
-        miss_count = ResultValueNew(
-            get_miss_count(image_details),
-            not self.new.find(image_details.crop(define.details_areas['miss_count_new']))
+        miss_count = ResultValues(
+            get_best_miss_count(image_details),
+            get_current_miss_count(image_details),
+            not self.new.find(image_details.crop(define.details_areas['miss_count']['new']))
         )
 
         return ResultDetails(options, clear_type, dj_level, score, miss_count)

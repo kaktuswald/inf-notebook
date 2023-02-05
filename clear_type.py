@@ -6,7 +6,8 @@ from data_collection import load_collections
 from define import define
 from resources import resources_dirname
 
-area = define.details_areas['clear_type']
+area_best = define.details_areas['clear_type']['best']
+area_current = define.details_areas['clear_type']['current']
 
 filepath = os.path.join(resources_dirname, 'clear_type.res')
 if os.path.exists(filepath):
@@ -15,8 +16,20 @@ if os.path.exists(filepath):
 else:
     table = {}
 
-def get_clear_type(image_details):
-    np_value = np.array(image_details.crop(area))
+def get_clear_type_best(image_details):
+    np_value = np.array(image_details.crop(area_best))
+    flattend = np_value.flatten()
+
+    uniques, counts = np.unique(flattend, return_counts=True)
+    mode = uniques[np.argmax(counts)]
+
+    if not mode in table.keys():
+        return None
+
+    return table[mode]
+
+def get_clear_type_current(image_details):
+    np_value = np.array(image_details.crop(area_current))
     flattend = np_value.flatten()
 
     uniques, counts = np.unique(flattend, return_counts=True)
@@ -74,9 +87,14 @@ if __name__ == '__main__':
         if collection.details is not None:
             image = collection.details
 
-            if label['details']['clear_type'] != '':
-                targets[collection.key] = {
-                    'value': label['details']['clear_type'],
+            if label['details']['clear_type_best'] != '':
+                targets[f'{collection.key}_best'] = {
+                    'value': label['details']['clear_type_best'],
+                    'np': np.array(image.crop(area))
+                }
+            if label['details']['clear_type_current'] != '':
+                targets[f'{collection.key}_current'] = {
+                    'value': label['details']['clear_type_current'],
                     'np': np.array(image.crop(area))
                 }
 

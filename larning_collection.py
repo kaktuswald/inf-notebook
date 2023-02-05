@@ -11,11 +11,12 @@ logger.debug('loaded larning.py')
 from resources import create_resource_directory
 from define import define
 from data_collection import load_collections
-from recog import option_trimsize,informations_areas
 from larning import create_masks_directory,larning
+from notes import larning_notes
 from clear_type import larning_clear_type
 from dj_level import larning_dj_level
-from number import larning_number
+from number_current import larning_number_current
+from number_best import larning_number_best
 
 larningbase_direpath = 'larning'
 mask_images_dirpath = os.path.join(larningbase_direpath, 'mask_images')
@@ -46,6 +47,7 @@ if __name__ == '__main__':
         difficulties[key_d] = {}
         for key_l in define.value_list['levels']:
             levels[f'{key_d}-{key_l}'] = {}
+    notes = {}
     
     graphs = {
         'graph_lanes': {},
@@ -67,7 +69,8 @@ if __name__ == '__main__':
 
     clear_types = {}
     dj_levels = {}
-    numbers = {}
+    numbers_best = {}
+    numbers_current = {}
     
     news = {}
     
@@ -76,15 +79,28 @@ if __name__ == '__main__':
         if collection.informations is not None:
             image = collection.informations
             if label['informations']['play_mode'] != '':
-                crop = image.crop(informations_areas['play_mode'])
+                crop = image.crop(define.informations_areas['play_mode'])
                 play_modes[label['informations']['play_mode']][collection.key] = crop
             if label['informations']['difficulty'] != '':
-                crop = image.crop(informations_areas['difficulty'])
+                crop = image.crop(define.informations_areas['difficulty'])
                 difficulties[label['informations']['difficulty']][collection.key] = crop
                 if label['informations']['level'] != '':
                     key = f"{label['informations']['difficulty']}-{label['informations']['level']}"
-                    crop = image.crop(informations_areas['level'])
+                    crop = image.crop(define.informations_areas['level'])
                     levels[key][collection.key] = crop
+            if 'notes' in label['informations'] and label['informations']['notes'] != '':
+                cropped_value = image.crop(define.informations_areas['notes'])
+                value = int(label['informations']['notes'])
+                digit = 1
+                while int(value) > 0 or digit == 1:
+                    number = int(value % 10)
+                    cropped_number = cropped_value.crop(define.notes_trimareas[4-digit])
+                    notes[f'{collection.key}_{digit}_{number}'] = {
+                        'value': number,
+                        'np': np.array(cropped_number)
+                    }
+                    value /= 10
+                    digit += 1
         if collection.details is not None:
             image = collection.details
 
@@ -96,67 +112,86 @@ if __name__ == '__main__':
             option_image = image.crop(define.details_areas['option'])
             left = 0
             if label['details']['option_battle']:
-                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
+                area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
                 options['BATTLE'][collection.key] = option_image.crop(area)
                 left += define.option_widths['BATTLE'] + define.option_widths[',']
             if label['details']['option_arrange'] != '':
                 key = label['details']['option_arrange']
-                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
+                area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
                 left += define.option_widths[key] + define.option_widths[',']
             if label['details']['option_arrange_dp'] != '/':
                 key_left, key_right = label['details']['option_arrange_dp'].split('/')
-                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
+                area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
                 options[key_left][collection.key] = option_image.crop(area)
                 left += define.option_widths[key_left] + define.option_widths['/']
-                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
+                area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
                 options[key_right][collection.key] = option_image.crop(area)
                 left += define.option_widths[key_right] + define.option_widths[',']
             if label['details']['option_arrange_sync'] != '':
                 key = label['details']['option_arrange_sync']
-                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
+                area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
                 left += define.option_widths[key] + define.option_widths[',']
             if label['details']['option_flip'] != '':
                 key = label['details']['option_flip']
-                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
+                area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
                 left += define.option_widths[key] + define.option_widths[',']
             if label['details']['option_assist'] != '':
                 key = label['details']['option_assist']
-                area = [left, 0, left + option_trimsize[0], option_trimsize[1]]
+                area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
                 options[key][collection.key] = option_image.crop(area)
 
-            if label['details']['clear_type'] != '':
-                clear_types[collection.key] = {
-                    'value': label['details']['clear_type'],
-                    'np': np.array(image.crop(define.details_areas['clear_type'])),
-                }
+            for key in ['best', 'current']:
+                key_clear_type = f'clear_type_{key}'
+                if key_clear_type in label['details'] and label['details'][key_clear_type] != '':
+                    clear_types[f'{collection.key}_{key}'] = {
+                        'value': label['details'][key_clear_type],
+                        'np': np.array(image.crop(define.details_areas['clear_type'][key])),
+                    }
 
-            if label['details']['dj_level'] != '':
-                dj_levels[collection.key] = {
-                    'value': label['details']['dj_level'],
-                    'np': np.array(image.crop(define.details_areas['dj_level'])),
-                }
+                key_dj_level = f'dj_level_{key}'
+                if key_dj_level in label['details'] and label['details'][key_dj_level] != '':
+                    dj_levels[f'{collection.key}_{key}'] = {
+                        'value': label['details'][key_dj_level],
+                        'np': np.array(image.crop(define.details_areas['dj_level'][key])),
+                    }
 
             for key in ['score', 'miss_count']:
-                if label['details'][key] != '':
-                    crop1 = image.crop(define.details_areas[key])
-                    value = int(label['details'][key])
+                key_best = f'{key}_best'
+                if key_best in label['details'] and label['details'][key_best] != '':
+                    crop1 = image.crop(define.details_areas[key]['best'])
+                    value = int(label['details'][key_best])
                     digit = 1
                     while int(value) > 0 or digit == 1:
                         number = int(value % 10)
-                        crop2 = crop1.crop(define.number_trimareas[4-digit])
-                        numbers[f"{key}-{digit}-{collection.key}"] = {
+                        crop2 = crop1.crop(define.number_best_trimareas[4-digit])
+                        numbers_best[f"{key_best}-{digit}-{collection.key}"] = {
                             'value': number,
                             'np': np.array(crop2)
                         }
                         value /= 10
                         digit += 1
 
-            for key in ['clear_type_new', 'dj_level_new', 'score_new', 'miss_count_new']:
-                if label['details'][key]:
-                    news[f"{key}-{collection.key}"] = image.crop(define.details_areas[key])
+                key_current = f'{key}_current'
+                if key_current in label['details'] and label['details'][key_current] != '':
+                    crop1 = image.crop(define.details_areas[key]['current'])
+                    value = int(label['details'][key_current])
+                    digit = 1
+                    while int(value) > 0 or digit == 1:
+                        number = int(value % 10)
+                        crop2 = crop1.crop(define.number_current_trimareas[4-digit])
+                        numbers_current[f"{key_current}-{digit}-{collection.key}"] = {
+                            'value': number,
+                            'np': np.array(crop2)
+                        }
+                        value /= 10
+                        digit += 1
+
+            for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+                if label['details'][f'{key}_new']:
+                    news[f"{key}-{collection.key}"] = image.crop(define.details_areas[key]['new'])
 
     if '-all' in argv or '-playmode' in argv:
         for key in play_modes.keys():
@@ -169,6 +204,9 @@ if __name__ == '__main__':
     if '-all' in argv or '-level' in argv:
         for key in levels.keys():
             larning(key, levels[key])
+
+    if '-all' in argv or '-notes' in argv:
+        larning_notes(notes)
     
     if '-all' in argv or '-graph' in argv:
         for key in graphs.keys():
@@ -185,7 +223,8 @@ if __name__ == '__main__':
         larning_dj_level(dj_levels)
 
     if '-all' in argv or '-number' in argv:
-        larning_number(numbers)
+        larning_number_best(numbers_best)
+        larning_number_current(numbers_current)
 
     if '-all' in argv or '-new' in argv:
         larning('new', news)
