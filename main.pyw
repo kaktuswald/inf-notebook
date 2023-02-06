@@ -31,7 +31,7 @@ logger.debug('mode: manage')
 from version import version
 import gui.main as gui
 from define import define
-from resources import find_images
+from resources import find_images,play_sound_find,play_sound_result
 from screenshot import Screenshot
 from recog import recog
 from raw_image import save_raw
@@ -87,6 +87,8 @@ class ThreadMain(threading.Thread):
                 self.queues['log'].put(f'region = {screenshot.region}')
                 self.sleep_time = thread_time_normal
                 self.queues['log'].put(f'change sleep time: {self.sleep_time}')
+                if setting.play_sound:
+                    play_sound_find()
 
             self.screen_search_keyindex = (self.screen_search_keyindex + 1) % len(define.screen_areas.keys())
             return
@@ -121,6 +123,8 @@ class ThreadMain(threading.Thread):
                 if time.time() - self.find_time > thread_time_normal*2-0.1:
                     self.processed = True
                     self.queues['result_screen'].put(screen)
+                    if setting.play_sound:
+                        play_sound_result()
         else:
             if self.finded:
                 self.finded = False
@@ -271,6 +275,8 @@ if __name__ == '__main__':
         if event == 'check_display_music':
             setting.display_music = values['check_display_music']
             gui.switch_table(setting.display_music)
+        if event == 'check_play_sound':
+            setting.play_sound = values['check_play_sound']
         if event == 'text_file_path':
             if os.path.exists(values['text_file_path']):
                 screen = screenshot.open(values['text_file_path'])

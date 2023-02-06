@@ -145,7 +145,8 @@ def layout_main(setting):
             ], pad=0, background_color=background_color, vertical_alignment='top'),
             sg.Column([
                 [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('曲名を表示する(試験運用)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)]
+                [sg.Checkbox('曲名を表示する(試験運用)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)],
+                [sg.Checkbox('INFINITASを見つけたときと記録したときに音を出す', key='check_play_sound', default=setting.play_sound, enable_events=True, background_color=background_color)]
             ], pad=0, background_color=background_color, vertical_alignment='top')
         ],
         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],

@@ -6,7 +6,9 @@ default = {
     'display_result': False,
     'newrecord_only': False,
     'autosave': False,
-    'autosave_filtered': False
+    'autosave_filtered': False,
+    'display_music': False,
+    'play_sound': False
 }
 
 class Setting():
@@ -88,6 +90,14 @@ class Setting():
     @display_music.setter
     def display_music(self, value):
         self.set_value('display_music', value)
+    
+    @property
+    def play_sound(self):
+        return self.get_value('play_sound')
+
+    @play_sound.setter
+    def play_sound(self, value):
+        self.set_value('play_sound', value)
     
     @property
     def data_collection(self):
