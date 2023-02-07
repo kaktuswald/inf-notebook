@@ -4,7 +4,7 @@ import sys
 import os
 import numpy as np
 
-from resources import recog_music_filename
+from resources import recog_musics_filepath
 from define import define
 import data_collection as dc
 
@@ -76,5 +76,5 @@ if __name__ == '__main__':
 
             target[value] = label['informations']['music']
 
-    with open(recog_music_filename, 'w') as f:
+    with open(recog_musics_filepath, 'w') as f:
         json.dump(map, f)

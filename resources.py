@@ -20,10 +20,24 @@ sounds_dirname = 'sounds'
 
 sounds_dirpath = os.path.join(resources_dirname, sounds_dirname)
 
-recog_music_filename = os.path.join(resources_dirname, 'musics.json')
+recog_musics_filepath = os.path.join(resources_dirname, 'musics.json')
+recog_musics_timestamp_filepath = os.path.join(resources_dirname, 'musics_timestamp.txt')
 
 sound_find_filepath = os.path.join(sounds_dirpath, 'find.wav')
 sound_result_filepath = os.path.join(sounds_dirpath, 'result.wav')
+
+class MusicsTimestamp():
+    def get_timestamp(self):
+        if not os.path.exists(recog_musics_timestamp_filepath):
+            return None
+        with open(recog_musics_timestamp_filepath, 'r') as f:
+            timestamp = f.read()
+
+        return timestamp
+
+    def write_timestamp(self, timestamp):
+        with open(recog_musics_timestamp_filepath, 'w') as f:
+            f.write(timestamp)
 
 def is_embedded():
     return hasattr(sys, '_MEIPASS')

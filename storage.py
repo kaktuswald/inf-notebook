@@ -13,9 +13,12 @@ logger.debug('loaded storage.py')
 from service_account_info import service_account_info
 from define import define
 
-bucket_name_informations = 'bucket-infinitas-memorise-informations'
-bucket_name_details = 'bucket-infinitas-memorise-details'
+bucket_name_informations = 'bucket-inf-notebook-informations'
+bucket_name_details = 'bucket-inf-notebooke-details'
+bucket_name_musics = 'bucket-inf-notebook-musics'
 service_account_info = service_account_info
+
+object_name_musics = 'musics.json'
 
 informations_dirname = 'informations'
 details_dirname = 'details'
@@ -24,6 +27,8 @@ class StorageAccessor():
     client = None
     bucket_informations = None
     bucket_details = None
+    bucket_musics = None
+    blob_musics = None
 
     def connect_client(self):
         if self.client is not None:
@@ -57,6 +62,18 @@ class StorageAccessor():
         try:
             self.bucket_details = self.client.get_bucket(bucket_name_details)
             logger.debug('connect bucket details')
+        except Exception as ex:
+            logger.exception(ex)
+    
+    def connect_bucket_musics(self):
+        if self.client is None:
+            self.connect_client()
+        if self.client is None:
+            return
+        
+        try:
+            self.bucket_musics = self.client.get_bucket(bucket_name_musics)
+            logger.debug('connect bucket musics')
         except Exception as ex:
             logger.exception(ex)
 
@@ -134,6 +151,53 @@ class StorageAccessor():
             play_side = result.play_side
             trim = screen.image.crop(define.details_trimarea[play_side])
             Thread(target=self.upload_details, args=(object_name, trim,)).start()
+    
+    def upload_resource_musics(self, filepath):
+        if self.bucket_musics is None:
+            self.connect_bucket_musics()
+        if self.bucket_musics is None:
+            return
+
+        try:
+            blob = self.bucket_musics.blob(object_name_musics)
+            blob.upload_from_filename(filepath)
+            logger.debug(f'upload resource musics')
+        except Exception as ex:
+            logger.exception(ex)
+    
+    def get_resource_musics_timestamp(self):
+        if self.bucket_musics is None:
+            self.connect_bucket_musics()
+        if self.bucket_musics is None:
+            return False
+
+        try:
+            self.blob_musics = self.bucket_musics.get_blob(object_name_musics)
+            return self.blob_musics.updated
+        except Exception as ex:
+            logger.exception(ex)
+        
+        return None
+    
+    def download_resource_musics(self, filepath):
+        if self.bucket_musics is None:
+            self.connect_bucket_musics()
+        if self.bucket_musics is None:
+            return False
+        
+        if self.blob_musics is None:
+            self.get_resource_musics_timestamp()
+        if self.blob_musics is None:
+            return False
+
+        try:
+            self.blob_musics.download_to_filename(filepath)
+            logger.debug('download resource musics')
+        except Exception as ex:
+            logger.exception(ex)
+            return False
+        
+        return True
 
     def save_image(self, basepath, blob):
         if not os.path.exists(basepath):

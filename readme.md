@@ -8,7 +8,7 @@
 ### 必要なモジュールをインストール
 ```
 python -m pip install --upgrade pip
-pip install numpy keyboard pillow PyAutoGUI PySimpleGUI
+pip install numpy keyboard pillow PyAutoGUI PySimpleGUI matplotlib
 ```
 
 ### 使う
@@ -52,27 +52,52 @@ python setup.py build
 - ロールを与える(Storage オブジェクト管理者 もしくは ストレージ管理者)
 - キーを作成
 - pythonライブラリのインストール
-```
+```shell
 pip install google-cloud-storage
 ```
+
+### 作成するバケット
+- bucket-inf-notebook-informations
+
+譜面難易度・譜面レベル・曲名・ノーツ数の含まれたリザルト画像の切り取り
+
+- bucket-inf-notebook-details
+
+オプション・クリアランプ・DJ LEVEL・スコア・ミスカウントの含まれたリザルト画像の切り取り
+
+- bucket-inf-notebook-musics
+
+曲名を画像認識する学習データ
+
+リージョンがサウスカロライナ(us-east1)なら無料(のはず)
 
 ### サービスアカウント
 作成したサービスアカウントのキーをソースに反映させる。
 
 - (方法1)ダウンロードしたファイルを指定する
-```
+```shell
 python generate_service_account_info.py ファイル名.json
 ```
 
+
 - (方法2)base64でエンコードした文字列を引数にする
-```
+```shell
 python generate_service_account_info.py 文字列
 ```
 
+
 - (おまけ)ダウンロードしたファイルをエンコードする
-```
+```shell
 python encode.py ファイル名.json
 ```
+
+***
+方法1はローカルでビルドするときに使う
+
+方法2はGitHub上でActionsを利用してビルドするときに使う
+
+おまけでエンコードした文字列をGitHubのAction secretsに追加する(名称: KEYINFO)
+***
 
 ### アップロード設定
 設定ファイルで収集を有効化しているときのみ、アップロードが処理される。
@@ -84,8 +109,8 @@ python encode.py ファイル名.json
 
 ### 収集画像を回収する
 Cloud Storage上の画像を全てcollection_data下に保存し、削除する。
-```
-python download.py
+```shell
+python download_collections.py
 ```
 
 ## 学習する
@@ -100,44 +125,51 @@ python download.py
 以上の画像認識の学習を目的とする。
 
 #### GUI上で画像にラベル付けする
-```
+```shell
 python manage.pyw
 ```
 
 #### 学習する
-```
+```shell
 python larning_basics.py
 ```
 
 #### 学習結果とラベルの照合
-```
+```shell
 python evaluate_basics.py
 ```
 evaluate_basics.csvが作成される。
 
 ### リザルトの詳細
 - プレイモード(SP or DP)
-- 譜面難易度と☆
+- 譜面難易度と☆とノーツ数
 - 曲名
-- 使用オプション
+- 表示しているグラフ(グルーブゲージorレーンごとDJLEVELor小節ごとの精度)
+- 使用オプション(グラフがグループゲージのときのみ)
 - クリアランプ・DJレベル・スコア・ミスカウント
 - クリアランプ・DJレベル・スコア・ミスカウントのNEW RECORD
 
 以上の画像認識の学習を目的とする。
 
 #### GUI上で画像にラベル付けする
-```
+```shell
 python annotation.pyw
 ```
 
 #### 学習する
-```
-python larning_collection.py
+```shell
+python larning_collection.py -all
 python larning_music.py
 ```
 
 #### 学習結果とラベルの照合
-```
+```shell
 python evaluate_collection.py
 ```
+
 evaluate_collection.csvが作成される。
+
+#### 学習した曲名認識データをアップロードする
+```shell
+python upload_resource_musics.py
+```

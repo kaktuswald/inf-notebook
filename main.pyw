@@ -31,7 +31,7 @@ logger.debug('mode: manage')
 from version import version
 import gui.main as gui
 from define import define
-from resources import find_images,play_sound_find,play_sound_result
+from resources import MusicsTimestamp,find_images,play_sound_find,play_sound_result,recog_musics_filepath
 from screenshot import Screenshot
 from recog import recog
 from raw_image import save_raw
@@ -215,6 +215,27 @@ def get_latest_version():
         else:
             return None
 
+def check_resource_musics():
+    if setting.manage:
+        return
+    
+    musics_timestamp = MusicsTimestamp()
+
+    latest_timestamp = str(storage.get_resource_musics_timestamp())
+    if latest_timestamp is None:
+        return
+    
+    local_timestamp = musics_timestamp.get_timestamp()
+
+    if local_timestamp != latest_timestamp:
+        threading.Thread(target=download_resource_musics, args=(musics_timestamp, latest_timestamp)).start()
+
+def download_resource_musics(musics_timestamp, latest_timestamp):
+    if storage.download_resource_musics(recog_musics_filepath):
+        musics_timestamp.write_timestamp(latest_timestamp)
+        recog.load_resource_musics()
+        print('download')
+
 if __name__ == '__main__':
     if setting.manage:
         keyboard.add_hotkey('ctrl+F10', active_screenshot)
@@ -253,6 +274,8 @@ if __name__ == '__main__':
     if version != '0.0.0.0' and get_latest_version() != version:
         gui.find_latest_version(latest_url)
 
+    check_resource_musics()
+    
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
 

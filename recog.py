@@ -1,6 +1,7 @@
 import numpy as np
 import json
 from logging import getLogger
+from os.path import exists
 
 logger_child_name = 'recog'
 
@@ -8,7 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import masks,recog_music_filename
+from resources import masks,recog_musics_filepath
 from notes import get_notes
 from clear_type import get_clear_type_best,get_clear_type_current
 from dj_level import get_dj_level_best,get_dj_level_current
@@ -69,8 +70,7 @@ class Recognition():
             list = [masks[f'{difficulty}-{level}'] for level in define.value_list['levels'] if f'{difficulty}-{level}' in masks.keys()]
             self.level[difficulty] = RecogMultiValue(list)
 
-        with open(recog_music_filename) as f:
-            self.music = json.load(f)
+        self.load_resource_musics()
 
         self.graph_lanes = Recog(masks['graph_lanes'])
         self.graph_measures = Recog(masks['graph_measures'])
@@ -160,6 +160,9 @@ class Recognition():
         np_value = np.array(music)
         summed = np.sum(np_value, axis=1)
 
+        if self.music is None:
+            return None
+        
         try:
             target = self.music
             for index in range(len(summed)):
@@ -286,5 +289,12 @@ class Recognition():
             self.search_dead(screen.image, play_side),
             self.get_details(trim_details)
         )
+    
+    def load_resource_musics(self):
+        if exists(recog_musics_filepath):
+            with open(recog_musics_filepath) as f:
+                self.music = json.load(f)
+        else:
+            self.music = None
 
 recog = Recognition()
