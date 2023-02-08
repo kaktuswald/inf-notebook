@@ -167,6 +167,18 @@ python larning_music.py
 python evaluate_collection.py
 ```
 
+#### 曲名の照合
+曲名の入力が誤ってないか照合する
+
+1.アーケードのプレイCSVデータの曲名を抽出してarcade_all_musics.txtに展開して、照合する
+
+2.INFINITAS限定の曲リストをinfinitas_only_musics.txtに書き出して、照合する
+
+```shell
+python trim_musics_from_arcade_csv.py
+python check_musics.py
+```
+
 evaluate_collection.csvが作成される。
 
 #### 学習した曲名認識データをアップロードする

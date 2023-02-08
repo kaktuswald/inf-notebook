@@ -14,7 +14,7 @@ from service_account_info import service_account_info
 from define import define
 
 bucket_name_informations = 'bucket-inf-notebook-informations'
-bucket_name_details = 'bucket-inf-notebooke-details'
+bucket_name_details = 'bucket-inf-notebook-details'
 bucket_name_musics = 'bucket-inf-notebook-musics'
 service_account_info = service_account_info
 
