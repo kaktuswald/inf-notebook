@@ -42,7 +42,7 @@ thread_time_start = 2
 thread_time_normal = 0.37
 thread_time_wait = 30
 
-latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
+latest_url = 'https://github.com/kaktuswald/inf-notebook/wiki'
 
 class ThreadMain(threading.Thread):
     positioned = False

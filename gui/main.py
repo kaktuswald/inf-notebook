@@ -223,17 +223,19 @@ def generate_window(setting, version):
 def collection_request(image):
     ret = sg.popup_yes_no(
         '\n'.join([
-            u'画像処理の精度向上のために大量のリザルト画像を欲しています。',
+            u'曲名の画像認識の精度向上のためにリザルト画像を欲しています。',
             u'リザルト画像を上画像のように切り取ってクラウドにアップロードします。',
-            u'もちろん、他の目的に使用することはしません。'
-            u'\n',
-            u'実現できるかどうかはわかりませんが、',
-            u'曲名を含めてあらゆる情報を画像から抽出して',
-            u'過去のリザルトの検索などできるようにしたいと考えています。'
+            u'',
+            u'もちろん、他の目的に使用することはしません。',
+            u'',
+            u'曲名の認識精度が上がるほど、曲名表示が?????になることは減っていきます。',
+            u'',
+            u'画像のアップロードを許可しますか？'
         ]),
         title=u'おねがい',
         image=image,
-        icon=icon_path
+        icon=icon_path,
+        background_color=background_color
     )
 
     return True if ret == 'Yes' else False
@@ -248,7 +250,8 @@ def find_latest_version(latest_url):
         ]),
         title=u'最新バージョンのお知らせ',
         icon=icon_path,
-        size=(60, 6)
+        size=(60, 6),
+        background_color=background_color
     )
 
 def error_message(title, message, exception):
