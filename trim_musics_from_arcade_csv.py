@@ -3,7 +3,7 @@ from sys import exit
 import json
 
 scoredata_filename = 'score_data.csv'
-arcadeallmusics_filename = 'arcade_all_musics.txt'
+arcadeallmusics_filename = 'musics_arcade_all.txt'
 
 from resources import recog_musics_filepath
 

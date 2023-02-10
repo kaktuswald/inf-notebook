@@ -1,7 +1,8 @@
 import numpy as np
 import json
 from logging import getLogger
-from os.path import exists
+from os.path import exists,join,basename
+from glob import glob
 
 logger_child_name = 'recog'
 
@@ -9,7 +10,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import masks,recog_musics_filepath
+from resources import masks,recog_musics_filepath,backgrounds_dirpath
 from notes import get_notes
 from clear_type import get_clear_type_best,get_clear_type_current
 from dj_level import get_dj_level_best,get_dj_level_current
@@ -69,6 +70,11 @@ class Recognition():
         for difficulty in define.value_list['difficulties']:
             list = [masks[f'{difficulty}-{level}'] for level in define.value_list['levels'] if f'{difficulty}-{level}' in masks.keys()]
             self.level[difficulty] = RecogMultiValue(list)
+
+        self.backgrounds = {}
+        for filepath in glob(join(backgrounds_dirpath, '*.npy')):
+            key = basename(filepath).replace('.npy', '')
+            self.backgrounds[key] = np.load(filepath)
 
         self.load_resource_musics()
 
@@ -156,25 +162,31 @@ class Recognition():
             return difficulty, self.level[difficulty].find(crop_level).split('-')[1]
         return difficulty, None
     
-    def get_music(self, music):
-        np_value = np.array(music)
-        summed = np.sum(np_value, axis=1)
+    def get_music(self, image_informations):
+        background_key = str(image_informations.getpixel(define.music_background_key_position))
+        np_value = np.array(image_informations.crop(define.informations_areas['music']))
+        background_removed = np.where(self.backgrounds[background_key]!=np_value, np_value, 0)
 
-        if self.music is None:
+        maxcounts = []
+        maxcount_values = []
+        for line in background_removed:
+            unique, counts = np.unique(line, return_counts=True)
+            dark_count = np.count_nonzero(unique < 100)
+            maxcounts.append(counts[np.argmax(counts[dark_count:])+dark_count] if len(counts) > dark_count else 0)
+            maxcount_values.append(unique[np.argmax(counts[dark_count:])+dark_count] if len(unique) > dark_count else 0)
+        y = np.argmax(maxcounts)
+        y_key = str(y)
+
+        if not y_key in self.music.keys():
             return None
         
-        try:
-            target = self.music
-            for index in range(len(summed)):
-                value = str(summed[index])
-                if not value in target:
-                    return None
-                target = target[value]
-            return target
-        except Exception as ex:
-            logger.exception(ex)
-            print(ex)
+        line = np.where(background_removed[y]==int(maxcount_values[y]), 1, 0)
+        line_key = str(int(''.join(line.astype(np.str)), 2))
+
+        if not line_key in self.music[y_key].keys():
             return None
+        
+        return self.music[y_key][line_key]
 
     def get_graph(self, image_details):
         if self.graph_lanes.find(image_details.crop(define.details_areas['graph_lanes'])):
@@ -242,7 +254,7 @@ class Recognition():
             level = None
         notes = get_notes(image_informations)
 
-        music = self.get_music(image_informations.crop(define.informations_areas['music']))
+        music = self.get_music(image_informations)
 
         return ResultInformations(play_mode, difficulty, level, notes, music)
 
