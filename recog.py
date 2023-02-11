@@ -1,8 +1,7 @@
 import numpy as np
 import json
 from logging import getLogger
-from os.path import exists,join,basename
-from glob import glob
+from os.path import exists
 
 logger_child_name = 'recog'
 
@@ -80,20 +79,32 @@ class Recognition():
         self.option = RecogMultiValue(masks_option)
 
         self.new = Recog(masks['new'])
+    
+    def get_is_screen_loading(self, image_cropped):
+        monochrome = image_cropped.convert('L')
+        return self.loading.find(monochrome)
 
-    def search_music_select(self, image_result):
-        crop = image_result.crop(define.screen_areas['music_select'])
-        return self.music_select.find(crop)
+    def get_is_screen_music_select(self, image_cropped):
+        monochrome = image_cropped.convert('L')
+        return self.music_select.find(monochrome)
 
-    def search_result(self, image_result):
-        crop = image_result.crop(define.screen_areas['result'])
-        return self.result.find(crop)
+    def get_is_screen_playing(self, image_cropped):
+        monochrome = image_cropped.convert('L')
+        return self.turntable.find(monochrome)
 
-    def search_cutin_mission(self, image_result):
+    def get_is_screen_result(self, image_cropped):
+        monochrome = image_cropped.convert('L')
+        return self.result.find(monochrome)
+
+    def get_has_trigger(self, image_result):
+        crop = image_result.crop(define.areas['trigger'])
+        return self.trigger.find(crop)
+
+    def get_has_cutin_mission(self, image_result):
         crop = image_result.crop(define.areas['cutin_mission'])
         return self.cutin_mission.find(crop)
 
-    def search_cutin_bit(self, image_result):
+    def get_has_cutin_bit(self, image_result):
         crop = image_result.crop(define.areas['cutin_bit'])
         return self.cutin_bit.find(crop)
 
@@ -104,11 +115,24 @@ class Recognition():
 
         return None
 
-    def search_dead(self, image_result, play_side):
+    def get_is_result(self, image_result):
+        if not self.get_has_trigger(image_result):
+            return False
+        if self.get_has_cutin_mission(image_result):
+            return False
+        if self.get_has_cutin_bit(image_result):
+            return False
+        
+        if self.get_play_side(image_result) is not None:
+            return True
+        
+        return False
+    
+    def get_has_dead(self, image_result, play_side):
         crop = image_result.crop(define.areas['dead'][play_side])
         return self.dead.find(crop)
     
-    def search_rival(self, image_result):
+    def get_has_rival(self, image_result):
         crop = image_result.crop(define.areas['rival'])
         return self.rival.find(crop)
     
@@ -249,17 +273,17 @@ class Recognition():
         return ResultDetails(options, clear_type, dj_level, score, miss_count)
 
     def get_result(self, screen):
-        trim_informations = screen.image.crop(define.informations_trimarea)
+        trim_informations = screen.monochrome.crop(define.informations_trimarea)
 
-        play_side = self.get_play_side(screen.image)
-        trim_details = screen.image.crop(define.details_trimarea[play_side])
+        play_side = self.get_play_side(screen.monochrome)
+        trim_details = screen.monochrome.crop(define.details_trimarea[play_side])
 
         return Result(
             screen.original.convert('RGB'),
             self.get_informations(trim_informations),
             play_side,
-            self.search_rival(screen.image),
-            self.search_dead(screen.image, play_side),
+            self.get_has_rival(screen.monochrome),
+            self.get_has_dead(screen.monochrome, play_side),
             self.get_details(trim_details)
         )
     

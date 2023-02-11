@@ -1,9 +1,8 @@
 from datetime import datetime
-from PIL import Image
 import pyautogui as pgui
-from PIL import ImageGrab
-import os
+from PIL import Image,ImageGrab
 from logging import getLogger
+from os.path import exists,basename
 
 logger_child_name = 'screenshot'
 
@@ -15,27 +14,29 @@ from resources import find_images
 from recog import recog
 
 class Screen:
-    def __init__(self, image, filename):
-        self.original = image
-        self.image = image.convert('L')
+    def __init__(self, original, monochrome, filename):
+        self.original = original
+        self.monochrome = monochrome
         self.filename = filename
 
 class Screenshot:
     width = 1280
     height = 720
     region = None
-    screen_search_keyindex = 0
+    search_screen_keyindex = 0
+
+    def shot(self):
+        self.image = ImageGrab.grab(all_screens=True)
 
     def find(self):
-        image = ImageGrab.grab(all_screens=True)
-        key = [*define.screen_areas.keys()][self.screen_search_keyindex]
-        box =  pgui.locate(find_images[key], image, grayscale=True)
+        key = define.searchscreen_keys[self.search_screen_keyindex]
+        box =  pgui.locate(find_images[key], self.image, grayscale=True)
         if box is None:
-            self.screen_search_keyindex = (self.screen_search_keyindex + 1) % len(define.screen_areas.keys())
+            self.search_screen_keyindex = (self.search_screen_keyindex + 1) % len(define.searchscreen_keys)
             return False
 
-        left = box.left - define.screen_areas[key][0]
-        top = box.top - define.screen_areas[key][1]
+        left = box.left - define.areas[key][0]
+        top = box.top - define.areas[key][1]
         self.region = (
             left,
             top,
@@ -43,10 +44,10 @@ class Screenshot:
             top + self.height
         )
         self.region_loading = (
-            left + define.screen_areas['loading'][0],
-            top + define.screen_areas['loading'][1],
-            left + define.screen_areas['loading'][2],
-            top + define.screen_areas['loading'][3]
+            left + define.areas['loading'][0],
+            top + define.areas['loading'][1],
+            left + define.areas['loading'][2],
+            top + define.areas['loading'][3]
         )
         self.region_turntables = {}
         for key in define.areas['turntable'].keys():
@@ -56,59 +57,54 @@ class Screenshot:
                 left + define.areas['turntable'][key][2],
                 top + define.areas['turntable'][key][3]
             )
-        self.region_trigger = (
-            left + define.areas['trigger'][0],
-            top + define.areas['trigger'][1],
-            left + define.areas['trigger'][2],
-            top + define.areas['trigger'][3]
+        self.region_result = (
+            left + define.areas['result'][0],
+            top + define.areas['result'][1],
+            left + define.areas['result'][2],
+            top + define.areas['result'][3]
         )
 
         return True
 
     @property
     def is_loading(self):
-        image = ImageGrab.grab(all_screens=True)
-        image = image.crop(self.region_loading)
-        image = image.convert('L')
-        return recog.loading.find(image)
+        return recog.get_is_screen_loading(self.image.crop(self.region_loading))
 
     @property
     def is_ended_waiting(self):
-        image = ImageGrab.grab(all_screens=True)
         for key in define.areas['turntable'].keys():
-            image = image.crop(self.region_turntables[key])
-            image = image.convert('L')
-            if recog.turntable.find(image):
+            if recog.get_is_screen_playing(self.image.crop(self.region_turntables[key])):
                 return True
         return False
 
-    def shot(self):
-        image = ImageGrab.grab(all_screens=True)
+    def get(self):
+        target = self.image
         if self.region is not None:
-            image = image.crop(self.region)
+            target = target.crop(self.region)
 
-        return image.convert('RGBA')
+        return target.convert('RGBA')
 
     def get_resultscreen(self):
-        image = ImageGrab.grab(all_screens=True)
-        cropped = image.crop(self.region_trigger)
-        cropped = cropped.convert('L')
-        if not recog.trigger.find(cropped):
+        if not recog.get_is_screen_result(self.image.crop(self.region_result)):
             return None
 
-        image = image.crop(self.region)
-        image = image.convert('RGBA')
+        image = self.image.crop(self.region)
+        original = image.convert('RGBA')
+        monochrome = original.convert('L')
+
+        if not recog.get_is_result(monochrome):
+            return None
 
         now = datetime.now()
         filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.png"
 
-        return Screen(image, filename)
-    
+        return Screen(original, monochrome, filename)
+
     def open(self, filepath):
-        if not os.path.exists(filepath):
+        if not exists(filepath):
             return None
         
         image = Image.open(filepath)
-        filename = os.path.basename(filepath)
+        filename = basename(filepath)
 
-        return Screen(image, filename)
+        return Screen(image, image.convert('L'), filename)

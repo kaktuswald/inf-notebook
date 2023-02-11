@@ -23,19 +23,22 @@ def evaluate(filename, image, label):
         results.append('none')
     else:
         screen_results = []
-        for key in define.screen_areas.keys():
+        for key in define.searchscreen_keys:
             if pgui.locate(find_images[key], image, grayscale=True) is not None:
                 screen_results.append(key)
-        if len(screen_results) == 1 and screen_results[0] == label['screen']:
+        if label['screen'] == 'playing' or len(screen_results) == 1 and screen_results[0] == label['screen']:
             results.append('ok')
         else:
             results.append(','.join(screen_results))
             failure = True
     
     targets = {
-        'loading': recog.search_loading,
-        'music_select': recog.search_music_select,
-        'result': recog.search_result
+        'loading': recog.get_is_screen_loading(image.crop(define.areas['loading'])),
+        'music_select': recog.get_is_screen_music_select(image.crop(define.areas['music_select'])),
+        'playing_1p': recog.get_is_screen_playing(image.crop(define.areas['turntable']['1P'])),
+        'playing_2p': recog.get_is_screen_playing(image.crop(define.areas['turntable']['2P'])),
+        'playing_dp': recog.get_is_screen_playing(image.crop(define.areas['turntable']['DP'])),
+        'result': recog.get_is_screen_result(image.crop(define.areas['result']))
     }
     for key, value in targets.items():
         if not 'screen' in label.keys():
@@ -44,7 +47,7 @@ def evaluate(filename, image, label):
             if label['screen'] != key:
                 results.append('')
             else:
-                if value(image):
+                if value:
                     results.append('ok')
                 else:
                     results.append('ng')
@@ -63,10 +66,10 @@ def evaluate(filename, image, label):
     results.append('')
 
     targets = {
-        'trigger': recog.search_trigger,
-        'cutin_mission': recog.search_cutin_mission,
-        'cutin_bit': recog.search_cutin_bit,
-        'rival': recog.search_rival
+        'trigger': recog.get_has_trigger,
+        'cutin_mission': recog.get_has_cutin_mission,
+        'cutin_bit': recog.get_has_cutin_bit,
+        'rival': recog.get_has_rival
     }
     for key, value in targets.items():
         if not key in label.keys():
@@ -94,7 +97,7 @@ def evaluate(filename, image, label):
         results.append('none')
         play_side = None
     else:
-        dead = recog.search_dead(image, label['play_side'])
+        dead = recog.get_has_dead(image, label['play_side'])
         if (dead is None and label['dead'] == '') or dead == label['dead']:
             results.append('ok')
         else:
@@ -128,6 +131,9 @@ if __name__ == '__main__':
         'screen',
         'loading',
         'music_select',
+        'playing_1p',
+        'playing_2p',
+        'playing_dp',
         'result',
         '',
         'trigger',

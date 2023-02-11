@@ -6,29 +6,28 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded define.py')
 
 class Define():
-    screen_areas = {
-        'loading': (400, 200, 430, 210),
-        'music_select': (24, 512, 34, 536),
-        'result': (784, 689, 790, 697)
-    }
+    searchscreen_keys = ['loading', 'music_select', 'result']
 
     areas = {
-        "trigger": (494,18,580,30),
-        "cutin_mission": (10,10,30,25),
-        "cutin_bit": (55,49,89,64),
-        "rival": (542,578,611,592),
-        "play_side": {
-            "1P": (15,142,21,149),
-            "2P": (1260,141,1266,148)
+        'loading': [400, 200, 430, 210],
+        'music_select': [24, 512, 34, 536],
+        'turntable': {
+            '1P': [48, 559, 82, 562],
+            '2P': [1199, 559, 1233, 562],
+            'DP': [304, 559, 338, 562]
         },
-        "dead": {
-            "1P": (406, 168, 412, 178),
-            "2P": (822, 168, 828, 178)
+        'result': [784, 689, 790, 697],
+        'trigger': [494,18,580,30],
+        'cutin_mission': [10,10,30,25],
+        'cutin_bit': [55,49,89,64],
+        'rival': [542,578,611,592],
+        'play_side': {
+            '1P': [15,142,21,149],
+            '2P': [1260,141,1266,148]
         },
-        "turntable": {
-            "1P": (48, 559, 82, 562),
-            "2P": (1199, 559, 1233, 562),
-            "DP": (304, 559, 338, 562)
+        'dead': {
+            '1P': [406, 168, 412, 178],
+            '2P': [822, 168, 828, 178]
         }
     }
 

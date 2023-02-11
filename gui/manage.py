@@ -134,11 +134,13 @@ def layout_manage(filenames):
         [
             sg.Text('Loading', size=(7, 1), justification='center', pad=1),
             sg.Text('Select', size=(7, 1), justification='center', pad=1),
+            sg.Text('Playing', size=(7, 1), justification='center', pad=1),
             sg.Text('Result', size=(7, 1), justification='center', pad=1)
         ],
         [
             sg.Text(key='recog_loading', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
             sg.Text(key='recog_music_select', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
+            sg.Text(key='recog_playing', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color),
             sg.Text(key='recog_result', size=(7, 1), justification='center', pad=1, background_color=in_area_background_color)
         ],
         [sg.Text('リザルト認識', size=(30, 1), justification='center', pad=1)],
@@ -300,23 +302,30 @@ def set_labels(label):
             window['dead'].update(label['dead'])
 
 def set_recognition(screen):
-    loading = recog.search_loading(screen.image)
-    music_select = recog.search_music_select(screen.image)
-    result = recog.search_result(screen.image)
+    loading = recog.get_is_screen_loading(screen.original.crop(define.areas['loading']))
+    music_select = recog.get_is_screen_music_select(screen.original.crop(define.areas['music_select']))
+    playing = ''
+    for key in define.areas['turntable'].keys():
+        result = recog.get_is_screen_playing(screen.original.crop(define.areas['turntable'][key]))
+        if result:
+            playing = key
+            break
+    result = recog.get_is_screen_result(screen.original.crop(define.areas['result']))
 
-    trigger = recog.search_trigger(screen.image)
-    cutin_mission = recog.search_cutin_mission(screen.image)
-    cutin_bit = recog.search_cutin_bit(screen.image)
-    rival = recog.search_rival(screen.image)
+    trigger = recog.get_has_trigger(screen.monochrome)
+    cutin_mission = recog.get_has_cutin_mission(screen.monochrome)
+    cutin_bit = recog.get_has_cutin_bit(screen.monochrome)
+    rival = recog.get_has_rival(screen.monochrome)
 
-    play_side = recog.get_play_side(screen.image)
+    play_side = recog.get_play_side(screen.monochrome)
     if play_side is not None:
-        dead = recog.search_dead(screen.image, play_side)
+        dead = recog.get_has_dead(screen.monochrome, play_side)
     else:
         dead = False
 
     window['recog_loading'].update('☒' if loading else '')
     window['recog_music_select'].update('☒' if music_select else '')
+    window['recog_playing'].update(playing)
     window['recog_result'].update('☒' if result else '')
 
     window['recog_trigger'].update('☒' if trigger else '')

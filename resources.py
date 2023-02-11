@@ -74,5 +74,5 @@ for filename in os.listdir(masks_dirpath):
     masks[key] = Mask(key, np.load(filepath))
 
 find_images = {}
-for key in define.screen_areas.keys():
+for key in define.searchscreen_keys:
     find_images[key] = Image.fromarray(masks[key].value)

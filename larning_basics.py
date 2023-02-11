@@ -12,6 +12,7 @@ if __name__ == '__main__':
     sources = larning.load_larning_sources()
 
     screen_targets = {}
+    turntable_targets = {}
 
     find_keys = ['trigger', 'cutin_mission', 'cutin_bit', 'rival']
     find_targets = {}
@@ -19,7 +20,6 @@ if __name__ == '__main__':
     play_side_targets = {}
     dead_targets = {}
 
-    turntable_targets = {}
 
     for source in sources:
         filename = source.filename
@@ -28,8 +28,13 @@ if __name__ == '__main__':
                 key = source.label['screen']
                 if not key in screen_targets:
                     screen_targets[key] = {}
-                crop = source.image.crop(define.screen_areas[key])
+                crop = source.image.crop(define.areas[key])
                 screen_targets[key][filename] = crop
+            else:
+                if 'play_side' in source.label and source.label['play_side'] != '':
+                    play_side = source.label['play_side']
+                    crop = source.image.crop(define.areas['turntable'][play_side])
+                    turntable_targets[filename] = crop
         for key in find_keys:
             if key in source.label and source.label[key]:
                 if not key in find_targets:
@@ -45,18 +50,14 @@ if __name__ == '__main__':
                 if 'dead' in source.label.keys() and source.label['dead']:
                     crop = source.image.crop(define.areas['dead'][play_side])
                     dead_targets[filename] = crop
-        if 'screen' in source.label and source.label['screen'] == 'playing':
-            if 'play_side' in source.label and source.label['play_side'] != '':
-                play_side = source.label['play_side']
-                crop = source.image.crop(define.areas['turntable'][play_side])
-                turntable_targets[filename] = crop
 
     for key in screen_targets.keys():
         larning.larning(key, screen_targets[key])
+
+    larning.larning('turntable', turntable_targets)
 
     for key in find_targets.keys():
         larning.larning(key, find_targets[key])
     
     larning.larning('play_side', play_side_targets)
     larning.larning('dead', dead_targets)
-    larning.larning('turntable', turntable_targets)

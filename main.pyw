@@ -66,6 +66,8 @@ class ThreadMain(threading.Thread):
             self.routine()
 
     def routine(self):
+        screenshot.shot()
+
         if not self.positioned:
             if screenshot.find():
                 self.positioned = True
@@ -185,7 +187,8 @@ def insert_results(result):
     window['table_results'].update(values=list_results)
 
 def active_screenshot():
-    screen = screenshot.shot()
+    screenshot.shot()
+    screen = screenshot.get()
     filename = save_raw(screen)
     log_debug(f'save screen: {filename}')
     gui.display_image(screen)

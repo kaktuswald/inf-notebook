@@ -40,8 +40,8 @@ def screenshot_process():
 def find():
     window['result_screen'].update('')
     for key in find_images.keys():
-        box = pgui.locate(find_images[key], screen.image, grayscale=True)
-        area = define.screen_areas[key]
+        box = pgui.locate(find_images[key], screen.monochrome, grayscale=True)
+        area = define.areas[key]
         if not box is None and box.left == area[0] and box.top == area[1]:
             window['result_screen'].update(key)
             window['result_screen_masterpos'].update(f'{area[0]}, {area[1]}')

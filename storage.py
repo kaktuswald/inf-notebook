@@ -144,12 +144,12 @@ class StorageAccessor():
             details_trim = True
 
         if informations_trim:
-            trim = screen.image.crop(define.informations_trimarea)
+            trim = screen.monochrome.crop(define.informations_trimarea)
             Thread(target=self.upload_informations, args=(object_name, trim,)).start()
 
         if details_trim:
             play_side = result.play_side
-            trim = screen.image.crop(define.details_trimarea[play_side])
+            trim = screen.monochrome.crop(define.details_trimarea[play_side])
             Thread(target=self.upload_details, args=(object_name, trim,)).start()
     
     def upload_resource_musics(self, filepath):
