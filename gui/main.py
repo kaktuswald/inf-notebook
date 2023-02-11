@@ -191,10 +191,6 @@ def layout_main(setting):
                     sg.Checkbox('スクリーンショットを常時表示する', key='check_display_screenshot', visible=setting.manage, enable_events=True, background_color=background_color)
                 ],
                 [
-                    sg.InputText(key='text_file_path', visible=setting.manage, size=(80, 1), enable_events=True),
-                    sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
-                ],
-                [
                     sg.Column(pane_left, pad=0, background_color=background_color),
                     sg.Column(pane_right, pad=0, background_color=background_color)
                 ]

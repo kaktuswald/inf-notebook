@@ -3,7 +3,6 @@ import time
 import PySimpleGUI as sg
 import threading
 from queue import Queue
-import os
 import logging
 from urllib import request
 
@@ -30,23 +29,23 @@ logger.debug('mode: manage')
 
 from version import version
 import gui.main as gui
-from define import define
-from resources import MusicsTimestamp,find_images,play_sound_find,play_sound_result,recog_musics_filepath
+from resources import MusicsTimestamp,play_sound_find,play_sound_result,recog_musics_filepath
 from screenshot import Screenshot
 from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
 from record import Record
 
-thread_time_start = 2
 thread_time_normal = 0.37
-thread_time_wait = 30
+thread_time_wait = 2
+thread_count_wait = int(30 / thread_time_wait)
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/wiki'
 
 class ThreadMain(threading.Thread):
     positioned = False
     waiting = False
+    waiting_count = 0
     finded = False
     processed = False
     logs = []
@@ -54,14 +53,13 @@ class ThreadMain(threading.Thread):
     def __init__(self, event_close, queues):
         self.event_close = event_close
         self.queues = queues
-        self.screen_search_keyindex = 0
 
         threading.Thread.__init__(self)
 
         self.start()
 
     def run(self):
-        self.sleep_time = thread_time_start
+        self.sleep_time = thread_time_wait
         self.queues['log'].put('start thread')
         while not self.event_close.isSet():
             time.sleep(self.sleep_time)
@@ -69,36 +67,23 @@ class ThreadMain(threading.Thread):
 
     def routine(self):
         if not self.positioned:
-            key = [*define.screen_areas.keys()][self.screen_search_keyindex]
-            box = screenshot.find(find_images[key])
-
-            if not box is None:
+            if screenshot.find():
                 self.positioned = True
-                self.queues['log'].put(f'find window: {key}')
-                self.queues['log'].put(f'position: {box}')
-                left = box.left - define.screen_areas[key][0]
-                top = box.top - define.screen_areas[key][1]
-                screenshot.region = (
-                    left,
-                    top,
-                    left + screenshot.width,
-                    top + screenshot.height
-                )
                 self.queues['log'].put(f'region = {screenshot.region}')
                 self.sleep_time = thread_time_normal
                 self.queues['log'].put(f'change sleep time: {self.sleep_time}')
                 if setting.play_sound:
                     play_sound_find()
 
-            self.screen_search_keyindex = (self.screen_search_keyindex + 1) % len(define.screen_areas.keys())
             return
 
-        screen = screenshot.shot()
-        if display_screenshot_enable:
-            self.queues['display_image'].put(screen.original)
-        
         if self.waiting:
-            if not recog.is_ended_waiting(screen.image):
+            self.waiting_count -= 1
+            if self.waiting_count > 0:
+                return
+            
+            if not screenshot.is_ended_waiting:
+                self.waiting_count = thread_count_wait
                 return
 
             self.waiting = False
@@ -106,23 +91,28 @@ class ThreadMain(threading.Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
 
-        if recog.search_loading(screen.image):
+        if screenshot.is_loading:
             self.finded = False
             self.processed = False
             self.waiting = True
+            self.waiting_count = thread_count_wait
             self.queues['log'].put('find loading: start waiting')
             self.sleep_time = thread_time_wait
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
             return
 
-        if recog.is_result(screen.image):
+        resultscreen = screenshot.get_resultscreen()
+        if resultscreen is not None:
+            if display_screenshot_enable:
+                self.queues['display_image'].put(resultscreen.original)
+            
             if not self.finded:
                 self.finded = True
                 self.find_time = time.time()
             if self.finded and not self.processed:
                 if time.time() - self.find_time > thread_time_normal*2-0.1:
                     self.processed = True
-                    self.queues['result_screen'].put(screen)
+                    self.queues['result_screen'].put(resultscreen)
                     if setting.play_sound:
                         play_sound_result()
         else:
@@ -196,9 +186,9 @@ def insert_results(result):
 
 def active_screenshot():
     screen = screenshot.shot()
-    save_raw(screen)
-    log_debug(f'save screen: {screen.filename}')
-    gui.display_image(screen.original)
+    filename = save_raw(screen)
+    log_debug(f'save screen: {filename}')
+    gui.display_image(screen)
 
 def log_debug(message):
     logger.debug(message)
@@ -300,12 +290,6 @@ if __name__ == '__main__':
             gui.switch_table(setting.display_music)
         if event == 'check_play_sound':
             setting.play_sound = values['check_play_sound']
-        if event == 'text_file_path':
-            if os.path.exists(values['text_file_path']):
-                screen = screenshot.open(values['text_file_path'])
-                gui.display_image(screen.original)
-                if recog.is_result(screen.image):
-                    result_process(screen)
         if event == 'button_save' and result is not None:
             save_result(result)
         if event == 'button_save_filtered' and result is not None:

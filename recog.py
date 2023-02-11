@@ -10,7 +10,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import masks,recog_musics_filepath,backgrounds_dirpath
+from resources import masks,recog_musics_filepath
 from notes import get_notes
 from clear_type import get_clear_type_best,get_clear_type_current
 from dj_level import get_dj_level_best,get_dj_level_current
@@ -81,34 +81,13 @@ class Recognition():
 
         self.new = Recog(masks['new'])
 
-    def search_loading(self, image_result):
-        crop = image_result.crop(define.screen_areas['loading'])
-        return self.loading.find(crop)
-
     def search_music_select(self, image_result):
         crop = image_result.crop(define.screen_areas['music_select'])
         return self.music_select.find(crop)
 
-    def search_turntable(self, image_result):
-        for key in ['1P', '2P', 'DP']:
-            crop = image_result.crop(define.areas['turntable'][key])
-            if self.turntable.find(crop):
-                return True
-        return False
-
     def search_result(self, image_result):
         crop = image_result.crop(define.screen_areas['result'])
         return self.result.find(crop)
-
-    def search_trigger(self, image_result):
-        crop = image_result.crop(define.areas['trigger'])
-        return self.trigger.find(crop)
-
-    def is_ended_waiting(self, image_result):
-        if self.search_turntable(image_result):
-            return True
-        
-        return False
 
     def search_cutin_mission(self, image_result):
         crop = image_result.crop(define.areas['cutin_mission'])
@@ -125,22 +104,6 @@ class Recognition():
 
         return None
 
-    def is_result(self, image_result):
-        if not self.search_result(image_result):
-            return False
-
-        if not self.search_trigger(image_result):
-            return False
-        if self.search_cutin_mission(image_result):
-            return False
-        if self.search_cutin_bit(image_result):
-            return False
-        
-        if self.get_play_side(image_result) is not None:
-            return True
-        
-        return False
-    
     def search_dead(self, image_result, play_side):
         crop = image_result.crop(define.areas['dead'][play_side])
         return self.dead.find(crop)

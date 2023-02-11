@@ -7,54 +7,54 @@ logger.debug('loaded define.py')
 
 class Define():
     screen_areas = {
-        'loading': [400, 200, 430, 210],
-        'music_select': [24, 512, 34, 536],
-        'result': [784, 689, 790, 697]
+        'loading': (400, 200, 430, 210),
+        'music_select': (24, 512, 34, 536),
+        'result': (784, 689, 790, 697)
     }
 
     areas = {
-        "trigger": [494,18,580,30],
-        "cutin_mission": [10,10,30,25],
-        "cutin_bit": [55,49,89,64],
-        "rival": [542,578,611,592],
+        "trigger": (494,18,580,30),
+        "cutin_mission": (10,10,30,25),
+        "cutin_bit": (55,49,89,64),
+        "rival": (542,578,611,592),
         "play_side": {
-            "1P": [15,142,21,149],
-            "2P": [1260,141,1266,148]
+            "1P": (15,142,21,149),
+            "2P": (1260,141,1266,148)
         },
         "dead": {
-            "1P": [406, 168, 412, 178],
-            "2P": [822, 168, 828, 178]
+            "1P": (406, 168, 412, 178),
+            "2P": (822, 168, 828, 178)
         },
         "turntable": {
-            "1P": [48, 559, 82, 562],
-            "2P": [1199, 559, 1233, 562],
-            "DP": [304, 559, 338, 562]
+            "1P": (48, 559, 82, 562),
+            "2P": (1199, 559, 1233, 562),
+            "DP": (304, 559, 338, 562)
         }
     }
 
     value_list = {
-        'play_modes': ['SP', 'DP'],
-        'difficulties': ['BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA'],
-        'levels': ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
-        'dj_levels': ['AAA', 'AA', 'A', 'B', 'C', 'D', 'E', 'F'],
-        'play_sides': ['1P', '2P'],
-        'options_arrange': ['RANDOM', 'S-RANDOM', 'R-RANDOM', 'MIRROR', 'H-RANDOM'],
-        'options_arrange_dp': ['OFF', 'RAN', 'S-RAN', 'R-RAN', 'MIR', 'H-RAN'],
-        'options_arrange_sync': ['SYNC-RAN', 'SYMM-RAN'],
-        'options_flip': ['FLIP'],
-        'options_assist': ['A-SCR', 'LEGACY'],
-        'clear_types': ['NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR']
+        'play_modes': ('SP', 'DP'),
+        'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA'),
+        'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'),
+        'dj_levels': ('AAA', 'AA', 'A', 'B', 'C', 'D', 'E', 'F'),
+        'play_sides': ('1P', '2P'),
+        'options_arrange': ('RANDOM', 'S-RANDOM', 'R-RANDOM', 'MIRROR', 'H-RANDOM'),
+        'options_arrange_dp': ('OFF', 'RAN', 'S-RAN', 'R-RAN', 'MIR', 'H-RAN'),
+        'options_arrange_sync': ('SYNC-RAN', 'SYMM-RAN'),
+        'options_flip': ('FLIP'),
+        'options_assist': ('A-SCR', 'LEGACY'),
+        'clear_types': ('NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR')
     }
 
     informmations_trimpos = (410, 633)
     informations_trimsize = (460, 71)
 
     informations_areas = {
-        'play_mode': [82, 55, 102, 65],
-        'difficulty': [196, 58, 229, 62],
-        'level': [231, 58, 250, 62],
-        'notes': [268, 55, 324, 65],
-        'music': [153, 2, 245, 13]
+        'play_mode': (82, 55, 102, 65),
+        'difficulty': (196, 58, 229, 62),
+        'level': (231, 58, 250, 62),
+        'notes': (268, 55, 324, 65),
+        'music': (153, 2, 245, 13)
     }
 
     music_background_key_position = (0, -2)
@@ -103,28 +103,28 @@ class Define():
 
     details_trimsize = (350, 245)
     details_areas = {
-        'graph_lanes': [182, 19, 185, 20],
-        'graph_measures': [5, 0, 7, 3],
-        'option': [10, 12, 337, 16],
+        'graph_lanes': (182, 19, 185, 20),
+        'graph_measures': (5, 0, 7, 3),
+        'option': (10, 12, 337, 16),
         'clear_type': {
-            'best': [140, 81, 170, 82],
-            'current': [250, 81, 280, 82],
-            'new': [318, 65, 335, 100]
+            'best': (140, 81, 170, 82),
+            'current': (250, 81, 280, 82),
+            'new': (318, 65, 335, 100)
         },
         'dj_level': {
-            'best': [117, 120, 198, 139],
-            'current': [227, 120, 308, 139],
-            'new': [318, 113, 335, 148]
+            'best': (117, 120, 198, 139),
+            'current': (227, 120, 308, 139),
+            'new': (318, 113, 335, 148)
         },
         'score': {
-            'best': [120, 172, 196, 184],
-            'current': [220, 170, 316, 186],
-            'new': [318, 161, 335, 196]
+            'best': (120, 172, 196, 184),
+            'current': (220, 170, 316, 186),
+            'new': (318, 161, 335, 196)
         },
         'miss_count': {
-            'best': [120, 220, 196, 232],
-            'current': [220, 218, 316, 234],
-            'new': [318, 209, 335, 244]
+            'best': (120, 220, 196, 232),
+            'current': (220, 218, 316, 234),
+            'new': (318, 209, 335, 244)
         }
     }
 
@@ -157,42 +157,42 @@ class Define():
     number_pick_color_current = 205
 
     def __init__(self):
-        self.informations_trimarea = [
+        self.informations_trimarea = (
             self.informmations_trimpos[0],
             self.informmations_trimpos[1],
             self.informmations_trimpos[0] + self.informations_trimsize[0],
             self.informmations_trimpos[1] + self.informations_trimsize[1]
-        ]
+        )
 
         for i in range(4):
-            self.notes_trimareas.append([
+            self.notes_trimareas.append((
                 int(i * self.notes_trimsize[0]),
                 0,
                 int((i + 1) * self.notes_trimsize[0]),
                 self.notes_trimsize[1]
-            ])
+            ))
 
         self.details_trimarea = {}
         for play_side in self.details_trimpos.keys():
-            self.details_trimarea[play_side] = [
+            self.details_trimarea[play_side] = (
                 self.details_trimpos[play_side][0],
                 self.details_trimpos[play_side][1],
                 self.details_trimpos[play_side][0] + self.details_trimsize[0],
                 self.details_trimpos[play_side][1] + self.details_trimsize[1]
-            ]
+            )
 
         for i in range(4):
-            self.number_best_trimareas.append([
+            self.number_best_trimareas.append((
                 int(i * self.number_best_trimsize[0]),
                 0,
                 int((i + 1) * self.number_best_trimsize[0]),
                 self.number_best_trimsize[1]
-            ])
-            self.number_current_trimareas.append([
+            ))
+            self.number_current_trimareas.append((
                 int(i * self.number_current_trimsize[0]),
                 0,
                 int((i + 1) * self.number_current_trimsize[0]),
                 self.number_current_trimsize[1]
-            ])
+            ))
 
 define = Define()

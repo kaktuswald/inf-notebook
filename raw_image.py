@@ -1,5 +1,6 @@
 import os
 from logging import getLogger
+from datetime import datetime
 
 logger_child_name = 'raw_image'
 
@@ -12,6 +13,11 @@ def save_raw(screen):
     if not os.path.exists(raws_basepath):
         os.mkdir(raws_basepath)
 
-    filepath = os.path.join(raws_basepath, screen.filename)
+    now = datetime.now()
+    filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.png"
+
+    filepath = os.path.join(raws_basepath, filename)
     if not os.path.exists(filepath):
-        screen.original.save(filepath)
+        screen.save(filepath)
+    
+    return filename

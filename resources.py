@@ -17,11 +17,8 @@ resources_dirname = 'resources'
 
 masks_dirname = 'masks'
 sounds_dirname = 'sounds'
-backgrounds_dirname = 'backgrounds'
 
 sounds_dirpath = os.path.join(resources_dirname, sounds_dirname)
-
-backgrounds_dirpath = os.path.join(resources_dirname, backgrounds_dirname)
 
 recog_musics_filepath = os.path.join(resources_dirname, 'musics.json')
 recog_musics_timestamp_filepath = os.path.join(resources_dirname, 'musics_timestamp.txt')

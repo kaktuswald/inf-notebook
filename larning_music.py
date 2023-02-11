@@ -8,7 +8,7 @@ from glob import glob
 from scipy.stats import mode
 
 from define import define
-from resources import recog_musics_filepath,backgrounds_dirpath
+from resources import recog_musics_filepath
 import data_collection as dc
 
 dirname = 'larning_music'
@@ -46,9 +46,6 @@ def load_images(keys, labels):
     return images
     
 def generate_backgrounds(images, saveimage=False):
-    if not exists(backgrounds_dirpath):
-        mkdir(backgrounds_dirpath)
-
     if not exists(background_basepath):
         mkdir(background_basepath)
 
@@ -63,9 +60,6 @@ def generate_backgrounds(images, saveimage=False):
         stacks = np.stack(background_sources[background_key])
         result, counts = mode(stacks, keepdims=True)
         result_background = result.reshape(shape)
-
-        resource_filepath = join(backgrounds_dirpath, str(background_key))
-        np.save(resource_filepath, result_background)
 
         if saveimage:
             output_image = Image.fromarray(result_background)
