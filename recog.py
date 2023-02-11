@@ -71,11 +71,6 @@ class Recognition():
             list = [masks[f'{difficulty}-{level}'] for level in define.value_list['levels'] if f'{difficulty}-{level}' in masks.keys()]
             self.level[difficulty] = RecogMultiValue(list)
 
-        self.backgrounds = {}
-        for filepath in glob(join(backgrounds_dirpath, '*.npy')):
-            key = basename(filepath).replace('.npy', '')
-            self.backgrounds[key] = np.load(filepath)
-
         self.load_resource_musics()
 
         self.graph_lanes = Recog(masks['graph_lanes'])
@@ -163,6 +158,9 @@ class Recognition():
         return difficulty, None
     
     def get_music(self, image_informations):
+        if self.backgrounds is None:
+            return None
+        
         background_key = str(image_informations.getpixel(define.music_background_key_position))
         np_value = np.array(image_informations.crop(define.informations_areas['music']))
         background_removed = np.where(self.backgrounds[background_key]!=np_value, np_value, 0)
@@ -177,16 +175,16 @@ class Recognition():
         y = np.argmax(maxcounts)
         y_key = str(y)
 
-        if not y_key in self.music.keys():
+        if not y_key in self.music_recognition.keys():
             return None
         
         line = np.where(background_removed[y]==int(maxcount_values[y]), 1, 0)
         line_key = str(int(''.join(line.astype(np.str)), 2))
 
-        if not line_key in self.music[y_key].keys():
+        if not line_key in self.music_recognition[y_key].keys():
             return None
         
-        return self.music[y_key][line_key]
+        return self.music_recognition[y_key][line_key]
 
     def get_graph(self, image_details):
         if self.graph_lanes.find(image_details.crop(define.details_areas['graph_lanes'])):
@@ -303,10 +301,16 @@ class Recognition():
         )
     
     def load_resource_musics(self):
-        if exists(recog_musics_filepath):
-            with open(recog_musics_filepath) as f:
-                self.music = json.load(f)
-        else:
-            self.music = None
+        if not exists(recog_musics_filepath):
+            return
+        
+        with open(recog_musics_filepath) as f:
+            resource = json.load(f)
+        
+        self.backgrounds = {}
+        for background_key in resource['backgrounds'].keys():
+            self.backgrounds[background_key] = np.array(resource['backgrounds'][background_key])
+        
+        self.music_recognition = resource['recognition']
 
 recog = Recognition()

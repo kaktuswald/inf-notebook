@@ -136,7 +136,7 @@ def larning(images, backgrounds):
 
             report[music][key] = sum(result)
 
-    for music in [*report.keys()][:10]:
+    for music in [*report.keys()]:
         count = len(np.unique(np.array([np.sum(np_value) for np_value in report[music].values()])))
         if count != 1:
             print('not unique', music, count)
@@ -173,10 +173,8 @@ def larning(images, backgrounds):
 
     if is_ok:
         print('larning ok!')
-        with open(recog_musics_filepath, 'w') as f:
-            json.dump(map, f)
 
-    return map
+    return map if is_ok else None
 
 def check(target, arcade_all_musics, infinitas_only_musics):
     if type(target) is dict:
@@ -226,3 +224,14 @@ if __name__ == '__main__':
     recog_musics = larning(images, backgrounds)
 
     check_musics(recog_musics)
+
+    for background_key in backgrounds.keys():
+        backgrounds[background_key] = backgrounds[background_key].tolist()
+
+    output = {
+        'backgrounds': backgrounds,
+        'recognition': recog_musics
+    }
+
+    with open(recog_musics_filepath, 'w') as f:
+        json.dump(output, f)
