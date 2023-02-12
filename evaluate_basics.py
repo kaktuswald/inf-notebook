@@ -6,17 +6,14 @@ import pyautogui as pgui
 from PIL import Image
 
 from define import define
-from resources import find_images
+from resources import images
 from recog import Recognition
 from larning import raws_basepath,label_basics_filepath
 
 result_filepath = 'evaluate_basics.csv'
 
-failure = False
-
 def evaluate(filename, image, label):
-    global failure
-
+    failure = False
     results = [filename]
 
     if not 'screen' in label.keys():
@@ -24,12 +21,13 @@ def evaluate(filename, image, label):
     else:
         screen_results = []
         for key in define.searchscreen_keys:
-            if pgui.locate(find_images[key], image, grayscale=True) is not None:
+            if pgui.locate(images[key], image, grayscale=True) is not None:
                 screen_results.append(key)
         if label['screen'] == 'playing' or len(screen_results) == 1 and screen_results[0] == label['screen']:
             results.append('ok')
         else:
             results.append(','.join(screen_results))
+            print(filename, label['screen'], screen_results)
             failure = True
     
     targets = {
@@ -60,8 +58,9 @@ def evaluate(filename, image, label):
         results.append('')
         results.append('')
         results.append('')
-        results.append('!')
-        return results
+        results.append('')
+        results.append('ok!' if not failure else '')
+        return failure, results
 
     results.append('')
 
@@ -104,9 +103,9 @@ def evaluate(filename, image, label):
             results.append(f"{dead} {label['dead']}")
             failure = True
 
-    results.append('!')
+    results.append('ok!' if not failure else '')
 
-    return results
+    return failure, results
 
 if __name__ == '__main__':
     if not os.path.isfile(label_basics_filepath):
@@ -145,6 +144,7 @@ if __name__ == '__main__':
         'result'
     ]
 
+    result_failure = False
     output.append(f"file name,{','.join(headers)}\n")
     for filename in filenames:
         filepath = os.path.join(raws_basepath, filename)
@@ -155,12 +155,14 @@ if __name__ == '__main__':
 
         label = labels[filename]
 
-        results = evaluate(filename, image, label)
+        failure, results = evaluate(filename, image, label)
+        if failure:
+            result_failure = failure
 
         output.append(f"{','.join(results)}\n")
 
-    output.append(f'result, {not failure}')
-    print(not failure)
+    output.append(f'result, {not result_failure}')
+    print(not result_failure)
     
     with open(result_filepath, 'w') as f:
         f.writelines(output)

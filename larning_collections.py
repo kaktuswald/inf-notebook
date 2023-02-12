@@ -8,10 +8,9 @@ logger_child_name = 'larning'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded larning.py')
 
-from resources import create_resource_directory
 from define import define
 from data_collection import load_collections
-from larning import create_masks_directory,larning
+from larning import create_resource_directory,create_masks_directory,larning
 from notes import larning_notes
 from clear_type import larning_clear_type
 from dj_level import larning_dj_level
@@ -26,6 +25,9 @@ if __name__ == '__main__':
         print('please argment.')
         exit()
 
+    create_resource_directory()
+    create_masks_directory()
+
     collections = load_collections()
 
     if not os.path.exists(larningbase_direpath):
@@ -33,9 +35,6 @@ if __name__ == '__main__':
 
     if not os.path.exists(mask_images_dirpath):
         os.mkdir(mask_images_dirpath)
-
-    create_resource_directory()
-    create_masks_directory()
 
     play_modes = {}
     for key in define.value_list['play_modes']:

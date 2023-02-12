@@ -1,4 +1,5 @@
 from logging import getLogger
+from sys import argv
 
 logger_child_name = 'larning_basics'
 
@@ -6,10 +7,18 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded larning_basics.py')
 
 from define import define
-import larning
+from larning import create_resource_directory,create_images_directory,create_masks_directory,load_larning_sources,save_resource_image,larning,is_result_ok
 
 if __name__ == '__main__':
-    sources = larning.load_larning_sources()
+    if len(argv) == 1:
+        print('please argment.')
+        exit()
+
+    create_resource_directory()
+    create_images_directory()
+    create_masks_directory()
+
+    sources = load_larning_sources()
 
     screen_targets = {}
     turntable_targets = {}
@@ -19,7 +28,6 @@ if __name__ == '__main__':
     
     play_side_targets = {}
     dead_targets = {}
-
 
     for source in sources:
         filename = source.filename
@@ -41,7 +49,7 @@ if __name__ == '__main__':
                     find_targets[key] = {}
                 crop = source.image.crop(define.areas[key])
                 find_targets[key][source.filename] = crop
-        if larning.is_result_ok(source.label) and 'play_side' in source.label and source.label['play_side'] != '':
+        if is_result_ok(source.label) and 'play_side' in source.label and source.label['play_side'] != '':
             if source.label['play_side'] != '':
                 play_side = source.label['play_side']
                 crop = source.image.crop(define.areas['play_side'][play_side])
@@ -51,13 +59,32 @@ if __name__ == '__main__':
                     crop = source.image.crop(define.areas['dead'][play_side])
                     dead_targets[filename] = crop
 
-    for key in screen_targets.keys():
-        larning.larning(key, screen_targets[key])
+    if '-all' in argv or '-screen' in argv:
+        for key in screen_targets.keys():
+            result = save_resource_image(key, screen_targets[key])
+            if result:
+                print(f'screen {key}: {len(screen_targets[key])}')
+            else:
+                print(f'screen {key} is not unique')
 
-    larning.larning('turntable', turntable_targets)
+    if '-all' in argv or '-turntable' in argv:
+        result = save_resource_image('turntable', turntable_targets)
+        if result:
+            print(f'turntable: {len(turntable_targets)}')
+        else:
+            print(f'turntable is not unique')
 
-    for key in find_targets.keys():
-        larning.larning(key, find_targets[key])
+    if '-all' in argv or '-trigger' in argv:
+        larning('trigger', find_targets['trigger'])
+
+    if '-all' in argv or '-cutin' in argv:
+        larning('cutin_mission', find_targets['cutin_mission'])
+        larning('cutin_bit', find_targets['cutin_bit'])
+
+    if '-all' in argv or '-rival' in argv:
+        larning('rival', find_targets['rival'])
     
-    larning.larning('play_side', play_side_targets)
-    larning.larning('dead', dead_targets)
+    if '-all' in argv or '-playside' in argv:
+        larning('play_side', play_side_targets)
+    if '-all' in argv or '-dead' in argv:
+        larning('dead', dead_targets)

@@ -16,8 +16,8 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.manage as gui
-from resources import find_images
 from define import define
+from resources import images
 from screenshot import Screenshot
 from larning import RawLabel,raws_basepath
 
@@ -39,8 +39,8 @@ def screenshot_process():
 
 def find():
     window['result_screen'].update('')
-    for key in find_images.keys():
-        box = pgui.locate(find_images[key], screen.monochrome, grayscale=True)
+    for key in define.searchscreen_keys:
+        box = pgui.locate(images[key], screen.monochrome, grayscale=True)
         area = define.areas[key]
         if not box is None and box.left == area[0] and box.top == area[1]:
             window['result_screen'].update(key)
@@ -115,6 +115,12 @@ if __name__ == '__main__':
             gui.feedback()
         if event == 'search_all':
             window['list_screens'].update(filenames)
+        if event == 'search_only_music_select':
+            targets = [filename for filename in filenames if labels.get(filename) is not None and 'screen' in labels.get(filename).keys() and labels.get(filename)['screen'] == 'music_select']
+            window['list_screens'].update(targets)
+        if event == 'search_only_playing':
+            targets = [filename for filename in filenames if labels.get(filename) is not None and 'screen' in labels.get(filename).keys() and labels.get(filename)['screen'] == 'playing']
+            window['list_screens'].update(targets)
         if event == 'search_only_result':
             targets = [filename for filename in filenames if labels.get(filename) is not None and 'screen' in labels.get(filename).keys() and labels.get(filename)['screen'] == 'result']
             window['list_screens'].update(targets)

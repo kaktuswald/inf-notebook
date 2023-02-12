@@ -10,6 +10,7 @@ from scipy.stats import mode
 from define import define
 from resources import recog_musics_filepath
 import data_collection as dc
+from larning import create_resource_directory
 
 dirname = 'larning_music'
 
@@ -21,6 +22,8 @@ music_inspection_basepath = join(dirname, 'inspection')
 
 arcadeallmusics_filename = 'musics_arcade_all.txt'
 infinitasonlymusics_filename = 'musics_infinitas_only.txt'
+registred_musics_filename = 'musics_registred.txt'
+missing_musics_filename = 'musics_missing_in_arcade.txt'
 
 area = define.informations_areas['music']
 width = area[2] - area[0]
@@ -165,10 +168,12 @@ def larning(images, backgrounds):
                     output_filepath = join(music_inspection_basepath, f'{output_name}_{index}.png')
                     output_image.save(output_filepath)
 
+    print(f'music count: {len(musics)}')
+
     if is_ok:
         print('larning ok!')
 
-    return map if is_ok else None
+    return [*musics.keys()], map if is_ok else None
 
 def check(target, arcade_all_musics, infinitas_only_musics):
     if type(target) is dict:
@@ -178,7 +183,7 @@ def check(target, arcade_all_musics, infinitas_only_musics):
         if not target in arcade_all_musics and not target in infinitas_only_musics:
             print(f"not found: {target}({target.encode('unicode-escape').decode()})")
 
-def check_musics(recog_musics):
+def check_musics(musics, recog_musics):
     with open(arcadeallmusics_filename, 'r', encoding='utf-8') as f:
         arcade_all_musics = f.read().split('\n')
 
@@ -194,6 +199,8 @@ def check_musics(recog_musics):
 
     check(recog_musics, arcade_all_musics, infinitas_only_musics)
 
+    return [music for music in arcade_all_musics if not music in musics]
+
 if __name__ == '__main__':
     if not isfile(dc.label_filepath):
         print(f"{dc.label_filepath}が見つかりませんでした。")
@@ -206,6 +213,8 @@ if __name__ == '__main__':
         print(f"{dc.label_filepath}を読み込めませんでした。")
         exit()
 
+    create_resource_directory()
+
     output = []
 
     keys = [key for key in labels.keys() if labels[key]['informations'] is not None and labels[key]['informations']['music'] != '']
@@ -215,9 +224,9 @@ if __name__ == '__main__':
 
     backgrounds = generate_backgrounds(images, '-savebackground' in argv)
 
-    recog_musics = larning(images, backgrounds)
+    musics, recog_musics = larning(images, backgrounds)
 
-    check_musics(recog_musics)
+    missing_musics = check_musics(musics, recog_musics)
 
     for background_key in backgrounds.keys():
         backgrounds[background_key] = backgrounds[background_key].tolist()
@@ -229,3 +238,10 @@ if __name__ == '__main__':
 
     with open(recog_musics_filepath, 'w') as f:
         json.dump(output, f)
+
+    with open(registred_musics_filename, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(musics))
+
+    with open(missing_musics_filename, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(missing_musics))
+

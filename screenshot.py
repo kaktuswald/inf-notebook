@@ -10,7 +10,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded screenshot.py')
 
 from define import define
-from resources import find_images
+from resources import images
 from recog import recog
 
 class Screen:
@@ -30,7 +30,7 @@ class Screenshot:
 
     def find(self):
         key = define.searchscreen_keys[self.search_screen_keyindex]
-        box =  pgui.locate(find_images[key], self.image, grayscale=True)
+        box =  pgui.locate(images[key], self.image, grayscale=True)
         if box is None:
             self.search_screen_keyindex = (self.search_screen_keyindex + 1) % len(define.searchscreen_keys)
             return False

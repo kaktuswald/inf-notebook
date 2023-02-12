@@ -9,7 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import masks,recog_musics_filepath
+from resources import images,masks,recog_musics_filepath
 from notes import get_notes
 from clear_type import get_clear_type_best,get_clear_type_current
 from dj_level import get_dj_level_best,get_dj_level_current
@@ -43,10 +43,11 @@ class Recognition():
     def __init__(self):
         logger.debug('generate Recognition')
 
-        self.loading = Recog(masks['loading'])
-        self.music_select = Recog(masks['music_select'])
-        self.turntable = Recog(masks['turntable'])
-        self.result = Recog(masks['result'])
+        self.loading = np.array(images['loading'])
+        self.music_select = np.array(images['music_select'])
+        self.turntable = np.array(images['turntable'])
+        self.result = np.array(images['result'])
+
         self.trigger = Recog(masks['trigger'])
         self.cutin_mission = Recog(masks['cutin_mission'])
         self.cutin_bit = Recog(masks['cutin_bit'])
@@ -82,19 +83,19 @@ class Recognition():
     
     def get_is_screen_loading(self, image_cropped):
         monochrome = image_cropped.convert('L')
-        return self.loading.find(monochrome)
+        return np.array_equal(self.loading, np.array(monochrome))
 
     def get_is_screen_music_select(self, image_cropped):
         monochrome = image_cropped.convert('L')
-        return self.music_select.find(monochrome)
+        return np.array_equal(self.music_select, np.array(monochrome))
 
     def get_is_screen_playing(self, image_cropped):
         monochrome = image_cropped.convert('L')
-        return self.turntable.find(monochrome)
+        return np.array_equal(self.turntable, np.array(monochrome))
 
     def get_is_screen_result(self, image_cropped):
         monochrome = image_cropped.convert('L')
-        return self.result.find(monochrome)
+        return np.array_equal(self.result, np.array(monochrome))
 
     def get_has_trigger(self, image_result):
         crop = image_result.crop(define.areas['trigger'])

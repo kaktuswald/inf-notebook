@@ -179,9 +179,11 @@ def layout_manage(filenames):
                     ], pad=0, background_color=background_color),
                     sg.Listbox(filenames, key='list_screens', size=(27, 20), enable_events=True),
                     sg.Column([
-                        [sg.Radio('すべて', default=True, key='search_all', group_id='search', enable_events=True)],
-                        [sg.Radio('リザルトのみ', key='search_only_result', group_id='search', enable_events=True)]
-                    ])
+                        [sg.Radio('すべて', default=True, key='search_all', group_id='search', enable_events=True, background_color=background_color)],
+                        [sg.Radio('選曲のみ', key='search_only_music_select', group_id='search', enable_events=True, background_color=background_color)],
+                        [sg.Radio('プレイ中のみ', key='search_only_playing', group_id='search', enable_events=True, background_color=background_color)],
+                        [sg.Radio('リザルトのみ', key='search_only_result', group_id='search', enable_events=True, background_color=background_color)]
+                    ], pad=0, background_color=background_color)
                 ],
                 [
                     sg.Column(area_define, size=(300, 350), background_color=in_area_background_color),

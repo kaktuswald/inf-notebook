@@ -7,7 +7,7 @@ from define import define
 from recog import Recognition
 import data_collection as dc
 
-result_filepath = 'evaluate_collection.csv'
+result_filepath = 'evaluate_collections.csv'
 
 failure = False
 
