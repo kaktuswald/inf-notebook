@@ -160,6 +160,18 @@ class Define():
     )
     number_pick_color_current = 205
 
+    filter_ranking_size = (386, 504)
+    filter_ranking_position = {
+        '1P': (876, 175),
+        '2P': (20, 175)
+    }
+
+    filter_areas = {
+        'ranking': {},
+        'graphtarget_name': {},
+        'loveletter': (527, 449, 760, 623)
+    }
+
     def __init__(self):
         self.informations_trimarea = (
             self.informmations_trimpos[0],
@@ -198,5 +210,21 @@ class Define():
                 int((i + 1) * self.number_current_trimsize[0]),
                 self.number_current_trimsize[1]
             ))
+        
+        for key in self.filter_ranking_position.keys():
+            self.filter_areas['ranking'][key] = (
+                self.filter_ranking_position[key][0],
+                self.filter_ranking_position[key][1],
+                self.filter_ranking_position[key][0] + self.filter_ranking_size[0],
+                self.filter_ranking_position[key][1] + self.filter_ranking_size[1]
+            )
+
+        for key in self.details_trimpos.keys():
+            self.filter_areas['graphtarget_name'][key] = (
+                self.details_trimpos[key][0] + self.details_areas['graphtarget']['name'][0],
+                self.details_trimpos[key][1] + self.details_areas['graphtarget']['name'][1],
+                self.details_trimpos[key][0] + self.details_areas['graphtarget']['name'][2],
+                self.details_trimpos[key][1] + self.details_areas['graphtarget']['name'][3]
+            )
 
 define = Define()

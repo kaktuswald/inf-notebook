@@ -7,7 +7,7 @@ logger_child_name = 'result'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded result.py')
 
-from filter import blur
+from filter import filter
 
 results_basepath = 'results'
 filterd_basepath = 'filtered'
@@ -74,8 +74,8 @@ class Result():
         if not os.path.exists(filterd_basepath):
             os.mkdir(filterd_basepath)
 
-        blured = blur(self.image, self.play_side, self.rival)
+        filtered = filter(self)
         filepath = os.path.join(filterd_basepath, f'{self.timestamp}.jpg')
-        blured.save(filepath)
+        filtered.save(filepath)
 
-        return blured
+        return filtered
