@@ -27,12 +27,13 @@ class ResultValues():
         self.new = new
 
 class ResultDetails():
-    def __init__(self, options, clear_type, dj_level, score, miss_count):
+    def __init__(self, options, clear_type, dj_level, score, miss_count, graphtarget):
         self.options = options
         self.clear_type = clear_type
         self.dj_level = dj_level
         self.score = score
         self.miss_count = miss_count
+        self.graphtarget = graphtarget
 
 class ResultOptions():
     def __init__(self, arrange, flip, assist, battle):

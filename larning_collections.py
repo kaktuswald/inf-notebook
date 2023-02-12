@@ -16,6 +16,7 @@ from clear_type import larning_clear_type
 from dj_level import larning_dj_level
 from number_current import larning_number_current
 from number_best import larning_number_best
+from graphtarget import larning_graphtarget
 
 larningbase_direpath = 'larning'
 mask_images_dirpath = os.path.join(larningbase_direpath, 'mask_images')
@@ -70,6 +71,7 @@ if __name__ == '__main__':
     dj_levels = {}
     numbers_best = {}
     numbers_current = {}
+    graphtargets = {}
     
     news = {}
     
@@ -147,14 +149,14 @@ if __name__ == '__main__':
                 if key_clear_type in label['details'] and label['details'][key_clear_type] != '':
                     clear_types[f'{collection.key}_{key}'] = {
                         'value': label['details'][key_clear_type],
-                        'np': np.array(image.crop(define.details_areas['clear_type'][key])),
+                        'np': np.array(image.crop(define.details_areas['clear_type'][key]))
                     }
 
                 key_dj_level = f'dj_level_{key}'
                 if key_dj_level in label['details'] and label['details'][key_dj_level] != '':
                     dj_levels[f'{collection.key}_{key}'] = {
                         'value': label['details'][key_dj_level],
-                        'np': np.array(image.crop(define.details_areas['dj_level'][key])),
+                        'np': np.array(image.crop(define.details_areas['dj_level'][key]))
                     }
 
             for key in ['score', 'miss_count']:
@@ -187,6 +189,12 @@ if __name__ == '__main__':
                         }
                         value /= 10
                         digit += 1
+            
+            if 'graphtarget' in label['details'] and label['details']['graphtarget'] != '':
+                graphtargets[collection.key] = {
+                    'value': label['details']['graphtarget'],
+                    'np': np.array(image.crop(define.details_areas['graphtarget']['label']))
+                }
 
             for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
                 if label['details'][f'{key}_new']:
@@ -224,6 +232,9 @@ if __name__ == '__main__':
     if '-all' in argv or '-number' in argv:
         larning_number_best(numbers_best)
         larning_number_current(numbers_current)
+
+    if '-all' in argv or '-graphtarget' in argv:
+        larning_graphtarget(graphtargets)
 
     if '-all' in argv or '-new' in argv:
         larning('new', news)

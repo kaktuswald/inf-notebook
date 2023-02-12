@@ -92,12 +92,12 @@ if __name__ == '__main__':
             if label['details']['dj_level_best'] != '':
                 targets[f'{collection.key}_best'] = {
                     'value': label['details']['dj_level_best'],
-                    'np': np.array(image.crop(area))
+                    'np': np.array(image.crop(area_best))
                 }
             if label['details']['dj_level_current'] != '':
                 targets[f'{collection.key}_current'] = {
                     'value': label['details']['dj_level_current'],
-                    'np': np.array(image.crop(area))
+                    'np': np.array(image.crop(area_current))
                 }
 
     larning_dj_level(targets)

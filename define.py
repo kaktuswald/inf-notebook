@@ -42,7 +42,8 @@ class Define():
         'options_arrange_sync': ('SYNC-RAN', 'SYMM-RAN'),
         'options_flip': ('FLIP'),
         'options_assist': ('A-SCR', 'LEGACY'),
-        'clear_types': ('NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR')
+        'clear_types': ('NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR'),
+        'graphtargets': ('pacemaker', 'rival')
     }
 
     informmations_trimpos = (410, 633)
@@ -100,7 +101,7 @@ class Define():
         '2P': (905, 192),
     }
 
-    details_trimsize = (350, 245)
+    details_trimsize = (350, 293)
     details_areas = {
         'graph_lanes': (182, 19, 185, 20),
         'graph_measures': (5, 0, 7, 3),
@@ -124,6 +125,10 @@ class Define():
             'best': (120, 220, 196, 232),
             'current': (220, 218, 316, 234),
             'new': (318, 209, 335, 244)
+        },
+        'graphtarget': {
+            'label': (5, 268, 100, 280),
+            'name': (110, 265, 200, 282)
         }
     }
 

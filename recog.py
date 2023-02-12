@@ -15,6 +15,7 @@ from clear_type import get_clear_type_best,get_clear_type_current
 from dj_level import get_dj_level_best,get_dj_level_current
 from number_best import get_best_score,get_best_miss_count
 from number_current import get_current_score,get_current_miss_count
+from graphtarget import get_graphtarget
 from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,Result
 
 class Recog():
@@ -270,8 +271,9 @@ class Recognition():
             get_current_miss_count(image_details),
             not self.new.find(image_details.crop(define.details_areas['miss_count']['new']))
         )
+        graphtarget = get_graphtarget(image_details)
 
-        return ResultDetails(options, clear_type, dj_level, score, miss_count)
+        return ResultDetails(options, clear_type, dj_level, score, miss_count, graphtarget)
 
     def get_result(self, screen):
         trim_informations = screen.monochrome.crop(define.informations_trimarea)

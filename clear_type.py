@@ -90,12 +90,12 @@ if __name__ == '__main__':
             if label['details']['clear_type_best'] != '':
                 targets[f'{collection.key}_best'] = {
                     'value': label['details']['clear_type_best'],
-                    'np': np.array(image.crop(area))
+                    'np': np.array(image.crop(area_best))
                 }
             if label['details']['clear_type_current'] != '':
                 targets[f'{collection.key}_current'] = {
                     'value': label['details']['clear_type_current'],
-                    'np': np.array(image.crop(area))
+                    'np': np.array(image.crop(area_current))
                 }
 
     larning_clear_type(targets)

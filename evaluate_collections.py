@@ -162,8 +162,21 @@ def evaluate(filename, informations, details, key, label):
                     failure = True
             else:
                 results.append('??')
+        
+        if 'graphtarget' in label['details']:
+            v1 = recog_details.graphtarget
+            v2 = label['details']['graphtarget']
+            if (v1 is None and v2 == '') or v1 == v2:
+                results.append('ok')
+            else:
+                results.append(f'{v1} {v2}')
+                failure = True
+        else:
+            results.append('??')
 
     else:
+        results.append('')
+        results.append('')
         results.append('')
         results.append('')
         results.append('')
@@ -232,6 +245,7 @@ if __name__ == '__main__':
         'miss_count_best',
         'miss_count_current',
         'miss_count_new',
+        'graphtarget',
         'result'
     ]
 

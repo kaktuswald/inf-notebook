@@ -117,7 +117,8 @@ if __name__ == '__main__':
                     'score_new': values['score_new'],
                     'miss_count_best': values['miss_count_best'],
                     'miss_count_current': values['miss_count_current'],
-                    'miss_count_new': values['miss_count_new']
+                    'miss_count_new': values['miss_count_new'],
+                    'graphtarget': values['graphtarget']
                 }
             else:
                 details = None

@@ -86,6 +86,10 @@ def layout_manage(keys):
             sg.Text(key='result_miss_count_best', size=(10, 1), background_color=in_area_background_color),
             sg.Text(key='result_miss_count_current', size=(10, 1), background_color=in_area_background_color),
             sg.Text('NEW', visible=False, key='result_miss_count_new', background_color=in_area_background_color)
+        ],
+        [
+            sg.Text('グラフターゲット', size=(21, 1)),
+            sg.Text(key='result_graphtarget', size=(10, 1), background_color=in_area_background_color)
         ]
     ]
 
@@ -172,6 +176,10 @@ def layout_manage(keys):
             sg.Checkbox('NEW', key='miss_count_new', disabled=True, background_color=in_area_background_color)
         ],
         [
+            sg.Text('グラフターゲット', size=(15, 1)),
+            sg.Combo(selectable_value_list['graphtargets'], key='graphtarget', size=(11, 1), readonly=True, disabled=True)
+        ],
+        [
             sg.Button('アノテーション保存', key='button_label_overwrite'),
             sg.Button('認識結果から引用', key='button_recog')
         ],
@@ -188,15 +196,15 @@ def layout_manage(keys):
                         [sg.Image(key='image_informations', size=define.informations_trimsize, background_color=background_color)],
                         [sg.Image(key='image_details', size=define.details_trimsize, background_color=background_color)]
                     ], background_color=background_color),
-                    sg.Listbox(keys, key='list_keys', size=(20, 20), enable_events=True),
+                    sg.Listbox(keys, key='list_keys', size=(24, 22), enable_events=True),
                 ],
                 [
-                    sg.Column(result_informations, size=(300, 255), background_color=in_area_background_color),
-                    sg.Column(result_details, size=(350, 255), background_color=in_area_background_color)
+                    sg.Column(result_informations, size=(300, 270), background_color=in_area_background_color),
+                    sg.Column(result_details, size=(350, 270), background_color=in_area_background_color)
                 ],
             ], pad=0, background_color=background_color),
             sg.Column([
-                [sg.Column(manage_label_define, size=(410,605), background_color=in_area_background_color)],
+                [sg.Column(manage_label_define, size=(410,645), background_color=in_area_background_color)],
             ], pad=0, background_color=background_color)
         ]
     ]
@@ -249,7 +257,7 @@ def display_details(image):
     if image is not None:
         bytes = io.BytesIO()
         image.save(bytes, format='PNG')
-        window['image_details'].update(data=bytes.getvalue(),visible=True)
+        window['image_details'].update(data=bytes.getvalue(),visible=True,size=define.details_trimsize)
     else:
         window['image_details'].update(visible=False)
 
@@ -308,6 +316,7 @@ def reset_details():
     window['result_miss_count_best'].update('')
     window['result_miss_count_current'].update('')
     window['result_miss_count_new'].update(visible=False)
+    window['result_graphtarget'].update('')
 
 def set_details(image):
     window['has_details'].update(True)
@@ -344,6 +353,7 @@ def set_details(image):
     window['result_miss_count_best'].update(miss_count.best if miss_count.best is not None else '')
     window['result_miss_count_current'].update(miss_count.current if miss_count.current is not None else '')
     window['result_miss_count_new'].update(visible=miss_count.new)
+    window['result_graphtarget'].update(details.graphtarget if details.graphtarget is not None else '')
 
 def set_result():
     window['play_mode'].update(window['result_play_mode'].get())
@@ -383,6 +393,7 @@ def set_result():
     window['miss_count_best'].update(window['result_miss_count_best'].get())
     window['miss_count_current'].update(window['result_miss_count_current'].get())
     window['miss_count_new'].update(window['result_miss_count_new'].visible)
+    window['graphtarget'].update(window['result_graphtarget'].get())
 
     window['music'].set_focus()
 
@@ -414,6 +425,7 @@ def set_labels(label):
         window['miss_count_best'].update('')
         window['miss_count_current'].update('')
         window['miss_count_new'].update('')
+        window['graphtarget'].update('')
         return
 
     window['has_informations'].update(label['informations'] is not None)
@@ -458,6 +470,7 @@ def set_labels(label):
         window['miss_count_best'].update(label['details']['miss_count_best'] if 'miss_count_best' in label['details'].keys() else '')
         window['miss_count_current'].update(label['details']['miss_count_current'])
         window['miss_count_new'].update(label['details']['miss_count_new'])
+        window['graphtarget'].update(label['details']['graphtarget'] if 'graphtarget' in label['details'].keys() else '')
     else:
         for key in ['default', 'lanes', 'measures']:
             window[f'display_{key}'].update(False)
@@ -480,6 +493,7 @@ def set_labels(label):
         window['miss_count_best'].update('')
         window['miss_count_current'].update('')
         window['miss_count_new'].update('')
+        window['graphtarget'].update('')
 
 def switch_informations_controls():
     value = window['has_informations'].get()
@@ -514,6 +528,7 @@ def switch_details_controls():
     window['miss_count_best'].update(disabled=not value)
     window['miss_count_current'].update(disabled=not value)
     window['miss_count_new'].update(disabled=not value)
+    window['graphtarget'].update(disabled=not value)
 
 def change_search_condition(keys, labels):
     if window['only_not_annotation'].get():

@@ -2,7 +2,7 @@ import os
 import io
 from google.cloud import storage
 import uuid
-from PIL import Image
+from PIL import Image,ImageDraw
 
 from threading import Thread
 from logging import getLogger
@@ -22,6 +22,17 @@ object_name_musics = 'musics.json'
 
 informations_dirname = 'informations'
 details_dirname = 'details'
+
+rivalname_fillbox = (
+    (
+        define.details_areas['graphtarget']['name'][0],
+        define.details_areas['graphtarget']['name'][1]
+    ),
+    (
+        define.details_areas['graphtarget']['name'][2],
+        define.details_areas['graphtarget']['name'][3]
+    )
+)
 
 class StorageAccessor():
     client = None
@@ -142,14 +153,17 @@ class StorageAccessor():
             details_trim = True
         if result.details.score.current is None:
             details_trim = True
+        if result.details.graphtarget is None:
+            details_trim = True
 
         if informations_trim:
             trim = screen.monochrome.crop(define.informations_trimarea)
             Thread(target=self.upload_informations, args=(object_name, trim,)).start()
-
         if details_trim:
             play_side = result.play_side
             trim = screen.monochrome.crop(define.details_trimarea[play_side])
+            image_draw = ImageDraw.Draw(trim)
+            image_draw.rectangle(rivalname_fillbox, fill=0)
             Thread(target=self.upload_details, args=(object_name, trim,)).start()
     
     def upload_resource_musics(self, filepath):
