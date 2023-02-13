@@ -130,7 +130,7 @@ def larning(images, backgrounds):
             target = target[color_key]
 
             line = np.where(background_removed[y]==color, 1, 0)
-            line_key = str(int(''.join(line.astype(np.str)), 2))
+            line_key = str(int(''.join(line.astype(str)), 2))
             if type(line_key) is not str:
                 print(line_key)
 

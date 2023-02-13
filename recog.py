@@ -173,7 +173,7 @@ class Recognition():
             return None
 
         line = np.where(background_removed[y]==color, 1, 0)
-        line_key = str(int(''.join(line.astype(np.str)), 2))
+        line_key = str(int(''.join(line.astype(str)), 2))
         if not line_key in self.music_recognition[y_key][color_key].keys():
             return None
         
