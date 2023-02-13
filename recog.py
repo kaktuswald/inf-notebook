@@ -162,18 +162,22 @@ class Recognition():
             maxcounts.append(counts[np.argmax(counts[dark_count:])+dark_count] if len(counts) > dark_count else 0)
             maxcount_values.append(unique[np.argmax(counts[dark_count:])+dark_count] if len(unique) > dark_count else 0)
         y = np.argmax(maxcounts)
-        y_key = str(y)
+        color = int(maxcount_values[y])
 
+        y_key = str(y)
         if not y_key in self.music_recognition.keys():
             return None
-        
-        line = np.where(background_removed[y]==int(maxcount_values[y]), 1, 0)
-        line_key = str(int(''.join(line.astype(np.str)), 2))
 
-        if not line_key in self.music_recognition[y_key].keys():
+        color_key = str(color)
+        if not color_key in self.music_recognition[y_key].keys():
+            return None
+
+        line = np.where(background_removed[y]==color, 1, 0)
+        line_key = str(int(''.join(line.astype(np.str)), 2))
+        if not line_key in self.music_recognition[y_key][color_key].keys():
             return None
         
-        return self.music_recognition[y_key][line_key]
+        return self.music_recognition[y_key][color_key][line_key]
 
     def get_graph(self, image_details):
         if self.graph_lanes.find(image_details.crop(define.details_areas['graph_lanes'])):

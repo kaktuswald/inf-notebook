@@ -56,28 +56,28 @@ def larning_graphtarget(targets):
             table[mode] = {}
         
         count = np.count_nonzero(flattend==mode)
-        if count in table[mode].keys() and table[mode][count] != value:
-            print(f'{mode} {count}')
-            print(f'{key}: {value}')
-            print(f'{keys[mode][count]}: {table[mode][count]}')
-            print("NG")
-            return
-        table[mode][count] = value
-        values.append(value)
+        if count in table[mode].keys():
+            if table[mode][count] != value:
+                print(f'{mode} {count}')
+                print(f'{key}: {value}')
+                print(f'{keys[mode][count]}: {table[mode][count]}')
+                print("NG")
+                return
+        else:
+            table[mode][count] = value
+            values.append(value)
 
     uniques, counts = np.unique(np.array(values), return_counts=True)
-    print(uniques, counts)
     multicount_values = [value for value in np.where(counts>=2,uniques,None) if value is not None]
     if len(multicount_values) != 0:
         print(multicount_values)
         print('NG')
         return
 
-    for key, value in table.items():
-        print(key, value)
-    
     with open(filepath, 'wb') as f:
         pickle.dump(table, f)
+    
+    return table
 
 if __name__ == '__main__':
     collections = load_collections()
@@ -95,3 +95,5 @@ if __name__ == '__main__':
                 }
 
     larning_graphtarget(targets)
+
+    print(table)

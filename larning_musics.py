@@ -6,6 +6,7 @@ from os.path import join,isfile,exists
 import numpy as np
 from glob import glob
 from scipy.stats import mode
+import time
 
 from define import define
 from resources import recog_musics_filepath
@@ -97,6 +98,7 @@ def larning(images, backgrounds):
 
             background_key = image.background_key
             np_value = image.np_value
+            np_values[key].append(np_value)
 
             background_removed = np.where(backgrounds[background_key]!=np_value, np_value, 0)
             np_values[key].append(background_removed)
@@ -110,6 +112,7 @@ def larning(images, backgrounds):
                 maxcount_values.append(unique[np.argmax(counts[dark_count:])+dark_count] if len(unique) > dark_count else 0)
 
             y = np.argmax(maxcounts)
+            color = int(maxcount_values[y])
 
             mask = np.zeros(np_value.shape)
             mask[np.argmax(maxcounts),:] = maxcount_values[y]
@@ -121,23 +124,30 @@ def larning(images, backgrounds):
                 map[y_key] = {}
             target = map[y_key]
 
-            line = np.where(background_removed[y]==int(maxcount_values[y]), 1, 0)
+            color_key = str(color)
+            if not color_key in target.keys():
+                target[color_key] = {}
+            target = target[color_key]
+
+            line = np.where(background_removed[y]==color, 1, 0)
             line_key = str(int(''.join(line.astype(np.str)), 2))
+            if type(line_key) is not str:
+                print(line_key)
 
             if line_key in target.keys() and target[line_key] != music:
                 print('duplicate', music, target[line_key], key)
                 inspect_targets.append(music)
                 inspect_targets.append(target[line_key])
                 is_ok = False
+
             target[line_key] = music
 
             report[music][key] = sum(result)
 
     for music in [*report.keys()]:
         count = len(np.unique(np.array([np.sum(np_value) for np_value in report[music].values()])))
-        if count != 1:
-            print('not unique', music, count)
-            print([f'{key}: {np.sum(item)}' for key, item in report[music].items()])
+        if len(inspect_targets) < 2 and count != 1:
+            print('not unique', music, count, [f'{key}: {np.sum(item)}' for key, item in report[music].items()])
             inspect_targets.append(music)
     
     if len(inspect_targets) > 0:
@@ -171,7 +181,7 @@ def larning(images, backgrounds):
     print(f'music count: {len(musics)}')
 
     if is_ok:
-        print('larning ok!')
+        print('larning OK!')
 
     return [*musics.keys()], map if is_ok else None
 
@@ -180,7 +190,7 @@ def check(target, arcade_all_musics, infinitas_only_musics):
         for value in target.values():
             check(value, arcade_all_musics, infinitas_only_musics)
     else:
-        if not target in arcade_all_musics and not target in infinitas_only_musics:
+        if target is not None and not target in arcade_all_musics and not target in infinitas_only_musics:
             print(f"not found: {target}({target.encode('unicode-escape').decode()})")
 
 def check_musics(musics, recog_musics):
@@ -224,7 +234,9 @@ if __name__ == '__main__':
 
     backgrounds = generate_backgrounds(images, '-savebackground' in argv)
 
+    start = time.time()
     musics, recog_musics = larning(images, backgrounds)
+    print(f'time: {time.time() - start}')
 
     missing_musics = check_musics(musics, recog_musics)
 

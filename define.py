@@ -6,7 +6,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded define.py')
 
 class Define():
-    searchscreen_keys = ['loading', 'music_select', 'result']
+    searchscreen_keys = ('loading', 'music_select', 'result',)
 
     areas = {
         'loading': [400, 200, 430, 210],
@@ -32,18 +32,18 @@ class Define():
     }
 
     value_list = {
-        'play_modes': ('SP', 'DP'),
-        'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA'),
-        'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'),
-        'dj_levels': ('AAA', 'AA', 'A', 'B', 'C', 'D', 'E', 'F'),
-        'play_sides': ('1P', '2P'),
-        'options_arrange': ('RANDOM', 'S-RANDOM', 'R-RANDOM', 'MIRROR', 'H-RANDOM'),
-        'options_arrange_dp': ('OFF', 'RAN', 'S-RAN', 'R-RAN', 'MIR', 'H-RAN'),
-        'options_arrange_sync': ('SYNC-RAN', 'SYMM-RAN'),
-        'options_flip': ('FLIP'),
-        'options_assist': ('A-SCR', 'LEGACY'),
-        'clear_types': ('NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR'),
-        'graphtargets': ('pacemaker', 'rival')
+        'play_modes': ('SP', 'DP',),
+        'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA',),
+        'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',),
+        'dj_levels': ('AAA', 'AA', 'A', 'B', 'C', 'D', 'E', 'F',),
+        'play_sides': ('1P', '2P',),
+        'options_arrange': ('RANDOM', 'S-RANDOM', 'R-RANDOM', 'MIRROR', 'H-RANDOM',),
+        'options_arrange_dp': ('OFF', 'RAN', 'S-RAN', 'R-RAN', 'MIR', 'H-RAN',),
+        'options_arrange_sync': ('SYNC-RAN', 'SYMM-RAN',),
+        'options_flip': ('FLIP',),
+        'options_assist': ('A-SCR', 'LEGACY',),
+        'clear_types': ('NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR',),
+        'graphtargets': ('none', 'my best', 'pacemaker', 'rival', 'rival top', 'area top',)
     }
 
     informmations_trimpos = (410, 633)
@@ -61,15 +61,15 @@ class Define():
     
     notes_trimsize = (14, 10)
     notes_trimareas = []
-    notes_segments = (
+    notes_segments = [
         (0, 6),
         (4, 6),
         (9, 6),
         (2, 2),
         (6, 2),
         (2, 9),
-        (6, 9)
-    )
+        (6, 9),
+    ]
     notes_color = 255
 
     option_trimsize = (57, 4)
@@ -128,7 +128,7 @@ class Define():
         },
         'graphtarget': {
             'label': (5, 268, 100, 280),
-            'name': (110, 265, 200, 282)
+            'name': (115, 265, 200, 282)
         }
     }
 
@@ -143,7 +143,7 @@ class Define():
         (3, 3),
         (8, 3),
         (3, 15),
-        (8, 15)
+        (8, 15),
     )
     number_pick_color_best = 255
 
@@ -156,7 +156,7 @@ class Define():
         (4, 3),
         (10, 3),
         (4, 19),
-        (10, 19)
+        (10, 19),
     )
     number_pick_color_current = 205
 

@@ -9,10 +9,8 @@ import data_collection as dc
 
 result_filepath = 'evaluate_collections.csv'
 
-failure = False
-
 def evaluate(filename, informations, details, key, label):
-    global failure
+    failure = False
 
     results = [filename]
     
@@ -195,11 +193,10 @@ def evaluate(filename, informations, details, key, label):
         results.append('')
         results.append('')
         results.append('')
-        results.append('')
     
-    results.append('!')
+    results.append('ok' if not failure else 'NG')
 
-    return results
+    return failure, results
 
 if __name__ == '__main__':
     if not os.path.isfile(dc.label_filepath):
@@ -216,6 +213,7 @@ if __name__ == '__main__':
     recog = Recognition()
 
     output = []
+    failured = []
 
     keys = [*labels.keys()]
     print(f"file count: {len(keys)}")
@@ -267,12 +265,18 @@ if __name__ == '__main__':
 
         label = labels[key]
 
-        results = evaluate(filename, informations_image, details_image, key, label)
+        failure, results = evaluate(filename, informations_image, details_image, key, label)
+        if failure:
+            failured.append(filename)
+            result_failure = True
 
         output.append(f"{','.join(results)}\n")
     
     output.append(f'result, {not failure}')
-    print(not failure)
+    if len(failured) == 0:
+        print('OK')
+    else:
+        print(failured)
     
     with open(result_filepath, 'w', encoding='utf-8') as f:
         f.writelines(output)
