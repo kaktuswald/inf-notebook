@@ -40,7 +40,7 @@ thread_time_normal = 0.37
 thread_time_wait = 2
 thread_count_wait = int(30 / thread_time_wait)
 
-latest_url = 'https://github.com/kaktuswald/inf-notebook/wiki'
+latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 
 class ThreadMain(threading.Thread):
     positioned = False
