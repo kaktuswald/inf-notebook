@@ -49,7 +49,7 @@ def layout_main(setting):
                 vertical_scroll_only=True,
                 col_widths=column_widths,
                 visible_column_map=column_visibles,
-                num_rows=16,
+                num_rows=17,
                 justification='center',
                 enable_events=True,
                 background_color=background_color
@@ -72,8 +72,8 @@ def layout_main(setting):
             [
                 sg.Column([
                     [
-                        sg.Listbox([], key='music_candidates', size=(18,12), enable_events=True),
-                        sg.Listbox([], key='history', size=(15,12), enable_events=True)
+                        sg.Listbox([], key='music_candidates', size=(18,13), enable_events=True),
+                        sg.Listbox([], key='history', size=(15,13), enable_events=True)
                     ]
                 ], pad=0, background_color=background_color)
             ]
@@ -141,12 +141,12 @@ def layout_main(setting):
             sg.Column([
                 [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
                 [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)]
+                [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)],
+                [sg.Checkbox('INFINITASを見つけたときと記録したときに音を出す', key='check_play_sound', default=setting.play_sound, enable_events=True, background_color=background_color)]
             ], pad=0, background_color=background_color, vertical_alignment='top'),
             sg.Column([
                 [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('曲名を表示する(試験運用)', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('INFINITASを見つけたときと記録したときに音を出す', key='check_play_sound', default=setting.play_sound, enable_events=True, background_color=background_color)]
+                [sg.Checkbox('曲名を表示する', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)]
             ], pad=0, background_color=background_color, vertical_alignment='top')
         ],
         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
