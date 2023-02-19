@@ -89,7 +89,7 @@ def layout_manage(keys):
         ],
         [
             sg.Text('グラフターゲット', size=(21, 1)),
-            sg.Text(key='result_graphtarget', size=(10, 1), background_color=in_area_background_color)
+            sg.Text(key='result_graphtarget', size=(21, 1), background_color=in_area_background_color)
         ]
     ]
 
@@ -177,7 +177,7 @@ def layout_manage(keys):
         ],
         [
             sg.Text('グラフターゲット', size=(15, 1)),
-            sg.Combo(selectable_value_list['graphtargets'], key='graphtarget', size=(11, 1), readonly=True, disabled=True)
+            sg.Combo(selectable_value_list['graphtargets'], key='graphtarget', size=(21, 1), readonly=True, disabled=True)
         ],
         [
             sg.Button('アノテーション保存', key='button_label_overwrite'),
