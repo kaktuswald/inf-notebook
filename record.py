@@ -37,6 +37,10 @@ class Record():
         with open(self.filepath, 'w') as f:
             json.dump(self.json, f, indent=2)
     
+    def delete(self):
+        if os.path.exists(self.filepath):
+            os.remove(self.filepath)
+    
     def insert_latest(self, target, result, options):
         target['latest'] = {
             'timestamp': result.timestamp,
@@ -146,6 +150,21 @@ class Record():
         self.insert_history(target, result, options_value)
         if options is None or not options.special:
             self.insert_best(target, result, options_value)
+    
+    def delete_history(self, play_mode, difficulty, timestamp):
+        if not play_mode in self.json.keys():
+            print('?')
+            return
+        if not difficulty in self.json[play_mode].keys():
+            print('??')
+            return
+        
+        if timestamp in self.json[play_mode][difficulty]['timestamps']:
+            self.json[play_mode][difficulty]['timestamps'].remove(timestamp)
+        if timestamp in self.json[play_mode][difficulty]['history']:
+            del self.json[play_mode][difficulty]['history'][timestamp]
+        
+        self.save()
 
 def get_recode_musics():
     filepaths = glob(os.path.join(records_basepath, '*.json'))

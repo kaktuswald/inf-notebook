@@ -9,7 +9,7 @@ from math import ceil
 
 from define import define
 from .static import title,icon_path,background_color,background_color_label
-from record import Record,get_recode_musics
+from record import get_recode_musics
 from result import results_basepath
 
 scales = ['1/1', '1/2', '1/4']
@@ -18,13 +18,6 @@ icon_image = Image.open(icon_path)
 resized_icon = icon_image.resize((32, 32))
 icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
-
-class TargetRecord():
-    def __init__(self, play_mode, difficulty, music, record):
-        self.play_mode = play_mode
-        self.difficulty = difficulty
-        self.music = music
-        self.record = record
 
 selected_record = None
 
@@ -72,8 +65,8 @@ def layout_main(setting):
             [
                 sg.Column([
                     [
-                        sg.Listbox([], key='music_candidates', size=(18,13), enable_events=True),
-                        sg.Listbox([], key='history', size=(15,13), enable_events=True)
+                        sg.Listbox([], key='music_candidates', size=(18,13), right_click_menu=['menu', ['選択した曲の記録を削除する']], enable_events=True),
+                        sg.Listbox([], key='history', size=(15,13), right_click_menu=['menu', ['選択したリザルトの記録を削除する']], enable_events=True)
                     ]
                 ], pad=0, background_color=background_color)
             ]
@@ -273,17 +266,85 @@ def display_image(image, savable=False):
 
     change_save_buttons(savable)
 
-def display_graph():
-    if selected_record is None:
+def change_save_buttons(enabled):
+    window['button_save'].update(disabled=not enabled)
+    window['button_save_filtered'].update(disabled=not enabled)
+
+def switch_table(display_music):
+    if not display_music:
+        displaycolumns = ['日時', 'M', 'CT', 'DL', 'SC', 'MC']
+    else:
+        displaycolumns = ['曲名', 'M', 'CT', 'DL', 'SC', 'MC']
+
+    window['table_results'].Widget.configure(displaycolumns=displaycolumns)
+
+def search_music_candidates():
+    search_music = window['search_music'].get()
+    if len(search_music) != 0:
+        musics = get_recode_musics()
+        candidates = [music for music in musics if search_music in music]
+        window['music_candidates'].update(values=candidates)
+    else:
+        window['music_candidates'].update(values=[])
+
+def display_record(record):
+    if record is None:
+        window['history'].update([])
+        window['latest'].update('')
+        window['history_timestamp'].update('')
+        window['history_options'].update('')
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            window[key].update('')
+            window[f'{key}_timestamp'].update('')
+            window[f'history_{key}'].update('')
         return
     
-    if not 'history' in selected_record.record.keys() or not 'notes' in selected_record.record.keys():
-        window['screenshot'].update(visible=False)
+    latest_timestamp = record['latest']['timestamp']
+    formatted_timestamp = f'{int(latest_timestamp[0:4])}年{int(latest_timestamp[4:6])}月{int(latest_timestamp[6:8])}日'
+    window['latest'].update(formatted_timestamp)
+
+    window['history'].update([*reversed(record['timestamps'])])
+
+    if 'best' in record.keys():
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            if key in record['best']:
+                value = record['best'][key]['value']
+                timestamp = record['best'][key]['timestamp']
+                timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+                window[key].update(value if value is not None else '')
+                window[f'{key}_timestamp'].update(timestamp)
+            else:
+                window[key].update('')
+                window[f'{key}_timestamp'].update('')
+    else:
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            window[key].update('')
+            window[f'{key}_timestamp'].update('')
+    
+    window['history_timestamp'].update('')
+    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+        window[f'history_{key}'].update('')
+    window['history_options'].update('')
+
+def display_graph(target_record):
+    if target_record is None:
+        display_image(None)
+        change_save_buttons(False)
+        return
+    
+    selected = target_record.selected
+    if not 'history' in selected.keys() or not 'notes' in selected.keys():
+        display_image(None)
         change_save_buttons(False)
         return
 
-    notes = selected_record.record['notes']
-    history = selected_record.record['history']
+    notes = selected['notes']
+    history = selected['history']
+
+    if len(history) == 0:
+        display_image(None)
+        change_save_buttons(False)
+        return
 
     subsample = int(window['scale'].get().split('/')[1])
 
@@ -291,7 +352,7 @@ def display_graph():
     score = [value['score']['value'] for value in history.values()]
     miss_count = [value['miss_count']['value'] for value in history.values() if value['miss_count']['value'] is not None]
 
-    title = f'{selected_record.music}[{selected_record.play_mode}{selected_record.difficulty[0]}]'
+    title = f'{target_record.music}[{target_record.play_mode}{target_record.difficulty[0]}]'
 
     lines = [ceil(notes*2*p/9) for p in [6, 7, 8]]
     colors = ['#a04444', '#904444', '#804444']
@@ -326,145 +387,7 @@ def display_graph():
 
     change_save_buttons(False)
 
-def change_save_buttons(enabled):
-    window['button_save'].update(disabled=not enabled)
-    window['button_save_filtered'].update(disabled=not enabled)
-
-def switch_table(display_music):
-    if not display_music:
-        displaycolumns = ['日時', 'M', 'CT', 'DL', 'SC', 'MC']
-    else:
-        displaycolumns = ['曲名', 'M', 'CT', 'DL', 'SC', 'MC']
-
-    window['table_results'].Widget.configure(displaycolumns=displaycolumns)
-
-def select_music_today(result):
-    global selected_record
-
-    informations = result.informations
-    if informations.music is None:
-        reset_record()
-        return
-    
-    record = Record(informations.music)
-    record = record.get(informations.play_mode, informations.difficulty)
-
-    if record is None:
-        selected_record = None
-        reset_record()
-        return
-
-    selected_record = TargetRecord(
-        informations.play_mode,
-        informations.difficulty,
-        informations.music,
-        record
-    )
-
-    if informations.play_mode == 'SP':
-        window['play_mode_sp'].update(True)
-    if informations.play_mode == 'DP':
-        window['play_mode_dp'].update(True)
-    
-    window['difficulty'].update(informations.difficulty)
-    window['search_music'].update(informations.music)
-
-    load_record()
-
-def search_music_candidates():
-    search_music = window['search_music'].get()
-    if len(search_music) != 0:
-        musics = get_recode_musics()
-        candidates = [music for music in musics if search_music in music]
-        window['music_candidates'].update(values=candidates)
-    else:
-        window['music_candidates'].update(values=[])
-
-def select_music_search():
-    global selected_record
-
-    window['table_results'].update(select_rows=[])
-
-    selected = window['music_candidates'].get()
-    if len(selected) == 0:
-        return
-
-    music = window['music_candidates'].get()[0]
-    record = Record(music)
-    if record is None:
-        return
-    
-    play_mode = None
-    if window['play_mode_sp'].get():
-        play_mode = 'SP'
-    if window['play_mode_dp'].get():
-        play_mode = 'DP'
-    if play_mode is None:
-        return
-
-    difficulty = window['difficulty'].get()
-    if difficulty == '':
-        return
-
-    record = record.get(play_mode, difficulty)
-    if record is None:
-        selected_record = None
-        reset_record()
-        display_image(None)
-        return
-
-    selected_record = TargetRecord(play_mode, difficulty, music, record)
-
-    display_graph()
-
-    load_record()
-
-def reset_record():
-    window['history'].update([])
-    window['latest'].update('')
-    window['history_timestamp'].update('')
-    window['history_options'].update('')
-    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-        window[key].update('')
-        window[f'{key}_timestamp'].update('')
-        window[f'history_{key}'].update('')
-
-def load_record():
-    latest_timestamp = selected_record.record['latest']['timestamp']
-    formatted_timestamp = f'{int(latest_timestamp[0:4])}年{int(latest_timestamp[4:6])}月{int(latest_timestamp[6:8])}日'
-    window['latest'].update(formatted_timestamp)
-
-    window['history'].update([*reversed(selected_record.record['timestamps'])])
-
-    if 'best' in selected_record.record.keys():
-        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            if key in selected_record.record['best']:
-                value = selected_record.record['best'][key]['value']
-                timestamp = selected_record.record['best'][key]['timestamp']
-                timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
-                window[key].update(value if value is not None else '')
-                window[f'{key}_timestamp'].update(timestamp)
-            else:
-                window[key].update('')
-                window[f'{key}_timestamp'].update('')
-    else:
-        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            window[key].update('')
-            window[f'{key}_timestamp'].update('')
-    
-    window['history_timestamp'].update('')
-    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-        window[f'history_{key}'].update('')
-    window['history_options'].update('')
-
-def select_history():
-    selected = window['history'].get()
-    if len(selected) == 0:
-        return
-
-    window['table_results'].update(select_rows=[])
-
-    timestamp = selected[0]
+def display_historyresult(record, timestamp):
     filepath = os.path.join(results_basepath, f'{timestamp}.jpg')
     if os.path.exists(filepath):
         image = Image.open(filepath)
@@ -473,7 +396,7 @@ def select_history():
     formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
     window['history_timestamp'].update(formatted_timestamp)
 
-    target = selected_record.record['history'][timestamp]
+    target = record['history'][timestamp]
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'history_{key}'].update(target[key]['value'] if target[key]['value'] is not None else '')
     if not 'options' in target.keys() or target['options'] is None:

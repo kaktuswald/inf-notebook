@@ -122,6 +122,14 @@ class ThreadMain(threading.Thread):
                 self.finded = False
                 self.processed = False
 
+class TargetRecord():
+    def __init__(self, music, record, play_mode, difficulty, selected):
+        self.music = music
+        self.record = record
+        self.play_mode = play_mode
+        self.difficulty = difficulty
+        self.selected = selected
+
 def result_process(screen):
     result = recog.get_result(screen)
     if setting.data_collection:
@@ -229,6 +237,81 @@ def download_resource_musics(musics_timestamp, latest_timestamp):
         recog.load_resource_musics()
         print('download')
 
+def select_result_today(selected_todayresults):
+    if len(selected_todayresults) != 1:
+        return None
+
+    selected_todayresult = selected_todayresults[0]
+    result = results[list_results[selected_todayresult][0]]
+    gui.display_image(result.image, True)
+
+    return result
+
+def load_record(result):
+    informations = result.informations
+    if informations.music is None:
+        return None
+    
+    record = Record(informations.music)
+    target_record = record.get(informations.play_mode, informations.difficulty)
+
+    if target_record is None:
+        return None
+
+    selected_record = TargetRecord(
+        informations.music,
+        record,
+        informations.play_mode,
+        informations.difficulty,
+        target_record
+    )
+
+    if informations.play_mode == 'SP':
+        window['play_mode_sp'].update(True)
+    if informations.play_mode == 'DP':
+        window['play_mode_dp'].update(True)
+    
+    window['difficulty'].update(informations.difficulty)
+    window['search_music'].update(informations.music)
+
+    return selected_record
+
+def select_music_search(selected_musics):
+    if len(selected_musics) != 1:
+        return None
+
+    window['table_results'].update(select_rows=[])
+
+    selected_music = selected_musics[0]
+    record = Record(selected_music)
+
+    if record is None:
+        return None
+    
+    play_mode = None
+    if window['play_mode_sp'].get():
+        play_mode = 'SP'
+    if window['play_mode_dp'].get():
+        play_mode = 'DP'
+    if play_mode is None:
+        return None
+
+    difficulty = window['difficulty'].get()
+    if difficulty == '':
+        return None
+
+    target_record = record.get(play_mode, difficulty)
+    if target_record is None:
+        return None
+
+    return TargetRecord(selected_music, record, play_mode, difficulty, target_record)
+
+def select_history(selected_histories):
+    if len(selected_histories) != 1:
+        return None
+    
+    return selected_histories[0]
+
 if __name__ == '__main__':
     if setting.manage:
         keyboard.add_hotkey('ctrl+F10', active_screenshot)
@@ -242,6 +325,7 @@ if __name__ == '__main__':
     result = None
     results = {}
     list_results = []
+    selected_record = None
 
     queue_log = Queue()
     queue_display_image = Queue()
@@ -300,25 +384,43 @@ if __name__ == '__main__':
             if ret is not None:
                 gui.display_image(ret, True)
         if event == 'table_results':
-            if len(values['table_results']) > 0:
-                result = results[list_results[values['table_results'][0]][0]]
-                gui.display_image(result.image, True)
-                gui.select_music_today(result)
-                music_search_time = time.time() + 1
+            result = select_result_today(values['table_results'])
+            if result is not None:
+                selected_record = load_record(result)
+                if selected_record is not None:
+                    music_search_time = time.time() + 1
+                gui.display_record(selected_record.selected if selected_record is not None else None)
         if event == 'button_graph':
-            gui.display_graph()
+            if selected_record is not None:
+                gui.display_graph(selected_record)
         if event == 'search_music':
             music_search_time = time.time() + 1
-        if event == 'play_mode_sp':
-            gui.select_music_search()
-        if event == 'play_mode_dp':
-            gui.select_music_search()
-        if event == 'difficulty':
-            gui.select_music_search()
-        if event == 'music_candidates':
-            gui.select_music_search()
+        if event in ['play_mode_sp', 'play_mode_dp', 'difficulty', 'music_candidates']:
+            selected_record = select_music_search(values['music_candidates'])
+            gui.display_record(selected_record.selected if selected_record is not None else None)
+            gui.display_graph(selected_record)
+        if event == '選択した曲の記録を削除する':
+            if selected_record is not None:
+                selected_record.record.delete()
+                gui.search_music_candidates()
+            selected_record = None
+            gui.display_record(None)
+            gui.display_graph(None)
         if event == 'history':
-            gui.select_history()
+            timestamp = select_history(values['history'])
+            if timestamp is not None:
+                window['table_results'].update(select_rows=[])
+                gui.display_historyresult(selected_record.selected, timestamp)
+        if event == '選択したリザルトの記録を削除する':
+            if selected_record is not None:
+                timestamp = select_history(values['history'])
+                if timestamp is not None:
+                    selected_record.record.delete_history(
+                        selected_record.play_mode,
+                        selected_record.difficulty,
+                        timestamp
+                    )
+                    gui.display_record(selected_record.selected)
         if event == 'timeout':
             if not window['positioned'].visible and thread.positioned:
                 window['positioned'].update(visible=True)
