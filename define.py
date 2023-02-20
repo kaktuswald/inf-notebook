@@ -43,7 +43,7 @@ class Define():
         'options_flip': ('FLIP',),
         'options_assist': ('A-SCR', 'LEGACY',),
         'clear_types': ('NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR',),
-        'graphtargets': ('no graph', 'personal best score only', 'national best', 'national average', 'prefecture best', 'prefecture average', 'same class best', 'same class average', 'rival', 'rival next', 'rival best', 'rival average',)
+        'graphtargets': ('no graph', 'personal best score only', 'national best', 'national average', 'prefecture best', 'prefecture average', 'same class best', 'same class average', 'rival', 'rival best', 'rival average', 'pacemaker')
     }
 
     informmations_trimpos = (410, 633)
@@ -128,7 +128,7 @@ class Define():
         },
         'graphtarget': {
             'label': (5, 268, 100, 280),
-            'name': (115, 265, 200, 282)
+            'name': (121, 265, 196, 283)
         }
     }
 

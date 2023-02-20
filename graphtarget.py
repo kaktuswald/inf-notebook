@@ -54,17 +54,21 @@ def larning_graphtarget(targets):
         mode = unique[np.argmax(counts[dark_count:])+dark_count]
         if not mode in table.keys():
             table[mode] = {}
+            keys[mode] = {}
         
         count = np.count_nonzero(flattend==mode)
         if count in table[mode].keys():
             if table[mode][count] != value:
-                print(f'{mode} {count}')
-                print(f'{key}: {value}')
-                print(f'{keys[mode][count]}: {table[mode][count]}')
+                print(f'mode: {mode}')
+                print(f'count: {count}')
+                print(f'value: {value}')
+                print(f'key: {key}')
+                print(f'duplicate: {table[mode][count]}, {keys[mode][count]}')
                 print("NG")
                 return
         else:
             table[mode][count] = value
+            keys[mode][count] = key
             values.append(value)
 
     uniques, counts = np.unique(np.array(values), return_counts=True)
