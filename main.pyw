@@ -3,6 +3,8 @@ import time
 import PySimpleGUI as sg
 import threading
 from queue import Queue
+from os.path import join,exists
+from PIL import Image
 import logging
 from urllib import request
 
@@ -35,6 +37,8 @@ from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
 from record import Record
+from graph import create_graph,save_graphimage
+from result import results_basepath
 
 thread_time_normal = 0.37
 thread_time_wait = 2
@@ -243,7 +247,6 @@ def select_result_today(selected_todayresults):
 
     selected_todayresult = selected_todayresults[0]
     result = results[list_results[selected_todayresult][0]]
-    gui.display_image(result.image, True)
 
     return result
 
@@ -308,9 +311,18 @@ def select_music_search(selected_musics):
 
 def select_history(selected_histories):
     if len(selected_histories) != 1:
-        return None
+        return
     
-    return selected_histories[0]
+    selected_timestamp = selected_histories[0]
+    filepath = join(results_basepath, f'{selected_timestamp}.jpg')
+    if exists(filepath):
+        image = Image.open(filepath)
+        gui.display_image(image)
+    else:
+        gui.display_image(None)
+
+    window['table_results'].update(select_rows=[])
+    gui.display_historyresult(selected_record.selected, selected_timestamp)
 
 if __name__ == '__main__':
     if setting.manage:
@@ -322,10 +334,11 @@ if __name__ == '__main__':
 
     screenshot = Screenshot()
 
-    result = None
     results = {}
     list_results = []
+    selected_result = None
     selected_record = None
+    displaying_graphimage = None
 
     queue_log = Queue()
     queue_display_image = Queue()
@@ -377,40 +390,53 @@ if __name__ == '__main__':
             gui.switch_table(setting.display_music)
         if event == 'check_play_sound':
             setting.play_sound = values['check_play_sound']
-        if event == 'button_save' and result is not None:
-            save_result(result)
-        if event == 'button_save_filtered' and result is not None:
-            ret = save_result_filtered(result)
+        if event == 'button_save':
+            if selected_result is not None:
+                save_result(selected_result)
+            if displaying_graphimage is not None:
+                save_graphimage(displaying_graphimage)
+        if event == 'button_save_filtered' and selected_result is not None:
+            ret = save_result_filtered(selected_result)
             if ret is not None:
-                gui.display_image(ret, True)
+                gui.display_image(ret, True, False)
         if event == 'table_results':
-            result = select_result_today(values['table_results'])
-            if result is not None:
-                selected_record = load_record(result)
+            selected_result = select_result_today(values['table_results'])
+            if selected_result is not None:
+                selected_record = load_record(selected_result)
+                displaying_graphimage = None
                 if selected_record is not None:
                     music_search_time = time.time() + 1
-                gui.display_record(selected_record.selected if selected_record is not None else None)
+                    gui.display_record(selected_record.selected)
+                else:
+                    gui.display_record(None)
+                gui.display_image(selected_result.image, True, True)
         if event == 'button_graph':
             if selected_record is not None:
-                gui.display_graph(selected_record)
+                selected_result = None
+                displaying_graphimage = create_graph(selected_record)
+                gui.display_image(displaying_graphimage, savable=True)
         if event == 'search_music':
             music_search_time = time.time() + 1
         if event in ['play_mode_sp', 'play_mode_dp', 'difficulty', 'music_candidates']:
+            selected_result = None
             selected_record = select_music_search(values['music_candidates'])
-            gui.display_record(selected_record.selected if selected_record is not None else None)
-            gui.display_graph(selected_record)
+            if selected_record is not None:
+                displaying_graphimage = create_graph(selected_record)
+                gui.display_record(selected_record.selected)
+                gui.display_image(displaying_graphimage, savable=True)
+            else:
+                displaying_graphimage = None
+                gui.display_record(None)
+                gui.display_image(None)
         if event == '選択した曲の記録を削除する':
             if selected_record is not None:
                 selected_record.record.delete()
                 gui.search_music_candidates()
             selected_record = None
             gui.display_record(None)
-            gui.display_graph(None)
+            gui.display_image(None)
         if event == 'history':
-            timestamp = select_history(values['history'])
-            if timestamp is not None:
-                window['table_results'].update(select_rows=[])
-                gui.display_historyresult(selected_record.selected, timestamp)
+            select_history(values['history'])
         if event == '選択したリザルトの記録を削除する':
             if selected_record is not None:
                 timestamp = select_history(values['history'])
@@ -430,10 +456,12 @@ if __name__ == '__main__':
             if not queue_log.empty():
                 log_debug(queue_log.get_nowait())
             if not queue_display_image.empty():
+                displaying_graphimage = None
                 gui.display_image(queue_display_image.get_nowait())
             if not queue_result_screen.empty():
                 ret = result_process(queue_result_screen.get_nowait())
                 if ret is not None:
-                    result = ret
+                    selected_result = ret
+                    displaying_graphimage = None
     
     window.close()

@@ -1,16 +1,10 @@
 import PySimpleGUI as sg
 import io
-import os
 from PIL import Image
-from matplotlib import pyplot as plt
-from datetime import datetime
-import numpy as np
-from math import ceil
 
 from define import define
 from .static import title,icon_path,background_color,background_color_label
 from record import get_recode_musics
-from result import results_basepath
 
 scales = ['1/1', '1/2', '1/4']
 
@@ -18,10 +12,6 @@ icon_image = Image.open(icon_path)
 resized_icon = icon_image.resize((32, 32))
 icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
-
-selected_record = None
-
-plt.rcParams['figure.subplot.bottom'] = 0.15
 
 def layout_main(setting):
     column_headers = ['日時', '曲名', 'M', 'CT', 'DL', 'SC', 'MC']
@@ -66,7 +56,7 @@ def layout_main(setting):
                 sg.Column([
                     [
                         sg.Listbox([], key='music_candidates', size=(18,13), right_click_menu=['menu', ['選択した曲の記録を削除する']], enable_events=True),
-                        sg.Listbox([], key='history', size=(15,13), right_click_menu=['menu', ['選択したリザルトの記録を削除する']], enable_events=True)
+                        sg.Listbox([], key='history', size=(15,13), right_click_menu=['menu', ['選択したリザルトの記録を削除する']], horizontal_scroll=True, enable_events=True)
                     ]
                 ], pad=0, background_color=background_color)
             ]
@@ -254,7 +244,7 @@ def error_message(title, message, exception):
         icon=icon_path
     )
 
-def display_image(image, savable=False):
+def display_image(image, savable=False, filterable=False):
     subsample = int(window['scale'].get().split('/')[1])
     
     if image is not None:
@@ -262,13 +252,12 @@ def display_image(image, savable=False):
         image.save(bytes, format='PNG')
         window['screenshot'].update(data=bytes.getvalue(), subsample=subsample, visible=True)
     else:
+        savable = False
+        filterable = False
         window['screenshot'].update(visible=False)
 
-    change_save_buttons(savable)
-
-def change_save_buttons(enabled):
-    window['button_save'].update(disabled=not enabled)
-    window['button_save_filtered'].update(disabled=not enabled)
+    window['button_save'].update(disabled=image is None or not savable)
+    window['button_save_filtered'].update(disabled=not filterable)
 
 def switch_table(display_music):
     if not display_music:
@@ -326,73 +315,7 @@ def display_record(record):
         window[f'history_{key}'].update('')
     window['history_options'].update('')
 
-def display_graph(target_record):
-    if target_record is None:
-        display_image(None)
-        change_save_buttons(False)
-        return
-    
-    selected = target_record.selected
-    if not 'history' in selected.keys() or not 'notes' in selected.keys():
-        display_image(None)
-        change_save_buttons(False)
-        return
-
-    notes = selected['notes']
-    history = selected['history']
-
-    if len(history) == 0:
-        display_image(None)
-        change_save_buttons(False)
-        return
-
-    subsample = int(window['scale'].get().split('/')[1])
-
-    x = [datetime.strptime(key, '%Y%m%d-%H%M%S') for key in history.keys()]
-    score = [value['score']['value'] for value in history.values()]
-    miss_count = [value['miss_count']['value'] for value in history.values() if value['miss_count']['value'] is not None]
-
-    title = f'{target_record.music}[{target_record.play_mode}{target_record.difficulty[0]}]'
-
-    lines = [ceil(notes*2*p/9) for p in [6, 7, 8]]
-    colors = ['#a04444', '#904444', '#804444']
-
-    fig, ax1 = plt.subplots(figsize=np.array((16, 9))/2, facecolor=background_color)
-    ax1.set_title(title, fontname='MS Gothic', fontsize=18)
-    ax1.scatter(x, score, color='#ff0000')
-    ax1.plot(x, score, color='#ff0000', label='score')
-    ax1.hlines(lines, ax1.get_xlim()[0], ax1.get_xlim()[1], color=colors, linestyles='dashed')
-    ax1.set_ylabel('score')
-    ax1.set_ylim(([0,notes*2]))
-    ax1.set_xmargin(0)
-    ax1.tick_params(rotation=30)
-
-    if len(miss_count) >= 1:
-        ax2 = ax1.twinx()
-        ax2.scatter(x, miss_count, color='#0000ff')
-        ax2.plot(x, miss_count, color='#0000ff', label='miss_count')
-        ax2.set_ylabel('miss count')
-        ax2.set_ylim(([0,notes/10]))
-        ax2.set_xmargin(0)
-    
-    h1, l1 = ax1.get_legend_handles_labels()
-    h2, l2 = ax2.get_legend_handles_labels()
-    ax1.legend(h1+h2, l1+l2, loc='center left')
-
-    bytes = io.BytesIO()
-    fig.savefig(bytes, format='PNG', dpi=720/9*2)
-    plt.close()
-    
-    window['screenshot'].update(data=bytes.getvalue(), subsample=subsample, visible=True)
-
-    change_save_buttons(False)
-
 def display_historyresult(record, timestamp):
-    filepath = os.path.join(results_basepath, f'{timestamp}.jpg')
-    if os.path.exists(filepath):
-        image = Image.open(filepath)
-        display_image(image)
-
     formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
     window['history_timestamp'].update(formatted_timestamp)
 
