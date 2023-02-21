@@ -1,6 +1,6 @@
 from PIL import Image
 import json
-from sys import argv,exit
+from sys import exit
 from os import mkdir,remove
 from os.path import join,isfile,exists
 import numpy as np
@@ -49,7 +49,7 @@ def load_images(keys, labels):
     
     return images
     
-def generate_backgrounds(images, saveimage=False):
+def generate_backgrounds(images):
     if not exists(background_basepath):
         mkdir(background_basepath)
 
@@ -65,11 +65,6 @@ def generate_backgrounds(images, saveimage=False):
         result, counts = mode(stacks, keepdims=True)
         result_background = result.reshape(shape)
 
-        if saveimage:
-            output_image = Image.fromarray(result_background)
-            output_filepath = join(background_basepath, f'{background_key}.png')
-            output_image.save(output_filepath)
-            print(output_filepath, len(background_sources[background_key]))
         backgrounds[background_key] = result_background
     
     return backgrounds
@@ -156,6 +151,12 @@ def larning(images, backgrounds):
                 remove(filepath)
             except Exception as ex:
                 print(ex)
+
+        for background_key in backgrounds.keys():
+            output_image = Image.fromarray(backgrounds[background_key])
+            output_filepath = join(music_inspection_basepath, f'background_{background_key}.png')
+            output_image.save(output_filepath)
+
         if not exists(music_inspection_basepath):
             mkdir(music_inspection_basepath)
 
@@ -232,7 +233,7 @@ if __name__ == '__main__':
 
     images = load_images(keys, labels)
 
-    backgrounds = generate_backgrounds(images, '-savebackground' in argv)
+    backgrounds = generate_backgrounds(images)
 
     start = time.time()
     musics, recog_musics = larning(images, backgrounds)
