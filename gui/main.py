@@ -55,8 +55,8 @@ def layout_main(setting):
             [
                 sg.Column([
                     [
-                        sg.Listbox([], key='music_candidates', size=(18,13), right_click_menu=['menu', ['選択した曲の記録を削除する']], enable_events=True),
-                        sg.Listbox([], key='history', size=(15,13), right_click_menu=['menu', ['選択したリザルトの記録を削除する']], horizontal_scroll=True, enable_events=True)
+                        sg.Listbox([], key='music_candidates', size=(18,13), right_click_menu=['menu', ['選択した曲の記録を削除する']], horizontal_scroll=True, enable_events=True),
+                        sg.Listbox([], key='history', size=(15,13), right_click_menu=['menu', ['選択したリザルトの記録を削除する']], enable_events=True)
                     ]
                 ], pad=0, background_color=background_color)
             ]
@@ -136,6 +136,10 @@ def layout_main(setting):
         [
             sg.Button('ファイルに保存する', key='button_save', disabled=True),
             sg.Button('ライバルを隠して保存する', key='button_save_filtered', disabled=True),
+            sg.Button('フォルダを開く', key='button_open_folder', disabled=True),
+            sg.Button('ツイートする', key='button_tweet', disabled=True)
+        ],
+        [
             sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
         ]
     ]
@@ -258,6 +262,8 @@ def display_image(image, savable=False, filterable=False):
 
     window['button_save'].update(disabled=image is None or not savable)
     window['button_save_filtered'].update(disabled=not filterable)
+    window['button_open_folder'].update(disabled=image is None)
+    window['button_tweet'].update(disabled=image is None)
 
 def switch_table(display_music):
     if not display_music:

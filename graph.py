@@ -14,16 +14,12 @@ if not exists(graphs_basepath):
 
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
-def create_graph(target_record):
-    if target_record is None:
-        return None
-    
-    selected = target_record.selected
-    if not 'history' in selected.keys() or not 'notes' in selected.keys():
+def create_graph(play_mode, difficulty, music, target_record):
+    if not 'history' in target_record.keys() or not 'notes' in target_record.keys():
         return None
 
-    notes = selected['notes']
-    history = selected['history']
+    notes = target_record['notes']
+    history = target_record['history']
 
     if len(history) == 0:
         return None
@@ -32,7 +28,7 @@ def create_graph(target_record):
     score = [value['score']['value'] for value in history.values()]
     miss_count = [value['miss_count']['value'] for value in history.values() if value['miss_count']['value'] is not None]
 
-    title = f'{target_record.music}[{target_record.play_mode}{target_record.difficulty[0]}]'
+    title = f'{music}[{play_mode}{difficulty[0]}]'
 
     lines = [ceil(notes*2*p/9) for p in [6, 7, 8]]
     colors = ['#a04444', '#904444', '#804444']

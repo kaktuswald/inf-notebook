@@ -153,10 +153,8 @@ class Record():
     
     def delete_history(self, play_mode, difficulty, timestamp):
         if not play_mode in self.json.keys():
-            print('?')
             return
         if not difficulty in self.json[play_mode].keys():
-            print('??')
             return
         
         if timestamp in self.json[play_mode][difficulty]['timestamps']:

@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 from logging import getLogger
+from PIL import Image
 
 logger_child_name = 'result'
 
@@ -46,6 +47,7 @@ class ResultOptions():
 class Result():
     def __init__(self, image, informations, play_side, rival, dead, details):
         self.image = image
+        self.filtered = None
         self.informations = informations
         self.play_side = play_side
         self.rival = rival
@@ -68,14 +70,26 @@ class Result():
             os.mkdir(results_basepath)
 
         filepath = os.path.join(results_basepath, f'{self.timestamp}.jpg')
+        if os.path.exists(filepath):
+            return
+        
         self.image.save(filepath)
             
     def filter(self):
+        if self.filtered is not None:
+            return
+
         if not os.path.exists(filterd_basepath):
             os.mkdir(filterd_basepath)
 
-        filtered = filter(self)
-        filepath = os.path.join(filterd_basepath, f'{self.timestamp}.jpg')
-        filtered.save(filepath)
+        self.filtered = filter(self)
 
-        return filtered
+        filepath = os.path.join(filterd_basepath, f'{self.timestamp}.jpg')
+        self.filtered.save(filepath)
+
+def get_resultimage(timestamp):
+    filepath = os.path.join(results_basepath, f'{timestamp}.jpg')
+    if not os.path.exists(filepath):
+        return None
+    
+    return Image.open(filepath)
