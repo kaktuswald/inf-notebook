@@ -457,13 +457,14 @@ if __name__ == '__main__':
                     if activetarget.music is not None:
                         music_search_time = time.time() + 1
             if event == 'button_graph':
-                if activetarget.music is not None:
-                    if activetarget.image_graph is not None:
+                if activetarget is not None and activetarget.music is not None:
+                    if activetarget.image_graph is None:
+                        target_record = activetarget.get_targetrecord()
                         activetarget.image_graph = create_graph(
                             activetarget.play_mode,
                             activetarget.difficulty,
                             activetarget.music,
-                            activetarget.record
+                            target_record
                         )
                     activetarget.image_type = activetarget.GRAPH
                     gui.display_image(activetarget.image_graph, savable=True)
