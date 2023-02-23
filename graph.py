@@ -14,7 +14,7 @@ if not exists(graphs_basepath):
 
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
-def create_graph(play_mode, difficulty, music, target_record):
+def create_graphimage(play_mode, difficulty, music, target_record):
     if not 'history' in target_record.keys() or not 'notes' in target_record.keys():
         return None
 

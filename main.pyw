@@ -39,8 +39,8 @@ from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
 from record import Record
-from graph import create_graph,save_graphimage,graphs_basepath
-from result import get_resultimage,results_basepath,filterd_basepath
+from graph import create_graphimage,save_graphimage,graphs_basepath
+from result import get_resultimage,get_filteredimage,results_basepath,filtereds_basepath
 
 thread_time_normal = 0.37
 thread_time_wait = 2
@@ -49,13 +49,11 @@ thread_count_wait = int(30 / thread_time_wait)
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
 
-tweet_template = '\n'.join((
-    '&&music&&[&&play_mode&&&&D&&]',
-    '#IIDX #infinitas573',
-))
+tweet_template_music = '&&music&&[&&play_mode&&&&D&&]'
+tweet_template_hashtag = '#IIDX #infinitas573'
 
 results_dirpath = join(getcwd(), results_basepath)
-filtereds_dirpath = join(getcwd(), filterd_basepath)
+filtereds_dirpath = join(getcwd(), filtereds_basepath)
 graphs_dirpath = join(getcwd(), graphs_basepath)
 
 class ThreadMain(threading.Thread):
@@ -138,22 +136,44 @@ class ThreadMain(threading.Thread):
                 self.finded = False
                 self.processed = False
 
-class ActiveTarget():
-    RESULT = 'result'
-    FILTERED_RESULT = 'filtered_result'
-    GRAPH = 'graph'
-    result = None
-    image_result = None
-    image_filtered = None
-    image_graph = None
-    image_type = None
-
+class Selection():
     def __init__(self, play_mode, difficulty, music, record):
         self.play_mode = play_mode
         self.difficulty = difficulty
         self.music = music
         self.record = record
+        self.today = False
+        self.filtered = False
+        self.graph = False
+        self.timestamp = None
     
+    def selection_today(self, result):
+        self.today = True
+        self.filtered = False
+        self.graph = False
+        self.timestamp = result.timestamp
+
+    def selection_graph(self):
+        if self.music is None:
+            return False
+        
+        self.today = False
+        self.filtered = False
+        self.graph = True
+        self.timestamp = None
+
+        return True
+
+    def selection_timestamp(self, timestamp):
+        self.today = False
+        self.filtered = False
+        self.graph = False
+        self.timestamp = timestamp
+    
+    def selection_filtered(self):
+        self.filtered = True
+        self.graph = False
+
     def get_targetrecord(self):
         return self.record.get(self.play_mode, self.difficulty)
 
@@ -166,53 +186,48 @@ def result_process(screen):
         return None
     
     image = result.image
+    images_result[result.timestamp] = image
 
     if setting.autosave:
         save_result(result)
     
     if setting.autosave_filtered:
-        filtered_image = save_result_filtered(result)
+        filtered_image = save_filtered(result)
+        if filtered_image is not None:
+            images_filtered[result.timestamp] = filtered_image
     else:
         filtered_image = None
     
+    music = result.informations.music
+    if music is not None:
+        if music in records.keys():
+            record = records[music]
+        else:
+            record = Record(music) if music is not None else None
+            records[music] = record
+
+        if not result.dead or result.has_new_record():
+            record.insert(result)
+            record.save()
+
     insert_results(result)
 
-    music = result.informations.music
-    record = Record(music) if music is not None else None
-
-    if record is not None and (not result.dead or result.has_new_record()):
-        record.insert(result)
-        record.save()
-
-    if not setting.display_result:
+    if setting.display_result:
+        window['table_results'].update(select_rows=[len(results)-1])
         return None
-
-    play_mode = result.informations.play_mode,
-    difficulty = result.informations.difficulty
-    ret = ActiveTarget(play_mode, difficulty, music, record)
-
-    ret.result = result
-    ret.image_result = image
-    if filtered_image is not None:
-        ret.image_filtered = filtered_image
-    ret.image_type = ret.RESULT
-
-    gui.display_image(image, True, True)
-    window['table_results'].update(select_rows=[len(results)-1])
-    
-    return ret
 
 def save_result(result):
     try:
-        result.save()
+        ret = result.save()
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
         return
 
-    log_debug(f'save result: {result.timestamp}.jpg')
+    if ret:
+        log_debug(f'save result: {result.timestamp}.jpg')
 
-def save_result_filtered(result):
+def save_filtered(result):
     try:
         filtered = result.filter()
     except Exception as ex:
@@ -222,18 +237,6 @@ def save_result_filtered(result):
 
     log_debug(f'save filtered result: {result.timestamp}.jpg')
     return filtered
-
-def tweet(target):
-    text = tweet_template
-    text = text.replace('&&play_mode&&', target.play_mode)
-    if target.music is not None:
-        text = text.replace('&&music&&', target.music)
-    else:
-        text = text.replace('&&music&&', '?????')
-    text = text.replace('&&D&&', target.difficulty[0])
-    text = quote(text)
-    url = f'{tweet_url}?text={text}'
-    webbrowser.open(url)
 
 def insert_results(result):
     results[result.timestamp] = result
@@ -296,74 +299,197 @@ def download_resource_musics(musics_timestamp, latest_timestamp):
         recog.load_resource_musics()
         print('download')
 
-def select_result_today(selected_todayresults):
-    if len(selected_todayresults) != 1:
+def select_result_today():
+    if len(values['table_results']) != 1:
         return None
 
-    selected_todayresult = selected_todayresults[0]
-    result = results[list_results[selected_todayresult][0]]
+    window['music_candidates'].update(set_to_index=[])
+
+    result = results[list_results[values['table_results'][0]][0]]
 
     gui.display_image(result.image, True, True)
 
     music = result.informations.music
-    record = Record(music) if music is not None else None
 
-    play_mode = result.informations.play_mode
-    difficulty = result.informations.difficulty
-    ret = ActiveTarget(play_mode, difficulty, music, record)
-    ret.result = result
-    ret.image_result = result.image
-    ret.image_type = ret.RESULT
-    if result.filtered is not None:
-        ret.image_filtered = result.filtered
+    ret = Selection(
+        result.informations.play_mode,
+        result.informations.difficulty,
+        result.informations.music,
+        records[music] if music is not None else None
+    )
+    ret.selection_today(result)
     
-    if record is not None:
-        if play_mode == 'SP':
+    if ret.record is not None:
+        if ret.play_mode == 'SP':
             window['play_mode_sp'].update(True)
-        if play_mode == 'DP':
+        if ret.play_mode == 'DP':
             window['play_mode_dp'].update(True)
         
-        window['difficulty'].update(difficulty)
+        window['difficulty'].update(ret.difficulty)
         window['search_music'].update(music)
 
-        gui.display_record(record.get(play_mode, difficulty))
+        gui.display_record(ret.get_targetrecord())
     else:
         gui.display_record(None)
 
     return ret
 
-def select_music_search(selected_musics):
-    if len(selected_musics) != 1:
+def select_music_search():
+    if len(values['music_candidates']) != 1:
         return None
 
     play_mode = None
-    if window['play_mode_sp'].get():
+    if values['play_mode_sp']:
         play_mode = 'SP'
-    if window['play_mode_dp'].get():
+    if values['play_mode_dp']:
         play_mode = 'DP'
     if play_mode is None:
         return None
 
-    difficulty = window['difficulty'].get()
+    difficulty = values['difficulty']
     if difficulty == '':
         return None
 
     window['table_results'].update(select_rows=[])
 
-    music = selected_musics[0]
-    record = Record(music)
+    music = values['music_candidates'][0]
+    if music in records.keys():
+        record = records[music]
+    else:
+        record = Record(music)
+        records[music] = record
 
-    target_record = record.get(play_mode, difficulty)
-    if target_record is None:
+    if record.get(play_mode, difficulty) is None:
+        gui.display_record(None)
+        gui.display_image(None)
         return None
 
-    return ActiveTarget(play_mode, difficulty, music, record)
+    ret = Selection(play_mode, difficulty, music, record)
+    targetrecord = ret.record.get(play_mode, difficulty)
 
-def get_selecttimestamp(selected_histories):
-    if len(selected_histories) != 1:
+    gui.display_record(targetrecord)
+    create_graph(ret, targetrecord)
+
+    return ret
+
+def select_timestamp():
+    if len(values['history']) != 1:
         return
     
-    return selected_histories[0]
+    timestamp = values['history'][0]
+    selection.selection_timestamp(timestamp)
+
+    gui.display_historyresult(selection.get_targetrecord(), timestamp)
+
+    resultimage = get_resultimage(timestamp)
+    if resultimage is not None:
+        images_result[timestamp] = resultimage
+
+    filteredimage = get_filteredimage(timestamp)
+    if filteredimage is not None:
+        images_filtered[timestamp] = filteredimage
+
+    if resultimage is not None:
+        gui.display_image(resultimage, False, filteredimage is not None)
+    else:
+        gui.display_image(filteredimage)
+        if filteredimage is not None:
+            selection.selection_filtered()
+
+def save():
+    if selection.today:
+        save_result(results[selection.timestamp])
+    if selection.graph:
+        save_graphimage(images_graph[selection.music])
+
+def filter():
+    if selection.timestamp in images_filtered.keys():
+        gui.display_image(images_filtered[selection.timestamp])
+    else:
+        if selection.today:
+            image = save_filtered(results[selection.timestamp])
+            gui.display_image(image, True)
+            if image is not None:
+                images_filtered[selection.timestamp] = image
+    
+    selection.selection_filtered()
+
+def open_folder():
+    if selection.filtered:
+        system(f'explorer.exe {filtereds_dirpath}')
+        return
+    
+    if selection.graph:
+        system(f'explorer.exe {graphs_dirpath}')
+        return
+    
+    system(f'explorer.exe {results_dirpath}')
+
+def tweet():
+    if len(values['music_candidates']) == 1:
+        music_text = tweet_template_music
+        music_text = music_text.replace('&&play_mode&&', selection.play_mode)
+        if selection.music is not None:
+            music_text = music_text.replace('&&music&&', selection.music)
+        else:
+            music_text = music_text.replace('&&music&&', '?????')
+        music_text = music_text.replace('&&D&&', selection.difficulty[0])
+    else:
+        if len(values['table_results']) == 0:
+            return
+
+        musics_text = []
+        for index in values['table_results']:
+            text = tweet_template_music
+            result = results[list_results[index][0]]
+            music = result.informations.music
+            music = music if music is not None else '?????'
+            text = text.replace('&&play_mode&&', result.informations.play_mode)
+            text = text.replace('&&music&&', music)
+            text = text.replace('&&D&&', result.informations.difficulty[0])
+            musics_text.append(text)
+        music_text = '\n'.join(musics_text)
+
+    text = quote('\n'.join((music_text, tweet_template_hashtag)))
+    url = f'{tweet_url}?text={text}'
+    webbrowser.open(url)
+
+def delete_record():
+    if selection is None:
+        return
+
+    if selection.music in records.keys():
+        del records[selection.music]
+
+    selection.record.delete()
+    gui.search_music_candidates()
+
+    gui.display_record(None)
+    gui.display_image(None)
+
+def delete_targetrecord():
+    print(selection)
+    if selection is None:
+        return
+    if selection.timestamp is None:
+        return
+
+    selection.record.delete_history(
+        selection.play_mode,
+        selection.difficulty,
+        selection.timestamp
+    )
+
+    gui.display_record(selection.get_targetrecord())
+    gui.display_image(None)
+
+def create_graph(selection, targetrecord):
+    graphimage = create_graphimage(selection.play_mode, selection.difficulty, selection.music, targetrecord)
+    if graphimage is not None:
+        images_graph[selection.music] = graphimage
+    
+    selection.selection_graph()
+    gui.display_image(graphimage, True)
 
 if __name__ == '__main__':
     if setting.manage:
@@ -377,7 +503,11 @@ if __name__ == '__main__':
 
     results = {}
     list_results = []
-    activetarget = None
+    records = {}
+    images_result = {}
+    images_filtered = {}
+    images_graph = {}
+    selection = None
 
     queue_log = Queue()
     queue_display_image = Queue()
@@ -431,88 +561,37 @@ if __name__ == '__main__':
             if event == 'check_play_sound':
                 setting.play_sound = values['check_play_sound']
             if event == 'button_save':
-                if activetarget.image_type == activetarget.RESULT:
-                    save_result(activetarget.result)
-                if activetarget.image_type == activetarget.GRAPH:
-                    save_graphimage(activetarget.image_graph)
-            if event == 'button_save_filtered':
-                if activetarget.image_filtered is None:
-                    save_result_filtered(activetarget.result)
-                    activetarget.image_filtered = activetarget.result.filtered
-                activetarget.image_type = activetarget.FILTERED_RESULT
-                gui.display_image(activetarget.image_filtered, True, False)
+                save()
+            if event == 'button_filter':
+                filter()
             if event == 'button_tweet':
-                tweet(activetarget)
+                tweet()
             if event == 'button_open_folder':
-                if activetarget.image_type == activetarget.RESULT:
-                    system(f'explorer.exe {results_dirpath}')
-                if activetarget.image_type == activetarget.FILTERED_RESULT:
-                    system(f'explorer.exe {filtereds_dirpath}')
-                if activetarget.image_type == activetarget.GRAPH:
-                    system(f'explorer.exe {graphs_dirpath}')
+                open_folder()
             if event == 'table_results':
-                target = select_result_today(values['table_results'])
-                if target is not None:
-                    activetarget = target
-                    if activetarget.music is not None:
-                        music_search_time = time.time() + 1
+                selection_result = select_result_today()
+                if selection_result is not None:
+                    selection = selection_result
+                    if selection.music is not None:
+                        window['music_candidates'].update([selection.music])
+                    else:
+                        window['music_candidates'].update(set_to_index=[])
             if event == 'button_graph':
-                if activetarget is not None and activetarget.music is not None:
-                    if activetarget.image_graph is None:
-                        target_record = activetarget.get_targetrecord()
-                        activetarget.image_graph = create_graph(
-                            activetarget.play_mode,
-                            activetarget.difficulty,
-                            activetarget.music,
-                            target_record
-                        )
-                    activetarget.image_type = activetarget.GRAPH
-                    gui.display_image(activetarget.image_graph, savable=True)
+                if selection is not None and selection.music is not None:
+                    create_graph(selection, selection.get_targetrecord())
             if event == 'search_music':
                 music_search_time = time.time() + 1
             if event in ['play_mode_sp', 'play_mode_dp', 'difficulty', 'music_candidates']:
-                activetarget = select_music_search(values['music_candidates'])
-                if activetarget is not None:
-                    target_record = activetarget.get_targetrecord()
-                    activetarget.image_graph = create_graph(
-                        activetarget.play_mode,
-                        activetarget.difficulty,
-                        activetarget.music,
-                        target_record
-                    )
-                    activetarget.image_type = activetarget.GRAPH
-                    gui.display_record(target_record)
-                    gui.display_image(activetarget.image_graph, savable=True)
-                else:
-                    gui.display_record(None)
-                    gui.display_image(None)
+                selection_result = select_music_search()
+                if selection_result is not None:
+                    selection = selection_result
             if event == '選択した曲の記録を削除する':
-                if activetarget is not None:
-                    activetarget.record.delete()
-                    activetarget = None
-                    gui.search_music_candidates()
-                gui.display_record(None)
-                gui.display_image(None)
+                delete_record()
+                selection = None
             if event == 'history':
-                timestamp = get_selecttimestamp(values['history'])
-                if timestamp is not None:
-                    gui.display_historyresult(activetarget.get_targetrecord(), timestamp)
-                    resultimage = get_resultimage(timestamp)
-                    if resultimage is not None:
-                        activetarget.image_result = resultimage
-                        activetarget.image_type = activetarget.RESULT
-                        gui.display_image(resultimage, False, False)
+                select_timestamp()
             if event == '選択したリザルトの記録を削除する':
-                timestamp = get_selecttimestamp(values['history'])
-                if timestamp is not None:
-                    activetarget.record.delete_history(
-                        activetarget.play_mode,
-                        activetarget.difficulty,
-                        timestamp
-                    )
-                    displaying_resultimage = None
-                    gui.display_record(activetarget.get_targetrecord())
-                    gui.display_image(None)
+                delete_targetrecord()
             if event == 'timeout':
                 if not window['positioned'].visible and thread.positioned:
                     window['positioned'].update(visible=True)
@@ -522,12 +601,12 @@ if __name__ == '__main__':
                 if not queue_log.empty():
                     log_debug(queue_log.get_nowait())
                 if not queue_display_image.empty():
-                    activetarget = None
+                    window['table_results'].update(select_rows=[])
+                    window['music_candidates'].update(set_to_index=[])
+                    selection = None
                     gui.display_image(queue_display_image.get_nowait())
                 if not queue_result_screen.empty():
-                    ret = result_process(queue_result_screen.get_nowait())
-                    if ret is not None:
-                        activetarget = ret
+                    result_process(queue_result_screen.get_nowait())
         except Exception as ex:
             log_debug(ex)
     

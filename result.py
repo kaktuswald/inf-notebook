@@ -11,7 +11,7 @@ logger.debug('loaded result.py')
 from filter import filter
 
 results_basepath = 'results'
-filterd_basepath = 'filtered'
+filtereds_basepath = 'filtered'
 
 class ResultInformations():
     def __init__(self, play_mode, difficulty, level, notes, music):
@@ -71,24 +71,35 @@ class Result():
 
         filepath = os.path.join(results_basepath, f'{self.timestamp}.jpg')
         if os.path.exists(filepath):
-            return
+            return False
         
         self.image.save(filepath)
+
+        return True
             
     def filter(self):
-        if self.filtered is not None:
+        if not os.path.exists(filtereds_basepath):
+            os.mkdir(filtereds_basepath)
+
+        filtered = filter(self)
+
+        filepath = os.path.join(filtereds_basepath, f'{self.timestamp}.jpg')
+        if os.path.exists(filepath):
             return
 
-        if not os.path.exists(filterd_basepath):
-            os.mkdir(filterd_basepath)
+        filtered.save(filepath)
 
-        self.filtered = filter(self)
-
-        filepath = os.path.join(filterd_basepath, f'{self.timestamp}.jpg')
-        self.filtered.save(filepath)
+        return filtered
 
 def get_resultimage(timestamp):
     filepath = os.path.join(results_basepath, f'{timestamp}.jpg')
+    if not os.path.exists(filepath):
+        return None
+    
+    return Image.open(filepath)
+
+def get_filteredimage(timestamp):
+    filepath = os.path.join(filtereds_basepath, f'{timestamp}.jpg')
     if not os.path.exists(filepath):
         return None
     

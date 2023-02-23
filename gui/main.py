@@ -21,7 +21,7 @@ def layout_main(setting):
         column_visibles = [False, True, True, True, True, True, True]
     else:
         column_visibles = [True, False, True, True, True, True, True]
-
+    
     tabs_main = [[
         sg.Tab('今日のリザルト', [
             [sg.Table(
@@ -135,7 +135,7 @@ def layout_main(setting):
         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
         [
             sg.Button('ファイルに保存する', key='button_save', disabled=True),
-            sg.Button('ライバルを隠して保存する', key='button_save_filtered', disabled=True),
+            sg.Button('ライバルを隠す', key='button_filter', disabled=True),
             sg.Button('フォルダを開く', key='button_open_folder', disabled=True),
             sg.Button('ツイートする', key='button_tweet', disabled=True)
         ],
@@ -261,7 +261,7 @@ def display_image(image, savable=False, filterable=False):
         window['screenshot'].update(visible=False)
 
     window['button_save'].update(disabled=image is None or not savable)
-    window['button_save_filtered'].update(disabled=not filterable)
+    window['button_filter'].update(disabled=not filterable)
     window['button_open_folder'].update(disabled=image is None)
     window['button_tweet'].update(disabled=image is None)
 
