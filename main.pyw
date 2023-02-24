@@ -50,7 +50,7 @@ latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
 
 tweet_template_music = '&&music&&[&&play_mode&&&&D&&]'
-tweet_template_hashtag = '#IIDX #infinitas573'
+tweet_template_hashtag = '#IIDX #infinitas573 #infnotebook'
 
 results_dirpath = join(getcwd(), results_basepath)
 filtereds_dirpath = join(getcwd(), filtereds_basepath)
