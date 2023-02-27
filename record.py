@@ -166,6 +166,6 @@ class Record():
 
 def get_recode_musics():
     filepaths = glob(os.path.join(records_basepath, '*.json'))
-    strings = [os.path.basename(filepath).replace('.json', '') for filepath in filepaths]
+    strings = [os.path.basename(filepath).removesuffix('.json') for filepath in filepaths]
     musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
     return musics

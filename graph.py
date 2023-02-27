@@ -6,6 +6,7 @@ from PIL import Image
 from os import mkdir
 from os.path import exists,join
 from gui.static import background_color
+from gui.general import get_imagevalue
 
 graphs_basepath = 'graphs'
 
@@ -13,6 +14,11 @@ if not exists(graphs_basepath):
     mkdir(graphs_basepath)
 
 plt.rcParams['figure.subplot.bottom'] = 0.15
+
+class Graph():
+    def __init__(self, image):
+        self.image = image
+        self.value = get_imagevalue(image)
 
 def create_graphimage(play_mode, difficulty, music, target_record):
     if not 'history' in target_record.keys() or not 'notes' in target_record.keys():
@@ -54,7 +60,9 @@ def create_graphimage(play_mode, difficulty, music, target_record):
     ax1.legend(h1+h2, l1+l2, loc='center left')
 
     figure.canvas.draw()
-    return Image.fromarray(np.array(figure.canvas.renderer.buffer_rgba())).convert('RGB')
+    image = Image.fromarray(np.array(figure.canvas.renderer.buffer_rgba())).convert('RGB')
+
+    return image
 
 def save_graphimage(graphimage):
     now = datetime.now()

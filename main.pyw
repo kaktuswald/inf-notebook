@@ -33,6 +33,7 @@ logger.debug('mode: manage')
 
 from version import version
 import gui.main as gui
+from gui.general import get_imagevalue
 from resources import MusicsTimestamp,play_sound_find,play_sound_result,recog_musics_filepath
 from screenshot import Screenshot
 from recog import recog
@@ -40,7 +41,7 @@ from raw_image import save_raw
 from storage import StorageAccessor
 from record import Record
 from graph import create_graphimage,save_graphimage,graphs_basepath
-from result import get_resultimage,get_filteredimage,results_basepath,filtereds_basepath
+from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
 
 thread_time_normal = 0.37
 thread_time_wait = 2
@@ -185,18 +186,12 @@ def result_process(screen):
     if setting.newrecord_only and not result.has_new_record():
         return None
     
-    image = result.image
-    images_result[result.timestamp] = image
-
     if setting.autosave:
         save_result(result)
     
     if setting.autosave_filtered:
-        filtered_image = save_filtered(result)
-        if filtered_image is not None:
-            images_filtered[result.timestamp] = filtered_image
-    else:
-        filtered_image = None
+        result.filter()
+        save_filtered(result)
     
     music = result.informations.music
     if music is not None:
@@ -229,14 +224,14 @@ def save_result(result):
 
 def save_filtered(result):
     try:
-        filtered = result.filter()
+        ret = result.save_filtered()
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
-        return None
+        return
 
-    log_debug(f'save filtered result: {result.timestamp}.jpg')
-    return filtered
+    if ret:
+        log_debug(f'save filtered result: {result.timestamp}.jpg')
 
 def insert_results(result):
     results[result.timestamp] = result
@@ -261,7 +256,7 @@ def active_screenshot():
     screen = screenshot.get()
     filename = save_raw(screen)
     log_debug(f'save screen: {filename}')
-    gui.display_image(screen)
+    gui.display_image(get_imagevalue(screen))
 
 def log_debug(message):
     logger.debug(message)
@@ -274,7 +269,7 @@ def get_latest_version():
         version = url.split('/')[-1]
         print(f'released latest version: {version}')
         if version[0] == 'v':
-            return version.replace('v', '')
+            return version.removeprefix('v')
         else:
             return None
 
@@ -307,7 +302,12 @@ def select_result_today():
 
     result = results[list_results[values['table_results'][0]][0]]
 
-    gui.display_image(result.image, True, True)
+    if result.timestamp in imagevalues_result:
+        imagevalue = imagevalues_result[result.timestamp]
+    else:
+        imagevalue = get_imagevalue(result.image)
+        imagevalues_result[result.timestamp] = imagevalue
+    gui.display_image(imagevalue, not result.saved, True)
 
     music = result.informations.music
 
@@ -350,9 +350,10 @@ def select_music_search():
     if difficulty == '':
         return None
 
+    music = values['music_candidates'][0]
+
     window['table_results'].update(select_rows=[])
 
-    music = values['music_candidates'][0]
     if music in records.keys():
         record = records[music]
     else:
@@ -376,18 +377,24 @@ def select_timestamp():
     if len(values['history']) != 1:
         return
     
+    window['table_results'].update(select_rows=[])
+
     timestamp = values['history'][0]
     selection.selection_timestamp(timestamp)
 
     gui.display_historyresult(selection.get_targetrecord(), timestamp)
 
-    resultimage = get_resultimage(timestamp)
-    if resultimage is not None:
-        images_result[timestamp] = resultimage
+    if timestamp in imagevalues_result.keys():
+        resultimage = imagevalues_result[timestamp]
+    else:
+        resultimage = get_resultimagevalue(timestamp)
+        imagevalues_result[timestamp] = resultimage
 
-    filteredimage = get_filteredimage(timestamp)
-    if filteredimage is not None:
-        images_filtered[timestamp] = filteredimage
+    if timestamp in imagevalues_filtered.keys():
+        filteredimage = imagevalues_filtered[timestamp]
+    else:
+        filteredimage = get_filteredimagevalue(timestamp)
+        imagevalues_filtered[timestamp] = filteredimage
 
     if resultimage is not None:
         gui.display_image(resultimage, False, filteredimage is not None)
@@ -401,16 +408,24 @@ def save():
         save_result(results[selection.timestamp])
     if selection.graph:
         save_graphimage(images_graph[selection.music])
+    window['button_save'].update(disabled=True)
 
 def filter():
-    if selection.timestamp in images_filtered.keys():
-        gui.display_image(images_filtered[selection.timestamp])
+    if selection.today:
+        targetresult = results[selection.timestamp]
+
+    if selection.timestamp in imagevalues_filtered.keys():
+        gui.display_image(imagevalues_filtered[selection.timestamp], selection.today and not targetresult.saved)
     else:
         if selection.today:
-            image = save_filtered(results[selection.timestamp])
-            gui.display_image(image, True)
-            if image is not None:
-                images_filtered[selection.timestamp] = image
+            if targetresult.filtered is not None:
+                filteredvalue = imagevalues_filtered[selection.timestamp]
+            else:
+                targetresult.filter()
+                save_filtered(targetresult)
+                filteredvalue = get_imagevalue(targetresult.filtered)
+                imagevalues_filtered[selection.timestamp] = filteredvalue
+            gui.display_image(filteredvalue, not targetresult.saved)
     
     selection.selection_filtered()
 
@@ -435,20 +450,20 @@ def tweet():
             music_text = music_text.replace('&&music&&', '?????')
         music_text = music_text.replace('&&D&&', selection.difficulty[0])
     else:
-        if len(values['table_results']) == 0:
-            return
-
-        musics_text = []
-        for index in values['table_results']:
-            text = tweet_template_music
-            result = results[list_results[index][0]]
-            music = result.informations.music
-            music = music if music is not None else '?????'
-            text = text.replace('&&play_mode&&', result.informations.play_mode)
-            text = text.replace('&&music&&', music)
-            text = text.replace('&&D&&', result.informations.difficulty[0])
-            musics_text.append(text)
-        music_text = '\n'.join(musics_text)
+        if len(values['table_results']) > 0:
+            musics_text = []
+            for index in values['table_results']:
+                text = tweet_template_music
+                result = results[list_results[index][0]]
+                music = result.informations.music
+                music = music if music is not None else '?????'
+                text = text.replace('&&play_mode&&', result.informations.play_mode)
+                text = text.replace('&&music&&', music)
+                text = text.replace('&&D&&', result.informations.difficulty[0])
+                musics_text.append(text)
+            music_text = '\n'.join(musics_text)
+        else:
+            music_text = ''
 
     text = quote('\n'.join((music_text, tweet_template_hashtag)))
     url = f'{tweet_url}?text={text}'
@@ -468,7 +483,6 @@ def delete_record():
     gui.display_image(None)
 
 def delete_targetrecord():
-    print(selection)
     if selection is None:
         return
     if selection.timestamp is None:
@@ -485,11 +499,15 @@ def delete_targetrecord():
 
 def create_graph(selection, targetrecord):
     graphimage = create_graphimage(selection.play_mode, selection.difficulty, selection.music, targetrecord)
-    if graphimage is not None:
-        images_graph[selection.music] = graphimage
+    if graphimage is None:
+        return
+
+    images_graph[selection.music] = graphimage
+
+    imagevalue = get_imagevalue(graphimage)
+    gui.display_image(imagevalue, True)
     
     selection.selection_graph()
-    gui.display_image(graphimage, True)
 
 if __name__ == '__main__':
     if setting.manage:
@@ -504,8 +522,8 @@ if __name__ == '__main__':
     results = {}
     list_results = []
     records = {}
-    images_result = {}
-    images_filtered = {}
+    imagevalues_result = {}
+    imagevalues_filtered = {}
     images_graph = {}
     selection = None
 
@@ -573,7 +591,7 @@ if __name__ == '__main__':
                 if selection_result is not None:
                     selection = selection_result
                     if selection.music is not None:
-                        window['music_candidates'].update([selection.music])
+                        window['music_candidates'].update([selection.music], set_to_index=[0])
                     else:
                         window['music_candidates'].update(set_to_index=[])
             if event == 'button_graph':
@@ -604,7 +622,7 @@ if __name__ == '__main__':
                     window['table_results'].update(select_rows=[])
                     window['music_candidates'].update(set_to_index=[])
                     selection = None
-                    gui.display_image(queue_display_image.get_nowait())
+                    gui.display_image(get_imagevalue(queue_display_image.get_nowait()))
                 if not queue_result_screen.empty():
                     result_process(queue_result_screen.get_nowait())
         except Exception as ex:

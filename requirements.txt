@@ -1,0 +1,7 @@
+numpy==1.24.2
+keyboard==0.13.5
+pillow==9.4.0
+PyAutoGUI==0.9.53
+PySimpleGUI==4.60.4
+google-cloud-storage==2.7.0
+matplotlib==3.6.3

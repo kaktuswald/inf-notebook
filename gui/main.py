@@ -137,7 +137,7 @@ def layout_main(setting):
             sg.Button('ファイルに保存する', key='button_save', disabled=True),
             sg.Button('ライバルを隠す', key='button_filter', disabled=True),
             sg.Button('フォルダを開く', key='button_open_folder', disabled=True),
-            sg.Button('ツイートする', key='button_tweet', disabled=True)
+            sg.Button('ツイートする', key='button_tweet')
         ],
         [
             sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
@@ -248,22 +248,19 @@ def error_message(title, message, exception):
         icon=icon_path
     )
 
-def display_image(image, savable=False, filterable=False):
+def display_image(value, savable=False, filterable=False):
     subsample = int(window['scale'].get().split('/')[1])
     
-    if image is not None:
-        bytes = io.BytesIO()
-        image.save(bytes, format='PNG')
-        window['screenshot'].update(data=bytes.getvalue(), subsample=subsample, visible=True)
+    if value is not None:
+        window['screenshot'].update(data=value, subsample=subsample, visible=True)
     else:
         savable = False
         filterable = False
         window['screenshot'].update(visible=False)
 
-    window['button_save'].update(disabled=image is None or not savable)
+    window['button_save'].update(disabled=value is None or not savable)
     window['button_filter'].update(disabled=not filterable)
-    window['button_open_folder'].update(disabled=image is None)
-    window['button_tweet'].update(disabled=image is None)
+    window['button_open_folder'].update(disabled=value is None)
 
 def switch_table(display_music):
     if not display_music:

@@ -43,10 +43,10 @@ if __name__ == '__main__':
     logger.debug(f'current annotation count: {len(labels)}')
     
     for filepath in glob(os.path.join(dc.informations_basepath, '*')):
-        key = os.path.basename(filepath).replace('.png', '')
+        key = os.path.basename(filepath).removesuffix('.png')
         images[key] = None
     for filepath in glob(os.path.join(dc.details_basepath, '*')):
-        key = os.path.basename(filepath).replace('.png', '')
+        key = os.path.basename(filepath).removesuffix('.png')
         images[key] = None
 
     window = gui.generate_window([*images.keys()])

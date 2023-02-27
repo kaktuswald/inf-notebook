@@ -9,6 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded result.py')
 
 from filter import filter
+from gui.general import get_imagevalue
 
 results_basepath = 'results'
 filtereds_basepath = 'filtered'
@@ -47,6 +48,7 @@ class ResultOptions():
 class Result():
     def __init__(self, image, informations, play_side, rival, dead, details):
         self.image = image
+        self.saved = False
         self.filtered = None
         self.informations = informations
         self.play_side = play_side
@@ -64,7 +66,7 @@ class Result():
             self.details.score.new,
             self.details.miss_count.new
         ])
-
+    
     def save(self):
         if not os.path.exists(results_basepath):
             os.mkdir(results_basepath)
@@ -74,33 +76,39 @@ class Result():
             return False
         
         self.image.save(filepath)
+        self.saved = True
 
         return True
-            
+    
     def filter(self):
+        self.filtered = filter(self)
+    
+    def save_filtered(self):
         if not os.path.exists(filtereds_basepath):
             os.mkdir(filtereds_basepath)
 
-        filtered = filter(self)
-
         filepath = os.path.join(filtereds_basepath, f'{self.timestamp}.jpg')
         if os.path.exists(filepath):
-            return
+            return False
 
-        filtered.save(filepath)
+        self.filtered.save(filepath)
 
-        return filtered
+        return True
 
-def get_resultimage(timestamp):
+def get_resultimagevalue(timestamp):
     filepath = os.path.join(results_basepath, f'{timestamp}.jpg')
     if not os.path.exists(filepath):
         return None
     
-    return Image.open(filepath)
+    image = Image.open(filepath)
 
-def get_filteredimage(timestamp):
+    return get_imagevalue(image)
+
+def get_filteredimagevalue(timestamp):
     filepath = os.path.join(filtereds_basepath, f'{timestamp}.jpg')
     if not os.path.exists(filepath):
         return None
     
-    return Image.open(filepath)
+    image = Image.open(filepath)
+
+    return get_imagevalue(image)

@@ -5,14 +5,20 @@
 ### Pythonのインストール
 省略
 
-### 必要なモジュールをインストール
+### 仮想環境を構築
+```shell
+python -m venv env_inf-notebook
+env_inf-notebook/Scripts/Activate
 ```
+
+### 必要なモジュールをインストール
+```shell
 python -m pip install --upgrade pip
-pip install numpy keyboard pillow PyAutoGUI PySimpleGUI matplotlib
+pip install -r requirements.txt
 ```
 
 ### 使う
-```
+```shell
 python main.pyw
 ```
 
@@ -39,7 +45,7 @@ python generate_version.py v0.0.0.0
 
 ### 実行ファイル化
 ```shell
-pip install cx_Freeze
+pip install cx_Freeze==6.14.2
 python setup.py build
 ```
 
