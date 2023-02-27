@@ -12,7 +12,8 @@ build_exe_options = {
         'setuptools',
         'unittest',
         'test',
-        'zipp'
+        'zipp',
+        'fontTools'
     ],
     'include_msvcr': True,
     'include_files': [
