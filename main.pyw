@@ -76,7 +76,7 @@ class ThreadMain(threading.Thread):
     def run(self):
         self.sleep_time = thread_time_wait
         self.queues['log'].put('start thread')
-        while not self.event_close.isSet():
+        while not self.event_close.is_set():
             time.sleep(self.sleep_time)
             self.routine()
 
