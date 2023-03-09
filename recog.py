@@ -153,10 +153,11 @@ class Recognition():
         background_key = str(image_informations.getpixel(define.music_background_key_position))
         np_value = np.array(image_informations.crop(define.informations_areas['music']))
         background_removed = np.where(self.backgrounds[background_key]!=np_value, np_value, 0)
+        trimmed = np.delete(background_removed, define.music_ignore_y_lines, 0)
 
         maxcounts = []
         maxcount_values = []
-        for line in background_removed:
+        for line in trimmed:
             unique, counts = np.unique(line, return_counts=True)
             dark_count = np.count_nonzero(unique < 100)
             maxcounts.append(counts[np.argmax(counts[dark_count:])+dark_count] if len(counts) > dark_count else 0)
@@ -172,7 +173,7 @@ class Recognition():
         if not color_key in self.music_recognition[y_key].keys():
             return None
 
-        line = np.where(background_removed[y]==color, 1, 0)
+        line = np.where(trimmed[y]==color, 1, 0)
         line_key = str(int(''.join(line.astype(str)), 2))
         if not line_key in self.music_recognition[y_key][color_key].keys():
             return None

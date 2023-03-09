@@ -57,7 +57,9 @@ class Define():
         'music': (153, 2, 245, 13)
     }
 
+    music_recognition_vesion = '2.0'
     music_background_key_position = (0, -2)
+    music_ignore_y_lines = (4, )
     
     notes_trimsize = (14, 10)
     notes_trimareas = []

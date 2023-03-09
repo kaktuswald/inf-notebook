@@ -18,7 +18,6 @@ dirname = 'larning_music'
 if not exists(dirname):
     mkdir(dirname)
 
-background_basepath = join(dirname, 'backgrounds')
 music_inspection_basepath = join(dirname, 'inspection')
 
 arcadeallmusics_filename = 'musics_arcade_all.txt'
@@ -50,15 +49,13 @@ def load_images(keys, labels):
     return images
     
 def generate_backgrounds(images):
-    if not exists(background_basepath):
-        mkdir(background_basepath)
-
     background_sources = {}
     for image in images.values():
         if not image.background_key in background_sources.keys():
             background_sources[image.background_key] = []
         background_sources[image.background_key].append(image.np_value)
 
+    print('background sources')
     backgrounds = {}
     for background_key in background_sources.keys():
         stacks = np.stack(background_sources[background_key])
@@ -66,6 +63,8 @@ def generate_backgrounds(images):
         result_background = result.reshape(shape)
 
         backgrounds[background_key] = result_background
+
+        print(f'{background_key}: {len(background_sources[background_key])}')
     
     return backgrounds
 
@@ -98,9 +97,12 @@ def larning(images, backgrounds):
             background_removed = np.where(backgrounds[background_key]!=np_value, np_value, 0)
             np_values[key].append(background_removed)
 
+            trimmed = np.delete(background_removed, define.music_ignore_y_lines, 0)
+            np_values[key].append(trimmed)
+
             maxcounts = []
             maxcount_values = []
-            for line in background_removed:
+            for line in trimmed:
                 unique, counts = np.unique(line, return_counts=True)
                 dark_count = np.count_nonzero(unique < 100)
                 maxcounts.append(counts[np.argmax(counts[dark_count:])+dark_count] if len(counts) > dark_count else 0)
@@ -109,9 +111,9 @@ def larning(images, backgrounds):
             y = np.argmax(maxcounts)
             color = int(maxcount_values[y])
 
-            mask = np.zeros(np_value.shape)
+            mask = np.zeros(trimmed.shape)
             mask[np.argmax(maxcounts),:] = maxcount_values[y]
-            result = np.where(background_removed==mask,background_removed,0)
+            result = np.where(trimmed==mask,trimmed,0)
             np_values[key].append(result)
 
             y_key = str(y)
@@ -124,7 +126,7 @@ def larning(images, backgrounds):
                 target[color_key] = {}
             target = target[color_key]
 
-            line = np.where(background_removed[y]==color, 1, 0)
+            line = np.where(trimmed[y]==color, 1, 0)
             line_key = str(int(''.join(line.astype(str)), 2))
             if type(line_key) is not str:
                 print(line_key)

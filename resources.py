@@ -9,6 +9,7 @@ logger_child_name = 'resources'
 logger = getLogger().getChild(logger_child_name)
 logger.debug(f'loaded resources.py')
 
+from define import define
 from mask import Mask
 
 resources_dirname = 'resources'
@@ -21,7 +22,7 @@ images_dirpath = os.path.join(resources_dirname, images_dirname)
 masks_dirpath = os.path.join(resources_dirname, masks_dirname)
 sounds_dirpath = os.path.join(resources_dirname, sounds_dirname)
 
-recog_musics_filepath = os.path.join(resources_dirname, 'musics.json')
+recog_musics_filepath = os.path.join(resources_dirname, f'musics{define.music_recognition_vesion}.json')
 recog_musics_timestamp_filepath = os.path.join(resources_dirname, 'musics_timestamp.txt')
 
 sound_find_filepath = os.path.join(sounds_dirpath, 'find.wav')
