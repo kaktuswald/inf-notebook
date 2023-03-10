@@ -4,11 +4,12 @@ import PySimpleGUI as sg
 import threading
 from queue import Queue
 from os import system,getcwd
-from os.path import join
+from os.path import join,exists
 import webbrowser
 import logging
 from urllib import request
 from urllib.parse import quote
+import ctypes
 
 from setting import Setting
 
@@ -35,7 +36,7 @@ from version import version
 import gui.main as gui
 from gui.general import get_imagevalue
 from resources import MusicsTimestamp,play_sound_find,play_sound_result,recog_musics_filepath
-from screenshot import Screenshot
+from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
@@ -44,8 +45,13 @@ from graph import create_graphimage,save_graphimage,graphs_basepath
 from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
 
 thread_time_normal = 0.37
-thread_time_wait = 2
+thread_time_wait = 1
 thread_count_wait = int(30 / thread_time_wait)
+
+windowtitle = 'beatmania IIDX INFINITAS'
+
+FindWindowExW = ctypes.windll.user32.FindWindowExW
+GetWindowRect = ctypes.windll.user32.GetWindowRect
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
@@ -58,7 +64,8 @@ filtereds_dirpath = join(getcwd(), filtereds_basepath)
 graphs_dirpath = join(getcwd(), graphs_basepath)
 
 class ThreadMain(threading.Thread):
-    positioned = False
+    handle = 0
+    active = False
     waiting = False
     waiting_count = 0
     finded = False
@@ -81,42 +88,71 @@ class ThreadMain(threading.Thread):
             self.routine()
 
     def routine(self):
-        screenshot.shot()
+        handle = FindWindowExW(None, None, None, windowtitle)
+        if handle == 0:
+            if self.handle != 0:
+                self.queues['log'].put(f'infinitas lost')
+            self.handle = 0
+            self.active = False
+            screenshot.area = None
+            return
+        
+        if self.handle != handle:
+            self.queues['log'].put(f'infinitas find')
+            self.handle = handle
+        
+        rect = ctypes.wintypes.RECT()
+        GetWindowRect(handle, ctypes.pointer(rect))
 
-        if not self.positioned:
-            if screenshot.find():
-                self.positioned = True
-                self.queues['log'].put(f'region = {screenshot.region}')
-                self.sleep_time = thread_time_normal
+        if rect.left == -32000:
+            if self.active:
+                self.queues['log'].put(f'infinitas deactivate')
+                self.sleep_time = thread_time_wait
                 self.queues['log'].put(f'change sleep time: {self.sleep_time}')
-                if setting.play_sound:
-                    play_sound_find()
 
+            self.active = False
             return
 
-        if self.waiting:
+        if not self.active:
+            self.active = True
+            self.waiting = False
+            screenshot.area = [rect.left, rect.top, rect.right, rect.bottom]
+            self.queues['log'].put(f'infinitas activate')
+            self.queues['log'].put(f'area = {screenshot.area}')
+            self.sleep_time = thread_time_normal
+            self.queues['log'].put(f'change sleep time: {self.sleep_time}')
+            if setting.play_sound:
+                play_sound_find()
+
+        if not self.waiting:
+            screenshot.shot()
+        else:
             self.waiting_count -= 1
             if self.waiting_count > 0:
                 return
             
-            if not screenshot.is_ended_waiting:
-                self.waiting_count = thread_count_wait
-                return
+            screenshot.shot()
 
+        is_loading = recog.get_is_screen_loading(screenshot.image)
+
+        if is_loading:
+            if not self.waiting:
+                self.finded = False
+                self.processed = False
+                self.waiting = True
+                self.waiting_count = thread_count_wait
+                self.queues['log'].put('find loading: start waiting')
+                self.sleep_time = thread_time_wait
+                self.queues['log'].put(f'change sleep time: {self.sleep_time}')
+            else:
+                self.waiting_count = thread_count_wait
+            return
+            
+        if self.waiting:
             self.waiting = False
             self.queues['log'].put('find playing: end waiting')
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
-
-        if screenshot.is_loading:
-            self.finded = False
-            self.processed = False
-            self.waiting = True
-            self.waiting_count = thread_count_wait
-            self.queues['log'].put('find loading: start waiting')
-            self.sleep_time = thread_time_wait
-            self.queues['log'].put(f'change sleep time: {self.sleep_time}')
-            return
 
         resultscreen = screenshot.get_resultscreen()
         if resultscreen is not None:
@@ -578,6 +614,12 @@ if __name__ == '__main__':
                 gui.switch_table(setting.display_music)
             if event == 'check_play_sound':
                 setting.play_sound = values['check_play_sound']
+            if event == 'text_file_path':
+                if exists(values['text_file_path']):
+                    screen = open_screenimage(values['text_file_path'])
+                    gui.display_image(get_imagevalue(screen.original))
+                    if recog.get_is_result(screen.monochrome):
+                        result_process(screen)
             if event == 'button_save':
                 save()
             if event == 'button_filter':
@@ -610,9 +652,13 @@ if __name__ == '__main__':
                 select_timestamp()
             if event == '選択したリザルトの記録を削除する':
                 delete_targetrecord()
+            if event == 'button_best_switch':
+                gui.switch_best_display()
             if event == 'timeout':
-                if not window['positioned'].visible and thread.positioned:
+                if not window['positioned'].visible and thread.active:
                     window['positioned'].update(visible=True)
+                if window['positioned'].visible and not thread.active:
+                    window['positioned'].update(visible=False)
                 if music_search_time is not None and time.time() > music_search_time:
                     music_search_time = None
                     gui.search_music_candidates()

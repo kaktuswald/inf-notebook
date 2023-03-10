@@ -2,11 +2,8 @@ from PIL import Image
 import json
 import sys
 import os
-import pyautogui as pgui
 from PIL import Image
 
-from define import define
-from resources import images
 from recog import Recognition
 from larning import raws_basepath,label_basics_filepath
 
@@ -16,41 +13,31 @@ def evaluate(filename, image, label):
     failure = False
     results = [filename]
 
-    if not 'screen' in label.keys():
-        results.append('none')
+    if image.size == (1280, 720):
+        results.append('ok')
     else:
-        screen_results = []
-        for key in define.searchscreen_keys:
-            if pgui.locate(images[key], image, grayscale=True) is not None:
-                screen_results.append(key)
-        if label['screen'] == 'playing' or len(screen_results) == 1 and screen_results[0] == label['screen']:
-            results.append('ok')
-        else:
-            results.append(','.join(screen_results))
-            print(filename, label['screen'], screen_results)
+        results.append(image.size)
+        if not 'screen' in label.keys() or label['screen'] != '':
             failure = True
+        return results, failure
     
-    targets = {
-        'loading': recog.get_is_screen_loading(image.crop(define.areas['loading'])),
-        'music_select': recog.get_is_screen_music_select(image.crop(define.areas['music_select'])),
-        'playing_1p': recog.get_is_screen_playing(image.crop(define.areas['turntable']['1P'])),
-        'playing_2p': recog.get_is_screen_playing(image.crop(define.areas['turntable']['2P'])),
-        'playing_dp': recog.get_is_screen_playing(image.crop(define.areas['turntable']['DP'])),
-        'result': recog.get_is_screen_result(image.crop(define.areas['result']))
+    screen_keys = ('loading', 'music_select', 'playing', 'result',)
+    screen_results = {
+        'loading': recog.get_is_screen_loading(image),
+        'music_select': recog.get_is_screen_music_select(image),
+        'playing': recog.get_is_screen_playing(image),
+        'result': recog.get_is_screen_result(image)
     }
-    for key, value in targets.items():
-        if not 'screen' in label.keys():
+    for key in screen_keys:
+        if not 'screen' in label.keys() or label['screen'] != key:
             results.append('none')
         else:
-            if label['screen'] != key:
-                results.append('')
+            if screen_results[key] and label['screen'] == key:
+                results.append('ok')
             else:
-                if value:
-                    results.append('ok')
-                else:
-                    results.append('ng')
-                    failure = True
-    
+                results.append('ng')
+                failure = True
+
     if not 'screen' in label.keys() or label['screen'] != 'result':
         results.append('not result')
         results.append('')
@@ -59,7 +46,7 @@ def evaluate(filename, image, label):
         results.append('')
         results.append('')
         results.append('')
-        results.append('ok!' if not failure else '')
+        results.append('ok' if not failure else 'NG')
         return failure, results
 
     results.append('')
@@ -103,7 +90,7 @@ def evaluate(filename, image, label):
             results.append(f"{dead} {label['dead']}")
             failure = True
 
-    results.append('ok!' if not failure else '')
+    results.append('ok' if not failure else 'NG')
 
     return failure, results
 
@@ -127,12 +114,10 @@ if __name__ == '__main__':
     print(f"file count: {len(filenames)}")
 
     headers = [
-        'screen',
+        'size',
         'loading',
         'music_select',
-        'playing_1p',
-        'playing_2p',
-        'playing_dp',
+        'playing',
         'result',
         '',
         'trigger',
