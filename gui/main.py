@@ -121,6 +121,10 @@ def layout_main(setting):
             sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
         ],
         [
+            sg.InputText(key='text_file_path', visible=setting.manage, size=(70, 1), enable_events=True),
+            sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
+        ],
+        [
             sg.Column([
                 [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
                 [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
@@ -250,7 +254,7 @@ def error_message(title, message, exception):
 
 def display_image(value, savable=False, filterable=False):
     subsample = int(window['scale'].get().split('/')[1])
-    
+
     if value is not None:
         window['screenshot'].update(data=value, subsample=subsample, visible=True)
     else:

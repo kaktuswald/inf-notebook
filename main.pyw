@@ -4,11 +4,12 @@ import PySimpleGUI as sg
 import threading
 from queue import Queue
 from os import system,getcwd
-from os.path import join
+from os.path import join,exists
 import webbrowser
 import logging
 from urllib import request
 from urllib.parse import quote
+import pygetwindow as gw
 
 from setting import Setting
 
@@ -35,7 +36,7 @@ from version import version
 import gui.main as gui
 from gui.general import get_imagevalue
 from resources import MusicsTimestamp,play_sound_find,play_sound_result,recog_musics_filepath
-from screenshot import Screenshot
+from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
@@ -46,6 +47,8 @@ from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,
 thread_time_normal = 0.37
 thread_time_wait = 2
 thread_count_wait = int(30 / thread_time_wait)
+
+title = 'beatmaniaIIDX INFINITAS'
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
@@ -58,6 +61,7 @@ filtereds_dirpath = join(getcwd(), filtereds_basepath)
 graphs_dirpath = join(getcwd(), graphs_basepath)
 
 class ThreadMain(threading.Thread):
+    window = None
     positioned = False
     waiting = False
     waiting_count = 0
@@ -81,18 +85,27 @@ class ThreadMain(threading.Thread):
             self.routine()
 
     def routine(self):
-        screenshot.shot()
+        global screenshot
+        if screenshot is None:
+            find_windows = gw.getWindowsWithTitle(title)
+            if len(find_windows) != 1:
+                return
 
-        if not self.positioned:
-            if screenshot.find():
-                self.positioned = True
-                self.queues['log'].put(f'region = {screenshot.region}')
-                self.sleep_time = thread_time_normal
-                self.queues['log'].put(f'change sleep time: {self.sleep_time}')
-                if setting.play_sound:
-                    play_sound_find()
+            window = find_windows[0]
+            if window.title != title:
+                return
 
+            self.window = window
+            area = [*window.topleft, window.left+window.width, window.top+window.height]
+            screenshot = Screenshot(area)
+            play_sound_find()
+
+        if not self.window.title in gw.getAllTitles():
+            self.window = None
+            screenshot = None
             return
+        
+        screenshot.shot()
 
         if self.waiting:
             self.waiting_count -= 1
@@ -517,7 +530,7 @@ if __name__ == '__main__':
 
     display_screenshot_enable = False
 
-    screenshot = Screenshot()
+    screenshot = None
 
     results = {}
     list_results = []
@@ -578,6 +591,12 @@ if __name__ == '__main__':
                 gui.switch_table(setting.display_music)
             if event == 'check_play_sound':
                 setting.play_sound = values['check_play_sound']
+            if event == 'text_file_path':
+                if exists(values['text_file_path']):
+                    screen = open_screenimage(values['text_file_path'])
+                    gui.display_image(get_imagevalue(screen.original))
+                    if recog.get_is_result(screen.monochrome):
+                        result_process(screen)
             if event == 'button_save':
                 save()
             if event == 'button_filter':
