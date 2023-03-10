@@ -10,7 +10,6 @@ build_exe_options = {
         'distutils',
         'lib2to3',
         'setuptools',
-        'unittest',
         'test',
         'zipp',
         'fontTools'
