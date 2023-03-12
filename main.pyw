@@ -34,7 +34,7 @@ logger.debug('mode: manage')
 from version import version
 import gui.main as gui
 from gui.general import get_imagevalue
-from resources import MusicsTimestamp,play_sound_find,play_sound_result,recog_musics_filepath
+from resources import MusicsTimestamp,play_sound_find,play_sound_result
 from screenshot import Screenshot
 from recog import recog
 from raw_image import save_raw
@@ -289,7 +289,7 @@ def check_resource_musics():
         threading.Thread(target=download_resource_musics, args=(musics_timestamp, latest_timestamp)).start()
 
 def download_resource_musics(musics_timestamp, latest_timestamp):
-    if storage.download_resource_musics(recog_musics_filepath):
+    if storage.download_resource_musics():
         musics_timestamp.write_timestamp(latest_timestamp)
         recog.load_resource_musics()
         print('download')
