@@ -105,7 +105,7 @@ class Record():
                 target['best'][key] = {
                     'value': value.current if value.new else value.best,
                     'timestamp': result.timestamp,
-                    'options': options
+                    'options': options if value.new else None
                 }
 
     def insert(self, result):
