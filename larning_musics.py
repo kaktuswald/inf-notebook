@@ -2,7 +2,7 @@ from PIL import Image
 import json
 from sys import exit
 from os import mkdir,remove
-from os.path import join,isfile,exists
+from os.path import join,isfile,exists,basename
 import numpy as np
 from glob import glob
 from scipy.stats import mode
@@ -13,6 +13,7 @@ from resources import recog_musics_filepath
 import data_collection as dc
 from larning import create_resource_directory
 
+background_ignore_keys_filename = 'background_ignore_keys.txt'
 dirname = 'larning_music'
 
 if not exists(dirname):
@@ -38,6 +39,7 @@ class InformationsImage():
         np_value = np.array(image)
         self.np_value = np_value[area[1]:area[3], area[0]:area[2]]
         self.music = music
+        self.key = basename(filepath)
 
 def load_images(keys, labels):
     images = {}
@@ -49,16 +51,16 @@ def load_images(keys, labels):
     
     return images
     
-def generate_backgrounds(images):
-    if not exists(background_basepath):
-        mkdir(background_basepath)
-
+def generate_backgrounds(images, ignore_keys):
     background_sources = {}
     for image in images.values():
+        if image.key in ignore_keys:
+            continue
         if not image.background_key in background_sources.keys():
             background_sources[image.background_key] = []
         background_sources[image.background_key].append(image.np_value)
 
+    print('background sources')
     backgrounds = {}
     for background_key in background_sources.keys():
         stacks = np.stack(background_sources[background_key])
@@ -66,6 +68,8 @@ def generate_backgrounds(images):
         result_background = result.reshape(shape)
 
         backgrounds[background_key] = result_background
+
+        print(f'{background_key}: {len(background_sources[background_key])}')
     
     return backgrounds
 
@@ -223,6 +227,13 @@ if __name__ == '__main__':
     except Exception:
         print(f"{dc.label_filepath}を読み込めませんでした。")
         exit()
+    
+    ignore_keys_filepath = join(dc.collection_basepath, background_ignore_keys_filename)
+    if isfile(ignore_keys_filepath):
+        with open(ignore_keys_filepath, 'r', encoding='utf-8') as f:
+            ignore_keys = f.read().split('\n')
+    else:
+        ignore_keys = []
 
     create_resource_directory()
 
@@ -233,7 +244,7 @@ if __name__ == '__main__':
 
     images = load_images(keys, labels)
 
-    backgrounds = generate_backgrounds(images)
+    backgrounds = generate_backgrounds(images, ignore_keys)
 
     start = time.time()
     musics, recog_musics = larning(images, backgrounds)
