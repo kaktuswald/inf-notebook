@@ -54,7 +54,7 @@ class Define():
         'difficulty': (196, 58, 229, 62),
         'level': (231, 58, 250, 62),
         'notes': (268, 55, 324, 65),
-        'music': (153, 2, 245, 13)
+        'music': (180, 2, 279, 12)
     }
 
     music_recognition_vesion = '2.0'

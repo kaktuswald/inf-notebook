@@ -2,7 +2,7 @@ from PIL import Image
 import json
 from sys import exit
 from os import mkdir,remove
-from os.path import join,isfile,exists
+from os.path import join,isfile,exists,basename
 import numpy as np
 from glob import glob
 from scipy.stats import mode
@@ -13,6 +13,7 @@ from resources import recog_musics_filepath
 import data_collection as dc
 from larning import create_resource_directory
 
+background_ignore_keys_filename = 'background_ignore_keys.txt'
 dirname = 'larning_music'
 
 if not exists(dirname):
@@ -48,9 +49,11 @@ def load_images(keys, labels):
     
     return images
     
-def generate_backgrounds(images):
+def generate_backgrounds(images, ignore_keys):
     background_sources = {}
-    for image in images.values():
+    for key, image in images.items():
+        if key in ignore_keys:
+            continue
         if not image.background_key in background_sources.keys():
             background_sources[image.background_key] = []
         background_sources[image.background_key].append(image.np_value)
@@ -226,6 +229,13 @@ if __name__ == '__main__':
         print(f"{dc.label_filepath}を読み込めませんでした。")
         exit()
 
+    ignore_keys_filepath = join(dc.collection_basepath, background_ignore_keys_filename)
+    if isfile(ignore_keys_filepath):
+        with open(ignore_keys_filepath, 'r', encoding='utf-8') as f:
+            ignore_keys = f.read().split('\n')
+    else:
+        ignore_keys = []
+    
     create_resource_directory()
 
     output = []
@@ -235,7 +245,7 @@ if __name__ == '__main__':
 
     images = load_images(keys, labels)
 
-    backgrounds = generate_backgrounds(images)
+    backgrounds = generate_backgrounds(images, ignore_keys)
 
     start = time.time()
     musics, recog_musics = larning(images, backgrounds)
