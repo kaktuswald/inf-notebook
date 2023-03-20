@@ -1,21 +1,35 @@
 from PIL import Image
 import json
-from sys import exit
-from os import mkdir
-from os.path import join,isfile,exists,basename
+from sys import exit,argv
+from os.path import join,isfile,basename
 import numpy as np
-import time
 
 from define import define
 import data_collection as dc
 
-dirname = 'larning_music'
+if len(argv) == 1:
+    print('please argment.')
+    exit()
 
-if not exists(dirname):
-    mkdir(dirname)
+if not '-key' in argv or argv.index('-key') == len(argv) - 1 or not str.isdigit(argv[argv.index('-key') + 1]):
+    print('please specify argment background key as "-key".')
+    exit()
 
-background_basepath = join(dirname, 'backgrounds')
-music_inspection_basepath = join(dirname, 'inspection')
+if not '-x' in argv or argv.index('-x') == len(argv) - 1 or not str.isdigit(argv[argv.index('-x') + 1]):
+    print('please specify argment x position as "-x".')
+    exit()
+
+if not '-y' in argv or argv.index('-y') == len(argv) - 1 or not str.isdigit(argv[argv.index('-y') + 1]):
+    print('please specify argment y position as "-y".')
+    exit()
+
+if not '-value' in argv or argv.index('-value') == len(argv) - 1 or not str.isdigit(argv[argv.index('-value') + 1]):
+    print('please specify argment pixel value "-value".')
+    exit()
+
+target_background_key = int(argv[argv.index('-key') + 1])
+target_pos = (int(argv[argv.index('-x') + 1]), int(argv[argv.index('-y') + 1]))
+target_value = int(argv[argv.index('-value') + 1])
 
 arcadeallmusics_filename = 'musics_arcade_all.txt'
 infinitasonlymusics_filename = 'musics_infinitas_only.txt'
@@ -26,10 +40,6 @@ area = define.informations_areas['music']
 width = area[2] - area[0]
 height = area[3] - area[1]
 shape = (height, width)
-
-target_background_key = 213
-target_pos = (86, 6)
-target_value = 198
 
 class InformationsImage():
     def __init__(self, filepath, music):
@@ -85,6 +95,6 @@ if __name__ == '__main__':
     for key, value in patterns.items():
         print(key, len(value))
     
-    print(target_value)
-    for image in patterns[target_value]:
-        print(image.key)
+    if target_value in patterns.keys():
+        for image in patterns[target_value]:
+            print(image.key)
