@@ -331,10 +331,13 @@ def download_resource_musics(musics_timestamp, latest_timestamp):
         print('download')
 
 def select_result_today():
-    if len(values['table_results']) != 1:
+    if len(values['table_results']) == 0:
         return None
 
     window['music_candidates'].update(set_to_index=[])
+
+    if len(values['table_results']) != 1:
+        return None
 
     result = results[list_results[values['table_results'][0]][0]]
 
