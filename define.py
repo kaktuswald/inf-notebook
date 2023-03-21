@@ -53,13 +53,10 @@ class Define():
         'play_mode': (82, 55, 102, 65),
         'difficulty': (196, 58, 229, 62),
         'level': (231, 58, 250, 62),
-        'notes': (268, 55, 324, 65),
-        'music': (180, 2, 279, 12)
+        'notes': (268, 55, 324, 65)
     }
 
     music_recognition_vesion = '2.0'
-    music_background_key_position = (0, -2)
-    music_ignore_y_lines = (4, )
     
     notes_trimsize = (14, 10)
     notes_trimareas = []

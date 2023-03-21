@@ -1,35 +1,36 @@
 from PIL import Image
 import json
-from sys import exit
-from os import mkdir
-from os.path import join,isfile,exists,basename
+from sys import exit,argv
+from os.path import join,isfile,basename
 import numpy as np
-import time
 
 from define import define
 import data_collection as dc
-
-dirname = 'larning_music'
-
-if not exists(dirname):
-    mkdir(dirname)
-
-background_basepath = join(dirname, 'backgrounds')
-music_inspection_basepath = join(dirname, 'inspection')
-
-arcadeallmusics_filename = 'musics_arcade_all.txt'
-infinitasonlymusics_filename = 'musics_infinitas_only.txt'
-registred_musics_filename = 'musics_registred.txt'
-missing_musics_filename = 'musics_missing_in_arcade.txt'
 
 area = define.informations_areas['music']
 width = area[2] - area[0]
 height = area[3] - area[1]
 shape = (height, width)
 
-target_background_key = 213
-target_pos = (86, 6)
-target_value = 198
+if not '-key' in argv or argv.index('-key') == len(argv) - 1 or not str.isdigit(argv[argv.index('-key') + 1]):
+    print('please specify argment background key as "-key".')
+    exit()
+
+if not '-x' in argv or argv.index('-x') == len(argv) - 1 or not str.isdigit(argv[argv.index('-x') + 1]):
+    print('please specify argment x position as "-x".')
+    exit()
+
+if not '-y' in argv or argv.index('-y') == len(argv) - 1 or not str.isdigit(argv[argv.index('-y') + 1]):
+    print('please specify argment y position as "-y".')
+    exit()
+
+if not '-value' in argv or argv.index('-value') == len(argv) - 1 or not str.isdigit(argv[argv.index('-value') + 1]):
+    print('please specify argment pixel value "-value".')
+    exit()
+
+target_background_key = int(argv[argv.index('-key') + 1])
+target_pos = (int(argv[argv.index('-x') + 1]), int(argv[argv.index('-y') + 1]))
+target_value = int(argv[argv.index('-value') + 1])
 
 class InformationsImage():
     def __init__(self, filepath, music):
@@ -67,24 +68,22 @@ if __name__ == '__main__':
 
     images = load_images(keys, labels)
 
-    filtered_images = []
-    for image in images.values():
+    filtered_images = {}
+    for key, image in images.items():
         if image.background_key != target_background_key:
             continue
-        filtered_images.append(image)
+        filtered_images[key] = image
 
-    target_images = []
     patterns = {}
-    for image in filtered_images:
+    for key, image in filtered_images.items():
         v = image.np_value[target_pos[1],target_pos[0]]
         if not v in patterns.keys():
             patterns[v] = []
-        patterns[v].append(image)
-        target_images.append(image)
+        patterns[v].append(key)
     
     for key, value in patterns.items():
         print(key, len(value))
     
     print(target_value)
-    for image in patterns[target_value]:
-        print(image.key)
+    for key in patterns[target_value]:
+        print(key)

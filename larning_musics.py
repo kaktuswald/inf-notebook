@@ -2,16 +2,23 @@ from PIL import Image
 import json
 from sys import exit
 from os import mkdir,remove
-from os.path import join,isfile,exists,basename
+from os.path import join,isfile,exists
 import numpy as np
 from glob import glob
 from scipy.stats import mode
 import time
 
-from define import define
 from resources import recog_musics_filepath
 import data_collection as dc
 from larning import create_resource_directory
+
+class MusicRecognitionDefine():
+    trimarea = (180, 0, 250, 12)
+    background_key_position = (0, -2)
+    ignore_y_lines = (1, 2, 4, 6, 7, )
+    ignore_x_lines = (27, 29, 37, 38, 40, 55, 56, 62, )
+
+music_define = MusicRecognitionDefine
 
 background_ignore_keys_filename = 'background_ignore_keys.txt'
 dirname = 'larning_music'
@@ -26,7 +33,7 @@ infinitasonlymusics_filename = 'musics_infinitas_only.txt'
 registred_musics_filename = 'musics_registred.txt'
 missing_musics_filename = 'musics_missing_in_arcade.txt'
 
-area = define.informations_areas['music']
+area = music_define.trimarea
 width = area[2] - area[0]
 height = area[3] - area[1]
 shape = (height, width)
@@ -34,7 +41,7 @@ shape = (height, width)
 class InformationsImage():
     def __init__(self, filepath, music):
         image = Image.open(filepath)
-        self.background_key = image.getpixel(define.music_background_key_position)
+        self.background_key = image.getpixel(music_define.background_key_position)
         np_value = np.array(image)
         self.np_value = np_value[area[1]:area[3], area[0]:area[2]]
         self.music = music
@@ -73,7 +80,7 @@ def generate_backgrounds(images, ignore_keys):
 
 def larning(images, backgrounds):
     musics = {}
-    for key, image in images.items():
+    for key, image in [*images.items()]:
         if not image.music in musics.keys():
             musics[image.music] = {}
         musics[image.music][key] = image
@@ -83,12 +90,9 @@ def larning(images, backgrounds):
     np_values = {}
     binary_values = {}
     map = {}
-    report = {}
-    is_ok = True
+    unique_test = {}
 
     for music in musics.keys():
-        report[music] = {}
-
         for key, image in musics[music].items():
             np_values[key] = []
             binary_values[key] = []
@@ -100,7 +104,8 @@ def larning(images, backgrounds):
             background_removed = np.where(backgrounds[background_key]!=np_value, np_value, 0)
             np_values[key].append(background_removed)
 
-            trimmed = np.delete(background_removed, define.music_ignore_y_lines, 0)
+            y_trimmed = np.delete(background_removed, music_define.ignore_y_lines, 0)
+            trimmed = np.delete(y_trimmed, music_define.ignore_x_lines, 1)
             np_values[key].append(trimmed)
 
             maxcounts = []
@@ -112,43 +117,77 @@ def larning(images, backgrounds):
                 maxcount_values.append(unique[np.argmax(counts[dark_count:])+dark_count] if len(unique) > dark_count else 0)
 
             y = np.argmax(maxcounts)
+            count = maxcounts[y]
             color = int(maxcount_values[y])
+            key_first = f'{y:02}{count:02}{color:03}'
+            if not music in unique_test.keys():
+                unique_test[music] = []
+            unique_test[music].append(key_first)
 
-            mask = np.zeros(trimmed.shape)
-            mask[np.argmax(maxcounts),:] = maxcount_values[y]
-            result = np.where(trimmed==mask,trimmed,0)
-            np_values[key].append(result)
+            mapkeys = []
+            for y in np.argsort(maxcounts)[::-1]:
+                count = maxcounts[y]
+                color = int(maxcount_values[y])
+                mapkeys.append(f'{y:02}{count:02}{color:03}')
 
-            y_key = str(y)
-            if not y_key in map.keys():
-                map[y_key] = {}
-            target = map[y_key]
+            target = map
+            for k in mapkeys:
+                if len(target) == 0:
+                    target['musics'] = {}
+                    target['keys'] = {}
 
-            color_key = str(color)
-            if not color_key in target.keys():
-                target[color_key] = {}
-            target = target[color_key]
+                if not music in target['musics'].keys():
+                    target['musics'][music] = []
+                target['musics'][music].append(key)
 
-            line = np.where(trimmed[y]==color, 1, 0)
-            line_key = str(int(''.join(line.astype(str)), 2))
-            if type(line_key) is not str:
-                print(line_key)
+                if not k in target['keys'].keys():
+                    target['keys'][k] = {}
+                target = target['keys'][k]
+            if len(target) == 0:
+                target['musics'] = {}
+                target['keys'] = {}
 
-            if line_key in target.keys() and target[line_key] != music:
-                print('duplicate', music, target[line_key], key)
-                inspect_targets.append(music)
-                inspect_targets.append(target[line_key])
-                is_ok = False
+            if not music in target['musics'].keys():
+                target['musics'][music] = []
+            target['musics'][music].append(key)
+    
+    with open('unique_test.txt', 'w', encoding='UTF-8') as f:
+        for key, value in unique_test.items():
+            f.write(f'({len(set(value))}) {key}({len(value)}): {value}\n')
+    
+    result = {}
+    report = {}
+    def optimization(resulttarget, maptarget):
+        if len(maptarget['musics']) >= 2:
+            if len(maptarget['keys']) == 0:
+                musics = [m for m in maptarget['musics'].keys()]
+                print('duplicate', musics)
+                for m in musics:
+                    print(f"{m}: {maptarget['musics'][m]}")
+                inspect_targets.extend(musics)
+            else:
+                for key in maptarget['keys'].keys():
+                    resulttarget[key] = {}
+                    music = optimization(resulttarget[key], maptarget['keys'][key])
+                    if music is not None:
+                        resulttarget[key] = music
+            return None
+        else:
+            music = [*maptarget['musics'].keys()][0]
+            music_keys = maptarget['musics'].values()
+            resulttarget = music
+            if not music in report.keys():
+                report[music] = []
+            report[music].append(*music_keys)
+            return music
+    optimization(result, map)
 
-            target[line_key] = music
-
-            report[music][key] = sum(result)
-
-    for music in [*report.keys()]:
-        count = len(np.unique(np.array([np.sum(np_value) for np_value in report[music].values()])))
-        if len(inspect_targets) < 2 and count != 1:
-            print('not unique', music, count, [f'{key}: {np.sum(item)}' for key, item in report[music].items()])
+    for music, keys in [*report.items()]:
+        if len(keys) >= 2 and len(inspect_targets) < 2:
+            print('not unique', music, keys)
             inspect_targets.append(music)
+    # inspect_targets.append('CaptivAte～裁き～')
+    # inspect_targets.append('CaptivAte～誓い～')
     
     if len(inspect_targets) > 0:
         for filepath in glob(join(music_inspection_basepath, '*.png')):
@@ -159,7 +198,7 @@ def larning(images, backgrounds):
 
         for background_key in backgrounds.keys():
             output_image = Image.fromarray(backgrounds[background_key])
-            output_filepath = join(music_inspection_basepath, f'background_{background_key}.png')
+            output_filepath = join(music_inspection_basepath, f'_background_{background_key}.png')
             output_image.save(output_filepath)
 
         if not exists(music_inspection_basepath):
@@ -186,10 +225,7 @@ def larning(images, backgrounds):
 
     print(f'music count: {len(musics)}')
 
-    if is_ok:
-        print('larning OK!')
-
-    return [*musics.keys()], map if is_ok else None
+    return [*musics.keys()], result
 
 def check(target, arcade_all_musics, infinitas_only_musics):
     if type(target) is dict:
@@ -257,6 +293,12 @@ if __name__ == '__main__':
         backgrounds[background_key] = backgrounds[background_key].tolist()
 
     output = {
+        'define': {
+            'trimarea': music_define.trimarea,
+            'background_key_position': music_define.background_key_position,
+            'ignore_y_lines': music_define.ignore_y_lines,
+            'ignore_x_lines': music_define.ignore_x_lines,
+        },
         'backgrounds': backgrounds,
         'recognition': recog_musics
     }
@@ -269,4 +311,3 @@ if __name__ == '__main__':
 
     with open(missing_musics_filename, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(missing_musics))
-
