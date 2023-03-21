@@ -2,7 +2,7 @@ from PIL import Image
 import json
 from sys import exit
 from os import mkdir,remove
-from os.path import join,isfile,exists
+from os.path import join,isfile,exists,basename
 import numpy as np
 from glob import glob
 from scipy.stats import mode
@@ -264,6 +264,13 @@ if __name__ == '__main__':
     except Exception:
         print(f"{dc.label_filepath}を読み込めませんでした。")
         exit()
+    
+    ignore_keys_filepath = join(dc.collection_basepath, background_ignore_keys_filename)
+    if isfile(ignore_keys_filepath):
+        with open(ignore_keys_filepath, 'r', encoding='utf-8') as f:
+            ignore_keys = f.read().split('\n')
+    else:
+        ignore_keys = []
 
     ignore_keys_filepath = join(dc.collection_basepath, background_ignore_keys_filename)
     if isfile(ignore_keys_filepath):

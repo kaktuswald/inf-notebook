@@ -13,6 +13,10 @@ resized_icon = icon_image.resize((32, 32))
 icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
 
+best_display_modes = ('option', 'timestamp', )
+
+best_display_mode = best_display_modes[0]
+
 def layout_main(setting):
     column_headers = ['日時', '曲名', 'M', 'CT', 'DL', 'SC', 'MC']
     column_widths = [13, 13, 4, 3, 3, 3, 3]
@@ -67,29 +71,36 @@ def layout_main(setting):
         sg.Tab('ベスト', [
             [
                 sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='clear_type', size=(10, 1), background_color=background_color),
-                sg.Text(key='clear_type_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                sg.Text(key='best_clear_type', size=(10, 1), background_color=background_color),
+                sg.Text(key='best_clear_type_option', size=(13, 1), background_color=background_color, text_color='#eeeeee'),
+                sg.Text(key='best_clear_type_timestamp', size=(13, 1), visible=False, background_color=background_color, text_color='#eeeeee'),
             ],
             [
                 sg.Text('DJレベル', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='dj_level', size=(10, 1), background_color=background_color),
-                sg.Text(key='dj_level_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                sg.Text(key='best_dj_level', size=(10, 1), background_color=background_color),
+                sg.Text(key='best_dj_level_option', size=(13, 1), background_color=background_color, text_color='#eeeeee'),
+                sg.Text(key='best_dj_level_timestamp', size=(13, 1), visible=False, background_color=background_color, text_color='#eeeeee'),
             ],
             [
                 sg.Text('スコア', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='score', size=(10, 1), background_color=background_color),
-                sg.Text(key='score_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                sg.Text(key='best_score', size=(10, 1), background_color=background_color),
+                sg.Text(key='best_score_option', size=(13, 1), background_color=background_color, text_color='#eeeeee'),
+                sg.Text(key='best_score_timestamp', size=(13, 1), visible=False, background_color=background_color, text_color='#eeeeee'),
             ],
             [
                 sg.Text('ミスカウント', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='miss_count', size=(10, 1), background_color=background_color),
-                sg.Text(key='miss_count_timestamp', size=(13, 1), background_color=background_color, text_color='#dddddd')
+                sg.Text(key='best_miss_count', size=(10, 1), background_color=background_color),
+                sg.Text(key='best_miss_count_option', size=(13, 1), background_color=background_color, text_color='#eeeeee'),
+                sg.Text(key='best_miss_count_timestamp', size=(13, 1), visible=False, background_color=background_color, text_color='#eeeeee'),
+            ],
+            [
+                sg.Button('更新日', size=(15, 1), key='button_best_switch')
             ]
         ], pad=0, background_color=background_color),
         sg.Tab('履歴', [
             [
                 sg.Text('日時', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
-                sg.Text(key='history_timestamp', size=(13, 1), background_color=background_color)
+                sg.Text(key='history_timestamp', size=(25, 1), background_color=background_color)
             ],
             [
                 sg.Text('クリアタイプ', size=(11, 1), background_color=background_color_label, font=('Arial', 9)),
@@ -119,6 +130,10 @@ def layout_main(setting):
             sg.Text('画像表示スケール', background_color=background_color),
             sg.Combo(scales, key='scale', default_value='1/2', readonly=True),
             sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
+        ],
+        [
+            sg.InputText(key='text_file_path', visible=setting.manage, size=(70, 1), enable_events=True),
+            sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
         ],
         [
             sg.Column([
@@ -155,8 +170,8 @@ def layout_main(setting):
             )
         ],
         [
-            sg.Text('最終プレイ', size=(11, 1), background_color=background_color_label),
-            sg.Text(key='latest', size=(13, 1), background_color=background_color),
+            sg.Text('プレイ回数', size=(11, 1), background_color=background_color_label),
+            sg.Text(key='played_count', size=(13, 1), background_color=background_color),
             sg.Button('グラフ', key='button_graph')
         ],
         [
@@ -250,7 +265,7 @@ def error_message(title, message, exception):
 
 def display_image(value, savable=False, filterable=False):
     subsample = int(window['scale'].get().split('/')[1])
-    
+
     if value is not None:
         window['screenshot'].update(data=value, subsample=subsample, visible=True)
     else:
@@ -282,36 +297,38 @@ def search_music_candidates():
 def display_record(record):
     if record is None:
         window['history'].update([])
-        window['latest'].update('')
+        window['played_count'].update('')
         window['history_timestamp'].update('')
         window['history_options'].update('')
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            window[key].update('')
-            window[f'{key}_timestamp'].update('')
+            window[f'best_{key}'].update('')
+            window[f'best_{key}_option'].update('')
+            window[f'best_{key}_timestamp'].update('')
             window[f'history_{key}'].update('')
         return
     
-    latest_timestamp = record['latest']['timestamp']
-    formatted_timestamp = f'{int(latest_timestamp[0:4])}年{int(latest_timestamp[4:6])}月{int(latest_timestamp[6:8])}日'
-    window['latest'].update(formatted_timestamp)
-
     window['history'].update([*reversed(record['timestamps'])])
+    window['played_count'].update(len(record['timestamps']))
 
     if 'best' in record.keys():
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
             if key in record['best']:
                 value = record['best'][key]['value']
+                option = record['best'][key]['options']['arrange'] if record['best'][key]['options'] is not None else None
                 timestamp = record['best'][key]['timestamp']
                 timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
-                window[key].update(value if value is not None else '')
-                window[f'{key}_timestamp'].update(timestamp)
+                window[f'best_{key}'].update(value if value is not None else '')
+                window[f'best_{key}_option'].update(option if option is not None else '')
+                window[f'best_{key}_timestamp'].update(timestamp)
             else:
                 window[key].update('')
-                window[f'{key}_timestamp'].update('')
+                window[f'best_{key}_option'].update('')
+                window[f'best_{key}_timestamp'].update('')
     else:
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            window[key].update('')
-            window[f'{key}_timestamp'].update('')
+            window[f'best_{key}'].update('')
+            window[f'best_{key}_option'].update('')
+            window[f'best_{key}_timestamp'].update('')
     
     window['history_timestamp'].update('')
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
@@ -319,7 +336,7 @@ def display_record(record):
     window['history_options'].update('')
 
 def display_historyresult(record, timestamp):
-    formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+    formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日 {timestamp[9:11]}:{timestamp[11:13]}:{timestamp[13:15]}'
     window['history_timestamp'].update(formatted_timestamp)
 
     target = record['history'][timestamp]
@@ -335,3 +352,18 @@ def display_historyresult(record, timestamp):
             'BATTLE' if target['options']['battle'] else ''
         ]))
     
+def switch_best_display():
+    global best_display_mode
+
+    index = (best_display_modes.index(best_display_mode) + 1) % len(best_display_modes)
+    best_display_mode = best_display_modes[index]
+    
+    if best_display_mode == 'option':
+        window['button_best_switch'].update('更新日')
+
+    if best_display_mode == 'timestamp':
+        window['button_best_switch'].update('使用オプション')
+
+    for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+        window[f'best_{key}_option'].update(visible=best_display_mode == 'option')
+        window[f'best_{key}_timestamp'].update(visible=best_display_mode == 'timestamp')

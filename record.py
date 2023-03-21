@@ -91,29 +91,23 @@ class Record():
         }
 
     def insert_best(self, target, result, options):
-        target['best'] = {
-            'clear_type': {
-                'value': result.details.clear_type.current if result.details.clear_type.new else result.details.clear_type.best,
-                'timestamp': result.timestamp,
-                'options': options
-            },
-            'dj_level': {
-                'value': result.details.dj_level.current if result.details.dj_level.new else result.details.dj_level.best,
-                'timestamp': result.timestamp,
-                'options': options
-            },
-            'score': {
-                'value': result.details.score.current if result.details.score.new else result.details.score.best,
-                'timestamp': result.timestamp,
-                'options': options
-            },
-            'miss_count': {
-                'value': result.details.miss_count.current if result.details.miss_count.new else result.details.miss_count.best,
-                'timestamp': result.timestamp,
-                'options': options
-            }
+        if not 'best' in target.keys():
+            target['best'] = {}
+        
+        targets = {
+            'clear_type': result.details.clear_type,
+            'dj_level': result.details.dj_level,
+            'score': result.details.score,
+            'miss_count': result.details.miss_count,
         }
-    
+        for key, value in targets.items():
+            if not key in target['best'].keys() or value.new:
+                target['best'][key] = {
+                    'value': value.current if value.new else value.best,
+                    'timestamp': result.timestamp,
+                    'options': options if value.new else None
+                }
+
     def insert(self, result):
         if result.informations.play_mode is None:
             return

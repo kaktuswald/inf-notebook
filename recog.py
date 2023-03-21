@@ -82,20 +82,28 @@ class Recognition():
 
         self.new = Recog(masks['new'])
     
-    def get_is_screen_loading(self, image_cropped):
-        monochrome = image_cropped.convert('L')
+    def get_is_screen_loading(self, image):
+        cropped = image.crop(define.areas['loading'])
+        monochrome = cropped.convert('L')
         return np.array_equal(self.loading, np.array(monochrome))
 
-    def get_is_screen_music_select(self, image_cropped):
-        monochrome = image_cropped.convert('L')
+    def get_is_screen_music_select(self, image):
+        cropped = image.crop(define.areas['music_select'])
+        monochrome = cropped.convert('L')
         return np.array_equal(self.music_select, np.array(monochrome))
 
-    def get_is_screen_playing(self, image_cropped):
-        monochrome = image_cropped.convert('L')
-        return np.array_equal(self.turntable, np.array(monochrome))
+    def get_is_screen_playing(self, image):
+        for key in define.areas['turntable'].keys():
+            cropped = image.crop(define.areas['turntable'][key])
+            monochrome = cropped.convert('L')
+            if np.array_equal(self.turntable, np.array(monochrome)):
+                return True
 
-    def get_is_screen_result(self, image_cropped):
-        monochrome = image_cropped.convert('L')
+        return False
+
+    def get_is_screen_result(self, image):
+        cropped = image.crop(define.areas['result'])
+        monochrome = cropped.convert('L')
         return np.array_equal(self.result, np.array(monochrome))
 
     def get_has_trigger(self, image_result):
