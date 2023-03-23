@@ -143,3 +143,7 @@ musics*/
 .vscode
 
 env_*/
+
+musics_arcade_all.txt
+musics_infinitas_only.txt
+musics_missing_in_arcade.txt

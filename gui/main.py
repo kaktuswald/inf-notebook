@@ -286,10 +286,10 @@ def switch_table(display_music):
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)
 
 def search_music_candidates():
-    search_music = window['search_music'].get()
-    if len(search_music) != 0:
+    input = window['search_music'].get()
+    if len(input) != 0:
         musics = get_recode_musics()
-        candidates = [music for music in musics if search_music in music]
+        candidates = [music for music in musics if input in music]
         window['music_candidates'].update(values=candidates)
     else:
         window['music_candidates'].update(values=[])
