@@ -40,7 +40,7 @@ from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
-from record import Record,convert_records_filenames
+from record import Record,rename_allfiles
 from graph import create_graphimage,save_graphimage,graphs_basepath
 from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
 
@@ -548,12 +548,23 @@ def create_graph(selection, targetrecord):
     
     selection.selection_graph()
 
+def rename_allrecords():
+    def covering(target, musics):
+        if type(target) is dict:
+            for t in target.values():
+                covering(t, musics)
+        else:
+            musics.append(target)
+
+    musics = []
+    covering(recog.music_recognition, musics)
+    musics = set(musics)
+
+    rename_allfiles(musics)
+
 if __name__ == '__main__':
     if setting.manage:
         keyboard.add_hotkey('ctrl+F10', active_screenshot)
-
-    # version0.7.0.1以前の不具合対応のため
-    convert_records_filenames()
 
     window = gui.generate_window(setting, version)
 
@@ -595,6 +606,9 @@ if __name__ == '__main__':
 
     check_resource_musics()
     
+    # version0.7.0.1以前の不具合対応のため
+    rename_allrecords()
+
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
 

@@ -155,12 +155,8 @@ class Record():
         
         self.save()
 
-def convert_records_filenames():
+def rename_allfiles(musics):
     string_max_length = 128
-
-    with open('musics_registred.txt', encoding='UTF-8') as f:
-        musics = f.read().split('\n')
-    print(len(musics))
 
     for music in musics:
         string = music.encode('UTF-8').hex()
@@ -180,6 +176,3 @@ def get_recode_musics():
     strings = [os.path.basename(filepath).removesuffix('.json') for filepath in filepaths]
     musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
     return musics
-
-if __name__ == '__main__':
-    convert_records_filenames()
