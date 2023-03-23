@@ -3,16 +3,13 @@ import os
 from glob import glob
 
 records_basepath = 'records'
-string_max_length = 128
 
 if not os.path.exists(records_basepath):
     os.mkdir(records_basepath)
 
 class Record():
     def __init__(self, music):
-        code = music.encode('UTF-8')
-        string = code.hex()
-        filename = f'{string[:string_max_length]}.json'
+        filename = f"{music.encode('UTF-8').hex()}.json"
         self.filepath = os.path.join(records_basepath, filename)
 
         if not os.path.exists(self.filepath):
@@ -158,8 +155,31 @@ class Record():
         
         self.save()
 
+def convert_records_filenames():
+    string_max_length = 128
+
+    with open('musics_registred.txt', encoding='UTF-8') as f:
+        musics = f.read().split('\n')
+    print(len(musics))
+
+    for music in musics:
+        string = music.encode('UTF-8').hex()
+        if len(string) > string_max_length:
+            omitted_filename = f'{string[:string_max_length]}.json'
+            omitted_filepath = os.path.join(records_basepath, omitted_filename)
+            if os.path.exists(omitted_filepath):
+                full_filename = f'{string}.json'
+                full_filepath = os.path.join(records_basepath, full_filename)
+                os.rename(omitted_filepath, full_filepath)
+                print(f'Rename {music}')
+                print(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
+                print(f'To(length: {len(full_filename)})\t\t{full_filename}')
+
 def get_recode_musics():
     filepaths = glob(os.path.join(records_basepath, '*.json'))
     strings = [os.path.basename(filepath).removesuffix('.json') for filepath in filepaths]
     musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
     return musics
+
+if __name__ == '__main__':
+    convert_records_filenames()

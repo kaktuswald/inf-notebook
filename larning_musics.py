@@ -313,6 +313,11 @@ if __name__ == '__main__':
     with open(recog_musics_filepath, 'w') as f:
         json.dump(output, f)
 
+    for music in musics:
+        encoded = music.encode('UTF-8').hex()
+        if len(encoded) > 240:
+            print(f'Record file name too long: {music}')
+
     with open(registred_musics_filename, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(musics))
 
