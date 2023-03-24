@@ -1,9 +1,9 @@
 import json
 from sys import exit,argv
-from os.path import isfile
+from os.path import isfile,join
 
 import data_collection as dc
-from larning_musics import load_images
+from larning_musics import load_images,background_ignore_keys_filename
 
 if len(argv) == 1:
     print('please argment.')
@@ -41,7 +41,14 @@ if __name__ == '__main__':
         print(f"{dc.label_filepath}を読み込めませんでした。")
         exit()
 
-    keys = [key for key in labels.keys() if labels[key]['informations'] is not None and labels[key]['informations']['music'] != '']
+    ignore_keys_filepath = join(dc.collection_basepath, background_ignore_keys_filename)
+    if isfile(ignore_keys_filepath):
+        with open(ignore_keys_filepath, 'r', encoding='utf-8') as f:
+            ignore_keys = f.read().split('\n')
+    else:
+        ignore_keys = []
+
+    keys = [key for key in labels.keys() if labels[key]['informations'] is not None and labels[key]['informations']['music'] != '' and not key in ignore_keys]
     print(f"file count: {len(keys)}")
 
     images = load_images(keys, labels)
@@ -59,9 +66,9 @@ if __name__ == '__main__':
             patterns[v] = []
         patterns[v].append(key)
     
-    for key, value in patterns.items():
-        print(key, len(value))
+    for key in sorted(patterns.keys()):
+        print(f'{key:03}: {len(patterns[key])}')
     
     if target_value in patterns.keys():
         for key in patterns[target_value]:
-            print(key)
+            print(key, images[key].music)

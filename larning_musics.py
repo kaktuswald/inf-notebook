@@ -13,15 +13,17 @@ import data_collection as dc
 from larning import create_resource_directory
 
 class MusicRecognitionDefine():
-    trimarea = (180, 0, 250, 12)
+    trimarea = (180, 0, 250, 13)
     background_key_position = (0, -2)
     ignore_y_lines = (1, 2, 4, 6, 7, )
-    ignore_x_lines = (27, 29, 37, 38, 40, 55, 56, 62, )
+    ignore_x_lines = (24, 27, 29, 37, 38, 40, 49, 55, 56, 62, 68, )
 
 music_define = MusicRecognitionDefine
 
 background_ignore_keys_filename = 'background_ignore_keys.txt'
 dirname = 'larning_music'
+
+backgrounds_report_filename = 'backgrounds_report.txt'
 
 if not exists(dirname):
     mkdir(dirname)
@@ -58,25 +60,32 @@ def load_images(keys, labels):
     
 def generate_backgrounds(images, ignore_keys):
     background_sources = {}
+    report = {}
+    added_musics = {}
     for key, image in images.items():
         if key in ignore_keys:
             continue
         if not image.background_key in background_sources.keys():
             background_sources[image.background_key] = []
-        background_sources[image.background_key].append(image.np_value)
+            added_musics[image.background_key] = []
+            report[image.background_key] = []
+        if not image.music in added_musics[image.background_key]:
+            background_sources[image.background_key].append(image.np_value)
+            report[image.background_key].append([key, image.music])
+            added_musics[image.background_key].append(image.music)
 
     print('background sources')
     backgrounds = {}
-    for background_key in background_sources.keys():
+    for background_key in sorted(background_sources.keys()):
         stacks = np.stack(background_sources[background_key])
         result, counts = mode(stacks, keepdims=True)
         result_background = result.reshape(shape)
 
         backgrounds[background_key] = result_background
 
-        print(f'{background_key}: {len(background_sources[background_key])}')
+        print(f'{background_key:03}: {len(background_sources[background_key])}')
     
-    return backgrounds
+    return report, backgrounds
 
 def larning(images, backgrounds):
     musics = {}
@@ -90,7 +99,6 @@ def larning(images, backgrounds):
     np_values = {}
     binary_values = {}
     map = {}
-    unique_test = {}
 
     for music in musics.keys():
         for key, image in musics[music].items():
@@ -115,14 +123,6 @@ def larning(images, backgrounds):
                 dark_count = np.count_nonzero(unique < 100)
                 maxcounts.append(counts[np.argmax(counts[dark_count:])+dark_count] if len(counts) > dark_count else 0)
                 maxcount_values.append(unique[np.argmax(counts[dark_count:])+dark_count] if len(unique) > dark_count else 0)
-
-            y = np.argmax(maxcounts)
-            count = maxcounts[y]
-            color = int(maxcount_values[y])
-            key_first = f'{y:02}{count:02}{color:03}'
-            if not music in unique_test.keys():
-                unique_test[music] = []
-            unique_test[music].append(key_first)
 
             mapkeys = []
             for y in np.argsort(maxcounts)[::-1]:
@@ -150,10 +150,6 @@ def larning(images, backgrounds):
             if not music in target['musics'].keys():
                 target['musics'][music] = []
             target['musics'][music].append(key)
-    
-    with open('unique_test.txt', 'w', encoding='UTF-8') as f:
-        for key, value in unique_test.items():
-            f.write(f'({len(set(value))}) {key}({len(value)}): {value}\n')
     
     result = {}
     report = {}
@@ -186,8 +182,6 @@ def larning(images, backgrounds):
         if len(keys) >= 2 and len(inspect_targets) < 2:
             print('not unique', music, keys)
             inspect_targets.append(music)
-    # inspect_targets.append('CaptivAte～裁き～')
-    # inspect_targets.append('CaptivAte～誓い～')
     
     if len(inspect_targets) > 0:
         for filepath in glob(join(music_inspection_basepath, '*.png')):
@@ -288,7 +282,13 @@ if __name__ == '__main__':
 
     images = load_images(keys, labels)
 
-    backgrounds = generate_backgrounds(images, ignore_keys)
+    backgrounds_report, backgrounds = generate_backgrounds(images, ignore_keys)
+
+    with open(backgrounds_report_filename, 'w', encoding='UTF-8') as f:
+        for bkey in sorted(backgrounds_report.keys()):
+            reports = backgrounds_report[bkey]
+            for r in reports:
+                f.write(f'({bkey:03}){r[0]}: {r[1]}\n')
 
     start = time.time()
     musics, recog_musics = larning(images, backgrounds)
@@ -319,7 +319,7 @@ if __name__ == '__main__':
             print(f'Record file name too long: {music}')
 
     with open(registered_musics_filename, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(musics))
+        f.write('\n'.join(sorted(musics)))
 
     with open(missing_musics_filename, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(missing_musics))
+        f.write('\n'.join(sorted(missing_musics)))
