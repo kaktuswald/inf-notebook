@@ -94,35 +94,36 @@ class ThreadMain(threading.Thread):
                 self.queues['log'].put(f'infinitas lost')
             self.handle = 0
             self.active = False
-            screenshot.area = None
+            screenshot.xy = None
             return
         
         if self.handle != handle:
             self.queues['log'].put(f'infinitas find')
             self.handle = handle
+            if setting.play_sound:
+                play_sound_find()
         
         rect = ctypes.wintypes.RECT()
         GetWindowRect(handle, ctypes.pointer(rect))
 
-        if rect.left == -32000:
+        if rect.right - rect.left != screenshot.width or rect.bottom - rect.top != screenshot.height:
             if self.active:
                 self.queues['log'].put(f'infinitas deactivate')
                 self.sleep_time = thread_time_wait
                 self.queues['log'].put(f'change sleep time: {self.sleep_time}')
 
             self.active = False
+            screenshot.xy = None
             return
 
         if not self.active:
             self.active = True
             self.waiting = False
-            screenshot.area = [rect.left, rect.top, rect.right, rect.bottom]
             self.queues['log'].put(f'infinitas activate')
-            self.queues['log'].put(f'area = {screenshot.area}')
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
-            if setting.play_sound:
-                play_sound_find()
+
+        screenshot.xy = (rect.left, rect.top)
 
         if not self.waiting:
             screenshot.shot()
@@ -695,3 +696,5 @@ if __name__ == '__main__':
             log_debug(ex)
     
     window.close()
+
+    del screenshot
