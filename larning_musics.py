@@ -24,7 +24,7 @@ music_inspection_basepath = join(dirname, 'inspection')
 
 arcadeallmusics_filename = 'musics_arcade_all.txt'
 infinitasonlymusics_filename = 'musics_infinitas_only.txt'
-registred_musics_filename = 'musics_registred.txt'
+registered_musics_filename = 'musics_registered.txt'
 missing_musics_filename = 'musics_missing_in_arcade.txt'
 
 area = define.informations_areas['music']
@@ -268,7 +268,7 @@ if __name__ == '__main__':
         if len(encoded) > 240:
             print(f'Record file name too long: {music}')
 
-    with open(registred_musics_filename, 'w', encoding='UTF-8') as f:
+    with open(registered_musics_filename, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(musics))
 
     with open(missing_musics_filename, 'w', encoding='UTF-8') as f:
