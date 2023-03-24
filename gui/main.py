@@ -314,14 +314,20 @@ def display_record(record):
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
             if key in record['best']:
                 value = record['best'][key]['value']
-                option = record['best'][key]['options']['arrange'] if record['best'][key]['options'] is not None else None
+                if 'options' in record['best'][key].keys() and record['best'][key]['options'] is not None:
+                    if record['best'][key]['options']['arrange'] is not None:
+                        option = record['best'][key]['options']['arrange']
+                    else:
+                        option = '---------'
+                else:
+                    option = '?????'
                 timestamp = record['best'][key]['timestamp']
                 timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
                 window[f'best_{key}'].update(value if value is not None else '')
                 window[f'best_{key}_option'].update(option if option is not None else '')
                 window[f'best_{key}_timestamp'].update(timestamp)
             else:
-                window[key].update('')
+                window[f'best_{key}'].update('')
                 window[f'best_{key}_option'].update('')
                 window[f'best_{key}_timestamp'].update('')
     else:
