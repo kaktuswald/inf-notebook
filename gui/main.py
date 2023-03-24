@@ -321,11 +321,14 @@ def display_record(record):
                         option = '---------'
                 else:
                     option = '?????'
-                timestamp = record['best'][key]['timestamp']
-                timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+                if record['best'][key]['timestamp'] is not None:
+                    timestamp = record['best'][key]['timestamp']
+                    formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+                else:
+                    formatted_timestamp = '?????'
                 window[f'best_{key}'].update(value if value is not None else '')
                 window[f'best_{key}_option'].update(option if option is not None else '')
-                window[f'best_{key}_timestamp'].update(timestamp)
+                window[f'best_{key}_timestamp'].update(formatted_timestamp)
             else:
                 window[f'best_{key}'].update('')
                 window[f'best_{key}_option'].update('')

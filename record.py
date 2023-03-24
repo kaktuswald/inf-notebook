@@ -98,12 +98,19 @@ class Record():
             'miss_count': result.details.miss_count,
         }
         for key, value in targets.items():
-            if not key in target['best'].keys() or value.new:
+            if value.new:
                 target['best'][key] = {
-                    'value': value.current if value.new else value.best,
+                    'value': value.current,
                     'timestamp': result.timestamp,
-                    'options': options if value.new else None
+                    'options': options
                 }
+            else:
+                if not key in target['best'].keys():
+                    target['best'][key] = {
+                        'value': value.best,
+                        'timestamp': None,
+                        'options': None
+                    }
 
     def insert(self, result):
         if result.informations.play_mode is None:
