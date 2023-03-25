@@ -88,9 +88,11 @@ class Record():
         }
 
     def insert_best(self, target, result, options):
-        if not 'best' in target.keys():
+        if not 'best' in target.keys() or not 'latest' in target['best'].keys():
             target['best'] = {}
         
+        target['best']['latest'] = result.timestamp
+
         targets = {
             'clear_type': result.details.clear_type,
             'dj_level': result.details.dj_level,
@@ -98,12 +100,19 @@ class Record():
             'miss_count': result.details.miss_count,
         }
         for key, value in targets.items():
-            if not key in target['best'].keys() or value.new:
+            if value.new:
                 target['best'][key] = {
-                    'value': value.current if value.new else value.best,
+                    'value': value.current,
                     'timestamp': result.timestamp,
-                    'options': options if value.new else None
+                    'options': options
                 }
+            else:
+                if not key in target['best'].keys() and value.best is not None:
+                    target['best'][key] = {
+                        'value': value.best,
+                        'timestamp': None,
+                        'options': None
+                    }
 
     def insert(self, result):
         if result.informations.play_mode is None:
@@ -139,8 +148,7 @@ class Record():
 
         self.insert_latest(target, result, options_value)
         self.insert_history(target, result, options_value)
-        if options is None or not options.special:
-            self.insert_best(target, result, options_value)
+        self.insert_best(target, result, options_value)
     
     def delete_history(self, play_mode, difficulty, timestamp):
         if not play_mode in self.json.keys():
@@ -155,12 +163,8 @@ class Record():
         
         self.save()
 
-def convert_records_filenames():
+def rename_allfiles(musics):
     string_max_length = 128
-
-    with open('musics_registred.txt', encoding='UTF-8') as f:
-        musics = f.read().split('\n')
-    print(len(musics))
 
     for music in musics:
         string = music.encode('UTF-8').hex()
@@ -180,6 +184,3 @@ def get_recode_musics():
     strings = [os.path.basename(filepath).removesuffix('.json') for filepath in filepaths]
     musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
     return musics
-
-if __name__ == '__main__':
-    convert_records_filenames()

@@ -1,11 +1,9 @@
-from PIL import Image
 import json
 from sys import exit,argv
-from os.path import join,isfile,basename
-import numpy as np
+from os.path import isfile,join
 
-from define import define
 import data_collection as dc
+from larning_musics import load_images,background_ignore_keys_filename
 
 if len(argv) == 1:
     print('please argment.')
@@ -31,35 +29,6 @@ target_background_key = int(argv[argv.index('-key') + 1])
 target_pos = (int(argv[argv.index('-x') + 1]), int(argv[argv.index('-y') + 1]))
 target_value = int(argv[argv.index('-value') + 1])
 
-arcadeallmusics_filename = 'musics_arcade_all.txt'
-infinitasonlymusics_filename = 'musics_infinitas_only.txt'
-registred_musics_filename = 'musics_registred.txt'
-missing_musics_filename = 'musics_missing_in_arcade.txt'
-
-area = define.informations_areas['music']
-width = area[2] - area[0]
-height = area[3] - area[1]
-shape = (height, width)
-
-class InformationsImage():
-    def __init__(self, filepath, music):
-        image = Image.open(filepath)
-        self.background_key = image.getpixel(define.music_background_key_position)
-        np_value = np.array(image)
-        self.np_value = np_value[area[1]:area[3], area[0]:area[2]]
-        self.music = music
-        self.key = basename(filepath)
-
-def load_images(keys, labels):
-    images = {}
-    for key in keys:
-        filename = f'{key}.png'
-        filepath = join(dc.informations_basepath, filename)
-        if isfile(filepath):
-            images[key] = InformationsImage(filepath, labels[key]['informations']['music'])
-    
-    return images
-
 if __name__ == '__main__':
     if not isfile(dc.label_filepath):
         print(f"{dc.label_filepath}が見つかりませんでした。")
@@ -72,29 +41,34 @@ if __name__ == '__main__':
         print(f"{dc.label_filepath}を読み込めませんでした。")
         exit()
 
-    keys = [key for key in labels.keys() if labels[key]['informations'] is not None and labels[key]['informations']['music'] != '']
+    ignore_keys_filepath = join(dc.collection_basepath, background_ignore_keys_filename)
+    if isfile(ignore_keys_filepath):
+        with open(ignore_keys_filepath, 'r', encoding='utf-8') as f:
+            ignore_keys = f.read().split('\n')
+    else:
+        ignore_keys = []
+
+    keys = [key for key in labels.keys() if labels[key]['informations'] is not None and labels[key]['informations']['music'] != '' and not key in ignore_keys]
     print(f"file count: {len(keys)}")
 
     images = load_images(keys, labels)
 
-    filtered_images = []
-    for image in images.values():
+    filtered_images = {}
+    for key, image in images.items():
         if image.background_key != target_background_key:
             continue
-        filtered_images.append(image)
+        filtered_images[key] = image
 
-    target_images = []
     patterns = {}
-    for image in filtered_images:
+    for key, image in filtered_images.items():
         v = image.np_value[target_pos[1],target_pos[0]]
         if not v in patterns.keys():
             patterns[v] = []
-        patterns[v].append(image)
-        target_images.append(image)
+        patterns[v].append(key)
     
-    for key, value in patterns.items():
-        print(key, len(value))
+    for key in sorted(patterns.keys()):
+        print(f'{key:03}: {len(patterns[key])}')
     
     if target_value in patterns.keys():
-        for image in patterns[target_value]:
-            print(image.key)
+        for key in patterns[target_value]:
+            print(key, images[key].music)

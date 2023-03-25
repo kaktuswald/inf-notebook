@@ -35,12 +35,12 @@ logger.debug('mode: manage')
 from version import version
 import gui.main as gui
 from gui.general import get_imagevalue
-from resources import MusicsTimestamp,play_sound_find,play_sound_result,recog_musics_filepath
+from resources import MusicsTimestamp,play_sound_find,play_sound_result
 from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
-from record import Record,convert_records_filenames
+from record import Record,rename_allfiles
 from graph import create_graphimage,save_graphimage,graphs_basepath
 from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
 
@@ -94,35 +94,36 @@ class ThreadMain(threading.Thread):
                 self.queues['log'].put(f'infinitas lost')
             self.handle = 0
             self.active = False
-            screenshot.area = None
+            screenshot.xy = None
             return
         
         if self.handle != handle:
             self.queues['log'].put(f'infinitas find')
             self.handle = handle
+            if setting.play_sound:
+                play_sound_find()
         
         rect = ctypes.wintypes.RECT()
         GetWindowRect(handle, ctypes.pointer(rect))
 
-        if rect.left == -32000:
+        if rect.right - rect.left != screenshot.width or rect.bottom - rect.top != screenshot.height:
             if self.active:
                 self.queues['log'].put(f'infinitas deactivate')
                 self.sleep_time = thread_time_wait
                 self.queues['log'].put(f'change sleep time: {self.sleep_time}')
 
             self.active = False
+            screenshot.xy = None
             return
 
         if not self.active:
             self.active = True
             self.waiting = False
-            screenshot.area = [rect.left, rect.top, rect.right, rect.bottom]
             self.queues['log'].put(f'infinitas activate')
-            self.queues['log'].put(f'area = {screenshot.area}')
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
-            if setting.play_sound:
-                play_sound_find()
+
+        screenshot.xy = (rect.left, rect.top)
 
         if not self.waiting:
             screenshot.shot()
@@ -325,7 +326,7 @@ def check_resource_musics():
         threading.Thread(target=download_resource_musics, args=(musics_timestamp, latest_timestamp)).start()
 
 def download_resource_musics(musics_timestamp, latest_timestamp):
-    if storage.download_resource_musics(recog_musics_filepath):
+    if storage.download_resource_musics():
         musics_timestamp.write_timestamp(latest_timestamp)
         recog.load_resource_musics()
         print('download')
@@ -548,12 +549,23 @@ def create_graph(selection, targetrecord):
     
     selection.selection_graph()
 
+def rename_allrecords():
+    def covering(target, musics):
+        if type(target) is dict:
+            for t in target.values():
+                covering(t, musics)
+        else:
+            musics.append(target)
+
+    musics = []
+    covering(recog.music_recognition, musics)
+    musics = set(musics)
+
+    rename_allfiles(musics)
+
 if __name__ == '__main__':
     if setting.manage:
         keyboard.add_hotkey('ctrl+F10', active_screenshot)
-
-    # version0.7.0.1以前の不具合対応のため
-    convert_records_filenames()
 
     window = gui.generate_window(setting, version)
 
@@ -595,6 +607,9 @@ if __name__ == '__main__':
 
     check_resource_musics()
     
+    # version0.7.0.1以前の不具合対応のため
+    rename_allrecords()
+
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
 
@@ -681,3 +696,5 @@ if __name__ == '__main__':
             log_debug(ex)
     
     window.close()
+
+    del screenshot

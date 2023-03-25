@@ -94,7 +94,7 @@ def layout_main(setting):
                 sg.Text(key='best_miss_count_timestamp', size=(13, 1), visible=False, background_color=background_color, text_color='#eeeeee'),
             ],
             [
-                sg.Button('更新日', size=(15, 1), key='button_best_switch')
+                sg.Button('使用オプション >> 更新日', size=(26, 1), key='button_best_switch')
             ]
         ], pad=0, background_color=background_color),
         sg.Tab('履歴', [
@@ -314,14 +314,23 @@ def display_record(record):
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
             if key in record['best']:
                 value = record['best'][key]['value']
-                option = record['best'][key]['options']['arrange'] if record['best'][key]['options'] is not None else None
-                timestamp = record['best'][key]['timestamp']
-                timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+                if 'options' in record['best'][key].keys() and record['best'][key]['options'] is not None:
+                    if record['best'][key]['options']['arrange'] is not None:
+                        option = record['best'][key]['options']['arrange']
+                    else:
+                        option = '---------'
+                else:
+                    option = '?????'
+                if record['best'][key]['timestamp'] is not None:
+                    timestamp = record['best'][key]['timestamp']
+                    formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日'
+                else:
+                    formatted_timestamp = '?????'
                 window[f'best_{key}'].update(value if value is not None else '')
                 window[f'best_{key}_option'].update(option if option is not None else '')
-                window[f'best_{key}_timestamp'].update(timestamp)
+                window[f'best_{key}_timestamp'].update(formatted_timestamp)
             else:
-                window[key].update('')
+                window[f'best_{key}'].update('')
                 window[f'best_{key}_option'].update('')
                 window[f'best_{key}_timestamp'].update('')
     else:
@@ -359,10 +368,10 @@ def switch_best_display():
     best_display_mode = best_display_modes[index]
     
     if best_display_mode == 'option':
-        window['button_best_switch'].update('更新日')
+        window['button_best_switch'].update('使用オプション >> 更新日')
 
     if best_display_mode == 'timestamp':
-        window['button_best_switch'].update('使用オプション')
+        window['button_best_switch'].update('更新日 >> 使用オプション')
 
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'best_{key}_option'].update(visible=best_display_mode == 'option')
