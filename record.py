@@ -88,9 +88,11 @@ class Record():
         }
 
     def insert_best(self, target, result, options):
-        if not 'best' in target.keys():
+        if not 'best' in target.keys() or not 'latest' in target['best'].keys():
             target['best'] = {}
         
+        target['best']['latest'] = result.timestamp
+
         targets = {
             'clear_type': result.details.clear_type,
             'dj_level': result.details.dj_level,
@@ -105,7 +107,7 @@ class Record():
                     'options': options
                 }
             else:
-                if not key in target['best'].keys():
+                if not key in target['best'].keys() and value.best is not None:
                     target['best'][key] = {
                         'value': value.best,
                         'timestamp': None,
@@ -146,8 +148,7 @@ class Record():
 
         self.insert_latest(target, result, options_value)
         self.insert_history(target, result, options_value)
-        if options is None or not options.special:
-            self.insert_best(target, result, options_value)
+        self.insert_best(target, result, options_value)
     
     def delete_history(self, play_mode, difficulty, timestamp):
         if not play_mode in self.json.keys():

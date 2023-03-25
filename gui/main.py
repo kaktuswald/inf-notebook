@@ -94,7 +94,7 @@ def layout_main(setting):
                 sg.Text(key='best_miss_count_timestamp', size=(13, 1), visible=False, background_color=background_color, text_color='#eeeeee'),
             ],
             [
-                sg.Button('更新日', size=(15, 1), key='button_best_switch')
+                sg.Button('使用オプション >> 更新日', size=(26, 1), key='button_best_switch')
             ]
         ], pad=0, background_color=background_color),
         sg.Tab('履歴', [
@@ -368,10 +368,10 @@ def switch_best_display():
     best_display_mode = best_display_modes[index]
     
     if best_display_mode == 'option':
-        window['button_best_switch'].update('更新日')
+        window['button_best_switch'].update('使用オプション >> 更新日')
 
     if best_display_mode == 'timestamp':
-        window['button_best_switch'].update('使用オプション')
+        window['button_best_switch'].update('更新日 >> 使用オプション')
 
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'best_{key}_option'].update(visible=best_display_mode == 'option')
