@@ -82,20 +82,28 @@ class Recognition():
 
         self.new = Recog(masks['new'])
     
-    def get_is_screen_loading(self, image_cropped):
-        monochrome = image_cropped.convert('L')
+    def get_is_screen_loading(self, image):
+        cropped = image.crop(define.areas['loading'])
+        monochrome = cropped.convert('L')
         return np.array_equal(self.loading, np.array(monochrome))
 
-    def get_is_screen_music_select(self, image_cropped):
-        monochrome = image_cropped.convert('L')
+    def get_is_screen_music_select(self, image):
+        cropped = image.crop(define.areas['music_select'])
+        monochrome = cropped.convert('L')
         return np.array_equal(self.music_select, np.array(monochrome))
 
-    def get_is_screen_playing(self, image_cropped):
-        monochrome = image_cropped.convert('L')
-        return np.array_equal(self.turntable, np.array(monochrome))
+    def get_is_screen_playing(self, image):
+        for key in define.areas['turntable'].keys():
+            cropped = image.crop(define.areas['turntable'][key])
+            monochrome = cropped.convert('L')
+            if np.array_equal(self.turntable, np.array(monochrome)):
+                return True
 
-    def get_is_screen_result(self, image_cropped):
-        monochrome = image_cropped.convert('L')
+        return False
+
+    def get_is_screen_result(self, image):
+        cropped = image.crop(define.areas['result'])
+        monochrome = cropped.convert('L')
         return np.array_equal(self.result, np.array(monochrome))
 
     def get_has_trigger(self, image_result):
@@ -150,34 +158,32 @@ class Recognition():
         if self.backgrounds is None:
             return None
         
-        background_key = str(image_informations.getpixel(define.music_background_key_position))
-        np_value = np.array(image_informations.crop(define.informations_areas['music']))
+        background_key = str(image_informations.getpixel(self.background_key_position))
+        np_value = np.array(image_informations.crop(self.music_trimarea))
         background_removed = np.where(self.backgrounds[background_key]!=np_value, np_value, 0)
+        y_trimmed = np.delete(background_removed, self.ignore_y_lines, 0)
+        trimmed = np.delete(y_trimmed, self.ignore_x_lines, 1)
 
         maxcounts = []
         maxcount_values = []
-        for line in background_removed:
+        for line in trimmed:
             unique, counts = np.unique(line, return_counts=True)
             dark_count = np.count_nonzero(unique < 100)
             maxcounts.append(counts[np.argmax(counts[dark_count:])+dark_count] if len(counts) > dark_count else 0)
             maxcount_values.append(unique[np.argmax(counts[dark_count:])+dark_count] if len(unique) > dark_count else 0)
-        y = np.argmax(maxcounts)
-        color = int(maxcount_values[y])
 
-        y_key = str(y)
-        if not y_key in self.music_recognition.keys():
-            return None
-
-        color_key = str(color)
-        if not color_key in self.music_recognition[y_key].keys():
-            return None
-
-        line = np.where(background_removed[y]==color, 1, 0)
-        line_key = str(int(''.join(line.astype(str)), 2))
-        if not line_key in self.music_recognition[y_key][color_key].keys():
-            return None
+        target = self.music_recognition
+        for y in np.argsort(maxcounts)[::-1]:
+            count = maxcounts[y]
+            color = int(maxcount_values[y])
+            mapkey = f'{y:02}{count:02}{color:03}'
+            if not mapkey in target:
+                return None
+            if type(target[mapkey]) == str:
+                return target[mapkey]
+            target = target[mapkey]
         
-        return self.music_recognition[y_key][color_key][line_key]
+        return None
 
     def get_graph(self, image_details):
         if self.graph_lanes.find(image_details.crop(define.details_areas['graph_lanes'])):
@@ -301,6 +307,11 @@ class Recognition():
         with open(recog_musics_filepath) as f:
             resource = json.load(f)
         
+        self.music_trimarea = tuple(resource['define']['trimarea'])
+        self.background_key_position = tuple(resource['define']['background_key_position'])
+        self.ignore_y_lines = tuple(resource['define']['ignore_y_lines'])
+        self.ignore_x_lines = tuple(resource['define']['ignore_x_lines'])
+
         self.backgrounds = {}
         for background_key in resource['backgrounds'].keys():
             self.backgrounds[background_key] = np.array(resource['backgrounds'][background_key])

@@ -1,4 +1,5 @@
-import os
+from os import mkdir
+from os.path import join,exists
 import io
 from google.cloud import storage
 import uuid
@@ -12,13 +13,12 @@ logger.debug('loaded storage.py')
 
 from service_account_info import service_account_info
 from define import define
+from resources import recog_musics_filename,recog_musics_filepath
 
 bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
 bucket_name_musics = 'bucket-inf-notebook-musics'
 service_account_info = service_account_info
-
-object_name_musics = 'musics.json'
 
 informations_dirname = 'informations'
 details_dirname = 'details'
@@ -166,15 +166,15 @@ class StorageAccessor():
             image_draw.rectangle(rivalname_fillbox, fill=0)
             Thread(target=self.upload_details, args=(object_name, trim,)).start()
     
-    def upload_resource_musics(self, filepath):
+    def upload_resource_musics(self):
         if self.bucket_musics is None:
             self.connect_bucket_musics()
         if self.bucket_musics is None:
             return
 
         try:
-            blob = self.bucket_musics.blob(object_name_musics)
-            blob.upload_from_filename(filepath)
+            blob = self.bucket_musics.blob(recog_musics_filename)
+            blob.upload_from_filename(recog_musics_filepath)
             logger.debug(f'upload resource musics')
         except Exception as ex:
             logger.exception(ex)
@@ -186,14 +186,14 @@ class StorageAccessor():
             return False
 
         try:
-            self.blob_musics = self.bucket_musics.get_blob(object_name_musics)
+            self.blob_musics = self.bucket_musics.get_blob(recog_musics_filename)
             return self.blob_musics.updated
         except Exception as ex:
             logger.exception(ex)
         
         return None
     
-    def download_resource_musics(self, filepath):
+    def download_resource_musics(self):
         if self.bucket_musics is None:
             self.connect_bucket_musics()
         if self.bucket_musics is None:
@@ -205,7 +205,7 @@ class StorageAccessor():
             return False
 
         try:
-            self.blob_musics.download_to_filename(filepath)
+            self.blob_musics.download_to_filename(recog_musics_filename)
             logger.debug('download resource musics')
         except Exception as ex:
             logger.exception(ex)
@@ -214,12 +214,12 @@ class StorageAccessor():
         return True
 
     def save_image(self, basepath, blob):
-        if not os.path.exists(basepath):
-            os.mkdir(basepath)
+        if not exists(basepath):
+            mkdir(basepath)
         
         image_bytes = blob.download_as_bytes()
         image = Image.open(io.BytesIO(image_bytes))
-        filepath = os.path.join(basepath, blob.name)
+        filepath = join(basepath, blob.name)
         image.save(filepath)
 
     def download_and_delete_all(self, basedir):
@@ -228,11 +228,11 @@ class StorageAccessor():
             print('connect client failed')
             return
 
-        if not os.path.exists(basedir):
-            os.mkdir(basedir)
+        if not exists(basedir):
+            mkdir(basedir)
 
-        informations_dirpath = os.path.join(basedir, informations_dirname)
-        details_dirpath = os.path.join(basedir, details_dirname)
+        informations_dirpath = join(basedir, informations_dirname)
+        details_dirpath = join(basedir, details_dirname)
 
         count = 0
         blobs = self.client.list_blobs(bucket_name_informations)

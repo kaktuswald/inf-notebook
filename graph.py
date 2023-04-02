@@ -21,6 +21,9 @@ class Graph():
         self.value = get_imagevalue(image)
 
 def create_graphimage(play_mode, difficulty, music, target_record):
+    if target_record is None:
+        return None
+    
     if not 'history' in target_record.keys() or not 'notes' in target_record.keys():
         return None
 
@@ -48,6 +51,8 @@ def create_graphimage(play_mode, difficulty, music, target_record):
     ax1.set_xmargin(0)
     ax1.tick_params(rotation=30)
 
+    h1, l1 = ax1.get_legend_handles_labels()
+
     if len(miss_count) >= 1:
         ax2 = ax1.twinx()
         ax2.scatter(x, miss_count, color='#0000ff')
@@ -55,9 +60,10 @@ def create_graphimage(play_mode, difficulty, music, target_record):
         ax2.set_ylim(([0,notes/10]))
         ax2.set_xmargin(0)
     
-    h1, l1 = ax1.get_legend_handles_labels()
-    h2, l2 = ax2.get_legend_handles_labels()
-    ax1.legend(h1+h2, l1+l2, loc='center left')
+        h2, l2 = ax2.get_legend_handles_labels()
+        ax1.legend(h1+h2, l1+l2, loc='center left')
+    else:
+        ax1.legend(h1, l1, loc='center left')
 
     figure.canvas.draw()
     image = Image.fromarray(np.array(figure.canvas.renderer.buffer_rgba())).convert('RGB')

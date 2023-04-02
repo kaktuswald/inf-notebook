@@ -1,5 +1,4 @@
 import PySimpleGUI as sg
-import pyautogui as pgui
 import glob
 import os
 import logging
@@ -18,7 +17,7 @@ logger.debug('loaded manage.py')
 import gui.manage as gui
 from define import define
 from resources import images
-from screenshot import Screenshot
+from screenshot import Screenshot,open_screenimage
 from larning import RawLabel,raws_basepath
 
 screenshot = Screenshot()
@@ -34,18 +33,7 @@ def screenshot_process():
     gui.display_image(screen.original)
     gui.set_labels(labels.get(screen.filename))
 
-    find()
     gui.set_recognition(screen)
-
-def find():
-    window['result_screen'].update('')
-    for key in define.searchscreen_keys:
-        box = pgui.locate(images[key], screen.monochrome, grayscale=True)
-        area = define.areas[key]
-        if not box is None and box.left == area[0] and box.top == area[1]:
-            window['result_screen'].update(key)
-            window['result_screen_masterpos'].update(f'{area[0]}, {area[1]}')
-            window['result_screen_findpos'].update(f'{box.left}, {box.top}')
 
 if __name__ == '__main__':
     labels = RawLabel()
@@ -65,7 +53,7 @@ if __name__ == '__main__':
                 screen = screens[values['list_screens'][0]]
             else:
                 filepath = os.path.join(raws_basepath, values['list_screens'][0])
-                sc = screenshot.open(filepath)
+                sc = open_screenimage(filepath)
                 if not sc is None:
                     screen = sc
                     screens[values['list_screens'][0]] = screen

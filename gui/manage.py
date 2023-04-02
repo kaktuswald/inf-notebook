@@ -119,16 +119,9 @@ def layout_manage(filenames):
     ]
 
     manage_result = [
-        [sg.Text('画面認識', size=(31, 1), justification='center', pad=1)],
         [
-            sg.Text('画面', size=(10, 1), justification='center', pad=1),
-            sg.Text('マスタ座標', size=(10, 1), justification='center', pad=1),
-            sg.Text('検出座標', size=(10, 1), justification='center', pad=1)
-        ],
-        [
-            sg.Text(key='result_screen', size=(10, 1), justification='center', pad=1, background_color=in_area_background_color),
-            sg.Text(key='result_screen_masterpos', size=(10, 1), justification='center', pad=1, background_color=in_area_background_color),
-            sg.Text(key='result_screen_findpos', size=(10, 1), justification='center', pad=1, background_color=in_area_background_color)
+            sg.Text('サイズ', size=(12, 1)),
+            sg.Text(key='screen_size', background_color=in_area_background_color)
         ],
         [sg.Text('検出画像', size=(30, 1), justification='center', pad=1)],
         [
@@ -304,15 +297,13 @@ def set_labels(label):
             window['dead'].update(label['dead'])
 
 def set_recognition(screen):
-    loading = recog.get_is_screen_loading(screen.original.crop(define.areas['loading']))
-    music_select = recog.get_is_screen_music_select(screen.original.crop(define.areas['music_select']))
-    playing = ''
-    for key in define.areas['turntable'].keys():
-        result = recog.get_is_screen_playing(screen.original.crop(define.areas['turntable'][key]))
-        if result:
-            playing = key
-            break
-    result = recog.get_is_screen_result(screen.original.crop(define.areas['result']))
+    width, height = screen.original.size
+    window['screen_size'].update(f'{width} x {height}')
+
+    loading = recog.get_is_screen_loading(screen.original)
+    music_select = recog.get_is_screen_music_select(screen.original)
+    playing = recog.get_is_screen_playing(screen.original)
+    result = recog.get_is_screen_result(screen.original)
 
     trigger = recog.get_has_trigger(screen.monochrome)
     cutin_mission = recog.get_has_cutin_mission(screen.monochrome)
@@ -327,7 +318,7 @@ def set_recognition(screen):
 
     window['recog_loading'].update('☒' if loading else '')
     window['recog_music_select'].update('☒' if music_select else '')
-    window['recog_playing'].update(playing)
+    window['recog_playing'].update('☒' if playing else '')
     window['recog_result'].update('☒' if result else '')
 
     window['recog_trigger'].update('☒' if trigger else '')

@@ -3,16 +3,13 @@ import os
 from glob import glob
 
 records_basepath = 'records'
-string_max_length = 128
 
 if not os.path.exists(records_basepath):
     os.mkdir(records_basepath)
 
 class Record():
     def __init__(self, music):
-        code = music.encode('UTF-8')
-        string = code.hex()
-        filename = f'{string[:string_max_length]}.json'
+        filename = f"{music.encode('UTF-8').hex()}.json"
         self.filepath = os.path.join(records_basepath, filename)
 
         if not os.path.exists(self.filepath):
@@ -91,29 +88,32 @@ class Record():
         }
 
     def insert_best(self, target, result, options):
-        target['best'] = {
-            'clear_type': {
-                'value': result.details.clear_type.current if result.details.clear_type.new else result.details.clear_type.best,
-                'timestamp': result.timestamp,
-                'options': options
-            },
-            'dj_level': {
-                'value': result.details.dj_level.current if result.details.dj_level.new else result.details.dj_level.best,
-                'timestamp': result.timestamp,
-                'options': options
-            },
-            'score': {
-                'value': result.details.score.current if result.details.score.new else result.details.score.best,
-                'timestamp': result.timestamp,
-                'options': options
-            },
-            'miss_count': {
-                'value': result.details.miss_count.current if result.details.miss_count.new else result.details.miss_count.best,
-                'timestamp': result.timestamp,
-                'options': options
-            }
+        if not 'best' in target.keys() or not 'latest' in target['best'].keys():
+            target['best'] = {}
+        
+        target['best']['latest'] = result.timestamp
+
+        targets = {
+            'clear_type': result.details.clear_type,
+            'dj_level': result.details.dj_level,
+            'score': result.details.score,
+            'miss_count': result.details.miss_count,
         }
-    
+        for key, value in targets.items():
+            if value.new:
+                target['best'][key] = {
+                    'value': value.current,
+                    'timestamp': result.timestamp,
+                    'options': options
+                }
+            else:
+                if not key in target['best'].keys() and value.best is not None:
+                    target['best'][key] = {
+                        'value': value.best,
+                        'timestamp': None,
+                        'options': None
+                    }
+
     def insert(self, result):
         if result.informations.play_mode is None:
             return
@@ -148,8 +148,7 @@ class Record():
 
         self.insert_latest(target, result, options_value)
         self.insert_history(target, result, options_value)
-        if options is None or not options.special:
-            self.insert_best(target, result, options_value)
+        self.insert_best(target, result, options_value)
     
     def delete_history(self, play_mode, difficulty, timestamp):
         if not play_mode in self.json.keys():
@@ -163,6 +162,22 @@ class Record():
             del self.json[play_mode][difficulty]['history'][timestamp]
         
         self.save()
+
+def rename_allfiles(musics):
+    string_max_length = 128
+
+    for music in musics:
+        string = music.encode('UTF-8').hex()
+        if len(string) > string_max_length:
+            omitted_filename = f'{string[:string_max_length]}.json'
+            omitted_filepath = os.path.join(records_basepath, omitted_filename)
+            if os.path.exists(omitted_filepath):
+                full_filename = f'{string}.json'
+                full_filepath = os.path.join(records_basepath, full_filename)
+                os.rename(omitted_filepath, full_filepath)
+                print(f'Rename {music}')
+                print(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
+                print(f'To(length: {len(full_filename)})\t\t{full_filename}')
 
 def get_recode_musics():
     filepaths = glob(os.path.join(records_basepath, '*.json'))
