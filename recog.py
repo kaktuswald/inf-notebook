@@ -174,9 +174,10 @@ class Recognition():
 
         target = self.music_recognition
         for y in np.argsort(maxcounts)[::-1]:
-            count = maxcounts[y]
             color = int(maxcount_values[y])
-            mapkey = f'{y:02}{count:02}{color:03}'
+            bins = np.where(trimmed[y]==color, 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            mapkey = f"{y:02x}{''.join([format(v, '0x') for v in hexs])}"
             if not mapkey in target:
                 return None
             if type(target[mapkey]) == str:

@@ -10,6 +10,7 @@ import logging
 from urllib import request
 from urllib.parse import quote
 import ctypes
+from recent_output import Recent
 
 from setting import Setting
 
@@ -243,6 +244,8 @@ def result_process(screen):
         if not result.dead or result.has_new_record():
             record.insert(result)
             record.save()
+
+            recent.insert(result)
 
     insert_results(result)
 
@@ -582,6 +585,7 @@ if __name__ == '__main__':
     imagevalues_filtered = {}
     images_graph = {}
     selection = None
+    recent = Recent()
 
     queue_log = Queue()
     queue_display_image = Queue()

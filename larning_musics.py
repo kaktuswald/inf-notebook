@@ -13,7 +13,7 @@ import data_collection as dc
 from larning import create_resource_directory
 
 class MusicRecognitionDefine():
-    trimarea = (180, 0, 250, 13)
+    trimarea = (180, 0, 251, 13)
     background_key_position = (0, -2)
     ignore_y_lines = (1, 2, 4, 6, 7, )
     ignore_x_lines = (24, 27, 29, 37, 38, 40, 49, 55, 56, 62, 68, )
@@ -126,9 +126,10 @@ def larning(images, backgrounds):
 
             mapkeys = []
             for y in np.argsort(maxcounts)[::-1]:
-                count = maxcounts[y]
                 color = int(maxcount_values[y])
-                mapkeys.append(f'{y:02}{count:02}{color:03}')
+                bins = np.where(trimmed[y]==color, 1, 0)
+                hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+                mapkeys.append(f"{y:02x}{''.join([format(v, '0x') for v in hexs])}")
 
             target = map
             for k in mapkeys:
