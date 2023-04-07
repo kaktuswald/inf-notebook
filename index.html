@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>inf-notebook</title>
+		<style>
+body {
+	background-color: rgba(0, 0, 0, 0);
+	margin: 0px;
+	overflow: hidden;
+	font-size: 64px;
+	color: rgba(128, 128, 128, 255);
+	text-shadow: 2px 2px 0 rgba(0, 0, 0, 255),
+				 -2px 2px 0 rgba(0, 0, 0, 255),
+				 2px -2px 0 rgba(0, 0, 0, 255),
+				 -2px -2px 0 rgba(0, 0, 0, 255);
+}
+
+#normal, #error {
+	position: absolute;
+}
+
+p {
+	margin: 0px;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+filename = 'recent.json'
+
+function reflect(json)
+{
+	$('#recent_played_musics').empty()
+	json.forEach(item => {
+		$('#recent_played_musics').append(`<p>${item[1]}</p>`)
+	});
+
+	$('#error').css('visibility', 'hidden')
+	$('#normal').css('visibility', 'visible')
+}
+
+function error()
+{
+	$('#error').css('visibility', 'visible')
+	$('#normal').css('visibility', 'hidden')
+}
+
+function reload()
+{
+    fetch(filename, {cache: "no-store"})
+		.then(response => {
+			if(response.ok)
+				response.json().then(json => reflect(json));
+			else
+				error();
+		});
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+	var roopTimer = setInterval(reload, 1000);
+});
+	</script>
+	</head>
+	<body>
+		<div id="normal" style="visibility: hidden">
+			<div id="recent_played_musics"></div>
+		</div>
+		<div id="error">
+			<span>データがありません。</span>
+		</div>
+	</body>
+</html>
