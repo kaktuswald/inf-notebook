@@ -41,8 +41,11 @@ function reflect(json)
 	json.reverse().forEach(item => {
 		let newItem = $('<p>')
 		if(item.new)
-		newItem.append(`<span class="new">(new!)</span>`)
-		newItem.append(`<span>${item.music}</span>`)
+			newItem.append(`<span class="new">(new!)</span>`)
+		if(!isNaN(item.music))
+			newItem.append(`<span>?????</span>`)
+		else
+			newItem.append(`<span>${item.music}</span>`)
 		$('#recent_played_musics').append(newItem)
 	});
 

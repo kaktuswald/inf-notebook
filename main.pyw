@@ -243,7 +243,8 @@ def result_process(screen):
             record.insert(result)
             record.save()
 
-            recent.insert(result)
+    if not result.dead:
+        recent.insert(result)
 
     insert_results(result)
 
