@@ -32,7 +32,7 @@ class Record():
 
     def save(self):
         with open(self.filepath, 'w') as f:
-            json.dump(self.json, f, indent=2)
+            json.dump(self.json, f)
     
     def delete(self):
         if os.path.exists(self.filepath):
