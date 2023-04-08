@@ -132,6 +132,7 @@ class Record():
             target[result.informations.difficulty] = {}
         target = target[result.informations.difficulty]
 
+        target['level'] = result.informations.level
         target['notes'] = result.informations.notes
 
         options = result.details.options
