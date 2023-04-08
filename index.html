@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 	<head>
-		<meta charset="utf-8">
+		<meta charset="utf-8"/>
 		<title>inf-notebook</title>
 		<style>
 body {
@@ -10,18 +10,24 @@ body {
 	overflow: hidden;
 	font-size: 64px;
 	color: rgba(128, 128, 128, 255);
-	text-shadow: 2px 2px 0 rgba(0, 0, 0, 255),
-				 -2px 2px 0 rgba(0, 0, 0, 255),
-				 2px -2px 0 rgba(0, 0, 0, 255),
-				 -2px -2px 0 rgba(0, 0, 0, 255);
+	text-shadow: 1px 1px 0 rgba(0, 0, 0, 1),
+				 -1px 1px 0 rgba(0, 0, 0, 1),
+				 1px -1px 0 rgba(0, 0, 0, 1),
+				 -1px -1px 0 rgba(0, 0, 0, 1);
 }
 
-#normal, #error {
-	position: absolute;
+div#recent_played_count {
+	background-color: rgba(32, 128, 32, 0.05);
+	font-size: 80px;
+	color: rgba(192, 192, 255, 1);
 }
 
 p {
 	margin: 0px;
+}
+
+span.new {
+	color: rgba(255, 0, 0, 1);
 }
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -30,9 +36,14 @@ filename = 'recent.json'
 
 function reflect(json)
 {
+	$('#recent_played_count span').html(json.length)
 	$('#recent_played_musics').empty()
-	json.forEach(item => {
-		$('#recent_played_musics').append(`<p>${item[1]}</p>`)
+	json.reverse().forEach(item => {
+		let newItem = $('<p>')
+		if(item.new)
+		newItem.append(`<span class="new">(new!)</span>`)
+		newItem.append(`<span>${item.music}</span>`)
+		$('#recent_played_musics').append(newItem)
 	});
 
 	$('#error').css('visibility', 'hidden')
@@ -63,6 +74,10 @@ window.addEventListener('DOMContentLoaded', function() {
 	</head>
 	<body>
 		<div id="normal" style="visibility: hidden">
+			<div id="recent_played_count">
+				play count: 
+				<span>0</span>
+			</div>
 			<div id="recent_played_musics"></div>
 		</div>
 		<div id="error">
