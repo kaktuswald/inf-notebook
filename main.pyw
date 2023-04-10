@@ -10,7 +10,7 @@ import logging
 from urllib import request
 from urllib.parse import quote
 import ctypes
-from recent_output import Recent
+from playdata import Recent,output
 
 from setting import Setting
 
@@ -652,6 +652,9 @@ if __name__ == '__main__':
                 filter()
             if event == 'button_tweet':
                 tweet()
+            if event == 'button_output':
+                output()
+                gui.message('完了', 'exportフォルダに出力しました。')
             if event == 'button_open_folder':
                 open_folder()
             if event == 'table_results':

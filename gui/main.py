@@ -4,7 +4,7 @@ from PIL import Image
 
 from define import define
 from .static import title,icon_path,background_color,background_color_label
-from record import get_recode_musics
+from record import get_record_musics
 
 scales = ['1/1', '1/2', '1/4']
 
@@ -152,7 +152,8 @@ def layout_main(setting):
             sg.Button('ファイルに保存する', key='button_save', disabled=True),
             sg.Button('ライバルを隠す', key='button_filter', disabled=True),
             sg.Button('フォルダを開く', key='button_open_folder', disabled=True),
-            sg.Button('ツイートする', key='button_tweet')
+            sg.Button('ツイート', key='button_tweet'),
+            sg.Button('CSV出力', key='button_output')
         ],
         [
             sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
@@ -252,6 +253,16 @@ def find_latest_version(latest_url):
         background_color=background_color
     )
 
+def message(title, message):
+    sg.popup(
+        '\n'.join([
+            message,
+        ]),
+        title=title,
+        icon=icon_path,
+        background_color=background_color
+    )
+
 def error_message(title, message, exception):
     sg.popup(
         '\n'.join([
@@ -260,7 +271,8 @@ def error_message(title, message, exception):
             str(exception)
         ]),
         title=title,
-        icon=icon_path
+        icon=icon_path,
+        background_color=background_color
     )
 
 def display_image(value, savable=False, filterable=False):
@@ -288,7 +300,7 @@ def switch_table(display_music):
 def search_music_candidates():
     input = window['search_music'].get()
     if len(input) != 0:
-        musics = get_recode_musics()
+        musics = get_record_musics()
         candidates = [music for music in musics if input in music]
         window['music_candidates'].update(values=candidates)
     else:

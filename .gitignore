@@ -150,3 +150,5 @@ musics_registered.txt
 musics_missing_in_arcade.txt
 
 backgrounds_report.txt
+
+export/*.json

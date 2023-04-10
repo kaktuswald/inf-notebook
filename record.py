@@ -180,7 +180,7 @@ def rename_allfiles(musics):
                 print(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
                 print(f'To(length: {len(full_filename)})\t\t{full_filename}')
 
-def get_recode_musics():
+def get_record_musics():
     filepaths = glob(os.path.join(records_basepath, '*.json'))
     strings = [os.path.basename(filepath).removesuffix('.json') for filepath in filepaths]
     musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]

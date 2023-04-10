@@ -42,7 +42,7 @@ class Define():
         'options_arrange_sync': ('SYNC-RAN', 'SYMM-RAN',),
         'options_flip': ('FLIP',),
         'options_assist': ('A-SCR', 'LEGACY',),
-        'clear_types': ('NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR',),
+        'clear_types': ('NO PLAY', 'FAILED', 'A-CLEAR', 'E-CLEAR', 'CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO'),
         'graphtargets': ('no graph', 'personal best score only', 'national best', 'national average', 'prefecture best', 'prefecture average', 'same class best', 'same class average', 'rival', 'rival best', 'rival average', 'pacemaker')
     }
 

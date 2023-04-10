@@ -536,5 +536,5 @@ def change_search_condition(keys, labels):
     if window['only_undefined_music'].get():
         keys = [key for key in keys if key in labels.keys() and labels[key]['informations'] is not None and labels[key]['informations']['music'] == '']
     if window['only_full_combo'].get():
-        keys = [key for key in keys if key in labels.keys() and labels[key]['details'] is not None and labels[key]['details']['clear_type'] == 'F-COMBO']
+        keys = [key for key in keys if key in labels.keys() and labels[key]['details'] is not None and (('clear_type_best' in labels[key]['details'].keys() and labels[key]['details']['clear_type_best'] == 'F-COMBO') or labels[key]['details']['clear_type_current'] == 'F-COMBO')]
     window['list_keys'].update(keys)
