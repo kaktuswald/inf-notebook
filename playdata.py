@@ -9,7 +9,9 @@ from record import Record,get_record_musics
 export_dirname = 'export'
 
 recent_filepath = join(export_dirname, 'recent.json')
-summary_filepath = join(export_dirname, 'summary.json')
+
+recent_htmlpath = join(export_dirname, 'recent.html')
+summary_htmlpath = join(export_dirname, 'summary.html')
 
 class Recent():
     delete_delta_seconds = 60 * 60 * 12
@@ -129,9 +131,10 @@ def output():
     for play_mode in define.value_list['play_modes']:
         for summary_key1 in summary_keys1:
             for summary_key2 in summary_keys2:
-                lines = [['', *define.value_list[summary_key2]]]
+                lines = [['', *define.value_list[summary_key2], 'total']]
                 for key in define.value_list[summary_key1]:
-                    lines.append([key, *summary[play_mode][summary_key1][key][summary_key2].values()])
+                    targets = summary[play_mode][summary_key1][key][summary_key2].values()
+                    lines.append([key,*targets, sum(targets)])
                 filepath = join(export_dirname, f'{play_mode}-{summary_filenames[summary_key1][summary_key2]}.csv')
                 with open(filepath, 'w', newline='\n') as f:
                     w = writer(f)
@@ -139,9 +142,13 @@ def output():
 
     for play_mode in define.value_list['play_modes']:
         filepath = join(export_dirname, f'{play_mode}.csv')
-        with open(filepath, 'w', encoding='Shift-JIS', newline='\n') as f:
+        with open(filepath, 'w', encoding='cp932', newline='\n') as f:
             w = writer(f)
-            w.writerows(csv_output[play_mode])
+            for line in csv_output[play_mode]:
+                try:
+                    w.writerow(line)
+                except Exception as ex:
+                    print('エンコードに失敗', line[0])
 
 if __name__ == '__main__':
     output()

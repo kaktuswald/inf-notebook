@@ -35,7 +35,7 @@ class Define():
         'play_modes': ('SP', 'DP',),
         'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA',),
         'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',),
-        'dj_levels': ('AAA', 'AA', 'A', 'B', 'C', 'D', 'E', 'F',),
+        'dj_levels': ('F', 'E', 'D', 'C', 'B', 'A', 'AA', 'AAA',),
         'play_sides': ('1P', '2P',),
         'options_arrange': ('RANDOM', 'S-RANDOM', 'R-RANDOM', 'MIRROR', 'H-RANDOM',),
         'options_arrange_dp': ('OFF', 'RAN', 'S-RAN', 'R-RAN', 'MIR', 'H-RAN',),

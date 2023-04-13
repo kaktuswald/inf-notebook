@@ -1,17 +1,10 @@
 import PySimpleGUI as sg
-import io
-from PIL import Image
 
 from define import define
-from .static import title,icon_path,background_color,background_color_label
+from .static import title,icon_path,background_color,background_color_label,selected_background_color
 from record import get_record_musics
 
 scales = ['1/1', '1/2', '1/4']
-
-icon_image = Image.open(icon_path)
-resized_icon = icon_image.resize((32, 32))
-icon_bytes = io.BytesIO()
-resized_icon.save(icon_bytes, format='PNG')
 
 best_display_modes = ('option', 'timestamp', )
 
@@ -153,7 +146,7 @@ def layout_main(setting):
             sg.Button('ライバルを隠す', key='button_filter', disabled=True),
             sg.Button('フォルダを開く', key='button_open_folder', disabled=True),
             sg.Button('ツイート', key='button_tweet'),
-            sg.Button('CSV出力', key='button_output')
+            sg.Button('エクスポート', key='button_export')
         ],
         [
             sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
@@ -167,7 +160,7 @@ def layout_main(setting):
                 pad=0,
                 background_color=background_color,
                 tab_background_color=background_color,
-                selected_background_color='#245d18'
+                selected_background_color=selected_background_color
             )
         ],
         [
@@ -250,16 +243,6 @@ def find_latest_version(latest_url):
         title=u'最新バージョンのお知らせ',
         icon=icon_path,
         size=(60, 6),
-        background_color=background_color
-    )
-
-def message(title, message):
-    sg.popup(
-        '\n'.join([
-            message,
-        ]),
-        title=title,
-        icon=icon_path,
         background_color=background_color
     )
 

@@ -1,7 +1,7 @@
 import keyboard
 import time
 import PySimpleGUI as sg
-import threading
+from threading import Thread,Event
 from queue import Queue
 from os import system,getcwd
 from os.path import join,exists
@@ -10,7 +10,7 @@ import logging
 from urllib import request
 from urllib.parse import quote
 import ctypes
-from playdata import Recent,output
+from playdata import Recent
 
 from setting import Setting
 
@@ -35,6 +35,7 @@ logger.debug('mode: manage')
 
 from version import version
 import gui.main as gui
+from gui.export import open as export_open
 from gui.general import get_imagevalue
 from resources import MusicsTimestamp,play_sound_find,play_sound_result
 from screenshot import Screenshot,open_screenimage
@@ -64,7 +65,7 @@ results_dirpath = join(getcwd(), results_basepath)
 filtereds_dirpath = join(getcwd(), filtereds_basepath)
 graphs_dirpath = join(getcwd(), graphs_basepath)
 
-class ThreadMain(threading.Thread):
+class ThreadMain(Thread):
     handle = 0
     active = False
     waiting = False
@@ -77,7 +78,7 @@ class ThreadMain(threading.Thread):
         self.event_close = event_close
         self.queues = queues
 
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
 
         self.start()
 
@@ -586,7 +587,7 @@ if __name__ == '__main__':
 
     storage = StorageAccessor()
 
-    event_close = threading.Event()
+    event_close = Event()
     thread = ThreadMain(
         event_close,
         queues = {
@@ -647,9 +648,8 @@ if __name__ == '__main__':
                 filter()
             if event == 'button_tweet':
                 tweet()
-            if event == 'button_output':
-                output()
-                gui.message('完了', 'exportフォルダに出力しました。')
+            if event == 'button_export':
+                export_open()
             if event == 'button_open_folder':
                 open_folder()
             if event == 'table_results':
