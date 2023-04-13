@@ -315,9 +315,6 @@ def get_latest_version():
             return None
 
 def check_resource_musics():
-    if setting.manage:
-        return
-    
     musics_timestamp = MusicsTimestamp()
 
     latest_timestamp = str(storage.get_resource_musics_timestamp())
@@ -327,13 +324,10 @@ def check_resource_musics():
     local_timestamp = musics_timestamp.get_timestamp()
 
     if local_timestamp != latest_timestamp:
-        threading.Thread(target=download_resource_musics, args=(musics_timestamp, latest_timestamp)).start()
-
-def download_resource_musics(musics_timestamp, latest_timestamp):
-    if storage.download_resource_musics():
-        musics_timestamp.write_timestamp(latest_timestamp)
-        recog.load_resource_musics()
-        print('download')
+        if storage.download_resource_musics():
+            musics_timestamp.write_timestamp(latest_timestamp)
+            recog.load_resource_musics()
+            print('download')
 
 def select_result_today():
     if len(values['table_results']) == 0:
@@ -607,10 +601,11 @@ if __name__ == '__main__':
     if not setting.has_key('data_collection'):
         setting.data_collection = gui.collection_request('resources/annotation.png')
 
-    if version != '0.0.0.0' and get_latest_version() != version:
-        gui.find_latest_version(latest_url)
+    if version != '0.0.0.0':
+        if get_latest_version() != version:
+            gui.find_latest_version(latest_url)
 
-    check_resource_musics()
+    Thread(target=check_resource_musics).start()
     
     # version0.7.0.1以前の不具合対応のため
     rename_allrecords()
