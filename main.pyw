@@ -11,6 +11,7 @@ from urllib import request
 from urllib.parse import quote
 import ctypes
 from playdata import Recent
+from plyer import notification
 
 from setting import Setting
 
@@ -170,6 +171,13 @@ class ThreadMain(Thread):
                     self.processed = True
                     self.queues['result_screen'].put(resultscreen)
                     if setting.play_sound:
+                        notification.notify(
+                            title="通知バナー",
+                            message="メッセージ",
+                            app_name="アプリ名",
+                            app_icon="icon.ico",
+                            timeout=2
+                        )
                         play_sound_result()
         else:
             if self.finded:
@@ -610,6 +618,14 @@ if __name__ == '__main__':
     
     # version0.7.0.1以前の不具合対応のため
     rename_allrecords()
+
+    notification.notify(
+        title="通知バナー",
+        message="メッセージ",
+        app_name="アプリ名",
+        app_icon="icon.ico",
+        timeout=0.5
+    )
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
