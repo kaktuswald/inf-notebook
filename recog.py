@@ -161,23 +161,28 @@ class Recognition():
         background_key = str(image_informations.getpixel(self.background_key_position))
         np_value = np.array(image_informations.crop(self.music_trimarea))
         background_removed = np.where(self.backgrounds[background_key]!=np_value, np_value, 0)
-        y_trimmed = np.delete(background_removed, self.ignore_y_lines, 0)
-        trimmed = np.delete(y_trimmed, self.ignore_x_lines, 1)
+        gray_filtered = np.where(background_removed>=self.gray_filter, background_removed, 0)
+
+        masked = np.where(self.mask, 0, gray_filtered)
 
         maxcounts = []
         maxcount_values = []
-        for line in trimmed:
+        for line in masked:
             unique, counts = np.unique(line, return_counts=True)
-            dark_count = np.count_nonzero(unique < 100)
-            maxcounts.append(counts[np.argmax(counts[dark_count:])+dark_count] if len(counts) > dark_count else 0)
-            maxcount_values.append(unique[np.argmax(counts[dark_count:])+dark_count] if len(unique) > dark_count else 0)
+            if len(counts) != 1:
+                index = -np.argmax(np.flip(counts[1:])) - 1
+                maxcounts.append(counts[index])
+                maxcount_values.append(unique[index])
+            else:
+                maxcounts.append(0)
+                maxcount_values.append(0)
 
         target = self.music_recognition
         for y in np.argsort(maxcounts)[::-1]:
             color = int(maxcount_values[y])
-            bins = np.where(trimmed[y]==color, 1, 0)
+            bins = np.where(masked[y]==color, 1, 0)
             hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-            mapkey = f"{y:02x}{''.join([format(v, '0x') for v in hexs])}"
+            mapkey = f"{y:02d}{''.join([format(v, '0x') for v in hexs])}"
             if not mapkey in target:
                 return None
             if type(target[mapkey]) == str:
@@ -310,13 +315,19 @@ class Recognition():
         
         self.music_trimarea = tuple(resource['define']['trimarea'])
         self.background_key_position = tuple(resource['define']['background_key_position'])
-        self.ignore_y_lines = tuple(resource['define']['ignore_y_lines'])
-        self.ignore_x_lines = tuple(resource['define']['ignore_x_lines'])
 
         self.backgrounds = {}
         for background_key in resource['backgrounds'].keys():
             self.backgrounds[background_key] = np.array(resource['backgrounds'][background_key])
         
+        trimarea = resource['define']['trimarea']
+        width = trimarea[2] - trimarea[0]
+        self.gray_filter = np.tile(np.array(resource['define']['gray_thresholds']), (width, 1)).T
+
+        self.mask = np.array(resource['mask'])
+        
         self.music_recognition = resource['recognition']
+
+        self.musics = resource['musics']
 
 recog = Recognition()

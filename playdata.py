@@ -4,7 +4,8 @@ from datetime import datetime
 from csv import writer
 
 from define import define
-from record import Record,get_record_musics
+from record import Record,get_record_musics,delete_recordfile
+from recog import recog
 
 export_dirname = 'export'
 
@@ -53,7 +54,8 @@ class Recent():
             json.dump(self.json, f)
 
 def output():
-    musics = get_record_musics()
+    musics_record = get_record_musics()
+    musics_all = recog.musics
 
     summary_filenames = {
         'difficulties': {
@@ -85,7 +87,11 @@ def output():
                     for value_key in define.value_list[summary_key2]:
                         summary[play_mode][summary_key1][key][summary_key2][value_key] = 0
 
-    for music in musics:
+    for music in musics_record:
+        if not music in musics_all:
+            print(f'wrong music: {music}')
+            delete_recordfile(music)
+            continue
         record = Record(music)
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:

@@ -56,7 +56,7 @@ class Define():
         'notes': (268, 55, 324, 65)
     }
 
-    music_recognition_vesion = '3.0'
+    music_recognition_vesion = '4.0'
     
     notes_trimsize = (14, 10)
     notes_trimareas = []
