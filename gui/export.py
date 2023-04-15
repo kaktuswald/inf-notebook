@@ -15,7 +15,7 @@ resized_icon = icon_image.resize((32, 32))
 icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
 
-pattern = compile('#[0-9a-fA-F]{6}')
+pattern_color = compile('#[0-9a-fA-F]{6}')
 
 graph_color_size=(15, 15)
 graph_blank_size=(2, 2)
@@ -86,45 +86,43 @@ def open():
 
     tab_recent = [
         [
-            sg.Text('プレイ曲数', size=(10, 1), background_color=background_color),
-            sg.Text('文字色', size=(8, 1), background_color=background_color),
-            sg.Graph(key='graph recent played_count color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
-            sg.Input('#c0c0ff', size=(11, 1), key='recent played_count color', enable_events=True),
-            sg.Text('影色', size=(6, 1), background_color=background_color),
-            sg.Graph(key='graph recent played_count shadow-color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#000000'),
-            sg.Input('#000000', size=(11, 1), key='recent played_count shadow-color', enable_events=True)
+            sg.Text('文字サイズ', size=(10, 1), justification='right', background_color=background_color),
+            sg.Input('48', size=(4, 1), key='recent size', enable_events=True),
+            sg.Text('px', background_color=background_color)
         ],
         [
-            sg.Text('曲名', size=(10, 1), background_color=background_color),
-            sg.Text('文字色', size=(8, 1), background_color=background_color),
-            sg.Graph(key='graph recent music color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
-            sg.Input('#808080', size=(11, 1), key='recent music color', enable_events=True),
-            sg.Text('影色', size=(6, 1), background_color=background_color),
-            sg.Graph(key='graph recent music shadow-color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#000000'),
-            sg.Input('#000000', size=(11, 1), key='recent music shadow-color', enable_events=True)
+            sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
+            sg.Input('#808080', size=(9, 1), key='recent color', enable_events=True),
+            sg.Graph(key='graph recent color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080')
         ],
         [
-            sg.Text('new!', size=(10, 1), background_color=background_color),
-            sg.Text('文字色', size=(8, 1), background_color=background_color),
-            sg.Graph(key='graph recent new color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
-            sg.Input('#c02020', size=(11, 1), key='recent new color', enable_events=True),
-            sg.Text('影色', size=(6, 1), background_color=background_color),
-            sg.Graph(key='graph recent new shadow-color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#000000'),
-            sg.Input('#000000', size=(11, 1), key='recent new shadow-color', enable_events=True)
+            sg.Text('影色', size=(10, 1), justification='right', background_color=background_color),
+            sg.Input('#000000', size=(9, 1), key='recent shadow-color', enable_events=True),
+            sg.Graph(key='graph recent shadow-color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#000000')
         ],
         [
-            sg.Text('new! は更新したときに付きます。', background_color=background_color)
+            sg.Column([
+                [sg.Text('プレイ曲数', background_color=background_color_label)]
+            ], pad=5, background_color=background_color_label)
+        ],
+        [
+            sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
+            sg.Input('#c0c0ff', size=(9, 1), key='recent played_count color', enable_events=True),
+            sg.Graph(key='graph recent played_count color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
         ]
     ]
 
     tab_summary = [
         [
-            sg.Text('文字色', size=(8, 1), background_color=background_color),
+            sg.Text('文字色', size=(8, 1), justification='right', background_color=background_color),
+            sg.Input('#808080', size=(9, 1), key='summary color', enable_events=True),
             sg.Graph(key='graph summary color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
-            sg.Input('#808080', size=(11, 1), key='summary color', enable_events=True),
-            sg.Text('影色', size=(6, 1), background_color=background_color),
+            sg.Text('影色', size=(6, 1), justification='right', background_color=background_color),
+            sg.Input('#000000', size=(9, 1), key='summary shadow-color', enable_events=True),
             sg.Graph(key='graph summary shadow-color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#000000'),
-            sg.Input('#000000', size=(11, 1), key='summary shadow-color', enable_events=True)
+            sg.Text('日時の文字色', size=(15, 1), justification='right', background_color=background_color),
+            sg.Input('#c0c0ff', size=(9, 1), key='summary date color', enable_events=True),
+            sg.Graph(key='graph summary date color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff')
         ],
         [
             sg.Checkbox('SP', key='SP', default=True, enable_events=True, background_color=background_color),
@@ -276,26 +274,27 @@ def change_checkstatus_from_playside(window, play_mode):
 def generate_recent_css(window):
     css = []
 
-    targets = {
-        'div#played_count': 'played_count',
-        'body': 'music',
-        'span.new': 'new',
-    }
+    css.append('body {')
+    size = window[f'recent size'].get()
+    if str.isdecimal(size):
+        css.append(f'  font-size: {size}px;')
+    color = window[f'recent color'].get()
+    if pattern_color.fullmatch(color) is not None:
+        window[f'graph recent color'].update(background_color=color)
+        css.append(f'  color: {color};')
+    shadow_color = window[f'recent shadow-color'].get()
+    if pattern_color.fullmatch(shadow_color) is not None:
+        window[f'graph recent shadow-color'].update(shadow_color)
+        shadows = ['1px 1px', '-1px 1px', '1px -1px', '-1px -1px']
+        shadow_value = [f'{shadow} 0 {shadow_color}' for shadow in shadows]
+        css.append(f"  text-shadow: {','.join(shadow_value)};")
+    css.append('}')
 
-    for key, value in targets.items():
-        css.append(f'{key} {{')
-
-        color = window[f'recent {value} color'].get()
-        if pattern.fullmatch(color) is not None:
-            window[f'graph recent {value} color'].update(background_color=color)
-            css.append(f'  color: {color};')
-
-        shadow_color = window[f'recent {value} shadow-color'].get()
-        if pattern.fullmatch(shadow_color) is not None:
-            window[f'graph recent {value} shadow-color'].update(shadow_color)
-            shadows = ['1px 1px', '-1px 1px', '1px -1px', '-1px -1px']
-            shadow_value = [f'{shadow} 0 {shadow_color}' for shadow in shadows]
-            css.append(f"  text-shadow: {','.join(shadow_value)};")
+    color = window[f'recent played_count color'].get()
+    if pattern_color.fullmatch(color) is not None:
+        css.append('div#played_count {')
+        window[f'graph recent played_count color'].update(background_color=color)
+        css.append(f'  color: {color};')
         css.append('}')
 
     window['css'].update('\n'.join(css))
@@ -304,19 +303,24 @@ def generate_summary_css(window):
     css = []
 
     css.append('body {')
-
     color = window[f'summary color'].get()
-    if pattern.fullmatch(color) is not None:
+    if pattern_color.fullmatch(color) is not None:
         window[f'graph summary color'].update(background_color=color)
         css.append(f'  color: {color};')
-
     shadow_color = window[f'summary shadow-color'].get()
-    if pattern.fullmatch(shadow_color) is not None:
+    if pattern_color.fullmatch(shadow_color) is not None:
         window[f'graph summary shadow-color'].update(shadow_color)
         shadows = ['1px 1px', '-1px 1px', '1px -1px', '-1px -1px']
         shadow_value = [f'{shadow} 0 {shadow_color}' for shadow in shadows]
         css.append(f"  text-shadow: {','.join(shadow_value)};")
     css.append('}')
+
+    color = window[f'summary date color'].get()
+    if pattern_color.fullmatch(color) is not None:
+        css.append('div#update_date {')
+        window[f'graph summary date color'].update(background_color=color)
+        css.append(f'  color: {color};')
+        css.append('}')
 
     for play_mode in define.value_list['play_modes']:
         for dj_level in ['A', 'AA', 'AAA']:

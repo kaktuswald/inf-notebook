@@ -10,6 +10,7 @@ from recog import recog
 export_dirname = 'export'
 
 recent_filepath = join(export_dirname, 'recent.json')
+summary_timestamp_filepath = join(export_dirname, 'summary_timestamp.txt')
 
 recent_htmlpath = join(export_dirname, 'recent.html')
 summary_htmlpath = join(export_dirname, 'summary.html')
@@ -155,6 +156,9 @@ def output():
                     w.writerow(line)
                 except Exception as ex:
                     print('エンコードに失敗', line[0])
+    
+    with open(summary_timestamp_filepath, 'w') as f:
+        f.write(str(datetime.now()))
 
 if __name__ == '__main__':
     output()

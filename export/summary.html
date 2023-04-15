@@ -7,7 +7,7 @@
 body {
 	background-color: rgba(0, 0, 0, 0);
 	margin: 0px;
-	font-size: 40px;
+	font-size: 38px;
 	color: rgba(128, 128, 128, 1);
 	text-shadow: 1px 1px 0 rgba(0, 0, 0, 1),
 				 -1px 1px 0 rgba(0, 0, 0, 1),
@@ -23,6 +23,13 @@ div {
 	display: none;
 }
 
+div#update_date {
+	display: block;
+	text-align: right;
+	font-size: 48px;
+	color: rgba(192, 192, 255, 1);
+}
+
 div.SP.ANOTHER.A { display: block;}
 div.SP.ANOTHER.AA { display: block;}
 div.SP.ANOTHER.AAA { display: block;}
@@ -34,8 +41,8 @@ span { display: inline-block;}
 
 span.play_side { width: 60px;}
 
-span.difficulty { width: 300px;}
-span.level { width: 300px;}
+span.difficulty { width: 290px;}
+span.level { width: 290px;}
 
 span.clear_type { width: 230px;}
 span.dj_level { width: 230px;}
@@ -47,7 +54,7 @@ span.count {
 		</style>
 		<script src='./jquery-3.6.4.min.js'></script>
 		<script>
-filepaths = {
+filename_summaries = {
 	SP: {
 		difficulties: {
 			clear_types: './SP-難易度-クリアタイプ.csv',
@@ -69,6 +76,10 @@ filepaths = {
 		}
 	}
 }
+
+filename_timestamp = './summary_timestamp.txt'
+
+latest_timestamp = ''
 
 function request(filepath, play_side, key1, key2)
 {
@@ -107,28 +118,48 @@ function request(filepath, play_side, key1, key2)
 	xhr.send(null);
 }
 
-function load()
+function load_summaries()
 {
-	for(play_side in filepaths) {
-		for(key1 in filepaths[play_side]) {
-			for(key2 in filepaths[play_side][key1]) {
-				request(filepaths[play_side][key1][key2], play_side, key1, key2)
+	for(play_side in filename_summaries) {
+		for(key1 in filename_summaries[play_side]) {
+			for(key2 in filename_summaries[play_side][key1]) {
+				request(filename_summaries[play_side][key1][key2], play_side, key1, key2)
 			}
 		}
 	}
 }
 
+function load_timestamp()
+{
+	fetch(filename_timestamp, {cache: 'no-store'})
+		.then(response => {
+			if(response.ok)
+				response.text().then(data => {
+					$('div#update_date span').html(`${data.slice(0, 5)}/${data.slice(5, 7)}/${data.slice(8, 10)}`);
+					if(latest_timestamp != data)
+						load_summaries();
+					latest_timestamp = data;
+				});
+			else
+				$('div#update_date span').html('error');
+		});
+}
+
 $(function(){
-	load();
+	load_timestamp();
 });
 
 window.addEventListener('DOMContentLoaded', function() {
-	var roopTimer = setInterval(load, 1000);
+	var roopTimer = setInterval(load_timestamp, 1000);
 });
 		</script>
 	</head>
 	<body>
-		<div class='SP difficulty BEGINNER    clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div id='update_date'>
+			date: 
+			<span>なし</span>
+		</div>
+  	<div class='SP difficulty BEGINNER    clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
 		<div class='SP difficulty BEGINNER    clear_type FAILED   '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
 		<div class='SP difficulty BEGINNER    clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
 		<div class='SP difficulty BEGINNER    clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>

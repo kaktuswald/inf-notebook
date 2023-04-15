@@ -8,7 +8,7 @@ body {
 	background-color: rgba(0, 0, 0, 0);
 	margin: 0px;
 	overflow: hidden;
-	font-size: 64px;
+	font-size: 48px;
 	color: rgba(128, 128, 128, 1);
 	text-shadow: 1px 1px 0 rgba(0, 0, 0, 1),
 				 -1px 1px 0 rgba(0, 0, 0, 1),
@@ -25,9 +25,6 @@ p {
 	margin: 0px;
 }
 
-span.new {
-	color: rgba(192, 32, 32, 1);
-}
 		</style>
 		<script src='./jquery-3.6.4.min.js'></script>
 		<script>
@@ -39,8 +36,6 @@ function reflect(json)
 	$('#played_musics').empty()
 	json.reverse().forEach(item => {
 		let newItem = $('<p>')
-		if(item.new)
-			newItem.append(`<span class='new'>(new!)</span>`)
 		if(!isNaN(item.music))
 			newItem.append(`<span>?????</span>`)
 		else
