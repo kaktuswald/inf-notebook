@@ -35,14 +35,14 @@ class Define():
         'play_modes': ('SP', 'DP',),
         'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA',),
         'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',),
-        'dj_levels': ('AAA', 'AA', 'A', 'B', 'C', 'D', 'E', 'F',),
+        'dj_levels': ('F', 'E', 'D', 'C', 'B', 'A', 'AA', 'AAA',),
         'play_sides': ('1P', '2P',),
         'options_arrange': ('RANDOM', 'S-RANDOM', 'R-RANDOM', 'MIRROR', 'H-RANDOM',),
         'options_arrange_dp': ('OFF', 'RAN', 'S-RAN', 'R-RAN', 'MIR', 'H-RAN',),
         'options_arrange_sync': ('SYNC-RAN', 'SYMM-RAN',),
         'options_flip': ('FLIP',),
         'options_assist': ('A-SCR', 'LEGACY',),
-        'clear_types': ('NO PLAY', 'FAILED', 'CLEAR', 'A-CLEAR', 'E-CLEAR', 'H-CLEAR', 'EXH-CLEAR',),
+        'clear_types': ('NO PLAY', 'FAILED', 'A-CLEAR', 'E-CLEAR', 'CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO'),
         'graphtargets': ('no graph', 'personal best score only', 'national best', 'national average', 'prefecture best', 'prefecture average', 'same class best', 'same class average', 'rival', 'rival best', 'rival average', 'pacemaker')
     }
 
@@ -56,7 +56,7 @@ class Define():
         'notes': (268, 55, 324, 65)
     }
 
-    music_recognition_vesion = '3.0'
+    music_recognition_vesion = '4.0'
     
     notes_trimsize = (14, 10)
     notes_trimareas = []

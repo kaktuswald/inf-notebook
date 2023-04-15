@@ -1,7 +1,7 @@
 import keyboard
 import time
 import PySimpleGUI as sg
-import threading
+from threading import Thread,Event
 from queue import Queue
 from os import system,getcwd
 from os.path import join,exists
@@ -10,7 +10,8 @@ import logging
 from urllib import request
 from urllib.parse import quote
 import ctypes
-from recent_output import Recent
+from playdata import Recent
+from plyer import notification
 
 from setting import Setting
 
@@ -35,6 +36,7 @@ logger.debug('mode: manage')
 
 from version import version
 import gui.main as gui
+from gui.export import open as export_open
 from gui.general import get_imagevalue
 from resources import MusicsTimestamp,play_sound_find,play_sound_result
 from screenshot import Screenshot,open_screenimage
@@ -64,7 +66,7 @@ results_dirpath = join(getcwd(), results_basepath)
 filtereds_dirpath = join(getcwd(), filtereds_basepath)
 graphs_dirpath = join(getcwd(), graphs_basepath)
 
-class ThreadMain(threading.Thread):
+class ThreadMain(Thread):
     handle = 0
     active = False
     waiting = False
@@ -77,7 +79,7 @@ class ThreadMain(threading.Thread):
         self.event_close = event_close
         self.queues = queues
 
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
 
         self.start()
 
@@ -171,6 +173,13 @@ class ThreadMain(threading.Thread):
                     self.processed = True
                     self.queues['result_screen'].put(resultscreen)
                     if setting.play_sound:
+                        notification.notify(
+                            title="通知バナー",
+                            message="メッセージ",
+                            app_name="アプリ名",
+                            app_icon="icon.ico",
+                            timeout=2
+                        )
                         play_sound_result()
         else:
             if self.finded:
@@ -245,7 +254,8 @@ def result_process(screen):
             record.insert(result)
             record.save()
 
-            recent.insert(result)
+    if not result.dead:
+        recent.insert(result)
 
     insert_results(result)
 
@@ -316,9 +326,6 @@ def get_latest_version():
             return None
 
 def check_resource_musics():
-    if setting.manage:
-        return
-    
     musics_timestamp = MusicsTimestamp()
 
     latest_timestamp = str(storage.get_resource_musics_timestamp())
@@ -328,13 +335,10 @@ def check_resource_musics():
     local_timestamp = musics_timestamp.get_timestamp()
 
     if local_timestamp != latest_timestamp:
-        threading.Thread(target=download_resource_musics, args=(musics_timestamp, latest_timestamp)).start()
-
-def download_resource_musics(musics_timestamp, latest_timestamp):
-    if storage.download_resource_musics():
-        musics_timestamp.write_timestamp(latest_timestamp)
-        recog.load_resource_musics()
-        print('download')
+        if storage.download_resource_musics():
+            musics_timestamp.write_timestamp(latest_timestamp)
+            recog.load_resource_musics()
+            print('download')
 
 def select_result_today():
     if len(values['table_results']) == 0:
@@ -593,7 +597,7 @@ if __name__ == '__main__':
 
     storage = StorageAccessor()
 
-    event_close = threading.Event()
+    event_close = Event()
     thread = ThreadMain(
         event_close,
         queues = {
@@ -608,13 +612,22 @@ if __name__ == '__main__':
     if not setting.has_key('data_collection'):
         setting.data_collection = gui.collection_request('resources/annotation.png')
 
-    if version != '0.0.0.0' and get_latest_version() != version:
-        gui.find_latest_version(latest_url)
+    if version != '0.0.0.0':
+        if get_latest_version() != version:
+            gui.find_latest_version(latest_url)
 
-    check_resource_musics()
+    Thread(target=check_resource_musics).start()
     
     # version0.7.0.1以前の不具合対応のため
     rename_allrecords()
+
+    notification.notify(
+        title="通知バナー",
+        message="メッセージ",
+        app_name="アプリ名",
+        app_icon="icon.ico",
+        timeout=0.5
+    )
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
@@ -653,6 +666,8 @@ if __name__ == '__main__':
                 filter()
             if event == 'button_tweet':
                 tweet()
+            if event == 'button_export':
+                export_open()
             if event == 'button_open_folder':
                 open_folder()
             if event == 'table_results':

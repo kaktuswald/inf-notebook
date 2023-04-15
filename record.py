@@ -1,18 +1,19 @@
 import json
-import os
+from os import remove,mkdir,rename
+from os.path import join,exists,basename
 from glob import glob
 
 records_basepath = 'records'
 
-if not os.path.exists(records_basepath):
-    os.mkdir(records_basepath)
+if not exists(records_basepath):
+    mkdir(records_basepath)
 
 class Record():
     def __init__(self, music):
         filename = f"{music.encode('UTF-8').hex()}.json"
-        self.filepath = os.path.join(records_basepath, filename)
+        self.filepath = join(records_basepath, filename)
 
-        if not os.path.exists(self.filepath):
+        if not exists(self.filepath):
             self.json = {}
             return
         
@@ -32,11 +33,11 @@ class Record():
 
     def save(self):
         with open(self.filepath, 'w') as f:
-            json.dump(self.json, f, indent=2)
+            json.dump(self.json, f)
     
     def delete(self):
-        if os.path.exists(self.filepath):
-            os.remove(self.filepath)
+        if exists(self.filepath):
+            remove(self.filepath)
     
     def insert_latest(self, target, result, options):
         target['latest'] = {
@@ -132,6 +133,7 @@ class Record():
             target[result.informations.difficulty] = {}
         target = target[result.informations.difficulty]
 
+        target['level'] = result.informations.level
         target['notes'] = result.informations.notes
 
         options = result.details.options
@@ -170,17 +172,23 @@ def rename_allfiles(musics):
         string = music.encode('UTF-8').hex()
         if len(string) > string_max_length:
             omitted_filename = f'{string[:string_max_length]}.json'
-            omitted_filepath = os.path.join(records_basepath, omitted_filename)
-            if os.path.exists(omitted_filepath):
+            omitted_filepath = join(records_basepath, omitted_filename)
+            if exists(omitted_filepath):
                 full_filename = f'{string}.json'
-                full_filepath = os.path.join(records_basepath, full_filename)
-                os.rename(omitted_filepath, full_filepath)
+                full_filepath = join(records_basepath, full_filename)
+                rename(omitted_filepath, full_filepath)
                 print(f'Rename {music}')
                 print(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
                 print(f'To(length: {len(full_filename)})\t\t{full_filename}')
 
-def get_recode_musics():
-    filepaths = glob(os.path.join(records_basepath, '*.json'))
-    strings = [os.path.basename(filepath).removesuffix('.json') for filepath in filepaths]
+def get_record_musics():
+    filepaths = glob(join(records_basepath, '*.json'))
+    strings = [basename(filepath).removesuffix('.json') for filepath in filepaths]
     musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
     return musics
+
+def delete_recordfile(music):
+    filename = f"{music.encode('UTF-8').hex()}.json"
+    filepath = join(records_basepath, filename)
+    if exists(filepath):
+        remove(filepath)

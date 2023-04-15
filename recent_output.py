@@ -24,7 +24,7 @@ class Recent():
     def delete_olds(self):
         count = 0
         while len(self.json) != 0:
-            delta = datetime.now() - datetime.strptime(self.json[0][0], '%Y%m%d-%H%M%S')
+            delta = datetime.now() - datetime.strptime(self.json[0]['timestamp'], '%Y%m%d-%H%M%S')
             if delta.seconds < delete_delta_seconds:
                 break
             del self.json[0]
@@ -33,7 +33,11 @@ class Recent():
 
     def insert(self, result):
         self.delete_olds()
-        self.json.append([result.timestamp, result.informations.music])
+        self.json.append({
+            'timestamp': result.timestamp,
+            'music': result.informations.music,
+            'new': result.has_new_record()
+        })
         self.save()
 
     def save(self):

@@ -5,11 +5,10 @@ from PIL import Image
 from define import define
 from resources import masks
 from recog import recog
-from .static import title,icon_path,background_color
+from .static import title,icon_path,background_color,in_area_background_color
 
 default_box = (0, 0, 1280, 720)
 scales = ['1/1', '1/2', '1/4']
-in_area_background_color='#5779dd'
 
 def layout_manage(filenames):
     areas_firstkeys = [*define.areas.keys()]

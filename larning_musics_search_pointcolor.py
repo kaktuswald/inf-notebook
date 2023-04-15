@@ -3,7 +3,7 @@ from sys import exit,argv
 from os.path import isfile,join
 
 import data_collection as dc
-from larning_musics import load_images,background_ignore_keys_filename
+from larning_musics import load_recognition_define,load_images,background_ignore_keys_filename
 
 if len(argv) == 1:
     print('please argment.')
@@ -30,6 +30,11 @@ target_pos = (int(argv[argv.index('-x') + 1]), int(argv[argv.index('-y') + 1]))
 target_value = int(argv[argv.index('-value') + 1])
 
 if __name__ == '__main__':
+    recog_define = load_recognition_define()
+    if recog_define is None:
+        print(f"曲名認識定義ファイルのロードに失敗しました。")
+        exit()
+
     if not isfile(dc.label_filepath):
         print(f"{dc.label_filepath}が見つかりませんでした。")
         exit()
@@ -51,7 +56,7 @@ if __name__ == '__main__':
     keys = [key for key in labels.keys() if labels[key]['informations'] is not None and labels[key]['informations']['music'] != '' and not key in ignore_keys]
     print(f"file count: {len(keys)}")
 
-    images = load_images(keys, labels)
+    images = load_images(recog_define, keys, labels)
 
     filtered_images = {}
     for key, image in images.items():

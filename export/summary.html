@@ -1,0 +1,676 @@
+<!doctype html>
+<html>
+	<head>
+		<metA clear_type charset='utf-8'/>
+		<title>inf-notebook summary</title>
+		<style>
+body {
+	background-color: rgba(0, 0, 0, 0);
+	margin: 0px;
+	font-size: 40px;
+	color: rgba(128, 128, 128, 1);
+	text-shadow: 1px 1px 0 rgba(0, 0, 0, 1),
+				 -1px 1px 0 rgba(0, 0, 0, 1),
+				 1px -1px 0 rgba(0, 0, 0, 1),
+				 -1px -1px 0 rgba(0, 0, 0, 1);
+}
+
+p {
+	margin: 0px;
+}
+
+div {
+	display: none;
+}
+
+div.SP.ANOTHER.A { display: block;}
+div.SP.ANOTHER.AA { display: block;}
+div.SP.ANOTHER.AAA { display: block;}
+div.DP.ANOTHER.A { display: block;}
+div.DP.ANOTHER.AA { display: block;}
+div.DP.ANOTHER.AAA { display: block;}
+
+span { display: inline-block;}
+
+span.play_side { width: 60px;}
+
+span.difficulty { width: 300px;}
+span.level { width: 300px;}
+
+span.clear_type { width: 230px;}
+span.dj_level { width: 230px;}
+
+span.count {
+	width: 75px;
+	text-align: right;
+}
+		</style>
+		<script src='./jquery-3.6.4.min.js'></script>
+		<script>
+filepaths = {
+	SP: {
+		difficulties: {
+			clear_types: './SP-難易度-クリアタイプ.csv',
+			dj_levels: './SP-難易度-DJレベル.csv'
+		},
+		levels: {
+			clear_types: './SP-レベル-クリアタイプ.csv',
+			dj_levels: './SP-レベル-DJレベル.csv'
+		}
+	},
+	DP: {
+		difficulties: {
+			clear_types: './DP-難易度-クリアタイプ.csv',
+			dj_levels: './DP-難易度-DJレベル.csv'
+		},
+		levels: {
+			clear_types: './DP-レベル-クリアタイプ.csv',
+			dj_levels: './DP-レベル-DJレベル.csv'
+		}
+	}
+}
+
+function request(filepath, play_side, key1, key2)
+{
+	xhr = new XMLHttpRequest();
+	xhr.onload = (event) => {
+		xhr = event.target
+		if (xhr.readyState === 4) {
+			if (xhr.status === 200) {
+				lines = xhr.responseText.split('\r\n');
+				value_keys = lines.shift().split(',');
+				for(i = 1; i < value_keys.length; i++)
+					value_keys[i] = value_keys[i].replace(' ', '-');
+				lines.forEach(line=>{
+					values = line.split(',');
+					if(values.length != 0) {
+						k = values[0]
+						if(key1 == 'levels')
+							k = 'LEVEL' + k
+						for(i = 1; i < values.length - 1; i++) {
+							last = $(`div.${play_side}.${k}.${value_keys[i]} span:last`);
+							last.prev().html(values[i]);
+							last.html(values[values.length-1]);
+						}
+					}
+				});
+			} else {
+				console.error(self.xhr.statusText);
+			}
+		}
+	}
+	xhr.onerror = (event) => {
+		console.log(event);
+	}
+
+	xhr.open('GET', filepath, true);
+	xhr.send(null);
+}
+
+function load()
+{
+	for(play_side in filepaths) {
+		for(key1 in filepaths[play_side]) {
+			for(key2 in filepaths[play_side][key1]) {
+				request(filepaths[play_side][key1][key2], play_side, key1, key2)
+			}
+		}
+	}
+}
+
+$(function(){
+	load();
+});
+
+window.addEventListener('DOMContentLoaded', function() {
+	var roopTimer = setInterval(load, 1000);
+});
+		</script>
+	</head>
+	<body>
+		<div class='SP difficulty BEGINNER    clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    clear_type FAILED   '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    clear_type CLEAR    '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    clear_type F-COMBO  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      clear_type FAILED   '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      clear_type CLEAR    '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      clear_type F-COMBO  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       clear_type FAILED   '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       clear_type CLEAR    '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       clear_type F-COMBO  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     clear_type FAILED   '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     clear_type CLEAR    '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     clear_type F-COMBO  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA clear_type FAILED   '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA clear_type CLEAR    '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA clear_type F-COMBO  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    dj_level F  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    dj_level E  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    dj_level D  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    dj_level C  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    dj_level B  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    dj_level A  '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    dj_level AA '><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty BEGINNER    dj_level AAA'><span class='play_side'>SP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      dj_level F  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      dj_level E  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      dj_level D  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      dj_level C  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      dj_level B  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      dj_level A  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      dj_level AA '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty NORMAL      dj_level AAA'><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       dj_level F  '><span class='play_side'>SP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       dj_level E  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       dj_level D  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       dj_level C  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       dj_level B  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       dj_level A  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       dj_level AA '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty HYPER       dj_level AAA'><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     dj_level F  '><span class='play_side'>SP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     dj_level E  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     dj_level D  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     dj_level C  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     dj_level B  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     dj_level A  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     dj_level AA '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty ANOTHER     dj_level AAA'><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA dj_level F  '><span class='play_side'>SP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA dj_level E  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA dj_level D  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA dj_level C  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA dj_level B  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA dj_level A  '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA dj_level AA '><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP difficulty LEGGENDARIA dj_level AAA'><span class='play_side'>SP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 clear_type NO-PLAY  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 clear_type FAILED   '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 clear_type A-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 clear_type E-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 clear_type CLEAR    '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 clear_type H-CLEAR  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 clear_type EXH-CLEAR'><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 clear_type F-COMBO  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL1  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL1 '>1 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL2  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL2 '>2 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL3  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL3 '>3 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL4  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL4 '>4 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL5  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL5 '>5 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL6  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL6 '>6 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL7  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL7 '>7 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL8  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL8 '>8 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL9  dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL9 '>9 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL10 dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL10'>10</span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL11 dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL11'>11</span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 dj_level F  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 dj_level E  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 dj_level D  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 dj_level C  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 dj_level B  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 dj_level A  '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 dj_level AA '><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='SP level LEVEL12 dj_level AAA'><span class='play_side'>SP</span><span class='level LEVEL12'>12</span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    clear_type FAILED   '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    clear_type CLEAR    '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    clear_type F-COMBO  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      clear_type FAILED   '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      clear_type CLEAR    '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      clear_type F-COMBO  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       clear_type FAILED   '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       clear_type CLEAR    '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       clear_type F-COMBO  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     clear_type FAILED   '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     clear_type CLEAR    '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     clear_type F-COMBO  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA clear_type FAILED   '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA clear_type CLEAR    '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA clear_type F-COMBO  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    dj_level F  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    dj_level E  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    dj_level D  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    dj_level C  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    dj_level B  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    dj_level A  '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    dj_level AA '><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty BEGINNER    dj_level AAA'><span class='play_side'>DP</span><span class='difficulty BEGINNER   '>BEGINNER   </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      dj_level F  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      dj_level E  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      dj_level D  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      dj_level C  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      dj_level B  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      dj_level A  '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      dj_level AA '><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty NORMAL      dj_level AAA'><span class='play_side'>DP</span><span class='difficulty NORMAL     '>NORMAL     </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       dj_level F  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       dj_level E  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       dj_level D  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       dj_level C  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       dj_level B  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       dj_level A  '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       dj_level AA '><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty HYPER       dj_level AAA'><span class='play_side'>DP</span><span class='difficulty HYPER      '>HYPER      </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     dj_level F  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     dj_level E  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     dj_level D  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     dj_level C  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     dj_level B  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     dj_level A  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     dj_level AA '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty ANOTHER     dj_level AAA'><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA dj_level F  '><span class='play_side'>DP</span><span class='difficulty ANOTHER    '>ANOTHER    </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA dj_level E  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA dj_level D  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA dj_level C  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA dj_level B  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA dj_level A  '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA dj_level AA '><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP difficulty LEGGENDARIA dj_level AAA'><span class='play_side'>DP</span><span class='difficulty LEGGENDARIA'>LEGGENDARIA</span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 clear_type NO-PLAY  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='clear_type NO-PLAY  '>NO PLAY  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 clear_type FAILED   '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='clear_type FAILED   '>FAILED   </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 clear_type A-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='clear_type A-CLEAR  '>A-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 clear_type E-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='clear_type E-CLEAR  '>E-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 clear_type CLEAR    '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='clear_type CLEAR    '>CLEAR    </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 clear_type H-CLEAR  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='clear_type H-CLEAR  '>H-CLEAR  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 clear_type EXH-CLEAR'><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='clear_type EXH-CLEAR'>EXH-CLEAR</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 clear_type F-COMBO  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='clear_type F-COMBO  '>F-COMBO  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL1  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL1 '>1 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL2  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL2 '>2 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL3  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL3 '>3 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL4  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL4 '>4 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL5  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL5 '>5 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL6  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL6 '>6 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL7  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL7 '>7 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL8  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL8 '>8 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL9  dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL9 '>9 </span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL10 dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL10'>10</span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL11 dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL11'>11</span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 dj_level F  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='dj_level F  '>F  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 dj_level E  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='dj_level E  '>E  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 dj_level D  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='dj_level D  '>D  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 dj_level C  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='dj_level C  '>C  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 dj_level B  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='dj_level B  '>B  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 dj_level A  '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='dj_level A  '>A  </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 dj_level AA '><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='dj_level AA '>AA </span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+		<div class='DP level LEVEL12 dj_level AAA'><span class='play_side'>DP</span><span class='level LEVEL12'>12</span><span class='dj_level AAA'>AAA</span>: <span class='count'>0</span>/<span class='count'>0</span></div>
+	</body>
+</html>

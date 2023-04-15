@@ -17,6 +17,7 @@ build_exe_options = {
     'include_msvcr': True,
     'include_files': [
         'resources/',
+        'export/',
         'readme.txt',
         'icon.ico'
     ]

@@ -1,17 +1,10 @@
 import PySimpleGUI as sg
-import io
-from PIL import Image
 
 from define import define
-from .static import title,icon_path,background_color,background_color_label
-from record import get_recode_musics
+from .static import title,icon_path,background_color,background_color_label,selected_background_color
+from record import get_record_musics
 
 scales = ['1/1', '1/2', '1/4']
-
-icon_image = Image.open(icon_path)
-resized_icon = icon_image.resize((32, 32))
-icon_bytes = io.BytesIO()
-resized_icon.save(icon_bytes, format='PNG')
 
 best_display_modes = ('option', 'timestamp', )
 
@@ -152,7 +145,8 @@ def layout_main(setting):
             sg.Button('ファイルに保存する', key='button_save', disabled=True),
             sg.Button('ライバルを隠す', key='button_filter', disabled=True),
             sg.Button('フォルダを開く', key='button_open_folder', disabled=True),
-            sg.Button('ツイートする', key='button_tweet')
+            sg.Button('ツイート', key='button_tweet'),
+            sg.Button('エクスポート', key='button_export')
         ],
         [
             sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
@@ -166,7 +160,7 @@ def layout_main(setting):
                 pad=0,
                 background_color=background_color,
                 tab_background_color=background_color,
-                selected_background_color='#245d18'
+                selected_background_color=selected_background_color
             )
         ],
         [
@@ -260,7 +254,8 @@ def error_message(title, message, exception):
             str(exception)
         ]),
         title=title,
-        icon=icon_path
+        icon=icon_path,
+        background_color=background_color
     )
 
 def display_image(value, savable=False, filterable=False):
@@ -288,7 +283,7 @@ def switch_table(display_music):
 def search_music_candidates():
     input = window['search_music'].get()
     if len(input) != 0:
-        musics = get_recode_musics()
+        musics = get_record_musics()
         candidates = [music for music in musics if input in music]
         window['music_candidates'].update(values=candidates)
     else:

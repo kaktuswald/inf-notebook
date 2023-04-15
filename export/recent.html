@@ -1,23 +1,22 @@
 <!doctype html>
 <html>
 	<head>
-		<meta charset="utf-8"/>
-		<title>inf-notebook</title>
+		<meta charset='utf-8'/>
+		<title>inf-notebook recent</title>
 		<style>
 body {
 	background-color: rgba(0, 0, 0, 0);
 	margin: 0px;
 	overflow: hidden;
 	font-size: 64px;
-	color: rgba(128, 128, 128, 255);
+	color: rgba(128, 128, 128, 1);
 	text-shadow: 1px 1px 0 rgba(0, 0, 0, 1),
 				 -1px 1px 0 rgba(0, 0, 0, 1),
 				 1px -1px 0 rgba(0, 0, 0, 1),
 				 -1px -1px 0 rgba(0, 0, 0, 1);
 }
 
-div#recent_played_count {
-	background-color: rgba(32, 128, 32, 0.05);
+div#played_count {
 	font-size: 80px;
 	color: rgba(192, 192, 255, 1);
 }
@@ -27,26 +26,26 @@ p {
 }
 
 span.new {
-	color: rgba(255, 0, 0, 1);
+	color: rgba(192, 32, 32, 1);
 }
-</style>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script>
-filename = 'recent.json'
+		</style>
+		<script src='./jquery-3.6.4.min.js'></script>
+		<script>
+filename = './recent.json'
 
 function reflect(json)
 {
-	$('#recent_played_count span').html(json.length)
-	$('#recent_played_musics').empty()
+	$('#played_count span').html(json.length)
+	$('#played_musics').empty()
 	json.reverse().forEach(item => {
 		let newItem = $('<p>')
 		if(item.new)
-			newItem.append(`<span class="new">(new!)</span>`)
+			newItem.append(`<span class='new'>(new!)</span>`)
 		if(!isNaN(item.music))
 			newItem.append(`<span>?????</span>`)
 		else
 			newItem.append(`<span>${item.music}</span>`)
-		$('#recent_played_musics').append(newItem)
+		$('#played_musics').append(newItem)
 	});
 
 	$('#error').css('visibility', 'hidden')
@@ -59,9 +58,9 @@ function error()
 	$('#normal').css('visibility', 'hidden')
 }
 
-function reload()
+function load()
 {
-    fetch(filename, {cache: "no-store"})
+    fetch(filename, {cache: 'no-store'})
 		.then(response => {
 			if(response.ok)
 				response.json().then(json => reflect(json));
@@ -70,20 +69,24 @@ function reload()
 		});
 }
 
-window.addEventListener('DOMContentLoaded', function() {
-	var roopTimer = setInterval(reload, 1000);
+$(function(){
+	load();
 });
-	</script>
+
+window.addEventListener('DOMContentLoaded', function() {
+	var roopTimer = setInterval(load, 1000);
+});
+		</script>
 	</head>
 	<body>
-		<div id="normal" style="visibility: hidden">
-			<div id="recent_played_count">
+		<div id='normal' style='visibility: hidden'>
+			<div id='played_count'>
 				play count: 
 				<span>0</span>
 			</div>
-			<div id="recent_played_musics"></div>
+			<div id='played_musics'></div>
 		</div>
-		<div id="error">
+		<div id='error'>
 			<span>データがありません。</span>
 		</div>
 	</body>

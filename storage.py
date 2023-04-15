@@ -205,7 +205,7 @@ class StorageAccessor():
             return False
 
         try:
-            self.blob_musics.download_to_filename(recog_musics_filename)
+            self.blob_musics.download_to_filename(recog_musics_filepath)
             logger.debug('download resource musics')
         except Exception as ex:
             logger.exception(ex)
