@@ -82,9 +82,6 @@ class Screenshot:
 
         logger.debug('Called Screenshot destuctor.')
 
-    def __init__(self, area):
-        self.area = area
-    
     def shot(self):
         if self.xy is not None:
             windll.gdi32.BitBlt(self.screen_copy, 0, 0, self.width, self.height, self.screen, self.xy[0], self.xy[1], SRCCOPY)

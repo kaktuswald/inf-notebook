@@ -10,7 +10,6 @@ import logging
 from urllib import request
 from urllib.parse import quote
 import ctypes
-from playdata import Recent
 
 from setting import Setting
 
@@ -45,6 +44,7 @@ from storage import StorageAccessor
 from record import Record,rename_allfiles
 from graph import create_graphimage,save_graphimage,graphs_basepath
 from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
+from playdata import Recent
 
 thread_time_normal = 0.37
 thread_time_wait = 1
@@ -246,7 +246,7 @@ def result_process(screen):
             record.insert(result)
             record.save()
 
-    if not result.dead:
+    if not result.dead or result.has_new_record():
         recent.insert(result)
 
     insert_results(result)
@@ -318,6 +318,9 @@ def get_latest_version():
             return None
 
 def check_resource_musics():
+    if setting.manage:
+        return
+
     musics_timestamp = MusicsTimestamp()
 
     latest_timestamp = str(storage.get_resource_musics_timestamp())
@@ -572,7 +575,7 @@ if __name__ == '__main__':
 
     display_screenshot_enable = False
 
-    screenshot = None
+    screenshot = Screenshot()
 
     results = {}
     list_results = []
@@ -604,9 +607,8 @@ if __name__ == '__main__':
     if not setting.has_key('data_collection'):
         setting.data_collection = gui.collection_request('resources/annotation.png')
 
-    if version != '0.0.0.0':
-        if get_latest_version() != version:
-            gui.find_latest_version(latest_url)
+    if version != '0.0.0.0' and get_latest_version() != version:
+        gui.find_latest_version(latest_url)
 
     Thread(target=check_resource_musics).start()
     

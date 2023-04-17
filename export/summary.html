@@ -135,7 +135,7 @@ function load_timestamp()
 		.then(response => {
 			if(response.ok)
 				response.text().then(data => {
-					$('div#update_date span').html(`${data.slice(0, 5)}/${data.slice(5, 7)}/${data.slice(8, 10)}`);
+					$('div#update_date span').html(`${data.slice(0, 4)}/${data.slice(5, 7)}/${data.slice(8, 10)}`);
 					if(latest_timestamp != data)
 						load_summaries();
 					latest_timestamp = data;
