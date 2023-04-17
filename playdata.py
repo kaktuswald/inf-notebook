@@ -35,7 +35,7 @@ class Recent():
         count = 0
         while len(self.json) != 0:
             delta = datetime.now() - datetime.strptime(self.json[0]['timestamp'], '%Y%m%d-%H%M%S')
-            if delta.seconds < self.delete_delta_seconds:
+            if delta.days * 86400 + delta.seconds < self.delete_delta_seconds:
                 break
             del self.json[0]
             count += 1
