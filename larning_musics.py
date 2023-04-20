@@ -21,6 +21,7 @@ dirname = 'larning_music'
 
 backgrounds_report_filepath = join(dirname, 'backgrounds_report.txt')
 mask_report_filepath = join(dirname, 'mask_report.txt')
+not_unique_report_filepath = join(dirname, 'not_unique_report.txt')
 mask_imagepath = join(dirname, 'mask.png')
 
 if not exists(dirname):
@@ -102,7 +103,7 @@ def generate_backgrounds(shape, images, ignore_keys):
         for bkey in sorted(report.keys()):
             reports = report[bkey]
             for r in reports:
-                f.write(f'({bkey:03}){r[0]}: {r[1]}\n')
+                f.write(f'({bkey:3}){r[0]}: {r[1]}\n')
 
     return backgrounds
 
@@ -240,11 +241,19 @@ def larning(recog_define, images, backgrounds):
             return music
     optimization(result, map)
 
+    not_uniques = []
     for music, keys in [*report.items()]:
-        if len(keys) >= 2 and len(inspect_targets) < 2:
-            print('not unique', music, keys)
-            inspect_targets.append(music)
-    
+        if len(keys) >= 2:
+            if len(inspect_targets) < 2:
+                print('not unique', music, keys)
+                inspect_targets.append(music)
+            not_uniques.append(f'({len(keys):2}){music}:')
+            for k in keys:
+                not_uniques.append(f"{' '.join(k)}")
+
+    with open(not_unique_report_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(not_uniques))
+
     if len(inspect_targets) > 0:
         for filepath in glob(join(music_inspection_basepath, '*.png')):
             try:
