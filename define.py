@@ -9,17 +9,6 @@ class Define():
     searchscreen_keys = ('loading', 'music_select', 'result',)
 
     areas = {
-        'loading': [400, 200, 430, 210],
-        'music_select': [244, 97, 257, 106],
-        'turntable': {
-            '1P': [48, 559, 82, 562],
-            '2P': [1199, 559, 1233, 562],
-            'DP': [304, 559, 338, 562]
-        },
-        'result': [784, 689, 790, 697],
-        'trigger': [494,18,580,30],
-        'cutin_mission': [10,10,30,25],
-        'cutin_bit': [55,49,89,64],
         'rival': [542,578,611,592],
         'play_side': {
             '1P': [15,142,21,149],
@@ -29,6 +18,21 @@ class Define():
             '1P': [406, 168, 412, 178],
             '2P': [822, 168, 828, 178]
         }
+    }
+
+    screen_areas = {
+        'loading': (slice(200, 210), slice(400, 430), 1),
+        'result': (slice(689, 697), slice(784, 790), 1)
+    }
+
+    result_check = {
+        'background_count': 13,
+        'key_position':  (200, 640, 1),
+        'areas': (
+            (slice(0, 628), 0, 1),
+            (slice(0, 154), 430, 1),
+            (slice(232, 628), 430, 1)
+        )
     }
 
     value_list = {

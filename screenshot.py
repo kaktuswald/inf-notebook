@@ -11,7 +11,7 @@ logger_child_name = 'screenshot'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded screenshot.py')
 
-from recog import recog
+from result_check import get_is_result_savable
 
 SRCCOPY = 0x00CC0020
 DIB_RGB_COLORS = 0
@@ -47,10 +47,15 @@ class BITMAPINFO(ctypes.Structure):
     ]
 
 class Screen:
-    def __init__(self, original, monochrome, filename):
-        self.original = original
-        self.monochrome = monochrome
+    def __init__(self, np_value, filename):
+        self.np_value = np_value
+        self.original = Image.fromarray(np_value).convert('RGBA')
+        self.monochrome = self.original.convert('L')
         self.filename = filename
+    
+    @property
+    def is_savable(self):
+        return get_is_result_savable(self.np_value)
 
 class Screenshot:
     width = 1280
@@ -83,33 +88,27 @@ class Screenshot:
         logger.debug('Called Screenshot destuctor.')
 
     def shot(self):
-        if self.xy is not None:
-            windll.gdi32.BitBlt(self.screen_copy, 0, 0, self.width, self.height, self.screen, self.xy[0], self.xy[1], SRCCOPY)
-            windll.gdi32.GetDIBits(self.screen_copy, self.bitmap, 0, self.height, ctypes.pointer(self.buffer), ctypes.pointer(self.bmi), DIB_RGB_COLORS)
+        if self.xy is None:
+            return None
+        
+        windll.gdi32.BitBlt(self.screen_copy, 0, 0, self.width, self.height, self.screen, self.xy[0], self.xy[1], SRCCOPY)
+        windll.gdi32.GetDIBits(self.screen_copy, self.bitmap, 0, self.height, ctypes.pointer(self.buffer), ctypes.pointer(self.bmi), DIB_RGB_COLORS)
 
-            np_value = np.array(bytearray(self.buffer)).reshape(self.height, self.width, 3)[::-1,:,::-1]
-
-            self.image = Image.fromarray(np_value)
-        else:
-            self.image = ImageGrab.grab(all_screens=True)
+        self.np_value = np.array(bytearray(self.buffer)).reshape(self.height, self.width, 3)
 
     def get(self):
         return self.image.convert('RGBA')
 
     def get_resultscreen(self):
-        if not recog.get_is_screen_result(self.image):
+        if not get_is_result_savable(self.np_value):
             return None
 
-        original = self.image.convert('RGBA')
-        monochrome = original.convert('L')
-
-        if not recog.get_is_result(monochrome):
-            return None
+        convert = self.np_value[::-1,:,::-1]
 
         now = datetime.now()
         filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.png"
 
-        return Screen(original, monochrome, filename)
+        return Screen(convert, filename)
 
 def open_screenimage(filepath):
     if not exists(filepath):
@@ -118,4 +117,4 @@ def open_screenimage(filepath):
     image = Image.open(filepath)
     filename = basename(filepath)
 
-    return Screen(image, image.convert('L'), filename)
+    return Screen(np.array(image), filename)

@@ -11,7 +11,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded larning.py')
 
 from raw_image import raws_basepath
-from resources import resources_dirname,images_dirpath,masks_dirpath
+from resources import resources_dirname,masks_dirpath
 
 larningbase_direpath = 'larning'
 mask_images_dirpath = os.path.join(larningbase_direpath, 'mask_images')
@@ -62,39 +62,9 @@ def create_resource_directory():
     if not os.path.exists(resources_dirname):
         os.mkdir(resources_dirname)
 
-def create_images_directory():
-    if not os.path.exists(images_dirpath):
-        os.mkdir(images_dirpath)
-
 def create_masks_directory():
     if not os.path.exists(masks_dirpath):
         os.mkdir(masks_dirpath)
-
-def save_resource_image(key, targets):
-    if len(targets.keys()) == 0:
-        return False
-
-    larning_dirpath = os.path.join(larningbase_direpath, key)
-    if os.path.exists(larning_dirpath):
-        try:
-            shutil.rmtree(larning_dirpath)
-        except Exception as ex:
-            print(ex)
-
-    if not os.path.exists(larning_dirpath):
-        os.mkdir(larning_dirpath)
-
-    first_image = [*targets.values()][0]
-    first = np.array(first_image)
-    first_image.save(os.path.join(larning_dirpath, f'{key}.png'))
-    for target_key, target in [*targets.items()][1:]:
-        if not np.array_equal(first, np.array(target)):
-            target.save(os.path.join(larning_dirpath, f'{target_key}.png'))
-            return False
-    
-    first_image.save(os.path.join(images_dirpath, f'{key}.png'))
-
-    return True
 
 def save_raw(screen):
     if not os.path.exists(raws_basepath):
@@ -119,6 +89,20 @@ def load_larning_sources():
     
     return sources
 
+def create_larningbase_dir():
+    if not os.path.exists(larningbase_direpath):
+        os.mkdir(larningbase_direpath)
+
+def create_larning_dir(dirpath):
+    if os.path.exists(dirpath):
+        try:
+            shutil.rmtree(dirpath)
+        except Exception as ex:
+            print(ex)
+
+    if not os.path.exists(dirpath):
+        os.mkdir(dirpath)
+
 def larning(key, targets):
     if len(targets) == 0:
         return
@@ -126,18 +110,10 @@ def larning(key, targets):
     pattern_count = 0
     patterns = []
 
-    if not os.path.exists(larningbase_direpath):
-        os.mkdir(larningbase_direpath)
+    create_larningbase_dir()
 
     larning_dirpath = os.path.join(larningbase_direpath, key)
-    if os.path.exists(larning_dirpath):
-        try:
-            shutil.rmtree(larning_dirpath)
-        except Exception as ex:
-            print(ex)
-
-    if not os.path.exists(larning_dirpath):
-        os.mkdir(larning_dirpath)
+    create_larning_dir(larning_dirpath)
 
     for target in targets.items():
         if not target[1] in patterns:

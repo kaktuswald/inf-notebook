@@ -45,6 +45,7 @@ from record import Record,rename_allfiles
 from graph import create_graphimage,save_graphimage,graphs_basepath
 from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
 from playdata import Recent
+from screen import check_screen
 
 thread_time_normal = 0.37
 thread_time_wait = 1
@@ -118,8 +119,6 @@ class ThreadMain(Thread):
             screenshot.xy = None
             return
         
-        screenshot.shot()
-
         if not self.active:
             self.active = True
             self.waiting = False
@@ -138,9 +137,7 @@ class ThreadMain(Thread):
             
             screenshot.shot()
 
-        is_loading = recog.get_is_screen_loading(screenshot.image)
-
-        if is_loading:
+        if check_screen('loading', screenshot.np_value):
             if not self.waiting:
                 self.finded = False
                 self.processed = False
@@ -644,7 +641,7 @@ if __name__ == '__main__':
                 if exists(values['text_file_path']):
                     screen = open_screenimage(values['text_file_path'])
                     gui.display_image(get_imagevalue(screen.original))
-                    if recog.get_is_result(screen.monochrome):
+                    if screen.is_savable:
                         result_process(screen)
             if event == 'button_save':
                 save()

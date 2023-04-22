@@ -9,7 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import images,masks,recog_musics_filepath
+from resources import masks,recog_musics_filepath
 from notes import get_notes
 from clear_type import get_clear_type_best,get_clear_type_current
 from dj_level import get_dj_level_best,get_dj_level_current
@@ -44,15 +44,6 @@ class Recognition():
     def __init__(self):
         logger.debug('generate Recognition')
 
-        self.loading = np.array(images['loading'])
-        self.music_select = np.array(images['music_select'])
-        self.turntable = np.array(images['turntable'])
-        self.result = np.array(images['result'])
-
-        self.trigger = Recog(masks['trigger'])
-        self.cutin_mission = Recog(masks['cutin_mission'])
-        self.cutin_bit = Recog(masks['cutin_bit'])
-
         self.play_sides = []
         for play_side in define.value_list['play_sides']:
             self.play_sides.append({
@@ -82,42 +73,6 @@ class Recognition():
 
         self.new = Recog(masks['new'])
     
-    def get_is_screen_loading(self, image):
-        cropped = image.crop(define.areas['loading'])
-        monochrome = cropped.convert('L')
-        return np.array_equal(self.loading, np.array(monochrome))
-
-    def get_is_screen_music_select(self, image):
-        cropped = image.crop(define.areas['music_select'])
-        monochrome = cropped.convert('L')
-        return np.array_equal(self.music_select, np.array(monochrome))
-
-    def get_is_screen_playing(self, image):
-        for key in define.areas['turntable'].keys():
-            cropped = image.crop(define.areas['turntable'][key])
-            monochrome = cropped.convert('L')
-            if np.array_equal(self.turntable, np.array(monochrome)):
-                return True
-
-        return False
-
-    def get_is_screen_result(self, image):
-        cropped = image.crop(define.areas['result'])
-        monochrome = cropped.convert('L')
-        return np.array_equal(self.result, np.array(monochrome))
-
-    def get_has_trigger(self, image_result):
-        crop = image_result.crop(define.areas['trigger'])
-        return self.trigger.find(crop)
-
-    def get_has_cutin_mission(self, image_result):
-        crop = image_result.crop(define.areas['cutin_mission'])
-        return self.cutin_mission.find(crop)
-
-    def get_has_cutin_bit(self, image_result):
-        crop = image_result.crop(define.areas['cutin_bit'])
-        return self.cutin_bit.find(crop)
-
     def get_play_side(self, image_result):
         for target in self.play_sides:
             if target['recog'].find(image_result.crop(target['area'])):
@@ -125,19 +80,6 @@ class Recognition():
 
         return None
 
-    def get_is_result(self, image_result):
-        if not self.get_has_trigger(image_result):
-            return False
-        if self.get_has_cutin_mission(image_result):
-            return False
-        if self.get_has_cutin_bit(image_result):
-            return False
-        
-        if self.get_play_side(image_result) is not None:
-            return True
-        
-        return False
-    
     def get_has_dead(self, image_result, play_side):
         crop = image_result.crop(define.areas['dead'][play_side])
         return self.dead.find(crop)

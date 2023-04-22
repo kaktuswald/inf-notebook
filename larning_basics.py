@@ -7,7 +7,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded larning_basics.py')
 
 from define import define
-from larning import create_resource_directory,create_images_directory,create_masks_directory,load_larning_sources,save_resource_image,larning,is_result_ok
+from larning import create_resource_directory,create_masks_directory,load_larning_sources,larning,is_result_ok
 
 if __name__ == '__main__':
     if len(argv) == 1:
@@ -15,7 +15,6 @@ if __name__ == '__main__':
         exit()
 
     create_resource_directory()
-    create_images_directory()
     create_masks_directory()
 
     sources = load_larning_sources()
@@ -23,7 +22,7 @@ if __name__ == '__main__':
     screen_targets = {}
     turntable_targets = {}
 
-    find_keys = ['trigger', 'cutin_mission', 'cutin_bit', 'rival']
+    find_keys = ['rival']
     find_targets = {}
     
     play_side_targets = {}
@@ -58,28 +57,6 @@ if __name__ == '__main__':
                 if 'dead' in source.label.keys() and source.label['dead']:
                     crop = source.image.crop(define.areas['dead'][play_side])
                     dead_targets[filename] = crop
-
-    if '-all' in argv or '-screen' in argv:
-        for key in screen_targets.keys():
-            result = save_resource_image(key, screen_targets[key])
-            if result:
-                print(f'screen {key}: {len(screen_targets[key])}')
-            else:
-                print(f'screen {key} is not unique')
-
-    if '-all' in argv or '-turntable' in argv:
-        result = save_resource_image('turntable', turntable_targets)
-        if result:
-            print(f'turntable: {len(turntable_targets)}')
-        else:
-            print(f'turntable is not unique')
-
-    if '-all' in argv or '-trigger' in argv:
-        larning('trigger', find_targets['trigger'])
-
-    if '-all' in argv or '-cutin' in argv:
-        larning('cutin_mission', find_targets['cutin_mission'])
-        larning('cutin_bit', find_targets['cutin_bit'])
 
     if '-all' in argv or '-rival' in argv:
         larning('rival', find_targets['rival'])

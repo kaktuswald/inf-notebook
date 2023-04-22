@@ -14,11 +14,9 @@ from mask import Mask
 
 resources_dirname = 'resources'
 
-images_dirname = 'images'
 masks_dirname = 'masks'
 sounds_dirname = 'sounds'
 
-images_dirpath = os.path.join(resources_dirname, images_dirname)
 masks_dirpath = os.path.join(resources_dirname, masks_dirname)
 sounds_dirpath = os.path.join(resources_dirname, sounds_dirname)
 
@@ -49,12 +47,6 @@ def play_sound_find():
 def play_sound_result():
     if os.path.exists(sound_result_filepath):
         PlaySound(sound_result_filepath, SND_FILENAME)
-
-images = {}
-for filename in os.listdir(images_dirpath):
-    key = filename.split('.')[0]
-    filepath = os.path.join(images_dirpath, filename)
-    images[key] = Image.open(filepath)
 
 masks = {}
 for filename in os.listdir(masks_dirpath):
