@@ -47,7 +47,7 @@ from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,
 from playdata import Recent
 from screen import check_screen
 
-thread_time_normal = 0.37
+thread_time_normal = 0.2
 thread_time_wait = 1
 thread_count_wait = int(30 / thread_time_wait)
 

@@ -28,11 +28,11 @@ class Define():
     result_check = {
         'background_count': 13,
         'key_position':  (200, 640, 1),
-        'areas': (
-            (slice(0, 628), 0, 1),
-            (slice(0, 154), 430, 1),
-            (slice(232, 628), 430, 1)
-        )
+        'areas': {
+            "left": (slice(0, 628), 0, 1),
+            "line430_upper": (slice(0, 154), 430, 1),
+            "line430_lower": (slice(232, 628), 430, 1)
+        }
     }
 
     value_list = {

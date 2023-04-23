@@ -101,6 +101,9 @@ def larning_and_check_screen(raws):
         print(wrong_count)
         return None
     
+    for key, value in table.items():
+        table[key] = value[::-1, :]
+        
     with open(filepath, 'wb') as f:
         pickle.dump(table, f)
     

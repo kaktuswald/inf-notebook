@@ -1,7 +1,7 @@
 import ctypes
 from ctypes import windll,wintypes,create_string_buffer
 from datetime import datetime
-from PIL import Image,ImageGrab
+from PIL import Image
 from logging import getLogger
 from os.path import exists,basename
 import numpy as np
@@ -11,7 +11,7 @@ logger_child_name = 'screenshot'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded screenshot.py')
 
-from result_check import get_is_result_savable
+from result_check import get_is_savable_result
 
 SRCCOPY = 0x00CC0020
 DIB_RGB_COLORS = 0
@@ -49,13 +49,15 @@ class BITMAPINFO(ctypes.Structure):
 class Screen:
     def __init__(self, np_value, filename):
         self.np_value = np_value
-        self.original = Image.fromarray(np_value).convert('RGBA')
-        self.monochrome = self.original.convert('L')
+
+        image = Image.fromarray(np_value[::-1, :, ::-1])
+        self.original = image.convert('RGBA')
+        self.monochrome = image.convert('L')
         self.filename = filename
     
     @property
     def is_savable(self):
-        return get_is_result_savable(self.np_value)
+        return get_is_savable_result(self.np_value)
 
 class Screenshot:
     width = 1280
@@ -97,13 +99,14 @@ class Screenshot:
         self.np_value = np.array(bytearray(self.buffer)).reshape(self.height, self.width, 3)
 
     def get(self):
-        return self.image.convert('RGBA')
+        convert = self.np_value[::-1, :, ::-1]
+        return Image.fromarray(convert, mode='RGBA')
 
     def get_resultscreen(self):
-        if not get_is_result_savable(self.np_value):
+        if not get_is_savable_result(self.np_value):
             return None
 
-        convert = self.np_value[::-1,:,::-1]
+        convert = self.np_value[::-1, :, ::-1]
 
         now = datetime.now()
         filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.png"
@@ -117,4 +120,4 @@ def open_screenimage(filepath):
     image = Image.open(filepath)
     filename = basename(filepath)
 
-    return Screen(np.array(image), filename)
+    return Screen(np.array(image)[::-1, :, ::-1], filename)

@@ -16,24 +16,37 @@ if exists(filepath):
 else:
     table = {}
 
-background_count = define.result_check['background_count']
-key_position = define.result_check['key_position']
-areas = define.result_check['areas']
+reverse = True
+
+if not reverse:
+    key_position = define.result_check['key_position']
+    areas = define.result_check['areas']
+else:
+    reverse_key_position = list(define.result_check['key_position'])
+    reverse_key_position[0] = -reverse_key_position[0] - 1
+    reverse_key_position[2] = -reverse_key_position[2] - 1
+    key_position = tuple(reverse_key_position)
+
+    areas = {}
+    for key, area in define.result_check['areas'].items():
+        reverse_area = list(define.result_check['areas'][key])
+        reverse_area[0] = slice(-reverse_area[0].start-1, -reverse_area[0].stop-1)
+        reverse_area[2] = -reverse_area[2] - 1
+        areas[key] = tuple(reverse_area)
 
 class RawData():
-    def __init__(self, filename, np_value, label):
+    def __init__(self, filename, np_value):
         self.filename = filename
         self.np_value = np_value
-        self.label = label
 
-def get_is_result_savable(np_value):
-    key = np_value[key_position]
-    if not key in table.keys():
-        return None
+def get_is_savable_result(np_value):
+    background_key = np_value[key_position]
+    if not background_key in table.keys():
+        return False
 
-    for area in areas:
-        if not np.array_equal(np_value[area], table[key][str(area)]):
-            return None
+    for area_key, area in areas.items():
+        if not np.array_equal(np_value[area], table[background_key][area_key]):
+            return False
     
     return True
 
@@ -46,7 +59,20 @@ def load_raws():
     for filename in filenames:
         filepath = join(raws_basepath, filename)
         if isfile(filepath):
-            raws.append(RawData(filename, np.array(Image.open(filepath)), labels.get(filename)))
+            label = labels.get(filename)
+
+            if not 'screen' in label.keys() or label['screen'] != 'result':
+                continue
+            if not 'cutin_mission' in label.keys() or label['cutin_mission']:
+                continue
+            if not 'cutin_bit' in label.keys() or label['cutin_bit']:
+                continue
+
+            if not reverse:
+                np_value = np.array(Image.open(filepath))
+            else:
+                np_value = np.array(Image.open(filepath))[::-1,:,::-1]
+            raws.append(RawData(filename, np_value))
     
     print(f"raw count: {len(raws)}")
 
@@ -56,32 +82,26 @@ def larning_result_check(raws):
     report = {}
     table = {}
     for raw in raws:
-        if not 'screen' in raw.label.keys() or raw.label['screen'] != 'result':
-            continue
-        if not 'cutin_mission' in raw.label.keys() or raw.label['cutin_mission']:
-            continue
-        if not 'cutin_bit' in raw.label.keys() or raw.label['cutin_bit']:
-            continue
-        
-        key = raw.np_value[key_position]
-        if not key in table.keys():
-            table[key] = {}
-            report[key] = {'names': []}
-            for area in areas:
-                report[key][str(area)] = []
-        target = report[key]
-        for area in areas:
-            area_key = str(area)
+        background_key = raw.np_value[key_position]
+        if not background_key in table.keys():
+            print(background_key, raw.filename)
+            table[background_key] = {}
+            report[background_key] = {'names': []}
+            for area_key, area in areas.items():
+                table[background_key][area_key] = raw.np_value[area]
+                report[background_key][area_key] = []
+        target = report[background_key]
+        for area_key, area in areas.items():
             value = raw.np_value[area]
-            table[key][area_key] = value
             if not value.tolist() in target[area_key]:
                 target[area_key].append(value.tolist())
-                if not raw.filename in report[key]['names']:
-                    report[key]['names'].append(raw.filename)
+                if not raw.filename in target['names']:
+                    target['names'].append(raw.filename)
 
     print('background count', len(report.keys()))
     print(sorted([*report.keys()]))
 
+    background_count = define.result_check['background_count']
     if len(report.keys()) != background_count:
         print('Wrong background count')
 
@@ -89,7 +109,7 @@ def larning_result_check(raws):
     for key, value in report.items():
         counts = [len(value[area_key]) for area_key in value.keys() if area_key != 'names']
         print(key, counts)
-        if np.any(np.array(counts)!=1):
+        if np.any(np.array(counts) != 1):
             duplicate_target = key
 
     if duplicate_target is not None:
