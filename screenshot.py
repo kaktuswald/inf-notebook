@@ -11,7 +11,7 @@ logger_child_name = 'screenshot'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded screenshot.py')
 
-from result_check import get_is_savable_result
+from recog import recog
 
 SRCCOPY = 0x00CC0020
 DIB_RGB_COLORS = 0
@@ -54,10 +54,6 @@ class Screen:
         self.original = image.convert('RGBA')
         self.monochrome = image.convert('L')
         self.filename = filename
-    
-    @property
-    def is_savable(self):
-        return get_is_savable_result(self.np_value)
 
 class Screenshot:
     width = 1280
@@ -103,7 +99,7 @@ class Screenshot:
         return Image.fromarray(convert, mode='RGBA')
 
     def get_resultscreen(self):
-        if not get_is_savable_result(self.np_value):
+        if not recog.get_is_savable(self.np_value):
             return None
 
         convert = self.np_value[::-1, :, ::-1]
@@ -117,7 +113,7 @@ def open_screenimage(filepath):
     if not exists(filepath):
         return None
     
-    image = Image.open(filepath)
+    image = Image.open(filepath).convert('RGB')
     filename = basename(filepath)
 
     return Screen(np.array(image)[::-1, :, ::-1], filename)

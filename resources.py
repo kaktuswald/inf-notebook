@@ -2,7 +2,8 @@ import os
 import numpy as np
 from winsound import SND_FILENAME,PlaySound
 from logging import getLogger
-from PIL import Image
+from glob import glob
+import pickle
 
 logger_child_name = 'resources'
 
@@ -53,3 +54,9 @@ for filename in os.listdir(masks_dirpath):
     key = filename.split('.')[0]
     filepath = os.path.join(masks_dirpath, filename)
     masks[key] = Mask(key, np.load(filepath))
+
+resources = {}
+for filepath in glob(os.path.join(resources_dirname, '*.res')):
+    key = os.path.basename(filepath).split('.')[0]
+    with open(filepath, 'rb') as f:
+        resources[key] = pickle.load(f)

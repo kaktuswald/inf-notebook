@@ -9,7 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import masks,recog_musics_filepath
+from resources import masks,resources,recog_musics_filepath
 from notes import get_notes
 from clear_type import get_clear_type_best,get_clear_type_current
 from dj_level import get_dj_level_best,get_dj_level_current
@@ -55,6 +55,9 @@ class Recognition():
         self.dead = Recog(masks['dead'])
         self.rival = Recog(masks['rival'])
 
+        self.screen = resources['screen']
+        self.is_savable = resources['is_savable']
+
         self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
         self.difficulty = RecogMultiValue([masks[key] for key in define.value_list['difficulties'] if key in masks.keys()])
         self.level = {}
@@ -73,6 +76,27 @@ class Recognition():
 
         self.new = Recog(masks['new'])
     
+    def get_screen(self, np_value):
+            key_value = np_value[define.screen_area]
+            key = ''.join([format(v, '0x') for v in key_value])
+            if not key in define.screen.keys():
+                return False
+
+            return define.screen[key]
+
+    def get_is_savable(self, np_value):
+        define_result_check = define.result_check
+
+        background_key = np_value[define_result_check['background_key_position']]
+        if not background_key in self.is_savable.keys():
+            return False
+
+        for area_key, area in define_result_check['areas'].items():
+            if not np.array_equal(np_value[area], self.is_savable[background_key][area_key]):
+                return False
+        
+        return True
+        
     def get_play_side(self, image_result):
         for target in self.play_sides:
             if target['recog'].find(image_result.crop(target['area'])):

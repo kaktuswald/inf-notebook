@@ -6,7 +6,20 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded define.py')
 
 class Define():
-    searchscreen_keys = ('loading', 'music_select', 'result',)
+    # インデックスの1個目がY軸(反転)、2個目がX軸、3軸目はRGBのうちGのみを参照
+
+    screen_area = (690, slice(716, 726), 1)
+    screen_names = ('loading', 'result',)
+
+    result_check = {
+        'background_count': 13,
+        'background_key_position':  (600, 640, 1),
+        'areas': {
+            "topleft": (slice(700, 710), slice(10, 20), 1),
+            "leftline": (slice(80, 430), 0, 1),
+            "rivalline": (185, slice(470, 520), 1)
+        }
+    }
 
     areas = {
         'rival': [542,578,611,592],
@@ -17,21 +30,6 @@ class Define():
         'dead': {
             '1P': [406, 168, 412, 178],
             '2P': [822, 168, 828, 178]
-        }
-    }
-
-    screen_areas = {
-        'loading': (slice(200, 210), slice(400, 430), 1),
-        'result': (slice(689, 697), slice(784, 790), 1)
-    }
-
-    result_check = {
-        'background_count': 13,
-        'key_position':  (200, 640, 1),
-        'areas': {
-            "left": (slice(0, 628), 0, 1),
-            "line430_upper": (slice(0, 154), 430, 1),
-            "line430_lower": (slice(232, 628), 430, 1)
         }
     }
 

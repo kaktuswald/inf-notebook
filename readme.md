@@ -45,7 +45,7 @@ python generate_version.py v0.0.0.0
 
 ### 実行ファイル化
 ```shell
-pip install cx_Freeze==6.14.4
+pip install cx_Freeze==6.14.9
 python setup.py build
 ```
 
@@ -134,6 +134,12 @@ python download_collections.py
 ```shell
 python manage.pyw
 ```
+
+#### いくつかのリソースを作る
+```shell
+python generate_resources.py -all
+```
+resourcesフォルダ内にいくつかのリソースファイルが作成される。
 
 #### 学習する
 ```shell
