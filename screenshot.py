@@ -11,7 +11,7 @@ logger_child_name = 'screenshot'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded screenshot.py')
 
-from recog import recog
+from define import define
 
 SRCCOPY = 0x00CC0020
 DIB_RGB_COLORS = 0
@@ -51,16 +51,15 @@ class Screen:
         self.np_value = np_value
 
         image = Image.fromarray(np_value[::-1, :, ::-1])
-        self.original = image.convert('RGBA')
+        self.original = image.convert('RGB')
         self.monochrome = image.convert('L')
         self.filename = filename
 
-class Screenshot:
-    width = 1280
-    height = 720
-    xy = None
+class Capture:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
 
-    def __init__(self):
         self.bmi = BITMAPINFO()
         self.bmi.bmiHeader.biSize = ctypes.sizeof(BITMAPINFOHEADER)
         self.bmi.bmiHeader.biWidth = self.width
@@ -76,7 +75,13 @@ class Screenshot:
 
         windll.gdi32.SelectObject(self.screen_copy, self.bitmap)
 
-        self.buffer = create_string_buffer(self.height*self.width*3)
+        self.buffer = create_string_buffer(self.height * self.width * 3)
+    
+    def shot(self, left, top):
+        windll.gdi32.BitBlt(self.screen_copy, 0, 0, self.width, self.height, self.screen, left, top, SRCCOPY)
+        windll.gdi32.GetDIBits(self.screen_copy, self.bitmap, 0, self.height, ctypes.pointer(self.buffer), ctypes.pointer(self.bmi), DIB_RGB_COLORS)
+
+        return np.array(bytearray(self.buffer)).reshape(self.height, self.width, 3)
 
     def __del__(self):
         windll.gdi32.DeleteObject(self.bitmap)
@@ -85,29 +90,42 @@ class Screenshot:
 
         logger.debug('Called Screenshot destuctor.')
 
+class Screenshot:
+    xy = None
+
+    def __init__(self, checkloading_value):
+        self.checkloading = Capture(define.is_loading_area['width'], define.is_loading_area['height'])
+        self.capture = Capture(define.width, define.height)
+
+        self.checkloading_value = checkloading_value
+
+    def __del__(self):
+        del self.checkloading
+        del self.capture
+
+    def is_loading(self):
+        if self.xy is None:
+            return None
+        
+        x = self.xy[0] + define.is_loading_area['left']
+        y = self.xy[1] + define.is_loading_area['top']
+        return np.array_equal(self.checkloading.shot(x, y), self.checkloading_value)
+
     def shot(self):
         if self.xy is None:
             return None
         
-        windll.gdi32.BitBlt(self.screen_copy, 0, 0, self.width, self.height, self.screen, self.xy[0], self.xy[1], SRCCOPY)
-        windll.gdi32.GetDIBits(self.screen_copy, self.bitmap, 0, self.height, ctypes.pointer(self.buffer), ctypes.pointer(self.bmi), DIB_RGB_COLORS)
+        self.np_value = self.capture.shot(self.xy[0], self.xy[1])
 
-        self.np_value = np.array(bytearray(self.buffer)).reshape(self.height, self.width, 3)
-
-    def get(self):
+    def get_image(self):
         convert = self.np_value[::-1, :, ::-1]
-        return Image.fromarray(convert, mode='RGBA')
+        return Image.fromarray(convert).convert('RGB')
 
     def get_resultscreen(self):
-        if not recog.get_is_savable(self.np_value):
-            return None
-
-        convert = self.np_value[::-1, :, ::-1]
-
         now = datetime.now()
         filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.png"
 
-        return Screen(convert, filename)
+        return Screen(self.np_value, filename)
 
 def open_screenimage(filepath):
     if not exists(filepath):

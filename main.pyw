@@ -36,7 +36,8 @@ from version import version
 import gui.main as gui
 from gui.export import open as export_open
 from gui.general import get_imagevalue
-from resources import MusicsTimestamp,play_sound_find,play_sound_result
+from define import define
+from resources import resources,MusicsTimestamp,play_sound_find,play_sound_result
 from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
@@ -51,6 +52,7 @@ thread_time_wait = 1
 thread_count_wait = int(30 / thread_time_wait)
 
 windowtitle = 'beatmania IIDX INFINITAS'
+windowtitle = 'screenshot-20221024234518.png ‎- フォト'
 
 FindWindowExW = ctypes.windll.user32.FindWindowExW
 GetWindowRect = ctypes.windll.user32.GetWindowRect
@@ -108,7 +110,7 @@ class ThreadMain(Thread):
         rect = ctypes.wintypes.RECT()
         GetWindowRect(handle, ctypes.pointer(rect))
 
-        if rect.right - rect.left != screenshot.width or rect.bottom - rect.top != screenshot.height:
+        if rect.right - rect.left != define.width or rect.bottom - rect.top != define.height:
             if self.active:
                 self.queues['log'].put(f'infinitas deactivate')
                 self.sleep_time = thread_time_wait
@@ -128,15 +130,15 @@ class ThreadMain(Thread):
         screenshot.xy = (rect.left, rect.top)
 
         if not self.waiting:
-            screenshot.shot()
+            is_loading = screenshot.is_loading()
         else:
             self.waiting_count -= 1
             if self.waiting_count > 0:
                 return
             
-            screenshot.shot()
+            is_loading = screenshot.is_loading()
 
-        if recog.get_screen(screenshot.np_value) == 'loading':
+        if is_loading:
             if not self.waiting:
                 self.finded = False
                 self.processed = False
@@ -155,11 +157,13 @@ class ThreadMain(Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
 
-        resultscreen = screenshot.get_resultscreen()
-        if resultscreen is not None:
-            if display_screenshot_enable:
-                self.queues['display_image'].put(resultscreen.original)
-            
+        screenshot.shot()
+        if display_screenshot_enable:
+            self.queues['display_image'].put(screenshot.get_image())
+        
+        if recog.get_is_savable(screenshot.np_value):
+            resultscreen = screenshot.get_resultscreen()
+
             if not self.finded:
                 self.finded = True
                 self.find_time = time.time()
@@ -217,6 +221,9 @@ class Selection():
 
 def result_process(screen):
     result = recog.get_result(screen)
+    if result is None:
+        return
+
     if setting.data_collection:
         storage.upload_collection(screen, result, window['force_upload'].get())
     
@@ -293,10 +300,10 @@ def insert_results(result):
 
 def active_screenshot():
     screenshot.shot()
-    screen = screenshot.get()
-    filename = save_raw(screen)
+    image = screenshot.get_image()
+    filename = save_raw(image)
     log_debug(f'save screen: {filename}')
-    gui.display_image(get_imagevalue(screen))
+    gui.display_image(get_imagevalue(image))
 
 def log_debug(message):
     logger.debug(message)
@@ -571,7 +578,7 @@ if __name__ == '__main__':
 
     display_screenshot_enable = False
 
-    screenshot = Screenshot()
+    screenshot = Screenshot(resources['is_loading'])
 
     results = {}
     list_results = []

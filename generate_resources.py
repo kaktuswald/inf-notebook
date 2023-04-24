@@ -16,7 +16,7 @@ file_output_count = 3
 report_dirname = 'report'
 
 resourcenames = {
-    'screen': 'screen.res',
+    'is_loading': 'is_loading.res',
     'is_savable': 'is_savable.res',
 }
 
@@ -58,55 +58,66 @@ def get_report_dir(resource_name):
     
     return report_dirpath
 
-def generate_screen(raws):
-    resource_name = resourcenames['screen']
+def output_report(report_dirpath, report, output_linecount):
+    report_filepath = join(report_dirpath, 'report.txt')
+    with open(report_filepath, 'w') as f:
+        f.write('\n'.join(report))
+    
+    for line in report[:output_linecount]:
+        print(line)
+
+def generate_is_loading(raws):
+    resource_name = resourcenames['is_loading']
     report_output_linecount = 10
 
     report_dirpath = get_report_dir(resource_name)
     report = []
     file_count = 0
     
-    table = {}
+    left = define.is_loading_area['left']
+    top = define.is_loading_area['top']
+    width = define.is_loading_area['height']
+    height = define.is_loading_area['height']
+    trimarea = (slice(top, top + height), slice(left, left + width))
+
+    master = None
     for filename, raw in raws.items():
         if not 'screen' in raw.label.keys():
             continue
-
-        screen = raw.label['screen']
-
-        if not screen in define.screen_names:
+        if raw.label['screen'] != 'loading':
             continue
 
-        if not screen in table.values():
-            key_value = raw.np_value[define.screen_area]
-            key = ''.join([format(v, '0x') for v in key_value])
-            table[key] = screen
-            image = Image.fromarray(key_value)
-            image.save(join(report_dirpath, f'{screen}-{filename}'))
-            report.append(f'{screen}: {key}')
+        master = raw.np_value[trimarea]
+        image = Image.fromarray(master)
+        image.save(join(report_dirpath, f'master-{filename}'))
+        report.append(f'master: {filename}')
+
+        break
+
+    if master is None:
+        report.append('Not found loading image')
+
+        output_report(report_dirpath, report, report_output_linecount)
+        return
 
     through_count = 0
     error_count = 0
     for filename, raw in raws.items():
-        if 'screen' in raw.label.keys():
-            screen = raw.label['screen']
-        else:
-            screen = None
+        if not 'screen' in raw.label.keys():
+            continue
 
-        key_value = raw.np_value[define.screen_area]
-        key = ''.join([format(v, '0x') for v in key_value])
-        has_key = key in table
-        is_target_screen = screen in define.screen_names
-        if has_key == is_target_screen:
+        np_value = raw.np_value[trimarea]
+
+        label_loading = raw.label['screen'] == 'loading'
+        is_match = np.array_equal(np_value, master)
+        if (label_loading and is_match) or (not label_loading and not is_match):
             through_count += 1
         else:
             if file_count < file_output_count:
-                image = Image.fromarray(key_value)
+                image = Image.fromarray(np_value)
                 image.save(join(report_dirpath, filename))
                 file_count += 1
-            if has_key:
-                report.append(f'{screen} was recognized as {table[key]} from {filename}...{key}')
-            else:
-                report.append(f'Not recognized {screen} from {filename}...{key}')
+            report.append(f"Mismatch {raw.label['screen']} {is_match} {filename}")
             error_count += 1
 
     if error_count == 0:
@@ -119,14 +130,9 @@ def generate_screen(raws):
     create_resource_directory()
     filepath = join(resources_dirname, resource_name)
     with open(filepath, 'wb') as f:
-        pickle.dump(table, f)
+        pickle.dump(master, f)
 
-    report_filepath = join(report_dirpath, 'report.txt')
-    with open(report_filepath, 'w') as f:
-        f.write('\n'.join(report))
-    
-    for line in report[:report_output_linecount]:
-        print(line)
+    output_report(report_dirpath, report, report_output_linecount)
 
 def generate_is_savable(raws):
     resource_name = resourcenames['is_savable']
@@ -158,10 +164,8 @@ def generate_is_savable(raws):
     else:
         report.append(f'Wrong background count: {len(raw_targets)}')
 
-        for line in report[:report_output_linecount]:
-            print(line)
-
-        exit()
+        output_report(report_dirpath, report, report_output_linecount)
+        return
     
     table = {}
     through_count = 0
@@ -200,12 +204,7 @@ def generate_is_savable(raws):
     with open(filepath, 'wb') as f:
         pickle.dump(table, f)
 
-    report_filepath = join(report_dirpath, 'report.txt')
-    with open(report_filepath, 'w') as f:
-        f.write('\n'.join(report))
-
-    for line in report[:report_output_linecount]:
-        print(line)
+    output_report(report_dirpath, report, report_output_linecount)
 
 if __name__ == '__main__':
     if len(argv) == 1:
@@ -214,8 +213,8 @@ if __name__ == '__main__':
 
     raws = load_raws()
 
-    if '-all' in argv or '-screen' in argv:
-        generate_screen(raws)
+    if '-all' in argv or '-is_loading' in argv:
+        generate_is_loading(raws)
 
     if '-all' in argv or '-is_savable' in argv:
         generate_is_savable(raws)

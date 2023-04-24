@@ -76,14 +76,6 @@ class Recognition():
 
         self.new = Recog(masks['new'])
     
-    def get_screen(self, np_value):
-            key_value = np_value[define.screen_area]
-            key = ''.join([format(v, '0x') for v in key_value])
-            if not key in define.screen.keys():
-                return False
-
-            return define.screen[key]
-
     def get_is_savable(self, np_value):
         define_result_check = define.result_check
 
@@ -261,10 +253,13 @@ class Recognition():
         trim_informations = screen.monochrome.crop(define.informations_trimarea)
 
         play_side = self.get_play_side(screen.monochrome)
+        if play_side == None:
+            return None
+
         trim_details = screen.monochrome.crop(define.details_trimarea[play_side])
 
         return Result(
-            screen.original.convert('RGB'),
+            screen.original,
             self.get_informations(trim_informations),
             play_side,
             self.get_has_rival(screen.monochrome),

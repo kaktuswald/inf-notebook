@@ -6,11 +6,19 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded define.py')
 
 class Define():
+    width = 1280
+    height = 720
+
+    # Y軸は反転、色はRGBのうちGのみを参照
+    is_loading_area = {
+        'left': 740,
+        'top': 480,
+        'width': 5,
+        'height': 5,
+        'color_index': 1
+    }
+
     # インデックスの1個目がY軸(反転)、2個目がX軸、3軸目はRGBのうちGのみを参照
-
-    screen_area = (690, slice(716, 726), 1)
-    screen_names = ('loading', 'result',)
-
     result_check = {
         'background_count': 13,
         'background_key_position':  (600, 640, 1),
