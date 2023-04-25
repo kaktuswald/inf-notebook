@@ -55,7 +55,6 @@ class Recognition():
         self.dead = Recog(masks['dead'])
         self.rival = Recog(masks['rival'])
 
-        self.screen = resources['screen']
         self.is_savable = resources['is_savable']
 
         self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
@@ -117,6 +116,9 @@ class Recognition():
             return None
         
         background_key = str(image_informations.getpixel(self.background_key_position))
+        if not background_key in self.backgrounds.keys():
+            return None
+        
         np_value = np.array(image_informations.crop(self.music_trimarea))
         background_removed = np.where(self.backgrounds[background_key]!=np_value, np_value, 0)
         gray_filtered = np.where(background_removed>=self.gray_filter, background_removed, 0)

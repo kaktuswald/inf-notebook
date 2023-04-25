@@ -16,7 +16,7 @@ file_output_count = 3
 report_dirname = 'report'
 
 resourcenames = {
-    'is_loading': 'is_loading.res',
+    'get_screen': 'get_screen.res',
     'is_savable': 'is_savable.res',
 }
 
@@ -66,58 +66,53 @@ def output_report(report_dirpath, report, output_linecount):
     for line in report[:output_linecount]:
         print(line)
 
-def generate_is_loading(raws):
-    resource_name = resourcenames['is_loading']
+def generate_get_screen(raws):
+    resource_name = resourcenames['get_screen']
     report_output_linecount = 10
 
     report_dirpath = get_report_dir(resource_name)
     report = []
     file_count = 0
     
-    left = define.is_loading_area['left']
-    top = define.is_loading_area['top']
-    width = define.is_loading_area['height']
-    height = define.is_loading_area['height']
-    trimarea = (slice(top, top + height), slice(left, left + width))
+    left = define.get_screen_area['left']
+    bottom = define.height - define.get_screen_area['top']
+    right = left + define.get_screen_area['width']
+    top = bottom - define.get_screen_area['height']
+    area = (slice(top, bottom), slice(left, right))
 
-    master = None
-    for filename, raw in raws.items():
-        if not 'screen' in raw.label.keys():
-            continue
-        if raw.label['screen'] != 'loading':
-            continue
-
-        master = raw.np_value[trimarea]
-        image = Image.fromarray(master)
-        image.save(join(report_dirpath, f'master-{filename}'))
-        report.append(f'master: {filename}')
-
-        break
-
-    if master is None:
-        report.append('Not found loading image')
-
-        output_report(report_dirpath, report, report_output_linecount)
-        return
-
+    table = {}
     through_count = 0
     error_count = 0
     for filename, raw in raws.items():
         if not 'screen' in raw.label.keys():
             continue
 
-        np_value = raw.np_value[trimarea]
+        screen = raw.label['screen']
+        if not raw.label['screen'] in ['loading', 'result']:
+            continue
 
-        label_loading = raw.label['screen'] == 'loading'
-        is_match = np.array_equal(np_value, master)
-        if (label_loading and is_match) or (not label_loading and not is_match):
+        key_value = raw.np_value[area]
+        key = np.sum(key_value)
+
+        if not screen in table.values():
+            table[key] = screen
+            image = Image.fromarray(key_value)
+            image.save(join(report_dirpath, f'{screen}-{filename}'))
+            report.append(f'{screen}: {key}')
+            if screen == 'loading':
+                print(key_value)
+        
+        if key in table.keys() and table[key] == screen:
             through_count += 1
         else:
             if file_count < file_output_count:
-                image = Image.fromarray(np_value)
+                image = Image.fromarray(key_value)
                 image.save(join(report_dirpath, filename))
                 file_count += 1
-            report.append(f"Mismatch {raw.label['screen']} {is_match} {filename}")
+            if key in table.keys():
+                report.append(f'Mismatch {key}: {screen} and {table[key]} of {filename}')
+            else:
+                report.append(f'Not found {key}: {screen} of {filename}')
             error_count += 1
 
     if error_count == 0:
@@ -130,9 +125,14 @@ def generate_is_loading(raws):
     create_resource_directory()
     filepath = join(resources_dirname, resource_name)
     with open(filepath, 'wb') as f:
-        pickle.dump(master, f)
+        pickle.dump(table, f)
 
-    output_report(report_dirpath, report, report_output_linecount)
+    report_filepath = join(report_dirpath, 'report.txt')
+    with open(report_filepath, 'w') as f:
+        f.write('\n'.join(report))
+    
+    for line in report[:report_output_linecount]:
+        print(line)
 
 def generate_is_savable(raws):
     resource_name = resourcenames['is_savable']
@@ -213,8 +213,8 @@ if __name__ == '__main__':
 
     raws = load_raws()
 
-    if '-all' in argv or '-is_loading' in argv:
-        generate_is_loading(raws)
+    if '-all' in argv or '-get_screen' in argv:
+        generate_get_screen(raws)
 
     if '-all' in argv or '-is_savable' in argv:
         generate_is_savable(raws)

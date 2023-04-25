@@ -9,23 +9,22 @@ class Define():
     width = 1280
     height = 720
 
-    # Y軸は反転、色はRGBのうちGのみを参照
-    is_loading_area = {
-        'left': 740,
-        'top': 480,
-        'width': 5,
-        'height': 5,
-        'color_index': 1
+    # 幅は8の倍数でないとだめかも
+    get_screen_area = {
+        'left': 782,
+        'top': 690,
+        'width': 8,
+        'height': 2
     }
 
     # インデックスの1個目がY軸(反転)、2個目がX軸、3軸目はRGBのうちGのみを参照
     result_check = {
         'background_count': 13,
-        'background_key_position':  (600, 640, 1),
+        'background_key_position':  (685, 82, 1),
         'areas': {
-            "topleft": (slice(700, 710), slice(10, 20), 1),
+            "topleft": (slice(685, 690), slice(80, 85), 1),
             "leftline": (slice(80, 430), 0, 1),
-            "rivalline": (185, slice(470, 520), 1)
+            "nearcenterline": (slice(200, 310), 520, 1)
         }
     }
 

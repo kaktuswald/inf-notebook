@@ -12,6 +12,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded screenshot.py')
 
 from define import define
+from resources import resources
 
 SRCCOPY = 0x00CC0020
 DIB_RGB_COLORS = 0
@@ -93,23 +94,27 @@ class Capture:
 class Screenshot:
     xy = None
 
-    def __init__(self, checkloading_value):
-        self.checkloading = Capture(define.is_loading_area['width'], define.is_loading_area['height'])
+    def __init__(self):
+        self.checkloading = Capture(define.get_screen_area['width'], define.get_screen_area['height'])
         self.capture = Capture(define.width, define.height)
-
-        self.checkloading_value = checkloading_value
 
     def __del__(self):
         del self.checkloading
         del self.capture
 
-    def is_loading(self):
+    def get_screen(self):
         if self.xy is None:
             return None
         
-        x = self.xy[0] + define.is_loading_area['left']
-        y = self.xy[1] + define.is_loading_area['top']
-        return np.array_equal(self.checkloading.shot(x, y), self.checkloading_value)
+        x = self.xy[0] + define.get_screen_area['left']
+        y = self.xy[1] + define.get_screen_area['top']
+        np_value = self.checkloading.shot(x, y)
+        key = np.sum(np_value)
+
+        if not key in resources['get_screen'].keys():
+            return None
+        
+        return resources['get_screen'][key]
 
     def shot(self):
         if self.xy is None:

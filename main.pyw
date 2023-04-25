@@ -37,7 +37,7 @@ import gui.main as gui
 from gui.export import open as export_open
 from gui.general import get_imagevalue
 from define import define
-from resources import resources,MusicsTimestamp,play_sound_find,play_sound_result
+from resources import MusicsTimestamp,play_sound_find,play_sound_result
 from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
@@ -47,12 +47,11 @@ from graph import create_graphimage,save_graphimage,graphs_basepath
 from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
 from playdata import Recent
 
-thread_time_normal = 0.2
+thread_time_normal = 0.3
 thread_time_wait = 1
 thread_count_wait = int(30 / thread_time_wait)
 
 windowtitle = 'beatmania IIDX INFINITAS'
-windowtitle = 'screenshot-20221024234518.png ‎- フォト'
 
 FindWindowExW = ctypes.windll.user32.FindWindowExW
 GetWindowRect = ctypes.windll.user32.GetWindowRect
@@ -72,7 +71,6 @@ class ThreadMain(Thread):
     active = False
     waiting = False
     waiting_count = 0
-    finded = False
     processed = False
     logs = []
 
@@ -104,8 +102,6 @@ class ThreadMain(Thread):
         if self.handle != handle:
             self.queues['log'].put(f'infinitas find')
             self.handle = handle
-            if setting.play_sound:
-                play_sound_find()
         
         rect = ctypes.wintypes.RECT()
         GetWindowRect(handle, ctypes.pointer(rect))
@@ -130,23 +126,24 @@ class ThreadMain(Thread):
         screenshot.xy = (rect.left, rect.top)
 
         if not self.waiting:
-            is_loading = screenshot.is_loading()
+            screen = screenshot.get_screen()
         else:
             self.waiting_count -= 1
             if self.waiting_count > 0:
                 return
             
-            is_loading = screenshot.is_loading()
+            screen = screenshot.get_screen()
 
-        if is_loading:
+        if screen == 'loading':
             if not self.waiting:
-                self.finded = False
                 self.processed = False
                 self.waiting = True
                 self.waiting_count = thread_count_wait
                 self.queues['log'].put('find loading: start waiting')
                 self.sleep_time = thread_time_wait
                 self.queues['log'].put(f'change sleep time: {self.sleep_time}')
+                if setting.manage:
+                    play_sound_find()
             else:
                 self.waiting_count = thread_count_wait
             return
@@ -156,27 +153,30 @@ class ThreadMain(Thread):
             self.queues['log'].put('find playing: end waiting')
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'change sleep time: {self.sleep_time}')
+            if setting.manage:
+                play_sound_find()
 
-        screenshot.shot()
+        shotted = False
         if display_screenshot_enable:
+            screenshot.shot()
             self.queues['display_image'].put(screenshot.get_image())
         
+        if screen != 'result':
+            return
+        
+        if not shotted:
+            screenshot.shot()
+        
         if recog.get_is_savable(screenshot.np_value):
-            resultscreen = screenshot.get_resultscreen()
+            if not self.processed:
+                resultscreen = screenshot.get_resultscreen()
 
-            if not self.finded:
-                self.finded = True
-                self.find_time = time.time()
-            if self.finded and not self.processed:
-                if time.time() - self.find_time > thread_time_normal*2-0.1:
-                    self.processed = True
-                    self.queues['result_screen'].put(resultscreen)
-                    if setting.play_sound:
-                        play_sound_result()
+                self.processed = True
+                self.queues['result_screen'].put(resultscreen)
+                if setting.play_sound:
+                    play_sound_result()
         else:
-            if self.finded:
-                self.finded = False
-                self.processed = False
+            self.processed = False
 
 class Selection():
     def __init__(self, play_mode, difficulty, music, record):
@@ -578,7 +578,7 @@ if __name__ == '__main__':
 
     display_screenshot_enable = False
 
-    screenshot = Screenshot(resources['is_loading'])
+    screenshot = Screenshot()
 
     results = {}
     list_results = []
