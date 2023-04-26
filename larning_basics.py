@@ -26,7 +26,6 @@ if __name__ == '__main__':
     find_targets = {}
     
     play_side_targets = {}
-    dead_targets = {}
 
     for source in sources:
         filename = source.filename
@@ -54,14 +53,8 @@ if __name__ == '__main__':
                 crop = source.image.crop(define.areas['play_side'][play_side])
                 play_side_targets[filename] = crop
 
-                if 'dead' in source.label.keys() and source.label['dead']:
-                    crop = source.image.crop(define.areas['dead'][play_side])
-                    dead_targets[filename] = crop
-
     if '-all' in argv or '-rival' in argv:
         larning('rival', find_targets['rival'])
     
     if '-all' in argv or '-playside' in argv:
         larning('play_side', play_side_targets)
-    if '-all' in argv or '-dead' in argv:
-        larning('dead', dead_targets)

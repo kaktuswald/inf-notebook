@@ -52,7 +52,7 @@ class Recognition():
                 'recog': Recog(masks['play_side'])
             })
         
-        self.dead = Recog(masks['dead'])
+        self.dead = resources['dead']
         self.rival = Recog(masks['rival'])
 
         self.is_savable = resources['is_savable']
@@ -95,9 +95,9 @@ class Recognition():
 
         return None
 
-    def get_has_dead(self, image_result, play_side):
-        crop = image_result.crop(define.areas['dead'][play_side])
-        return self.dead.find(crop)
+    def get_has_dead(self, np_value, play_side):
+        trimmed = np_value[define.areas_np['dead'][play_side]]
+        return np.all((self.dead==0)|(trimmed==self.dead))
     
     def get_has_rival(self, image_result):
         crop = image_result.crop(define.areas['rival'])
@@ -265,7 +265,7 @@ class Recognition():
             self.get_informations(trim_informations),
             play_side,
             self.get_has_rival(screen.monochrome),
-            self.get_has_dead(screen.monochrome, play_side),
+            self.get_has_dead(screen.np_value, play_side),
             self.get_details(trim_details)
         )
     

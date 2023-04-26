@@ -60,3 +60,6 @@ for filepath in glob(os.path.join(resources_dirname, '*.res')):
     key = os.path.basename(filepath).split('.')[0]
     with open(filepath, 'rb') as f:
         resources[key] = pickle.load(f)
+for filepath in glob(os.path.join(resources_dirname, '*.npy')):
+    key = os.path.basename(filepath).split('.')[0]
+    resources[key] = np.load(filepath)
