@@ -40,7 +40,7 @@ def load_raws():
         if not 'screen' in label.keys():
             continue
 
-        raws[filename] = RawData(np.array(Image.open(filepath).convert('RGB'))[::-1, :, ::-1], label)
+        raws[filename] = RawData(np.array(Image.open(filepath).convert('RGB')), label)
     
     print(f"raw count: {len(raws)}")
 
@@ -91,7 +91,8 @@ def generate_get_screen(raws):
         if not raw.label['screen'] in ['loading', 'result']:
             continue
 
-        key_value = raw.np_value[area]
+        np_value_reverse = raw.np_value[::-1, :, ::-1]
+        key_value = np_value_reverse[area]
         key = np.sum(key_value)
 
         if not screen in table.values():

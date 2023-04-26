@@ -48,6 +48,7 @@ from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,
 from playdata import Recent
 
 thread_time_normal = 0.3
+thread_time_result = 0.15
 thread_time_wait = 1
 thread_count_wait = int(30 / thread_time_wait)
 
@@ -71,7 +72,9 @@ class ThreadMain(Thread):
     active = False
     waiting = False
     waiting_count = 0
-    processed = False
+    confirmed_result = False
+    confirmed_savable = False
+    processed_result = False
     logs = []
 
     def __init__(self, event_close, queues):
@@ -110,7 +113,6 @@ class ThreadMain(Thread):
             if self.active:
                 self.queues['log'].put(f'infinitas deactivate')
                 self.sleep_time = thread_time_wait
-                self.queues['log'].put(f'change sleep time: {self.sleep_time}')
 
             self.active = False
             screenshot.xy = None
@@ -121,7 +123,6 @@ class ThreadMain(Thread):
             self.waiting = False
             self.queues['log'].put(f'infinitas activate')
             self.sleep_time = thread_time_normal
-            self.queues['log'].put(f'change sleep time: {self.sleep_time}')
 
         screenshot.xy = (rect.left, rect.top)
 
@@ -136,12 +137,13 @@ class ThreadMain(Thread):
 
         if screen == 'loading':
             if not self.waiting:
-                self.processed = False
+                self.confirmed_result = False
+                self.confirmed_savable = False
+                self.processed_result = False
                 self.waiting = True
                 self.waiting_count = thread_count_wait
                 self.queues['log'].put('find loading: start waiting')
                 self.sleep_time = thread_time_wait
-                self.queues['log'].put(f'change sleep time: {self.sleep_time}')
                 if setting.manage:
                     play_sound_find()
             else:
@@ -150,33 +152,53 @@ class ThreadMain(Thread):
             
         if self.waiting:
             self.waiting = False
-            self.queues['log'].put('find playing: end waiting')
+            self.queues['log'].put('lost loading: end waiting')
             self.sleep_time = thread_time_normal
-            self.queues['log'].put(f'change sleep time: {self.sleep_time}')
             if setting.manage:
                 play_sound_find()
 
         shotted = False
         if display_screenshot_enable:
             screenshot.shot()
+            shotted = True
             self.queues['display_image'].put(screenshot.get_image())
         
         if screen != 'result':
+            self.confirmed_result = False
+            self.confirmed_savable = False
+            self.processed_result = False
+            return
+        
+        if not self.confirmed_result:
+            self.confirmed_result = True
+            self.sleep_time = thread_time_result
+        
+        if self.processed_result:
             return
         
         if not shotted:
             screenshot.shot()
         
-        if recog.get_is_savable(screenshot.np_value):
-            if not self.processed:
-                resultscreen = screenshot.get_resultscreen()
+        if not recog.get_is_savable(screenshot.np_value):
+            return
+        
+        if not self.confirmed_savable:
+            self.confirmed_savable = True
+            self.find_time = time.time()
+            return
 
-                self.processed = True
-                self.queues['result_screen'].put(resultscreen)
-                if setting.play_sound:
-                    play_sound_result()
-        else:
-            self.processed = False
+        if time.time() - self.find_time <= thread_time_normal*2-0.1:
+            return
+
+        resultscreen = screenshot.get_resultscreen()
+
+        self.processed = True
+        self.queues['result_screen'].put(resultscreen)
+        if setting.play_sound:
+            play_sound_result()
+
+        self.sleep_time = thread_time_normal
+        self.processed_result = True
 
 class Selection():
     def __init__(self, play_mode, difficulty, music, record):

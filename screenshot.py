@@ -51,9 +51,8 @@ class Screen:
     def __init__(self, np_value, filename):
         self.np_value = np_value
 
-        image = Image.fromarray(np_value[::-1, :, ::-1])
-        self.original = image.convert('RGB')
-        self.monochrome = image.convert('L')
+        self.original = Image.fromarray(np_value)
+        self.monochrome = self.original.convert('L')
         self.filename = filename
 
 class Capture:
@@ -120,11 +119,10 @@ class Screenshot:
         if self.xy is None:
             return None
         
-        self.np_value = self.capture.shot(self.xy[0], self.xy[1])
+        self.np_value = self.capture.shot(self.xy[0], self.xy[1])[::-1, :, ::-1]
 
     def get_image(self):
-        convert = self.np_value[::-1, :, ::-1]
-        return Image.fromarray(convert).convert('RGB')
+        return Image.fromarray(self.np_value)
 
     def get_resultscreen(self):
         now = datetime.now()
@@ -139,4 +137,4 @@ def open_screenimage(filepath):
     image = Image.open(filepath).convert('RGB')
     filename = basename(filepath)
 
-    return Screen(np.array(image)[::-1, :, ::-1], filename)
+    return Screen(np.array(image), filename)

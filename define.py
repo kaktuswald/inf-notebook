@@ -17,14 +17,12 @@ class Define():
         'height': 2
     }
 
-    # インデックスの1個目がY軸(反転)、2個目がX軸、3軸目はRGBのうちGのみを参照
     result_check = {
         'background_count': 13,
-        'background_key_position':  (685, 82, 1),
+        'background_key_position':  (641, 410, 1),
         'areas': {
-            "topleft": (slice(685, 690), slice(80, 85), 1),
-            "leftline": (slice(80, 430), 0, 1),
-            "nearcenterline": (slice(200, 310), 520, 1)
+            "heightline1": (slice(0, 150), 420, 1),
+            "heightline2": (slice(235, 630), 420, 1)
         }
     }
 
