@@ -48,7 +48,7 @@ from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,
 from playdata import Recent
 
 thread_time_normal = 0.3
-thread_time_result = 0.15
+thread_time_result = 0.12
 thread_time_wait = 1
 thread_count_wait = int(30 / thread_time_wait)
 

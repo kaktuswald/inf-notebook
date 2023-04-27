@@ -26,21 +26,6 @@ class Define():
         }
     }
 
-    areas = {
-        'rival': [542,578,611,592],
-        'play_side': {
-            '1P': [15,142,21,149],
-            '2P': [1260,141,1266,148]
-        }
-    }
-
-    areas_np = {
-        'dead': {
-            '1P': (slice(168, 178), slice(406, 412), 0),
-            '2P': (slice(168, 178), slice(822, 828), 0)
-        }
-    }
-
     value_list = {
         'play_modes': ('SP', 'DP',),
         'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA',),
@@ -54,6 +39,18 @@ class Define():
         'options_assist': ('A-SCR', 'LEGACY',),
         'clear_types': ('NO PLAY', 'FAILED', 'A-CLEAR', 'E-CLEAR', 'CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO'),
         'graphtargets': ('no graph', 'personal best score only', 'national best', 'national average', 'prefecture best', 'prefecture average', 'same class best', 'same class average', 'rival', 'rival best', 'rival average', 'pacemaker')
+    }
+
+    areas_np = {
+        'rival': (slice(578, 592), slice(542, 611), 0),
+        'play_side': {
+            '1P': (slice(17, 26), slice(36, 46), 0),
+            '2P': (slice(17, 26), slice(1212, 1222), 0)
+        },
+        'dead': {
+            '1P': (slice(168, 178), slice(406, 412), 0),
+            '2P': (slice(168, 178), slice(822, 828), 0)
+        }
     }
 
     informmations_trimpos = (410, 633)

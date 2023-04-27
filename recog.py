@@ -42,20 +42,10 @@ class RecogMultiValue():
 
 class Recognition():
     def __init__(self):
-        logger.debug('generate Recognition')
-
-        self.play_sides = []
-        for play_side in define.value_list['play_sides']:
-            self.play_sides.append({
-                'play_side': play_side,
-                'area': define.areas['play_side'][play_side],
-                'recog': Recog(masks['play_side'])
-            })
-        
-        self.dead = resources['dead']
-        self.rival = Recog(masks['rival'])
-
         self.is_savable = resources['is_savable']
+        self.play_side = resources['play_side']
+        self.dead = resources['dead']
+        self.rival = resources['rival']
 
         self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
         self.difficulty = RecogMultiValue([masks[key] for key in define.value_list['difficulties'] if key in masks.keys()])
@@ -88,10 +78,11 @@ class Recognition():
         
         return True
         
-    def get_play_side(self, image_result):
-        for target in self.play_sides:
-            if target['recog'].find(image_result.crop(target['area'])):
-                return target['play_side']
+    def get_play_side(self, np_value):
+        for target in define.value_list['play_sides']:
+            trimmed = np_value[define.areas_np['play_side'][target]]
+            if np.all((self.play_side==0)|(trimmed==self.play_side)):
+                return target
 
         return None
 
@@ -99,9 +90,9 @@ class Recognition():
         trimmed = np_value[define.areas_np['dead'][play_side]]
         return np.all((self.dead==0)|(trimmed==self.dead))
     
-    def get_has_rival(self, image_result):
-        crop = image_result.crop(define.areas['rival'])
-        return self.rival.find(crop)
+    def get_has_rival(self, np_value):
+        trimmed = np_value[define.areas_np['rival']]
+        return np.all((self.rival==0)|(trimmed==self.rival))
     
     def get_level(self, image_level):
         crop_difficulty = image_level.crop(define.areas['difficulty'])
@@ -252,19 +243,18 @@ class Recognition():
         return ResultDetails(options, clear_type, dj_level, score, miss_count, graphtarget)
 
     def get_result(self, screen):
-        trim_informations = screen.monochrome.crop(define.informations_trimarea)
-
-        play_side = self.get_play_side(screen.monochrome)
+        play_side = self.get_play_side(screen.np_value)
         if play_side == None:
             return None
 
+        trim_informations = screen.monochrome.crop(define.informations_trimarea)
         trim_details = screen.monochrome.crop(define.details_trimarea[play_side])
 
         return Result(
             screen.original,
             self.get_informations(trim_informations),
             play_side,
-            self.get_has_rival(screen.monochrome),
+            self.get_has_rival(screen.np_value),
             self.get_has_dead(screen.np_value, play_side),
             self.get_details(trim_details)
         )
