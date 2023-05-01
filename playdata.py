@@ -20,34 +20,58 @@ class Recent():
 
     def __init__(self):
         if not exists(recent_filepath):
-            self.json = []
+            self.clear()
             return
         
         try:
             with open(recent_filepath) as f:
                 self.json = json.load(f)
+                if type(self.json) == list:
+                    self.clear()
+                    self.save()
+                    return
+
                 if self.delete_olds() > 0:
                     self.save()
         except Exception:
-            self.json = []
+            self.clear()
+    
+    def clear(self):
+        self.json = {'list': [], 'count': 0, 'updated_score': 0, 'updated_misscount': 0}
+        self.save()
     
     def delete_olds(self):
         count = 0
-        while len(self.json) != 0:
-            delta = datetime.now() - datetime.strptime(self.json[0]['timestamp'], '%Y%m%d-%H%M%S')
+        while len(self.json['list']) != 0:
+            target = self.json['list'][0]
+            delta = datetime.now() - datetime.strptime(target['timestamp'], '%Y%m%d-%H%M%S')
             if delta.days * 86400 + delta.seconds < self.delete_delta_seconds:
                 break
-            del self.json[0]
+
+            self.json['count'] -= 1
+            self.json['updated_score'] -= target['updated_score']
+            self.json['updated_misscount'] -= target['updated_misscount']
+            del self.json['list'][0]
+
             count += 1
         return count
 
     def insert(self, result):
         self.delete_olds()
-        self.json.append({
+        score_diff = result.details.score.current - result.details.score.best
+        score_update = score_diff if score_diff > 0 else 0
+        misscount_diff = result.details.miss_count.best - result.details.miss_count.current if result.details.miss_count.best is not None else 0
+        misscount_update = misscount_diff if misscount_diff is not None and misscount_diff > 0 else 0
+        self.json['list'].append({
             'timestamp': result.timestamp,
             'music': result.informations.music,
-            'new': result.has_new_record()
+            'new': result.has_new_record(),
+            'updated_score': score_update,
+            'updated_misscount': misscount_update
         })
+        self.json['count'] += 1
+        self.json['updated_score'] += score_update
+        self.json['updated_misscount'] += misscount_update
         self.save()
 
     def save(self):

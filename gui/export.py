@@ -20,13 +20,13 @@ pattern_color = compile('#[0-9a-fA-F]{6}')
 graph_color_size=(15, 15)
 graph_blank_size=(2, 2)
 
-def open():
+def open(recent):
     tab_manual = [
         [sg.Text('リザルト手帳はいくつかのファイルをexportフォルダに作成します。', background_color=background_color)],
         [
             sg.Text('exportの場所', background_color=background_color),
             sg.Input(key='exportpath', size=(60, 1)),
-            sg.Button('クリップボードにコピー', key='copy_exportpath')
+            sg.Button('クリップボードにコピー', key='button_copy_exportpath')
         ],
         [sg.Graph(canvas_size=graph_blank_size, graph_bottom_left=(0, 0), graph_top_right=graph_blank_size, background_color=background_color)],
         [
@@ -87,7 +87,7 @@ def open():
     tab_recent = [
         [
             sg.Text('文字サイズ', size=(10, 1), justification='right', background_color=background_color),
-            sg.Input('48', size=(4, 1), key='recent size', enable_events=True),
+            sg.Input('40', size=(4, 1), key='recent size', enable_events=True),
             sg.Text('px', background_color=background_color)
         ],
         [
@@ -102,13 +102,36 @@ def open():
         ],
         [
             sg.Column([
-                [sg.Text('プレイ曲数', background_color=background_color_label)]
-            ], pad=5, background_color=background_color_label)
+                [sg.Text('プレイ曲数', background_color=background_color_label, size=(26, None), justification='center')]
+            ], pad=5, background_color=background_color_label),
+            sg.Checkbox('表示する', key='recent played_count display', default=True, enable_events=True, background_color=background_color),
         ],
         [
             sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
             sg.Input('#c0c0ff', size=(9, 1), key='recent played_count color', enable_events=True),
             sg.Graph(key='graph recent played_count color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
+        ],
+        [
+            sg.Column([
+                [sg.Text('更新したスコアの合計', background_color=background_color_label, size=(26, None), justification='center')]
+            ], pad=5, background_color=background_color_label),
+            sg.Checkbox('表示する', key='recent updated_score display', default=False, enable_events=True, background_color=background_color),
+        ],
+        [
+            sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
+            sg.Input('#c0c0ff', size=(9, 1), key='recent updated_score color', enable_events=True),
+            sg.Graph(key='graph recent updated_score color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
+        ],
+        [
+            sg.Column([
+                [sg.Text('更新したミスカウントの合計', background_color=background_color_label, size=(26, None), justification='center')]
+            ], pad=5, background_color=background_color_label),
+            sg.Checkbox('表示する', key='recent updated_misscount display', default=False, enable_events=True, background_color=background_color),
+        ],
+        [
+            sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
+            sg.Input('#c0c0ff', size=(9, 1), key='recent updated_misscount color', enable_events=True),
+            sg.Graph(key='graph recent updated_misscount color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
         ]
     ]
 
@@ -203,9 +226,12 @@ def open():
         [
             sg.Multiline(key='css', size=(60, 6)),
             sg.Column([
-                [sg.Button('CSV出力', key='button_output_csv')],
-                [sg.Button('←CSSをクリップボードにコピー', key='copy_css')],
-                [sg.Button('閉じる', key='close')]
+                [
+                    sg.Button('CSV出力', key='button_output_csv'),
+                    sg.Button('最近のデータのリセット', key='button_clear_recent')
+                ],
+                [sg.Button('←CSSをクリップボードにコピー', key='button_copy_css')],
+                [sg.Button('閉じる', key='button_close')]
             ], pad=0, background_color=background_color, vertical_alignment='bottom')
         ]
     ]
@@ -235,7 +261,7 @@ def open():
     while True:
         event, values = window.read()
 
-        if event in (sg.WIN_CLOSED, sg.WINDOW_CLOSE_ATTEMPTED_EVENT, 'close'):
+        if event in (sg.WIN_CLOSED, sg.WINDOW_CLOSE_ATTEMPTED_EVENT, 'button_close'):
             break
         if 'recent' in event:
             generate_recent_css(window)
@@ -246,13 +272,15 @@ def open():
             generate_summary_css(window)
         if 'check' in event:
             generate_summary_css(window)
-        if event == 'copy_exportpath':
-            copy(values['exportpath'])
-        if event == 'copy_css':
-            copy(values['css'])
         if event == 'button_output_csv':
             output()
             message('完了', '出力が完了しました。')
+        if event == 'button_clear_recent':
+            recent.clear()
+        if event == 'button_copy_css':
+            copy(values['css'])
+        if event == 'button_copy_exportpath':
+            copy(values['exportpath'])
 
     window.close()
 
@@ -290,12 +318,15 @@ def generate_recent_css(window):
         css.append(f"  text-shadow: {','.join(shadow_value)};")
     css.append('}')
 
-    color = window[f'recent played_count color'].get()
-    if pattern_color.fullmatch(color) is not None:
-        css.append('div#played_count {')
-        window[f'graph recent played_count color'].update(background_color=color)
-        css.append(f'  color: {color};')
-        css.append('}')
+    for key in ['played_count', 'updated_score', 'updated_misscount']:
+        display = 'block' if window[f'recent {key} display'].get() else 'none'
+        color = window[f'recent {key} color'].get()
+        if pattern_color.fullmatch(color) is not None:
+            css.append(f'div#{key} {{')
+            window[f'graph recent {key} color'].update(background_color=color)
+            css.append(f'  display: {display};')
+            css.append(f'  color: {color};')
+            css.append('}')
 
     window['css'].update('\n'.join(css))
 

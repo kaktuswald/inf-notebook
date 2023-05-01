@@ -678,7 +678,7 @@ if __name__ == '__main__':
             if event == 'button_tweet':
                 tweet()
             if event == 'button_export':
-                export_open()
+                export_open(recent)
             if event == 'button_open_folder':
                 open_folder()
             if event == 'table_results':

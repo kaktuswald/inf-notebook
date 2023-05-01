@@ -8,7 +8,7 @@ body {
 	background-color: rgba(0, 0, 0, 0);
 	margin: 0px;
 	overflow: hidden;
-	font-size: 48px;
+	font-size: 40px;
 	color: rgba(128, 128, 128, 1);
 	text-shadow: 1px 1px 0 rgba(0, 0, 0, 1),
 				 -1px 1px 0 rgba(0, 0, 0, 1),
@@ -16,15 +16,43 @@ body {
 				 -1px -1px 0 rgba(0, 0, 0, 1);
 }
 
+div#normal { display: none;}
+div#error { display: block;}
+
 div#played_count {
-	font-size: 80px;
 	color: rgba(192, 192, 255, 1);
 }
 
-p {
-	margin: 0px;
+div#updated_score {
+	display: none;
+	color: rgba(192, 192, 255, 1);
 }
 
+div#updated_misscount {
+	display: none;
+	color: rgba(192, 192, 255, 1);
+}
+
+span.label {
+	display: inline-block;
+	width: 240px;
+	text-align: right;
+	font-size: 34px;
+}
+
+span.value {
+	display: inline-block;
+	width: 120px;
+	text-align: right;
+	font-size: 50px;
+
+}
+
+p.music {
+	margin: 0px;
+	width: 360px;
+	text-align: right;
+}
 		</style>
 		<script src='./jquery-3.6.4.min.js'></script>
 		<script>
@@ -32,25 +60,27 @@ filename = './recent.json'
 
 function reflect(json)
 {
-	$('#played_count span').html(json.length)
+	$('#updated_score span:last').html(json.updated_score)
+	$('#updated_misscount span:last').html(json.updated_misscount)
+	$('#played_count span:last').html(json.count)
 	$('#played_musics').empty()
-	json.reverse().forEach(item => {
-		let newItem = $('<p>')
+	json.list.reverse().forEach(item => {
+		let newItem = $(`<p class='music'>`)
 		if(!isNaN(item.music))
 			newItem.append(`<span>?????</span>`)
 		else
-			newItem.append(`<span>${item.music}</span>`)
+			newItem.append(`<span class='music'>${item.music}</span>`)
 		$('#played_musics').append(newItem)
 	});
 
-	$('#error').css('visibility', 'hidden')
-	$('#normal').css('visibility', 'visible')
+	$('#error').css('display', 'none')
+	$('#normal').css('display', 'block')
 }
 
 function error()
 {
-	$('#error').css('visibility', 'visible')
-	$('#normal').css('visibility', 'hidden')
+	$('#error').css('display', 'block')
+	$('#normal').css('display', 'none')
 }
 
 function load()
@@ -69,15 +99,23 @@ $(function(){
 });
 
 window.addEventListener('DOMContentLoaded', function() {
-	var roopTimer = setInterval(load, 1000);
+	var roopTimer = setInterval(load, 10000);
 });
 		</script>
 	</head>
 	<body>
-		<div id='normal' style='visibility: hidden'>
+		<div id='normal'>
 			<div id='played_count'>
-				play count: 
-				<span>0</span>
+				<span class='played_count label'>play count:</span>
+				<span class='played_count value'>0</span>
+			</div>
+			<div id='updated_score'>
+				<span class='updated_score label'>score:</span>
+				<span class='updated_score value'>0</span>
+			</div>
+			<div id='updated_misscount'>
+				<span class='updated_misscount label'>miss count:</span>
+				<span class='updated_misscount value'>0</span>
 			</div>
 			<div id='played_musics'></div>
 		</div>
