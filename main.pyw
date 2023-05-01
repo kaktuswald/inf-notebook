@@ -246,7 +246,7 @@ def result_process(screen):
     if result is None:
         return
 
-    if setting.data_collection:
+    if setting.data_collection or window['force_upload'].get():
         storage.upload_collection(screen, result, window['force_upload'].get())
     
     if setting.newrecord_only and not result.has_new_record():

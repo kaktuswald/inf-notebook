@@ -256,6 +256,8 @@ if __name__ == '__main__':
         informations_filepath = os.path.join(dc.informations_basepath, filename)
         if os.path.isfile(informations_filepath):
             informations_image = Image.open(informations_filepath).convert('L')
+            if informations_image.height == 75:
+                informations_image = informations_image.crop((0, 3, informations_image.width, informations_image.height - 1))
         details_filepath = os.path.join(dc.details_basepath, filename)
         if os.path.isfile(details_filepath):
             details_image = Image.open(details_filepath).convert('L')

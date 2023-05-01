@@ -157,11 +157,11 @@ class StorageAccessor():
             details_trim = True
 
         if informations_trim:
-            trim = screen.monochrome.crop(define.informations_trimarea)
+            trim = screen.original.crop(define.informations_trimarea_new)
             Thread(target=self.upload_informations, args=(object_name, trim,)).start()
         if details_trim:
             play_side = result.play_side
-            trim = screen.monochrome.crop(define.details_trimarea[play_side])
+            trim = screen.original.crop(define.details_trimarea[play_side])
             image_draw = ImageDraw.Draw(trim)
             image_draw.rectangle(rivalname_fillbox, fill=0)
             Thread(target=self.upload_details, args=(object_name, trim,)).start()

@@ -57,10 +57,10 @@ class Report():
             self.log.append(f'Error count: {self.count_through}')
         
         report_filepath = join(self.report_dirpath, 'report.txt')
-        with open(report_filepath, 'w') as f:
+        with open(report_filepath, 'w', encoding='UTF-8') as f:
             f.write('\n'.join(self.log))
             if len(self.log_error) > 0:
-                f.write('Errors:')
+                f.write('Errors:\n')
                 f.write('\n'.join(self.log_error))
         
         print('\n'.join(self.log))

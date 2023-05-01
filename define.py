@@ -56,6 +56,8 @@ class Define():
     informmations_trimpos = (410, 633)
     informations_trimsize = (460, 71)
 
+    informations_trimarea_new = (slice(630, 705), slice(410, 870))
+
     informations_areas = {
         'play_mode': (82, 55, 102, 65),
         'difficulty': (196, 58, 229, 62),
