@@ -287,7 +287,9 @@ def set_informations(image):
     window['has_informations'].update(True)
     switch_informations_controls()
 
-    informations = recog.get_informations(image)
+    monochrome = image.convert('L')
+
+    informations = recog.get_informations(monochrome)
 
     window['result_play_mode'].update(informations.play_mode if informations.play_mode is not None else '')
     window['result_difficulty'].update(informations.difficulty if informations.difficulty is not None else '')
@@ -322,9 +324,11 @@ def set_details(image):
     window['has_details'].update(True)
     switch_details_controls()
 
-    window['result_graph'].update(recog.get_graph(image))
+    monochrome = image.convert('L')
 
-    details = recog.get_details(image)
+    window['result_graph'].update(recog.get_graph(monochrome))
+
+    details = recog.get_details(monochrome)
     options = details.options
     clear_type = details.clear_type
     dj_level = details.dj_level

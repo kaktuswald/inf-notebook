@@ -33,7 +33,7 @@ def load_image(basedir, key):
     if not os.path.exists(filepath):
         return None
 
-    return Image.open(filepath).convert('L')
+    return Image.open(filepath)
 
 if __name__ == '__main__':
     if os.path.exists(dc.label_filepath):
