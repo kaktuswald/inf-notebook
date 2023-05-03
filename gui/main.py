@@ -142,11 +142,12 @@ def layout_main(setting):
         ],
         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
         [
-            sg.Button('ファイルに保存する', key='button_save', disabled=True),
-            sg.Button('ライバルを隠す', key='button_filter', disabled=True),
-            sg.Button('フォルダを開く', key='button_open_folder', disabled=True),
-            sg.Button('ツイート', key='button_tweet'),
-            sg.Button('エクスポート', key='button_export')
+            sg.Button('ファイルに保存', key='button_save', disabled=True, pad=1),
+            sg.Button('ライバルを隠す', key='button_filter', disabled=True, pad=1),
+            sg.Button('フォルダを開く', key='button_open_folder', disabled=True, pad=1),
+            sg.Button('ツイート', key='button_tweet', pad=1),
+            sg.Button('エクスポート', key='button_export', pad=1),
+            sg.Button('誤認識を通報', key='button_upload', visible=setting.data_collection, disabled=True, pad=1)
         ],
         [
             sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
@@ -246,19 +247,28 @@ def find_latest_version(latest_url):
         background_color=background_color
     )
 
-def error_message(title, message, exception):
-    sg.popup(
-        '\n'.join([
-            message,
-            '\n',
-            str(exception)
-        ]),
+def question(title, message):
+    if type(message) is list:
+        message = '\n'.join(message)
+
+    result = sg.popup_yes_no(
+        message,
         title=title,
         icon=icon_path,
         background_color=background_color
     )
 
-def display_image(value, savable=False, filterable=False):
+    return result == 'Yes'
+
+def error_message(title, message, exception):
+    sg.popup(
+        '\n'.join([message, '\n', str(exception)]),
+        title=title,
+        icon=icon_path,
+        background_color=background_color
+    )
+
+def display_image(value, savable=False, filterable=False, uploadable=False):
     subsample = int(window['scale'].get().split('/')[1])
 
     if value is not None:
@@ -271,6 +281,7 @@ def display_image(value, savable=False, filterable=False):
     window['button_save'].update(disabled=value is None or not savable)
     window['button_filter'].update(disabled=not filterable)
     window['button_open_folder'].update(disabled=value is None)
+    window['button_upload'].update(disabled=not uploadable)
 
 def switch_table(display_music):
     if not display_music:

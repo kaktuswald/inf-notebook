@@ -52,6 +52,11 @@ thread_time_result = 0.12
 thread_time_wait = 1
 thread_count_wait = int(30 / thread_time_wait)
 
+upload_confirm_message = [
+    '曲名の誤認識を通報しますか？',
+    'リザルトから曲名を切り取った画像をクラウドにアップロードします。'
+]
+
 windowtitle = 'beatmania IIDX INFINITAS'
 
 FindWindowExW = ctypes.windll.user32.FindWindowExW
@@ -247,7 +252,7 @@ def result_process(screen):
         return
 
     if setting.data_collection or window['force_upload'].get():
-        storage.upload_collection(screen, result, window['force_upload'].get())
+        storage.upload_collection(result, window['force_upload'].get())
     
     if setting.newrecord_only and not result.has_new_record():
         return None
@@ -376,7 +381,7 @@ def select_result_today():
     else:
         imagevalue = get_imagevalue(result.image)
         imagevalues_result[result.timestamp] = imagevalue
-    gui.display_image(imagevalue, not result.saved, True)
+    gui.display_image(imagevalue, not result.saved, True, True)
 
     music = result.informations.music
 
@@ -675,12 +680,16 @@ if __name__ == '__main__':
                 save()
             if event == 'button_filter':
                 filter()
+            if event == 'button_open_folder':
+                open_folder()
             if event == 'button_tweet':
                 tweet()
             if event == 'button_export':
                 export_open(recent)
-            if event == 'button_open_folder':
-                open_folder()
+            if event == 'button_upload':
+                if gui.question('確認', upload_confirm_message):
+                    result = results[selection.timestamp]
+                    storage.upload_collection(result, True)
             if event == 'table_results':
                 selection_result = select_result_today()
                 if selection_result is not None:
