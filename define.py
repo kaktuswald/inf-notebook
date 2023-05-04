@@ -50,7 +50,8 @@ class Define():
         'dead': {
             '1P': (slice(168, 178), slice(406, 412), 0),
             '2P': (slice(168, 178), slice(822, 828), 0)
-        }
+        },
+        'informations': (slice(630, 705), slice(410, 870))
     }
 
     informmations_trimpos = (410, 633)

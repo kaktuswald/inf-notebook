@@ -287,7 +287,10 @@ def set_informations(image):
     window['has_informations'].update(True)
     switch_informations_controls()
 
-    monochrome = image.convert('L')
+    if image.height != 75:
+        monochrome = image.convert('L')
+    else:
+        monochrome = image.crop((0, 3, image.width, image.height-1)).convert('L')
 
     informations = recog.get_informations(monochrome)
 

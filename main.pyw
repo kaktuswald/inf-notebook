@@ -252,7 +252,10 @@ def result_process(screen):
         return
 
     if setting.data_collection or window['force_upload'].get():
-        storage.upload_collection(result, window['force_upload'].get())
+        import numpy as np
+        newrecog_result = recog.check_newrecognition(np.array(screen.original))
+
+        storage.upload_collection(result, window['force_upload'].get() or not newrecog_result)
     
     if setting.newrecord_only and not result.has_new_record():
         return None

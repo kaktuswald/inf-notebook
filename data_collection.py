@@ -29,13 +29,15 @@ def load_collections():
 
         i_filepath = os.path.join(informations_basepath, filename)
         if os.path.isfile(i_filepath):
-            i_image = Image.open(i_filepath)
+            i_image = Image.open(i_filepath).convert('L')
+            if i_image.height == 75:
+                i_image = i_image.crop((0, 3, 0, 74))
         else:
             i_image = None
 
         d_filepath = os.path.join(details_basepath, filename)
         if os.path.isfile(d_filepath):
-            d_image = Image.open(d_filepath)
+            d_image = Image.open(d_filepath).convert('L')
         else:
             d_image = None
 

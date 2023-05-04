@@ -46,6 +46,7 @@ class Recognition():
         self.play_side = resources['play_side']
         self.dead = resources['dead']
         self.rival = resources['rival']
+        self.informations = resources['informations']
 
         self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
         self.difficulty = RecogMultiValue([masks[key] for key in define.value_list['difficulties'] if key in masks.keys()])
@@ -190,6 +191,67 @@ class Recognition():
                 area_left += define.option_widths['/']
         
         return ResultOptions(arrange, flip, assist, battle)
+
+    def get_play_mode_new(self, np_value_informations):
+        trimmed = np_value_informations[self.informations['play_mode']['trim']].flatten()
+        bins = np.where(trimmed==self.informations['play_mode']['maskvalue'], 1, 0)
+        hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+        tablekey = ''.join([format(v, '0x') for v in hexs])
+        if not tablekey in self.informations['play_mode']['table'].keys():
+            return None
+        return self.informations['play_mode']['table'][tablekey]
+
+    def get_difficulty_new(self, np_value_informations):
+        trimmed = np_value_informations[self.informations['difficulty']['trim']]
+        uniques, counts = np.unique(trimmed, return_counts=True)
+        difficultykey = uniques[np.argmax(counts)]
+        if not difficultykey in self.informations['difficulty']['table']['difficulty'].keys():
+            return None, None
+        
+        difficulty = self.informations['difficulty']['table']['difficulty'][difficultykey]
+
+        leveltrimmed = trimmed[self.informations['difficulty']['trimlevel']].flatten()
+        bins = np.where(leveltrimmed==difficultykey, 1, 0)
+        hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+        levelkey = ''.join([format(v, '0x') for v in hexs])
+
+        if not levelkey in self.informations['difficulty']['table']['level'][difficulty].keys():
+            return None, None
+        
+        level = self.informations['difficulty']['table']['level'][difficulty][levelkey]
+
+        return difficulty, level
+
+    def get_notes_new(self, np_value_informations):
+        trimmed = np_value_informations[self.informations['notes']['trim']]
+        splited = np.hsplit(trimmed, self.informations['notes']['digit'])
+
+        value = 0
+        pos = 3
+        for pos in range(4):
+            trimmed_once = splited[pos][self.informations['notes']['trimnumber']]
+            bins = np.where(trimmed_once==self.informations['notes']['maskvalue'], 1, 0).flatten()
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+            if not tablekey in self.informations['notes']['table'].keys():
+                if value != 0:
+                    return None
+                else:
+                    continue
+            
+            value = value * 10 + self.informations['notes']['table'][tablekey]
+
+        return value
+
+    def check_newrecognition(self, np_value):
+        np_value_informations = np_value[define.areas_np['informations']]
+        play_mode = self.get_play_mode_new(np_value_informations)
+        difficulty, level = self.get_difficulty_new(np_value_informations)
+        notes = self.get_notes_new(np_value_informations)
+        print(play_mode, difficulty, level, notes)
+        if None in [play_mode, difficulty, level, notes]:
+            return False
+        return True
 
     def get_informations(self, image_informations):
         crop_play_mode = image_informations.crop(define.informations_areas['play_mode'])

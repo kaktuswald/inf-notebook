@@ -58,10 +58,18 @@ class Recent():
 
     def insert(self, result):
         self.delete_olds()
-        score_diff = result.details.score.current - result.details.score.best
-        score_update = score_diff if score_diff > 0 else 0
-        misscount_diff = result.details.miss_count.best - result.details.miss_count.current if result.details.miss_count.best is not None else 0
-        misscount_update = misscount_diff if misscount_diff is not None and misscount_diff > 0 else 0
+        
+        if result.details.score.best is not None:
+            score_diff = result.details.score.current - result.details.score.best
+            score_update = score_diff if score_diff > 0 else 0
+        else:
+            score_update = 0
+        if result.details.miss_count.best is not None and result.details.miss_count.current is not None:
+            misscount_diff = result.details.miss_count.best - result.details.miss_count.current
+            misscount_update = misscount_diff if misscount_diff is not None and misscount_diff > 0 else 0
+        else:
+            misscount_update = 0
+
         self.json['list'].append({
             'timestamp': result.timestamp,
             'music': result.informations.music,

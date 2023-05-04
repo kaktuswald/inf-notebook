@@ -98,10 +98,10 @@ def larning_playside(raws):
         if not 'play_side' in raw.label.keys() or not raw.label['play_side'] in define.value_list['play_sides']:
             continue
 
-        if raw.label['dead']:
-            play_side = raw.label['play_side']
-            trimmed = raw.np_value[trimareas[play_side]]
-            larning_targets[filename] = trimmed
+        play_side = raw.label['play_side']
+        trimmed = raw.np_value[trimareas[play_side]]
+        larning_targets[filename] = trimmed
+
         evaluate_targets[filename] = raw
     
     report.append_log(f'source count: {len(larning_targets)}')

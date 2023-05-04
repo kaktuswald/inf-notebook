@@ -25,10 +25,20 @@ report_missing_musics_filename = 'musics_missing_in_arcade.txt'
 
 informations_define = {
     'version': '5.0',
-    # 'play_mode': (82, 55, 102, 65),
-    # 'difficulty': (196, 58, 229, 62),
-    # 'level': (231, 58, 250, 62),
-    # 'notes': (268, 55, 324, 65),
+    'play_mode': {
+        'trim': (slice(58, 62), slice(90, 94), 1),
+        'maskvalue': 255
+    },
+    'difficulty': {
+        'trim': (slice(62, 64), slice(186, 246), 1),
+        'trimlevel': (slice(0, 2), slice(52, 60)),
+    },
+    'notes': {
+        'trim': (slice(62, 64), slice(268, 324), 1),
+        'trimnumber': (slice(0, 2), slice(2, 10)),
+        'maskvalue': 255,
+        'digit': 4
+    },
     'music': (slice(0, 10), slice(212, 272)),
     'background_key_position': (-2, 0),
     "gray_thresholds":  (220, 220, 220, 220, 220, 216, 211, 211, 211, 187)
@@ -61,13 +71,40 @@ def load_informations(labels):
         filepath = join(dc.informations_basepath, filename)
         if isfile(filepath):
             image = Image.open(filepath)
-            if image.height == 75:
-                image = image.crop((0, 3, image.width, image.height - 1)).convert('L')
+            if image.height == 71:
+                continue
+
             np_value = np.array(image)
             informations[key] = Informations(np_value, labels[key]['informations'])
     
     return informations
+
+def larning_multivalue(targets, report):
+    if len(targets) == 0:
+        report.append_log('count: 0')
+        return None
+
+    table = {}
+    for value in targets.keys():
+        keys = []
+        for key, np_value in targets[value].items():
+            bins = np.where(np_value.flatten()==informations_define['play_mode']['maskvalue'], 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+
+            if not tablekey in table.keys():
+                table[tablekey] = value
+                keys.append(tablekey)
+                report.append_log(f'{value}: {tablekey}')
+                report.saveimage_value(np_value, f'{value}-pattern{len(keys):02}-{tablekey}-{key}.png')
     
+    report.append_log(f'Key count: {len(table)}')
+
+    if len(table) == 0:
+        return None
+
+    return table
+
 def generate_backgrounds(targets, report):
     ignore_keys_filepath = join(dc.collection_basepath, background_ignore_keys_filename)
     if isfile(ignore_keys_filepath):
@@ -165,7 +202,7 @@ def generate_mask(backgrounds, targets, filtereds):
 
     return mask
 
-def larning(targets, backgrounds, report):
+def larning_music(targets, backgrounds, report):
     filtereds, np_values = filter(targets, backgrounds)
 
     mask = generate_mask(backgrounds, targets, filtereds)
@@ -361,6 +398,202 @@ def check_musics(musics, recog_musics, report):
     with open(missing_musics_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(result))
 
+def larning_playmode(informations):
+    resourcename = 'playmode'
+
+    report = Report(resourcename)
+
+    larning_targets = {}
+    evaluate_targets = {}
+    for key, target in informations.items():
+        if not 'play_mode' in target.label.keys():
+            continue
+        
+        value = target.label['play_mode']
+        trimmed = target.np_value[informations_define['play_mode']['trim']]
+        if not value in larning_targets.keys():
+            larning_targets[value] = {}
+        larning_targets[value][key] = trimmed
+
+        evaluate_targets[key] = target
+    
+    report.append_log(f'source count: {len(larning_targets)}')
+
+    table = larning_multivalue(larning_targets, report)
+    if table is None:
+        report.report()
+        return
+
+    for key, target in evaluate_targets.items():
+        trimmed = target.np_value[informations_define['play_mode']['trim']].flatten()
+        bins = np.where(trimmed==informations_define['play_mode']['maskvalue'], 1, 0)
+        hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+        tablekey = ''.join([format(v, '0x') for v in hexs])
+
+        result = None
+        if tablekey in table.keys():
+            result = table[tablekey]
+        
+        if result == target.label['play_mode']:
+            report.through()
+        else:
+            report.saveimage_errorvalue(trimmed, key)
+            report.error(f'Mismatch {result} {key}')
+
+    report.report()
+
+    return {
+        'trim': informations_define['play_mode']['trim'],
+        'maskvalue': informations_define['play_mode']['maskvalue'],
+        'table': table
+    }
+
+def larning_difficulty(informations):
+    resourcename = 'difficulty'
+
+    report = Report(resourcename)
+
+    evaluate_targets = {}
+    table = {'difficulty': {}, 'level': {}}
+    for key, target in informations.items():
+        if not 'difficulty' in target.label.keys() or not 'level' in target.label.keys():
+            continue
+        
+        difficulty = target.label['difficulty']
+        level = target.label['level']
+        
+        trimmed = target.np_value[informations_define['difficulty']['trim']]
+
+        uniques, counts = np.unique(trimmed, return_counts=True)
+        difficultykey = uniques[np.argmax(counts)]
+        
+        if not difficultykey in table['difficulty'].keys():
+            table['difficulty'][difficultykey] = difficulty
+            report.append_log(f'difficulty {difficulty}: {difficultykey}({key})')
+        
+        leveltrimmed = trimmed[informations_define['difficulty']['trimlevel']].flatten()
+        bins = np.where(leveltrimmed==difficultykey, 1, 0)
+        hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+        levelkey = ''.join([format(v, '0x') for v in hexs])
+
+        if not difficulty in table['level'].keys():
+            table['level'][difficulty] = {}
+        if not levelkey in table['level'][difficulty].keys():
+            table['level'][difficulty][levelkey] = level
+            report.append_log(f'level {difficulty} {level}: {levelkey}({key})')
+
+        evaluate_targets[key] = target
+    
+    report.append_log(f'source count: {len(evaluate_targets)}')
+    # print(table)
+
+    report.append_log(f"difficulty key count: {len(table['difficulty'].keys())}")
+    for difficulty in table['difficulty'].values():
+        report.append_log(f"{difficulty} level key count: {len(table['level'][difficulty].keys())}")
+
+    for key, target in evaluate_targets.items():
+        trimmed = target.np_value[informations_define['difficulty']['trim']]
+
+        uniques, counts = np.unique(trimmed, return_counts=True)
+        difficultykey = uniques[np.argmax(counts)]
+
+        difficulty = None
+        if difficultykey in table['difficulty'].keys():
+            difficulty = table['difficulty'][difficultykey]
+
+        if difficulty != target.label['difficulty']:
+            report.saveimage_errorvalue(trimmed, f'{key}.png')
+            report.error(f'Mismatch difficulty {difficulty} {key}')
+            continue
+
+        leveltrimmed = trimmed[informations_define['difficulty']['trimlevel']]
+        bins = np.where(leveltrimmed.flatten()==difficultykey, 1, 0)
+        hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+        levelkey = ''.join([format(v, '0x') for v in hexs])
+
+        level = None
+        if levelkey in table['level'][difficulty].keys():
+            level = table['level'][difficulty][levelkey]
+
+        if level != target.label['level']:
+            report.saveimage_errorvalue(trimmed, f'{key}.png')
+            report.error(f"Mismatch level {difficulty} {level} {target.label['level']} {levelkey} {key}")
+            continue
+
+        report.through()
+
+    report.report()
+
+    return {
+        'trim': informations_define['difficulty']['trim'],
+        'trimlevel': informations_define['difficulty']['trimlevel'],
+        'table': table
+    }
+
+def larning_notes(informations):
+    resourcename = 'notes'
+
+    report = Report(resourcename)
+
+    evaluate_targets = {}
+    table = {}
+    for key, target in informations.items():
+        if not 'notes' in target.label.keys():
+            continue
+        
+        value = int(target.label['notes'])
+        trimmed = target.np_value[informations_define['notes']['trim']]
+        splited = np.hsplit(trimmed, informations_define['notes']['digit'])
+
+        pos = informations_define['notes']['digit'] - 1
+        while value != 0 and pos > 0:
+            trimmed_once = splited[pos][informations_define['notes']['trimnumber']]
+            bins = np.where(trimmed_once==informations_define['notes']['maskvalue'], 1, 0).flatten()
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+
+            if not tablekey in table.keys():
+                table[tablekey] = value % 10
+                report.append_log(f'{value % 10}: {tablekey}')
+                report.saveimage_value(trimmed_once, f'{value % 10}-{key}.png')
+
+            value = value // 10
+            pos -= 1
+
+        evaluate_targets[key] = target
+    
+    report.append_log(f'key count: {len(table)}')
+
+    for key, target in evaluate_targets.items():
+        trimmed = target.np_value[informations_define['notes']['trim']]
+        splited = np.hsplit(trimmed, informations_define['notes']['digit'])
+
+        value = 0
+        pos = 3
+        for pos in range(4):
+            trimmed_once = splited[pos][informations_define['notes']['trimnumber']]
+            bins = np.where(trimmed_once==informations_define['notes']['maskvalue'], 1, 0).flatten()
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+            if tablekey in table.keys():
+                value = value * 10 + table[tablekey]
+
+        if value == int(target.label['notes']):
+            report.through()
+        else:
+            report.saveimage_errorvalue(trimmed, f'{key}.png')
+            report.error(f"Mismatch {value} {target.label['notes']} {key}")
+
+    report.report()
+
+    return {
+        'trim': informations_define['notes']['trim'],
+        'trimnumber': informations_define['notes']['trimnumber'],
+        'maskvalue': informations_define['notes']['maskvalue'],
+        'digit': informations_define['notes']['digit'],
+        'table': table
+    }
+
 def larning_musics(informations):
     resourcename = 'music'
 
@@ -391,21 +624,11 @@ def larning_musics(informations):
     report.append_log(f'Music count: {len(data_musics)}')
 
     start = time.time()
-    musics, mask, recog_musics = larning(data_musics, backgrounds, report)
+    musics, mask, recog_musics = larning_music(data_musics, backgrounds, report)
     print(f'time: {time.time() - start}')
 
     check_musics(musics, recog_musics, report)
     print('top', len(recog_musics))
-
-    output = {
-        'define': informations_define,
-        'backgrounds': backgrounds,
-        'mask': mask,
-        'recognition': recog_musics,
-        'musics': musics
-    }
-
-    save_resource_serialized(f"musics{informations_define['version']}.res", output)
 
     for music in musics:
         encoded = music.encode('UTF-8').hex()
@@ -413,6 +636,14 @@ def larning_musics(informations):
             report.error(f'Record file name too long: {music}')
 
     report.report()
+
+    return {
+        'define': informations_define,
+        'backgrounds': backgrounds,
+        'mask': mask,
+        'recognition': recog_musics,
+        'musics': musics
+    }
 
 if __name__ == '__main__':
     try:
@@ -424,4 +655,14 @@ if __name__ == '__main__':
     
     informations = load_informations(labels)
     
-    larning_musics(informations)
+    play_mode = larning_playmode(informations)
+    difficulty = larning_difficulty(informations)
+    notes = larning_notes(informations)
+    # music = larning_musics(informations)
+
+    save_resource_serialized('informations.res', {
+        'play_mode': play_mode,
+        'difficulty': difficulty,
+        'notes': notes
+        # 'music': music
+    })

@@ -141,18 +141,20 @@ class StorageAccessor():
         if result.informations.play_mode == 'DP':
             details_trim = True
         
-        if result.details.clear_type.best is None:
-            details_trim = True
-        if result.details.dj_level.best is None:
-            details_trim = True
-        if result.details.score.best is None:
-            details_trim = True
-        if result.details.clear_type.current is None:
-            details_trim = True
-        if result.details.dj_level.current is None:
-            details_trim = True
-        if result.details.score.current is None:
-            details_trim = True
+        if not result.details.options.special:
+            if result.details.clear_type.best is None:
+                details_trim = True
+            if result.details.dj_level.best is None:
+                details_trim = True
+            if result.details.score.best is None:
+                details_trim = True
+            if result.details.clear_type.current is None:
+                details_trim = True
+            if result.details.dj_level.current is None:
+                details_trim = True
+            if result.details.score.current is None:
+                details_trim = True
+
         if result.details.graphtarget is None:
             details_trim = True
 
