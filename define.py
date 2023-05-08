@@ -51,13 +51,14 @@ class Define():
             '1P': (slice(168, 178), slice(406, 412), 0),
             '2P': (slice(168, 178), slice(822, 828), 0)
         },
-        'informations': (slice(630, 705), slice(410, 870))
+        'informations': (slice(628, 706), slice(410, 870))
     }
 
-    informmations_trimpos = (410, 633)
+    informations_trimpos = (410, 633)
     informations_trimsize = (460, 71)
 
-    informations_trimarea_new = (410, 630, 870, 705)
+    informations_recognition_version = '1.0'
+    informations_trimarea_new = (410, 628, 870, 706)
 
     informations_areas = {
         'play_mode': (82, 55, 102, 65),
@@ -183,11 +184,14 @@ class Define():
 
     def __init__(self):
         self.informations_trimarea = (
-            self.informmations_trimpos[0],
-            self.informmations_trimpos[1],
-            self.informmations_trimpos[0] + self.informations_trimsize[0],
-            self.informmations_trimpos[1] + self.informations_trimsize[1]
+            self.informations_trimpos[0],
+            self.informations_trimpos[1],
+            self.informations_trimpos[0] + self.informations_trimsize[0],
+            self.informations_trimpos[1] + self.informations_trimsize[1]
         )
+
+        self.informations_resourcename = f'informations{self.informations_recognition_version}'
+        self.musics_resourcename = f'musics{self.music_recognition_vesion}'
 
         for i in range(4):
             self.notes_trimareas.append((

@@ -18,6 +18,8 @@ from resources import recog_musics_filename,recog_musics_filepath
 bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
 bucket_name_musics = 'bucket-inf-notebook-musics'
+bucket_name_resources = 'bucket-inf-notebook-resources'
+
 service_account_info = service_account_info
 
 informations_dirname = 'informations'
@@ -39,6 +41,7 @@ class StorageAccessor():
     bucket_informations = None
     bucket_details = None
     bucket_musics = None
+    bucket_resources = None
     blob_musics = None
 
     def connect_client(self):
@@ -85,6 +88,18 @@ class StorageAccessor():
         try:
             self.bucket_musics = self.client.get_bucket(bucket_name_musics)
             logger.debug('connect bucket musics')
+        except Exception as ex:
+            logger.exception(ex)
+
+    def connect_bucket_resources(self):
+        if self.client is None:
+            self.connect_client()
+        if self.client is None:
+            return
+        
+        try:
+            self.bucket_resources = self.client.get_bucket(bucket_name_resources)
+            logger.debug('connect bucket resources')
         except Exception as ex:
             logger.exception(ex)
 
@@ -209,6 +224,50 @@ class StorageAccessor():
         try:
             self.blob_musics.download_to_filename(recog_musics_filepath)
             logger.debug('download resource musics')
+        except Exception as ex:
+            logger.exception(ex)
+            return False
+        
+        return True
+
+    def upload_resource(self, resourcename, targetfilepath):
+        if self.bucket_resources is None:
+            self.connect_bucket_resources()
+        if self.bucket_resources is None:
+            return
+
+        try:
+            blob = self.bucket_resources.blob(resourcename)
+            blob.upload_from_filename(targetfilepath)
+            logger.debug(f'upload resource {targetfilepath}')
+        except Exception as ex:
+            logger.exception(ex)
+    
+    def get_resource_timestamp(self, resourcename):
+        if self.bucket_resources is None:
+            self.connect_bucket_resources()
+        if self.bucket_resources is None:
+            return False
+
+        try:
+            blob = self.bucket_resources.get_blob(resourcename)
+            return str(blob.updated)
+        except Exception as ex:
+            logger.exception(ex)
+        
+        return None
+    
+    def download_resource(self, resourcename, targetfilepath):
+        if self.bucket_resources is None:
+            self.connect_bucket_resources()
+        if self.bucket_resources is None:
+            return False
+        
+        blob = self.bucket_resources.get_blob(resourcename)
+
+        try:
+            blob.download_to_filename(targetfilepath)
+            logger.debug('download resource {targetfilepath}')
         except Exception as ex:
             logger.exception(ex)
             return False

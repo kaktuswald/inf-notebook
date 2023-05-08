@@ -13,13 +13,14 @@ error_output_count = 3
 report_dirname = 'report'
 
 class Report():
-    log = []
-    log_error = []
     count_through = 0
     count_error = 0
     count_errorvalue_save = 0
 
     def __init__(self, resourcename):
+        self.log = []
+        self.log_error = []
+
         if not exists(report_dirname):
             mkdir(report_dirname)
         
@@ -51,14 +52,15 @@ class Report():
     
     def report(self):
         if self.count_error == 0:
-            self.log.append('Complete')
             self.log.append(f'Through count: {self.count_through}')
+            self.log.append('Complete')
         else:
             self.log.append(f'Error count: {self.count_through}')
         
         report_filepath = join(self.report_dirpath, 'report.txt')
         with open(report_filepath, 'w', encoding='UTF-8') as f:
             f.write('\n'.join(self.log))
+            f.write('\n')
             if len(self.log_error) > 0:
                 f.write('Errors:\n')
                 f.write('\n'.join(self.log_error))

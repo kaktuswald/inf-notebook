@@ -66,12 +66,14 @@ def load_images(recog_define, keys, labels):
             image = Image.open(filepath)
             if image.height == 75:
                 image = image.crop((0, 3, image.width, image.height - 1)).convert('L')
+            if image.height == 78:
+                image = image.crop((0, 5, image.width, image.height - 2)).convert('L')
             images[key] = InformationsImage(
                 image.getpixel(background_key_position),
                 np.array(image)[area[1]:area[3], area[0]:area[2]],
                 labels[key]['informations']['music']
             )
-    
+
     return images
     
 def generate_backgrounds(shape, images, ignore_keys):

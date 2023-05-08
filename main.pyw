@@ -37,7 +37,7 @@ import gui.main as gui
 from gui.export import open as export_open
 from gui.general import get_imagevalue
 from define import define
-from resources import MusicsTimestamp,play_sound_find,play_sound_result
+from resources import play_sound_find,play_sound_result,check_latest
 from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
@@ -350,23 +350,14 @@ def get_latest_version():
         else:
             return None
 
-def check_resource_musics():
-    if setting.manage:
-        return
+def check_resource():
+    musicss_filename = f'{define.musics_resourcename}.json'
+    if check_latest(storage, musicss_filename):
+        recog.load_resource_musics()
 
-    musics_timestamp = MusicsTimestamp()
-
-    latest_timestamp = str(storage.get_resource_musics_timestamp())
-    if latest_timestamp is None:
-        return
-    
-    local_timestamp = musics_timestamp.get_timestamp()
-
-    if local_timestamp != latest_timestamp:
-        if storage.download_resource_musics():
-            musics_timestamp.write_timestamp(latest_timestamp)
-            recog.load_resource_musics()
-            print('download')
+    informations_filename = f'{define.informations_resourcename}.res'
+    if check_latest(storage, informations_filename):
+        recog.load_resource_informations()
 
 def select_result_today():
     if len(values['table_results']) == 0:
@@ -587,6 +578,9 @@ def create_graph(selection, targetrecord):
     selection.selection_graph()
 
 def rename_allrecords():
+    if recog.musics is None:
+        return
+
     def covering(target, musics):
         if type(target) is dict:
             for t in target.values():
@@ -643,7 +637,8 @@ if __name__ == '__main__':
     if version != '0.0.0.0' and get_latest_version() != version:
         gui.find_latest_version(latest_url)
 
-    Thread(target=check_resource_musics).start()
+    if not setting.manage:
+        Thread(target=check_resource).start()
     
     # version0.7.0.1以前の不具合対応のため
     rename_allrecords()

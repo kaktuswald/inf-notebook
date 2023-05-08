@@ -4,7 +4,6 @@ from sys import exit
 from os.path import join,isfile
 import numpy as np
 from scipy.stats import mode
-import time
 
 from define import define
 import data_collection as dc
@@ -20,33 +19,41 @@ infinitasonlymusics_filename = 'musics_infinitas_only.txt'
 report_backgrounds_filename = 'backgrounds.txt'
 report_masks_filename = 'masks.txt'
 report_notuniques_filename = 'notuniques.txt'
+report_inspectresult_filename = 'inspect.txt'
 report_registered_musics_filename = 'musics_registered.txt'
 report_missing_musics_filename = 'musics_missing_in_arcade.txt'
 
 informations_define = {
-    'version': '5.0',
     'play_mode': {
-        'trim': (slice(58, 62), slice(90, 94), 1),
+        'trim': (slice(60, 64), slice(90, 94), 1),
         'maskvalue': 255
     },
     'difficulty': {
-        'trim': (slice(62, 64), slice(186, 246), 1),
+        'trim': (slice(64, 66), slice(186, 246), 1),
         'trimlevel': (slice(0, 2), slice(52, 60)),
     },
     'notes': {
-        'trim': (slice(62, 64), slice(268, 324), 1),
+        'trim': (slice(64, 66), slice(268, 324), 1),
         'trimnumber': (slice(0, 2), slice(2, 10)),
         'maskvalue': 255,
         'digit': 4
     },
-    'music': (slice(0, 10), slice(212, 272)),
-    'background_key_position': (-2, 0),
-    "gray_thresholds":  (220, 220, 220, 220, 220, 216, 211, 211, 211, 187)
+    'music': {
+        'trim': (slice(0, 12), slice(230, 254), 2),
+        'background_key_position': (0, 0),
+        'maptrim': (slice(4, 12), slice(0, 24)),
+        "brightness_thresholds":  (0, 0, 0, 0, 0, 0, 0, 0)
+    }
 }
 
-shape = (
-    informations_define['music'][0].stop-informations_define['music'][0].start,
-    informations_define['music'][1].stop-informations_define['music'][1].start
+backgroundshape = (
+    informations_define['music']['trim'][0].stop-informations_define['music']['trim'][0].start,
+    informations_define['music']['trim'][1].stop-informations_define['music']['trim'][1].start
+)
+
+mapareashape = (
+    informations_define['music']['maptrim'][0].stop-informations_define['music']['maptrim'][0].start,
+    informations_define['music']['maptrim'][1].stop-informations_define['music']['maptrim'][1].start
 )
 
 otherreport_basedir = join(report_dirname, 'music')
@@ -55,12 +62,6 @@ class Informations():
     def __init__(self, np_value, label):
         self.np_value = np_value
         self.label = label
-
-class MusicData():
-    def __init__(self, np_value, background_key, music):
-        self.np_value = np_value
-        self.background_key = background_key
-        self.music = music
 
 def load_informations(labels):
     keys = [key for key in labels.keys() if labels[key]['informations'] is not None]
@@ -71,7 +72,7 @@ def load_informations(labels):
         filepath = join(dc.informations_basepath, filename)
         if isfile(filepath):
             image = Image.open(filepath)
-            if image.height == 71:
+            if image.height != 78:
                 continue
 
             np_value = np.array(image)
@@ -114,32 +115,37 @@ def generate_backgrounds(targets, report):
         ignore_keys = []
     report.append_log(f'Ignore key count: {len(ignore_keys)}')
 
+    report.append_log('generate backgrounds')
+
     background_sources = {}
     reportresult = {}
     added_musics = {}
-    for key, target in targets.items():
-        if key in ignore_keys:
-            continue
-        if not target.background_key in background_sources.keys():
-            background_sources[target.background_key] = []
-            added_musics[target.background_key] = []
-            reportresult[target.background_key] = []
-        if not target.music in added_musics[target.background_key]:
-            background_sources[target.background_key].append(target.np_value)
-            reportresult[target.background_key].append([key, target.music])
-            added_musics[target.background_key].append(target.music)
+    for music, values in targets.items():
+        for key, value in values.items():
+            if key in ignore_keys:
+                continue
+
+            background_key = value[informations_define['music']['background_key_position']]
+            if not background_key in background_sources.keys():
+                background_sources[background_key] = []
+                added_musics[background_key] = []
+                reportresult[background_key] = []
+            if not music in added_musics[background_key]:
+                background_sources[background_key].append(value)
+                reportresult[background_key].append([key, music])
+                added_musics[background_key].append(music)
     report.append_log(f'Background sources keycount: {len(background_sources)}')
 
     backgrounds = {}
     for background_key in sorted(background_sources.keys()):
         stacks = np.stack(background_sources[background_key])
         result, counts = mode(stacks, keepdims=True)
-        result_background = result.reshape(shape)
+        result_background = result.reshape(backgroundshape)
 
         backgrounds[background_key] = result_background
 
         report.append_log(f'{background_key:03}: {len(background_sources[background_key])}')
-        report.saveimage_value(result_background, f'_background_{background_key}.png')
+        report.saveimage_value(result_background, f'__background_{background_key}.png')
     
     output = []
     for bkey in sorted(reportresult.keys()):
@@ -149,77 +155,75 @@ def generate_backgrounds(targets, report):
     backgrounds_report_filepath = join(otherreport_basedir, report_backgrounds_filename)
     with open(backgrounds_report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
-
+    
     return backgrounds
 
-def filter(targets, backgrounds):
-    gray_filter = np.tile(np.array(informations_define['gray_thresholds']), (shape[1], 1)).T
+def generate_mask(targets, backgrounds, report):
+    report.append_log('Generate mask')
 
-    filtereds = {}
-    np_values = {}
-    for music in targets.keys():
-        filtereds[music] = {}
-        for key, target in targets[music].items():
-            np_values[key] = []
-
-            np_value = target.np_value
-            background_key = target.background_key
-            np_values[key].append(np_value)
-
-            background_removed = np.where(backgrounds[background_key]!=np_value, np_value, 0)
-            np_values[key].append(background_removed)
-
-            gray_filtered = np.where(background_removed>=gray_filter, background_removed, 0)
-            np_values[key].append(gray_filtered)
-
-            filtereds[music][key] = gray_filtered
-    
-    return filtereds, np_values
-
-def generate_mask(backgrounds, targets, filtereds):
-    mask = np.full(shape, False, dtype='bool')
+    mask = np.full(backgroundshape, 0)
     mask_report = {}
-    for music in filtereds.keys():
+    for music, values in targets.items():
         background_matches = []
-        for key, current in filtereds[music].items():
-            stacked = np.stack([np.where(current!=target, True, False) for target in filtereds[music].values()])
+        for key, value in values.items():
+            stacked = np.stack([np.where(value!=target, 1, 0) for target in values.values()])
             result = np.any(stacked, axis=0)
-            mismatch = np.where(result, targets[music][key].np_value, 0)
-            background_match = np.where(mismatch==backgrounds[targets[music][key].background_key], True, False)
+            mismatch = np.where(result, values[key], 0)
+            background_key = value[informations_define['music']['background_key_position']]
+            background_match = np.where(mismatch==backgrounds[background_key], 1, 0)
             background_matches.append(background_match)
         match_result = np.any(np.stack(background_matches), axis=0)
-        mask = np.where(match_result, True, mask)
+        mask = np.where(match_result, 1, mask)
         mask_report[music] = np.stack(np.where(match_result)).T
+    report.append_log(f'Mask pixel count: {np.count_nonzero(mask)}')
     
     output = []
     for music in sorted(mask_report.keys()):
         if len(mask_report[music]) != 0:
-            output.append(f"({len(targets[music]):2}:{len(mask_report[music]):2}){music}: {' '.join([str(p) for p in mask_report[music]])}")
+            output.append(f"({len(targets[music]):2}:{len(mask_report[music]):3}){music}: {' '.join([str(p) for p in mask_report[music]])}")
 
     masks_report_filepath = join(otherreport_basedir, report_masks_filename)
     with open(masks_report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
 
+    report.saveimage_value(np.where(mask==1,True,False), 'mask.png')
+
     return mask
 
-def larning_music(targets, backgrounds, report):
-    filtereds, np_values = filter(targets, backgrounds)
+def filter_background(targets, backgrounds):
+    for values in targets.values():
+        for key, value in values.items():
+            background_key = value[informations_define['music']['background_key_position']]
+            values[key] = np.where(value!=backgrounds[background_key], value, 0)
 
-    mask = generate_mask(backgrounds, targets, filtereds)
-    report.saveimage_value(mask, 'mask.png')
+def filter_mask(targets, mask):
+    for values in targets.values():
+        for key, value in values.items():
+            values[key] = np.where(mask==1,value,0)
 
+def trimming_maptrim(targets):
+    for values in targets.values():
+        for key, value in values.items():
+            values[key] = value[informations_define['music']['maptrim']]
+
+def filter_brightness(targets):
+    brightness_filter = np.tile(np.array(informations_define['music']['brightness_thresholds']), (mapareashape[1], 1)).T
+
+    for items in targets.values():
+        for key, value in items.items():
+            items[key] = np.where(value>=brightness_filter, value, 0)
+    
+    return brightness_filter
+
+def larning_music(targets, report):
     map_keys = {}
     map = {}
 
-    cnt = 0
-    for music in filtereds.keys():
-        for key, filtered in filtereds[music].items():
-            masked = np.where(mask, 0, filtered)
-            np_values[key].append(masked)
-
+    for music, values in targets.items():
+        for key, value in values.items():
             maxcounts = []
             maxcount_values = []
-            for line in masked:
+            for line in value:
                 unique, counts = np.unique(line, return_counts=True)
                 if len(counts) != 1:
                     index = -np.argmax(np.flip(counts[1:])) - 1
@@ -232,7 +236,7 @@ def larning_music(targets, backgrounds, report):
             mapkeys = []
             for y in np.argsort(maxcounts)[::-1]:
                 color = int(maxcount_values[y])
-                bins = np.where(masked[y]==color, 1, 0)
+                bins = np.where(value[y]==color, 1, 0)
                 hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
                 mapkeys.append(f"{y:02d}{''.join([format(v, '0x') for v in hexs])}")
             
@@ -258,7 +262,6 @@ def larning_music(targets, backgrounds, report):
             if not music in target['musics'].keys():
                 target['musics'][music] = []
             target['musics'][music].append(key)
-    print(cnt)
     inspect_targets = []
 
     result = {}
@@ -267,7 +270,6 @@ def larning_music(targets, backgrounds, report):
         if len(maptarget['musics']) >= 2:
             if len(maptarget['keys']) == 0:
                 musics = [m for m in maptarget['musics'].keys()]
-                print('duplicate')
                 report.error(f'duplicate: {musics}')
                 for m in musics:
                     report.error(f"{m}: {maptarget['musics'][m]}")
@@ -288,12 +290,12 @@ def larning_music(targets, backgrounds, report):
             optimization_report[music].append(*music_keys)
 
             return music
-    optimization(result, map)
+    if len(map) >= 1:
+        optimization(result, map)
 
     not_uniques = []
     for music, keys in [*optimization_report.items()]:
         if len(keys) >= 2:
-            report.error(f'not unique: {music} {keys}')
             not_uniques.append(f'not unique: {music} {keys}')
             inspect_targets.append(music)
             not_uniques.append(f'({len(keys):2}){music}:')
@@ -304,35 +306,27 @@ def larning_music(targets, backgrounds, report):
     with open(notuniques_report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(not_uniques))
 
-    print(len(inspect_targets))
-    if len(inspect_targets) > 0:
-        for music in inspect_targets:
-            escape_music_name = music.replace('"', '')
-            escape_music_name = escape_music_name.replace('/', '')
-            escape_music_name = escape_music_name.replace(',', '')
-            escape_music_name = escape_music_name.replace('\n', '')
-            escape_music_name = escape_music_name.replace('?', '')
-            escape_music_name = escape_music_name.replace('!', '')
-            escape_music_name = escape_music_name.replace('*', '')
-            escape_music_name = escape_music_name.replace(':', '')
+    inspect_result = []
+    for music in targets.keys():
+        inspect_result.append(f'music: {music}')
+        escape_music_name = music.replace('"', '')
+        escape_music_name = escape_music_name.replace('/', '')
+        escape_music_name = escape_music_name.replace(',', '')
+        escape_music_name = escape_music_name.replace('\n', '')
+        escape_music_name = escape_music_name.replace('?', '')
+        escape_music_name = escape_music_name.replace('!', '')
+        escape_music_name = escape_music_name.replace('*', '')
+        escape_music_name = escape_music_name.replace(':', '')
 
-            report.error(music)
-            for key in targets[music].keys():
-                output_name = f'{escape_music_name}_{key}'
+        for key, value in targets[music].items():
+            report.saveimage_errorvalue(value, f'_{escape_music_name}_{key}.png')
+            inspect_result.append(f'{key}: {map_keys[key]}')
 
-                for index in range(len(np_values[key])):
-                    report.saveimage_errorvalue(np_values[key][index], f'{output_name}_{index}.png')
-                
-                keylist = [(f'{target[:2]}', target[2:]) for target in map_keys[key][:6]]
-                report.error(f'{key}: {keylist}')
+    inspectresult_report_filepath = join(otherreport_basedir, report_inspectresult_filename)
+    with open(inspectresult_report_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(inspect_result))
 
-    music_list = sorted([*targets.keys()])
-
-    registered_musics_filepath = join(otherreport_basedir, report_registered_musics_filename)
-    with open(registered_musics_filepath, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(music_list))
-
-    return music_list, mask, result
+    return result
 
 def organize_musics(keys, labels):
     difficulties = {}
@@ -368,14 +362,6 @@ def organize_musics(keys, labels):
 
     return difficulties, levels
 
-def check(target, arcade_all_musics, infinitas_only_musics):
-    if type(target) is dict:
-        for value in target.values():
-            check(value, arcade_all_musics, infinitas_only_musics)
-    else:
-        if target is not None and not target in arcade_all_musics and not target in infinitas_only_musics:
-            print(f"not found: {target}({target.encode('unicode-escape').decode()})")
-
 def check_musics(musics, recog_musics, report):
     with open(arcadeallmusics_filename, 'r', encoding='utf-8') as f:
         arcade_all_musics = f.read().split('\n')
@@ -383,12 +369,20 @@ def check_musics(musics, recog_musics, report):
     with open(infinitasonlymusics_filename, 'r', encoding='utf-8') as f:
         infinitas_only_musics = f.read().split('\n')
 
-    report.append_log(f'arcade all music count: {len(arcade_all_musics)}')
-    report.append_log(f'infinitas only music count: {len(infinitas_only_musics)}')
+    report.append_log(f'Arcade all music count: {len(arcade_all_musics)}')
+    report.append_log(f'Infinitas only music count: {len(infinitas_only_musics)}')
 
     duplicates = list(set(arcade_all_musics) & set(infinitas_only_musics))
     if len(duplicates) > 0:
-        report.append_log(f"duplicates: {','.join(duplicates)}")
+        report.append_log(f"Duplicates: {','.join(duplicates)}")
+
+    def check(target, arcade_all_musics, infinitas_only_musics):
+        if type(target) is dict:
+            for value in target.values():
+                check(value, arcade_all_musics, infinitas_only_musics)
+        else:
+            if target is not None and not target in arcade_all_musics and not target in infinitas_only_musics:
+                report.error(f"Not found: {target}({target.encode('unicode-escape').decode()})")
 
     check(recog_musics, arcade_all_musics, infinitas_only_musics)
 
@@ -417,7 +411,7 @@ def larning_playmode(informations):
 
         evaluate_targets[key] = target
     
-    report.append_log(f'source count: {len(larning_targets)}')
+    report.append_log(f'Source count: {len(larning_targets)}')
 
     table = larning_multivalue(larning_targets, report)
     if table is None:
@@ -484,8 +478,7 @@ def larning_difficulty(informations):
 
         evaluate_targets[key] = target
     
-    report.append_log(f'source count: {len(evaluate_targets)}')
-    # print(table)
+    report.append_log(f'Source count: {len(evaluate_targets)}')
 
     report.append_log(f"difficulty key count: {len(table['difficulty'].keys())}")
     for difficulty in table['difficulty'].values():
@@ -599,49 +592,99 @@ def larning_musics(informations):
 
     report = Report(resourcename)
 
-    report.append_log(f'file count: {len(informations)}')
+    report.append_log(f'File count: {len(informations)}')
 
-    background_key_position = informations_define['background_key_position']
     targets = {}
+    count = 0
     for key, target in informations.items():
         if not 'music' in target.label.keys() or target.label['music'] is None:
             continue
 
-        targets[key] = MusicData(
-            target.np_value[informations_define['music']],
-            target.np_value[background_key_position],
-            target.label['music']
-        )
+        if not target.label['music'] in targets.keys():
+            targets[target.label['music']] = {}
+        targets[target.label['music']][key] = target.np_value[informations_define['music']['trim']]
+        count += 1
     
+    report.append_log(f'Source count: {count}')
+    report.append_log(f'Music count: {len(targets)}')
+
     backgrounds = generate_backgrounds(targets, report)
+    mask = generate_mask(targets, backgrounds, report)
 
-    data_musics = {}
-    for key, target in targets.items():
-        if not target.music in data_musics.keys():
-            data_musics[target.music] = {}
-        data_musics[target.music][key] = target
+    filter_background(targets, backgrounds)
+    filter_mask(targets, mask)
+    trimming_maptrim(targets)
+    brightness_filter = filter_brightness(targets)
 
-    report.append_log(f'Music count: {len(data_musics)}')
+    table = larning_music(targets, report)
 
-    start = time.time()
-    musics, mask, recog_musics = larning_music(data_musics, backgrounds, report)
-    print(f'time: {time.time() - start}')
+    musics = sorted([*targets.keys()])
+    registered_musics_filepath = join(otherreport_basedir, report_registered_musics_filename)
+    with open(registered_musics_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(musics))
 
-    check_musics(musics, recog_musics, report)
-    print('top', len(recog_musics))
+    check_musics(musics, table, report)
 
-    for music in musics:
+    for music in targets.keys():
         encoded = music.encode('UTF-8').hex()
         if len(encoded) > 240:
             report.error(f'Record file name too long: {music}')
 
+    for key, target in informations.items():
+        if not 'music' in target.label.keys() or target.label['music'] is None:
+            continue
+
+        trimmed = target.np_value[informations_define['music']['trim']]
+        background_key = trimmed[informations_define['music']['background_key_position']]
+        if not background_key in backgrounds.keys():
+            report.error(f'Recognition failure {key}: mismatch background key {background_key}')
+            continue
+        
+        filtered_background = np.where(trimmed!=backgrounds[background_key], trimmed, 0)
+        filtered_mask = np.where(mask==1, filtered_background, 0)
+
+        maptrimmed = filtered_mask[informations_define['music']['maptrim']]
+        filtered_brightness = np.where(maptrimmed>=brightness_filter, maptrimmed, 0)
+
+        maxcounts = []
+        maxcount_values = []
+        for line in filtered_brightness:
+            unique, counts = np.unique(line, return_counts=True)
+            if len(counts) != 1:
+                index = -np.argmax(np.flip(counts[1:])) - 1
+                maxcounts.append(counts[index])
+                maxcount_values.append(unique[index])
+            else:
+                maxcounts.append(0)
+                maxcount_values.append(0)
+
+        tabletarget = table
+        for y in np.argsort(maxcounts)[::-1]:
+            color = int(maxcount_values[y])
+            bins = np.where(filtered_brightness[y]==color, 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            mapkey = f"{y:02d}{''.join([format(v, '0x') for v in hexs])}"
+            if not mapkey in tabletarget:
+                report.error(f"Recognition failure {target.label['music']}: {key}({mapkey})")
+                break
+            if type(tabletarget[mapkey]) == str:
+                if tabletarget[mapkey] == target.label['music']:
+                    report.through()
+                    break
+                else:
+                    report.error(f"Mismatch {key}: {tabletarget[mapkey]} {target.label['music']}")
+            tabletarget = tabletarget[mapkey]
+
     report.report()
 
     return {
-        'define': informations_define,
+        'trim': informations_define['music']['trim'],
+        'background_key_position': informations_define['music']['background_key_position'],
+        'maptrim': informations_define['music']['maptrim'],
+        'brightness_thresholds': informations_define['music']['brightness_thresholds'],
         'backgrounds': backgrounds,
         'mask': mask,
-        'recognition': recog_musics,
+        'table': table,
         'musics': musics
     }
 
@@ -658,11 +701,12 @@ if __name__ == '__main__':
     play_mode = larning_playmode(informations)
     difficulty = larning_difficulty(informations)
     notes = larning_notes(informations)
-    # music = larning_musics(informations)
+    music = larning_musics(informations)
 
-    save_resource_serialized('informations.res', {
+    filename = f'informations{define.informations_recognition_version}.res'
+    save_resource_serialized(filename, {
         'play_mode': play_mode,
         'difficulty': difficulty,
-        'notes': notes
-        # 'music': music
+        'notes': notes,
+        'music': music
     })

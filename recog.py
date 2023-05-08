@@ -9,7 +9,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import masks,resources,recog_musics_filepath
+from resources import masks,recog_musics_filepath,load_resource_serialized,load_resource_numpy
 from notes import get_notes
 from clear_type import get_clear_type_best,get_clear_type_current
 from dj_level import get_dj_level_best,get_dj_level_current
@@ -42,11 +42,12 @@ class RecogMultiValue():
 
 class Recognition():
     def __init__(self):
-        self.is_savable = resources['is_savable']
-        self.play_side = resources['play_side']
-        self.dead = resources['dead']
-        self.rival = resources['rival']
-        self.informations = resources['informations']
+        self.is_savable = load_resource_serialized('is_savable')
+        self.play_side = load_resource_numpy('play_side')
+        self.dead = load_resource_numpy('dead')
+        self.rival = load_resource_numpy('rival')
+
+        self.load_resource_informations()
 
         self.play_mode = RecogMultiValue([masks[key] for key in define.value_list['play_modes']])
         self.difficulty = RecogMultiValue([masks[key] for key in define.value_list['difficulties'] if key in masks.keys()])
@@ -56,6 +57,7 @@ class Recognition():
             list = [masks[f'{difficulty}-{level}'] for level in define.value_list['levels'] if f'{difficulty}-{level}' in masks.keys()]
             self.level[difficulty] = RecogMultiValue(list)
 
+        self.musics = None
         self.load_resource_musics()
 
         self.graph_lanes = Recog(masks['graph_lanes'])
@@ -104,6 +106,9 @@ class Recognition():
         return difficulty, None
     
     def get_music(self, image_informations):
+        if self.musics is None:
+            return None
+
         if self.backgrounds is None:
             return None
         
@@ -241,15 +246,60 @@ class Recognition():
             
             value = value * 10 + self.informations['notes']['table'][tablekey]
 
+        if value == 0:
+            return None
+
         return value
 
+    def get_music_new(self, np_value_informations):
+        trimmed = np_value_informations[self.informations['music']['trim']]
+        background_key = trimmed[self.informations['music']['background_key_position']]
+        if not background_key in self.informations['music']['backgrounds'].keys():
+            return None
+        
+        filtered_background = np.where(trimmed!=self.informations['music']['backgrounds'][background_key], trimmed, 0)
+        filtered_mask = np.where(self.informations['music']['mask']==1, filtered_background, 0)
+
+        maptrimmed = filtered_mask[self.informations['music']['maptrim']]
+        filtered_brightness = np.where(maptrimmed>=self.music_brightness_filter, maptrimmed, 0)
+
+        maxcounts = []
+        maxcount_values = []
+        for line in filtered_brightness:
+            unique, counts = np.unique(line, return_counts=True)
+            if len(counts) != 1:
+                index = -np.argmax(np.flip(counts[1:])) - 1
+                maxcounts.append(counts[index])
+                maxcount_values.append(unique[index])
+            else:
+                maxcounts.append(0)
+                maxcount_values.append(0)
+
+        target = self.informations['music']['table']
+        for y in np.argsort(maxcounts)[::-1]:
+            color = int(maxcount_values[y])
+            bins = np.where(filtered_brightness[y]==color, 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            mapkey = f"{y:02d}{''.join([format(v, '0x') for v in hexs])}"
+            if not mapkey in target:
+                return None
+            if type(target[mapkey]) == str:
+                return target[mapkey]
+            target = target[mapkey]
+        
+        return None
+
     def check_newrecognition(self, np_value):
+        if self.informations is None:
+            return True
+        
         np_value_informations = np_value[define.areas_np['informations']]
         play_mode = self.get_play_mode_new(np_value_informations)
         difficulty, level = self.get_difficulty_new(np_value_informations)
         notes = self.get_notes_new(np_value_informations)
-        print(play_mode, difficulty, level, notes)
-        if None in [play_mode, difficulty, level, notes]:
+        music = self.get_music_new(np_value_informations)
+        print(play_mode, difficulty, level, notes, music)
+        if None in [play_mode, difficulty, level, notes, music]:
             return False
         return True
 
@@ -344,5 +394,15 @@ class Recognition():
         self.music_recognition = resource['recognition']
 
         self.musics = resource['musics']
+    
+    def load_resource_informations(self):
+        resourcename = f'informations{define.informations_recognition_version}'
+        
+        self.informations = load_resource_serialized(resourcename)
+        if self.informations is None:
+            return
+
+        music_trim_width = self.informations['music']['trim'][1].stop - self.informations['music']['trim'][1].start
+        self.music_brightness_filter = np.tile(np.array(self.informations['music']['brightness_thresholds']), (music_trim_width, 1)).T
 
 recog = Recognition()

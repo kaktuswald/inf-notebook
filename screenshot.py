@@ -12,7 +12,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded screenshot.py')
 
 from define import define
-from resources import resources
+from resources import load_resource_serialized
 
 SRCCOPY = 0x00CC0020
 DIB_RGB_COLORS = 0
@@ -92,6 +92,7 @@ class Capture:
 
 class Screenshot:
     xy = None
+    screentable = load_resource_serialized('get_screen')
 
     def __init__(self):
         self.checkloading = Capture(define.get_screen_area['width'], define.get_screen_area['height'])
@@ -110,10 +111,10 @@ class Screenshot:
         np_value = self.checkloading.shot(x, y)
         key = np.sum(np_value)
 
-        if not key in resources['get_screen'].keys():
+        if not key in self.screentable.keys():
             return None
         
-        return resources['get_screen'][key]
+        return self.screentable[key]
 
     def shot(self):
         if self.xy is None:

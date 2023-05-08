@@ -2,8 +2,8 @@ import os
 import numpy as np
 from winsound import SND_FILENAME,PlaySound
 from logging import getLogger
-from glob import glob
 import pickle
+from os.path import isfile
 
 logger_child_name = 'resources'
 
@@ -41,6 +41,22 @@ class MusicsTimestamp():
         with open(recog_musics_timestamp_filepath, 'w') as f:
             f.write(timestamp)
 
+class ResourceTimestamp():
+    def __init__(self, resourcename):
+        self.filepath = os.path.join(resources_dirname, f'{resourcename}.timestamp')
+    
+    def get_timestamp(self):
+        if not os.path.exists(self.filepath):
+            return None
+        with open(self.filepath, 'r') as f:
+            timestamp = f.read()
+
+        return timestamp
+
+    def write_timestamp(self, timestamp):
+        with open(self.filepath, 'w') as f:
+            f.write(timestamp)
+
 def play_sound_find():
     if os.path.exists(sound_find_filepath):
         PlaySound(sound_find_filepath, SND_FILENAME)
@@ -49,17 +65,42 @@ def play_sound_result():
     if os.path.exists(sound_result_filepath):
         PlaySound(sound_result_filepath, SND_FILENAME)
 
+def load_resource_serialized(resourcename):
+    filepath = os.path.join(resources_dirname, f'{resourcename}.res')
+    if not isfile(filepath):
+        return None
+    
+    with open(filepath, 'rb') as f:
+        value = pickle.load(f)
+    
+    return value
+
+def load_resource_numpy(resourcename):
+    filepath = os.path.join(resources_dirname, f'{resourcename}.npy')
+    return np.load(filepath)
+
+def get_resource_filepath(filename):
+    return os.path.join(resources_dirname, filename)
+
+def check_latest(storage, filename):
+    timestamp = ResourceTimestamp(filename)
+
+    latest_timestamp = storage.get_resource_timestamp(filename)
+    if latest_timestamp is None:
+        return False
+    
+    local_timestamp = timestamp.get_timestamp()
+
+    if local_timestamp == latest_timestamp:
+        return False
+    
+    filepath = os.path.join(resources_dirname, filename)
+    if storage.download_resource(filename, filepath):
+        timestamp.write_timestamp(latest_timestamp)
+        return True
+
 masks = {}
 for filename in os.listdir(masks_dirpath):
     key = filename.split('.')[0]
     filepath = os.path.join(masks_dirpath, filename)
     masks[key] = Mask(key, np.load(filepath))
-
-resources = {}
-for filepath in glob(os.path.join(resources_dirname, '*.res')):
-    key = os.path.basename(filepath).split('.')[0]
-    with open(filepath, 'rb') as f:
-        resources[key] = pickle.load(f)
-for filepath in glob(os.path.join(resources_dirname, '*.npy')):
-    key = os.path.basename(filepath).split('.')[0]
-    resources[key] = np.load(filepath)
