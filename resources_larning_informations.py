@@ -16,6 +16,7 @@ background_ignore_keys_filename = 'background_ignore_keys.txt'
 arcadeallmusics_filename = 'musics_arcade_all.txt'
 infinitasonlymusics_filename = 'musics_infinitas_only.txt'
 
+report_organize_filename = 'organize.txt'
 report_backgrounds_filename = 'backgrounds.txt'
 report_masks_filename = 'masks.txt'
 report_notuniques_filename = 'notuniques.txt'
@@ -328,7 +329,7 @@ def larning_music(targets, report):
 
     return result
 
-def organize_musics(keys, labels):
+def organize(informations):
     difficulties = {}
     for difficulty in define.value_list['difficulties']:
         difficulties[difficulty] = []
@@ -336,31 +337,44 @@ def organize_musics(keys, labels):
     for level in define.value_list['levels']:
         levels[level] = []
 
-    for key in keys:
-        target = labels[key]
-        if not 'informations' in target.keys() or target['informations'] is None:
+    result = {}
+    for key, information in informations.items():
+        label = information.label
+
+        if not 'difficulty' in label.keys() or label['difficulty'] is None:
+            continue
+        if not 'level' in label.keys() or label['level'] is None:
+            continue
+        if not 'music' in label.keys() or label['music'] is None:
             continue
 
-        informations = target['informations']
-        if not 'music' in informations.keys() or informations['music'] is None:
-            continue
+        difficulty = label['difficulty']
+        level = label['level']
+        music = label['music']
 
-        music = informations['music']
-        if 'difficulty' in informations.keys() and informations['difficulty'] in define.value_list['difficulties']:
-            difficulty = informations['difficulty']
-            if not music in difficulties[difficulty]:
-                difficulties[difficulty].append(music)
-        if 'level' in informations.keys() and informations['level'] in define.value_list['levels']:
-            level = informations['level']
-            if not music in levels[level]:
-                levels[level].append(music)
+        if not music in result.keys():
+            result[music] = {}
+        
+        result[music][difficulty] = level
+
+        if not music in difficulties[difficulty]:
+            difficulties[difficulty].append(music)
+        if not music in levels[level]:
+            levels[level].append(music)
     
+    output = []
+    output.append(f'Music count: {len(result)}')
     for key, value in difficulties.items():
-        print(key, len(value))
+        output.append(f'{key}: {len(value)}')
     for key, value in levels.items():
-        print(key, len(value))
+        output.append(f'{key}: {len(value)}')
+    for music, values in result.items():
+        for difficulty, level in values.items():
+            output.append(f'{music}: {difficulty} {level}')
 
-    return difficulties, levels
+    report_filepath = join(report_dirname, report_organize_filename)
+    with open(report_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
 def check_musics(musics, recog_musics, report):
     with open(arcadeallmusics_filename, 'r', encoding='utf-8') as f:
@@ -698,6 +712,8 @@ if __name__ == '__main__':
     
     informations = load_informations(labels)
     
+    organize(informations)
+
     play_mode = larning_playmode(informations)
     difficulty = larning_difficulty(informations)
     notes = larning_notes(informations)

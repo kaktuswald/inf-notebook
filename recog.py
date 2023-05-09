@@ -298,7 +298,7 @@ class Recognition():
         difficulty, level = self.get_difficulty_new(np_value_informations)
         notes = self.get_notes_new(np_value_informations)
         music = self.get_music_new(np_value_informations)
-        print(play_mode, difficulty, level, notes, music)
+        
         if None in [play_mode, difficulty, level, notes, music]:
             return False
         return True
