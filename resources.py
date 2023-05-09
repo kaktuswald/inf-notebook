@@ -57,10 +57,6 @@ class ResourceTimestamp():
         with open(self.filepath, 'w') as f:
             f.write(timestamp)
 
-def play_sound_find():
-    if os.path.exists(sound_find_filepath):
-        PlaySound(sound_find_filepath, SND_FILENAME)
-
 def play_sound_result():
     if os.path.exists(sound_result_filepath):
         PlaySound(sound_result_filepath, SND_FILENAME)

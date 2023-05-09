@@ -6,6 +6,7 @@ from csv import writer
 from define import define
 from record import Record,get_record_musics,delete_recordfile
 from recog import recog
+from version import version
 
 export_dirname = 'export'
 
@@ -26,7 +27,7 @@ class Recent():
         try:
             with open(recent_filepath) as f:
                 self.json = json.load(f)
-                if type(self.json) == list:
+                if not 'version' in self.json.keys() or self.json['version'] != version:
                     self.clear()
                     self.save()
                     return
@@ -37,7 +38,7 @@ class Recent():
             self.clear()
     
     def clear(self):
-        self.json = {'list': [], 'count': 0, 'updated_score': 0, 'updated_misscount': 0}
+        self.json = {'version': version, 'count': 0, 'score': 0, 'misscount': 0, 'updated_score': 0, 'updated_misscount': 0, 'clear': 0, 'list': []}
         self.save()
     
     def delete_olds(self):
@@ -49,8 +50,13 @@ class Recent():
                 break
 
             self.json['count'] -= 1
+            self.json['score'] -= target['score']
+            self.json['misscount'] -= target['misscount']
             self.json['updated_score'] -= target['updated_score']
             self.json['updated_misscount'] -= target['updated_misscount']
+            if target['clear']:
+                self.json['clear'] -= 1
+            
             del self.json['list'][0]
 
             count += 1
@@ -70,16 +76,28 @@ class Recent():
         else:
             misscount_update = 0
 
+        score = result.details.score.current
+        misscount = result.details.miss_count.current if result.details.miss_count.current is not None else 0
+        clear = result.details.clear_type.current != 'NO PLAY' and result.details.clear_type.current != 'FAILED'
+
         self.json['list'].append({
             'timestamp': result.timestamp,
             'music': result.informations.music,
             'new': result.has_new_record(),
+            'score': score,
+            'misscount': misscount,
             'updated_score': score_update,
-            'updated_misscount': misscount_update
+            'updated_misscount': misscount_update,
+            'clear': clear
         })
         self.json['count'] += 1
+        self.json['score'] += score
+        self.json['misscount'] += misscount
         self.json['updated_score'] += score_update
         self.json['updated_misscount'] += misscount_update
+        if clear:
+            self.json['clear'] += 1
+        
         self.save()
 
     def save(self):

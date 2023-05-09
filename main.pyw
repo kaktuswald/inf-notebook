@@ -37,7 +37,7 @@ import gui.main as gui
 from gui.export import open as export_open
 from gui.general import get_imagevalue
 from define import define
-from resources import play_sound_find,play_sound_result,check_latest
+from resources import play_sound_result,check_latest
 from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
@@ -149,8 +149,6 @@ class ThreadMain(Thread):
                 self.waiting_count = thread_count_wait
                 self.queues['log'].put('find loading: start waiting')
                 self.sleep_time = thread_time_wait
-                if setting.manage:
-                    play_sound_find()
             else:
                 self.waiting_count = thread_count_wait
             return
@@ -159,8 +157,6 @@ class ThreadMain(Thread):
             self.waiting = False
             self.queues['log'].put('lost loading: end waiting')
             self.sleep_time = thread_time_normal
-            if setting.manage:
-                play_sound_find()
 
         shotted = False
         if display_screenshot_enable:

@@ -8,7 +8,7 @@ body {
 	background-color: rgba(0, 0, 0, 0);
 	margin: 0px;
 	overflow: hidden;
-	font-size: 40px;
+	font-size: 46px;
 	color: rgba(128, 128, 128, 1);
 	text-shadow: 1px 1px 0 rgba(0, 0, 0, 1),
 				 -1px 1px 0 rgba(0, 0, 0, 1),
@@ -19,32 +19,27 @@ body {
 div#normal { display: none;}
 div#error { display: block;}
 
+div.overview {
+	display: none;
+	color: rgba(192, 192, 255, 1);
+}
+
 div#played_count {
-	color: rgba(192, 192, 255, 1);
-}
-
-div#updated_score {
-	display: none;
-	color: rgba(192, 192, 255, 1);
-}
-
-div#updated_misscount {
-	display: none;
-	color: rgba(192, 192, 255, 1);
+	display: block;
 }
 
 span.label {
 	display: inline-block;
-	width: 560px;
+	width: 540px;
 	text-align: right;
-	font-size: 42px;
+	font-size: 46px;
 }
 
 span.value {
 	display: inline-block;
-	width: 180px;
+	width: 220px;
 	text-align: right;
-	font-size: 54px;
+	font-size: 60px;
 
 }
 
@@ -60,27 +55,38 @@ filename = './recent.json'
 
 function reflect(json)
 {
-	$('#updated_score span:last').html(json.updated_score)
-	$('#updated_misscount span:last').html(json.updated_misscount)
-	$('#played_count span:last').html(json.count)
-	$('#played_musics').empty()
+	if('count' in json)
+		$('#played_count span:last').html(json.count);
+	if('score' in json)
+		$('#score span:last').html(json.score);
+	if('misscount' in json)
+		$('#misscount span:last').html(json.misscount);
+	if('updated_score' in json)
+		$('#updated_score span:last').html(json.updated_score);
+	if('updated_misscount' in json)
+		$('#updated_misscount span:last').html(json.updated_misscount);
+	if('clear' in json)
+		$('#clear span:last').html(json.clear);
+	if('count' in json && 'clear' in json)
+		$('#failed span:last').html(json.count - json.clear);
+	$('#played_musics').empty();
 	json.list.reverse().forEach(item => {
-		let newItem = $(`<p class='music'>`)
+		let newItem = $(`<p class='music'>`);
 		if(!isNaN(item.music))
-			newItem.append(`<span>?????</span>`)
+			newItem.append(`<span>?????</span>`);
 		else
-			newItem.append(`<span class='music'>${item.music}</span>`)
-		$('#played_musics').append(newItem)
+			newItem.append(`<span class='music'>${item.music}</span>`);
+		$('#played_musics').append(newItem);
 	});
 
-	$('#error').css('display', 'none')
-	$('#normal').css('display', 'block')
+	$('#error').css('display', 'none');
+	$('#normal').css('display', 'block');
 }
 
 function error()
 {
-	$('#error').css('display', 'block')
-	$('#normal').css('display', 'none')
+	$('#error').css('display', 'block');
+	$('#normal').css('display', 'none');
 }
 
 function load()
@@ -105,17 +111,33 @@ window.addEventListener('DOMContentLoaded', function() {
 	</head>
 	<body>
 		<div id='normal'>
-			<div id='played_count'>
+			<div id='played_count' class='overview'>
 				<span class='played_count label'>play count:</span>
 				<span class='played_count value'>0</span>
 			</div>
-			<div id='updated_score'>
-				<span class='updated_score label'>updated score sum:</span>
+			<div id='score' class='overview'>
+				<span class='score label'>score:</span>
+				<span class='score value'>0</span>
+			</div>
+			<div id='misscount' class='overview'>
+				<span class='misscount label'>miss count:</span>
+				<span class='misscount value'>0</span>
+			</div>
+			<div id='updated_score' class='overview'>
+				<span class='updated_score label'>updated score:</span>
 				<span class='updated_score value'>0</span>
 			</div>
-			<div id='updated_misscount'>
-				<span class='updated_misscount label'>updated miss count sum:</span>
+			<div id='updated_misscount' class='overview'>
+				<span class='updated_misscount label'>updated miss count:</span>
 				<span class='updated_misscount value'>0</span>
+			</div>
+			<div id='clear' class='overview'>
+				<span class='clear label'>clear count:</span>
+				<span class='clear value'>0</span>
+			</div>
+			<div id='failed' class='overview'>
+				<span class='failed label'>failed count:</span>
+				<span class='failed value'>0</span>
 			</div>
 			<div id='played_musics'></div>
 		</div>

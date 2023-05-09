@@ -87,51 +87,91 @@ def open(recent):
     tab_recent = [
         [
             sg.Text('文字サイズ', size=(10, 1), justification='right', background_color=background_color),
-            sg.Input('40', size=(4, 1), key='recent size', enable_events=True),
-            sg.Text('px', background_color=background_color)
-        ],
-        [
+            sg.Input('46', size=(4, 1), key='recent size', enable_events=True),
+            sg.Text('px', background_color=background_color),
             sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
             sg.Input('#808080', size=(9, 1), key='recent color', enable_events=True),
-            sg.Graph(key='graph recent color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080')
-        ],
-        [
+            sg.Graph(key='graph recent color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
             sg.Text('影色', size=(10, 1), justification='right', background_color=background_color),
             sg.Input('#000000', size=(9, 1), key='recent shadow-color', enable_events=True),
             sg.Graph(key='graph recent shadow-color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#000000')
         ],
         [
             sg.Column([
-                [sg.Text('プレイ曲数', background_color=background_color_label, size=(26, None), justification='center')]
+                [
+                    sg.Text('プレイ曲数', background_color=background_color_label, size=(26, None), justification='right'),
+                    sg.Checkbox('表示する', key='recent played_count display', default=True, enable_events=True, background_color=background_color_label)
+                ]
             ], pad=5, background_color=background_color_label),
-            sg.Checkbox('表示する', key='recent played_count display', default=True, enable_events=True, background_color=background_color),
-        ],
-        [
-            sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
+            sg.Text('文字色', justification='right', background_color=background_color),
             sg.Input('#c0c0ff', size=(9, 1), key='recent played_count color', enable_events=True),
             sg.Graph(key='graph recent played_count color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
         ],
         [
             sg.Column([
-                [sg.Text('更新したスコアの合計', background_color=background_color_label, size=(26, None), justification='center')]
+                [
+                    sg.Text('スコアの合計', background_color=background_color_label, size=(26, None), justification='right'),
+                    sg.Checkbox('表示する', key='recent score display', default=False, enable_events=True, background_color=background_color_label)
+                ]
             ], pad=5, background_color=background_color_label),
-            sg.Checkbox('表示する', key='recent updated_score display', default=False, enable_events=True, background_color=background_color),
+            sg.Text('文字色', justification='right', background_color=background_color),
+            sg.Input('#c0c0ff', size=(9, 1), key='recent score color', enable_events=True),
+            sg.Graph(key='graph recent score color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
         ],
         [
-            sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
+            sg.Column([
+                [
+                    sg.Text('ミスカウントの合計', background_color=background_color_label, size=(26, None), justification='right'),
+                    sg.Checkbox('表示する', key='recent misscount display', default=False, enable_events=True, background_color=background_color_label)
+                ]
+            ], pad=5, background_color=background_color_label),
+            sg.Text('文字色', justification='right', background_color=background_color),
+            sg.Input('#c0c0ff', size=(9, 1), key='recent misscount color', enable_events=True),
+            sg.Graph(key='graph recent misscount color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
+        ],
+        [
+            sg.Column([
+                [
+                    sg.Text('更新したスコアの合計', background_color=background_color_label, size=(26, None), justification='right'),
+                    sg.Checkbox('表示する', key='recent updated_score display', default=False, enable_events=True, background_color=background_color_label)
+                ]
+            ], pad=5, background_color=background_color_label),
+            sg.Text('文字色', justification='right', background_color=background_color),
             sg.Input('#c0c0ff', size=(9, 1), key='recent updated_score color', enable_events=True),
             sg.Graph(key='graph recent updated_score color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
         ],
         [
             sg.Column([
-                [sg.Text('更新したミスカウントの合計', background_color=background_color_label, size=(26, None), justification='center')]
+                [
+                    sg.Text('更新したミスカウントの合計', background_color=background_color_label, size=(26, None), justification='right'),
+                    sg.Checkbox('表示する', key='recent updated_misscount display', default=False, enable_events=True, background_color=background_color_label)
+                ]
             ], pad=5, background_color=background_color_label),
-            sg.Checkbox('表示する', key='recent updated_misscount display', default=False, enable_events=True, background_color=background_color),
-        ],
-        [
-            sg.Text('文字色', size=(10, 1), justification='right', background_color=background_color),
+            sg.Text('文字色', justification='right', background_color=background_color),
             sg.Input('#c0c0ff', size=(9, 1), key='recent updated_misscount color', enable_events=True),
             sg.Graph(key='graph recent updated_misscount color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
+        ],
+        [
+            sg.Column([
+                [
+                    sg.Text('クリアの回数', background_color=background_color_label, size=(26, None), justification='right'),
+                    sg.Checkbox('表示する', key='recent clear display', default=False, enable_events=True, background_color=background_color_label)
+                ]
+            ], pad=5, background_color=background_color_label),
+            sg.Text('文字色', justification='right', background_color=background_color),
+            sg.Input('#c0c0ff', size=(9, 1), key='recent clear color', enable_events=True),
+            sg.Graph(key='graph recent clear color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
+        ],
+        [
+            sg.Column([
+                [
+                    sg.Text('FAILEDの回数', background_color=background_color_label, size=(26, None), justification='right'),
+                    sg.Checkbox('表示する', key='recent failed display', default=False, enable_events=True, background_color=background_color_label)
+                ]
+            ], pad=5, background_color=background_color_label),
+            sg.Text('文字色', justification='right', background_color=background_color),
+            sg.Input('#c0c0ff', size=(9, 1), key='recent failed color', enable_events=True),
+            sg.Graph(key='graph recent failed color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#c0c0ff'),
         ]
     ]
 
@@ -318,7 +358,7 @@ def generate_recent_css(window):
         css.append(f"  text-shadow: {','.join(shadow_value)};")
     css.append('}')
 
-    for key in ['played_count', 'updated_score', 'updated_misscount']:
+    for key in ['played_count', 'score', 'misscount', 'updated_score', 'updated_misscount', 'clear', 'failed']:
         display = 'block' if window[f'recent {key} display'].get() else 'none'
         color = window[f'recent {key} color'].get()
         if pattern_color.fullmatch(color) is not None:
