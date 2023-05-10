@@ -347,8 +347,8 @@ def get_latest_version():
             return None
 
 def check_resource():
-    musicss_filename = f'{define.musics_resourcename}.json'
-    if check_latest(storage, musicss_filename):
+    musics_filename = f'{define.musics_resourcename}.json'
+    if check_latest(storage, musics_filename):
         recog.load_resource_musics()
 
     informations_filename = f'{define.informations_resourcename}.res'

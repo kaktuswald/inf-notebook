@@ -463,6 +463,7 @@ def larning_difficulty(informations):
 
     evaluate_targets = {}
     table = {'difficulty': {}, 'level': {}}
+    result = {}
     for key, target in informations.items():
         if not 'difficulty' in target.label.keys() or not 'level' in target.label.keys():
             continue
@@ -477,7 +478,7 @@ def larning_difficulty(informations):
         
         if not difficultykey in table['difficulty'].keys():
             table['difficulty'][difficultykey] = difficulty
-            report.append_log(f'difficulty {difficulty}: {difficultykey}({key})')
+            result[difficulty] = {'log': f'difficulty {difficulty}: {difficultykey}({key})', 'levels': {}}
         
         leveltrimmed = trimmed[informations_define['difficulty']['trimlevel']].flatten()
         bins = np.where(leveltrimmed==difficultykey, 1, 0)
@@ -488,15 +489,19 @@ def larning_difficulty(informations):
             table['level'][difficulty] = {}
         if not levelkey in table['level'][difficulty].keys():
             table['level'][difficulty][levelkey] = level
-            report.append_log(f'level {difficulty} {level}: {levelkey}({key})')
+            result[difficulty]['levels'][level] = f'level {difficulty} {level}: {levelkey}({key})'
 
         evaluate_targets[key] = target
+
+    for difficulty in define.value_list['difficulties']:
+        if difficulty in result.keys():
+            report.append_log(result[difficulty]['log'])
+            for level in define.value_list['levels']:
+                if level in result[difficulty]['levels'].keys():
+                    report.append_log(result[difficulty]['levels'][level])
+
     
     report.append_log(f'Source count: {len(evaluate_targets)}')
-
-    report.append_log(f"difficulty key count: {len(table['difficulty'].keys())}")
-    for difficulty in table['difficulty'].values():
-        report.append_log(f"{difficulty} level key count: {len(table['level'][difficulty].keys())}")
 
     for key, target in evaluate_targets.items():
         trimmed = target.np_value[informations_define['difficulty']['trim']]

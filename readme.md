@@ -71,9 +71,11 @@ pip install google-cloud-storage
 
 オプション・クリアランプ・DJ LEVEL・スコア・ミスカウントの含まれたリザルト画像の切り取り
 
-- bucket-inf-notebook-musics
+- bucket-inf-notebook-resources
 
-曲名を画像認識する学習データ
+認識用のリソースデータ
+
+学習後の最新のリソースをアップロードして、クライアント起動時にチェックして最新版をダウンロードする
 
 リージョンがサウスカロライナ(us-east1)なら無料(のはず)
 
@@ -85,12 +87,10 @@ pip install google-cloud-storage
 python generate_service_account_info.py ファイル名.json
 ```
 
-
 - (方法2)base64でエンコードした文字列を引数にする
 ```shell
 python generate_service_account_info.py 文字列
 ```
-
 
 - (おまけ)ダウンロードしたファイルをエンコードする
 ```shell
@@ -122,11 +122,11 @@ python download_collections.py
 ## 学習する
 
 ### 基本的なところ
-- INFINITAS画面位置の検出
-- リザルト画面の検出
-- ミッション・ビット獲得のカットインが出ていないことの判断
+- ローディング画面の検出
+- リザルト画面(ミッション・ビット獲得のカットインや撃墜の文字が出ていない)の検出
 - プレイサイドの認識(1P or 2P)
 - ライバル挑戦状が出ているかどうか
+- 途中落ちしているかどうか
 
 以上の画像認識の学習を目的とする。
 
@@ -137,20 +137,17 @@ python manage.pyw
 
 #### いくつかのリソースを作る
 ```shell
-python generate_resources.py -all
+python resources_generate_fromraw.py -all
+python resources_larning_fromraw.py -all
 ```
+エラーが出なければOK
+
 resourcesフォルダ内にいくつかのリソースファイルが作成される。
-
-#### 学習する
-```shell
-python larning_basics.py
-```
-
-#### 学習結果とラベルの照合
-```shell
-python evaluate_basics.py
-```
-evaluate_basics.csvが作成される。
+- get_screen.res
+- is_savable.res
+- rival.npy
+- play_side.npy
+- dead.npy
 
 ### リザルトの詳細
 - プレイモード(SP or DP)
@@ -183,5 +180,13 @@ evaluate_collection.csvが作成される。
 
 #### 学習した曲名認識データをアップロードする
 ```shell
-python upload_resource_musics.py
+python resources_upload.py -musics
 ```
+
+### リザルトの詳細認識の新手法
+精度が追いついたら置き換える。
+```shell
+python resources_larning_informations.py
+python resources_upload.py -informations
+```
+- informations(バージョン).res

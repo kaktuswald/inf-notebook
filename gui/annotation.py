@@ -226,25 +226,6 @@ def generate_window(keys):
 
     return window
 
-def change_display(key, value):
-    window[key].update(visible=value)
-
-def set_area(area):
-        window['left'].update(area[0])
-        window['top'].update(area[1])
-        window['right'].update(area[2])
-        window['bottom'].update(area[3])
-
-def switch_option_widths_view():
-    visible = window['area_second'].get() == 'option'
-
-    window['area_option1'].update(visible=visible)
-    window['area_delimita1'].update(visible=visible)
-    window['area_option2'].update(visible=visible)
-    window['area_delimita2'].update(visible=visible)
-    window['area_option3'].update(visible=visible)
-    window['area_delimita3'].update(visible=visible)
-
 def display_informations(image):
     if image is not None:
         bytes = io.BytesIO()
@@ -260,18 +241,6 @@ def display_details(image):
         window['image_details'].update(data=bytes.getvalue(),visible=True,size=define.details_trimsize)
     else:
         window['image_details'].update(visible=False)
-
-def display_trim(image):
-    while image.width > 1920 / 8 or image.height > 1080 / 4:
-        image = image.resize((image.width // 2, image.height // 2))
-    bytes = io.BytesIO()
-    image.save(bytes, format='PNG')
-    window['trim'].update(data=bytes.getvalue())
-
-def update_image(name, image):
-    bytes = io.BytesIO()
-    image.save(bytes, format='PNG')
-    window[name].update(data=bytes.getvalue())
 
 def reset_informations():
     window['has_informations'].update(False)
