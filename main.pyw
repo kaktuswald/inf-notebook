@@ -629,6 +629,8 @@ if __name__ == '__main__':
 
     if not setting.has_key('data_collection'):
         setting.data_collection = gui.collection_request('resources/annotation.png')
+        if setting.data_collection:
+            window['button_upload'].update(visible=True)
 
     if version != '0.0.0.0' and get_latest_version() != version:
         gui.find_latest_version(latest_url)
