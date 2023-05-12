@@ -98,7 +98,7 @@ if __name__ == '__main__':
                     cropped_number = cropped_value.crop(define.notes_trimareas[4-digit])
                     notes[f'{collection.key}_{digit}_{number}'] = {
                         'value': number,
-                        'np': np.array(cropped_number)
+                        'np': np.array(cropped_number).flatten()
                     }
                     value /= 10
                     digit += 1
