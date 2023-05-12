@@ -549,6 +549,7 @@ def larning_notes(informations):
 
     evaluate_targets = {}
     table = {}
+    result = {}
     for key, target in informations.items():
         if not 'notes' in target.label.keys():
             continue
@@ -566,7 +567,7 @@ def larning_notes(informations):
 
             if not tablekey in table.keys():
                 table[tablekey] = value % 10
-                report.append_log(f'{value % 10}: {tablekey}')
+                result[value % 10] = f'{value % 10}: {tablekey}'
                 report.saveimage_value(trimmed_once, f'{value % 10}-{key}.png')
 
             value = value // 10
@@ -575,6 +576,8 @@ def larning_notes(informations):
         evaluate_targets[key] = target
     
     report.append_log(f'key count: {len(table)}')
+    for key in sorted(result.keys()):
+        report.append_log(result[key])
 
     for key, target in evaluate_targets.items():
         trimmed = target.np_value[informations_define['notes']['trim']]
