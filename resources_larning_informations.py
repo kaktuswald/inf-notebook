@@ -9,7 +9,7 @@ from define import define
 import data_collection as dc
 from resources_generate import Report,save_resource_serialized,report_dirname
 
-recognition_define_filename = 'musics_recognition_define.json'
+recognition_define_filename = '_define_recognition_informations.json'
 
 background_ignore_keys_filename = 'background_ignore_keys.txt'
 
@@ -23,39 +23,6 @@ report_notuniques_filename = 'notuniques.txt'
 report_inspectresult_filename = 'inspect.txt'
 report_registered_musics_filename = 'musics_registered.txt'
 report_missing_musics_filename = 'musics_missing_in_arcade.txt'
-
-informations_define = {
-    'play_mode': {
-        'trim': (slice(60, 64), slice(90, 94), 1),
-        'maskvalue': 255
-    },
-    'difficulty': {
-        'trim': (slice(64, 66), slice(186, 246), 1),
-        'trimlevel': (slice(0, 2), slice(52, 60)),
-    },
-    'notes': {
-        'trim': (slice(64, 66), slice(268, 324), 1),
-        'trimnumber': (slice(0, 2), slice(2, 10)),
-        'maskvalue': 255,
-        'digit': 4
-    },
-    'music': {
-        'trim': (slice(0, 12), slice(230, 254), 2),
-        'background_key_position': (0, 0),
-        'maptrim': (slice(4, 12), slice(0, 24)),
-        "brightness_thresholds":  (0, 0, 0, 0, 0, 0, 0, 0)
-    }
-}
-
-backgroundshape = (
-    informations_define['music']['trim'][0].stop-informations_define['music']['trim'][0].start,
-    informations_define['music']['trim'][1].stop-informations_define['music']['trim'][1].start
-)
-
-mapareashape = (
-    informations_define['music']['maptrim'][0].stop-informations_define['music']['maptrim'][0].start,
-    informations_define['music']['maptrim'][1].stop-informations_define['music']['maptrim'][1].start
-)
 
 otherreport_basedir = join(report_dirname, 'music')
 
@@ -80,6 +47,54 @@ def load_informations(labels):
             informations[key] = Informations(np_value, labels[key]['informations'])
     
     return informations
+
+def load_define():
+    try:
+        with open(recognition_define_filename) as f:
+            ret = json.load(f)
+    except Exception:
+        print(f"{recognition_define_filename}を読み込めませんでした。")
+        return None
+    
+    ret['play_mode']['trim'] = (
+        slice(ret['play_mode']['trim'][0][0], ret['play_mode']['trim'][0][1]),
+        slice(ret['play_mode']['trim'][1][0], ret['play_mode']['trim'][1][1]),
+        ret['play_mode']['trim'][2]
+    )
+
+    ret['difficulty']['trim'] = (
+        slice(ret['difficulty']['trim'][0][0], ret['difficulty']['trim'][0][1]),
+        slice(ret['difficulty']['trim'][1][0], ret['difficulty']['trim'][1][1]),
+        ret['difficulty']['trim'][2]
+    )
+    ret['difficulty']['trimlevel'] = (
+        slice(ret['difficulty']['trimlevel'][0][0], ret['difficulty']['trimlevel'][0][1]),
+        slice(ret['difficulty']['trimlevel'][1][0], ret['difficulty']['trimlevel'][1][1])
+    )
+
+    ret['notes']['trim'] = (
+        slice(ret['notes']['trim'][0][0], ret['notes']['trim'][0][1]),
+        slice(ret['notes']['trim'][1][0], ret['notes']['trim'][1][1]),
+        ret['notes']['trim'][2]
+    )
+    ret['notes']['trimnumber'] = (
+        slice(ret['notes']['trimnumber'][0][0], ret['notes']['trimnumber'][0][1]),
+        slice(ret['notes']['trimnumber'][1][0], ret['notes']['trimnumber'][1][1])
+    )
+
+    ret['music']['trim'] = (
+        slice(ret['music']['trim'][0][0], ret['music']['trim'][0][1]),
+        slice(ret['music']['trim'][1][0], ret['music']['trim'][1][1]),
+        ret['music']['trim'][2]
+    )
+    ret['music']['background_key_position'] = tuple(ret['music']['background_key_position'])
+    ret['music']['maptrim'] = (
+        slice(ret['music']['maptrim'][0][0], ret['music']['maptrim'][0][1]),
+        slice(ret['music']['maptrim'][1][0], ret['music']['maptrim'][1][1])
+    )
+    ret['music']['brightness_thresholds'] = tuple(ret['music']['brightness_thresholds'])
+
+    return ret
 
 def larning_multivalue(targets, report):
     if len(targets) == 0:
@@ -718,6 +733,20 @@ if __name__ == '__main__':
         print(f"{dc.label_filepath}を読み込めませんでした。")
         exit()
     
+    informations_define = load_define()
+    if informations_define is None:
+        exit()
+
+    backgroundshape = (
+        informations_define['music']['trim'][0].stop-informations_define['music']['trim'][0].start,
+        informations_define['music']['trim'][1].stop-informations_define['music']['trim'][1].start
+    )
+
+    mapareashape = (
+        informations_define['music']['maptrim'][0].stop-informations_define['music']['maptrim'][0].start,
+        informations_define['music']['maptrim'][1].stop-informations_define['music']['maptrim'][1].start
+    )
+
     informations = load_informations(labels)
     
     organize(informations)
