@@ -7,6 +7,11 @@ from .static import title,icon_path,background_color
 
 in_area_background_color='#5779dd'
 
+informations_size = (
+    define.areas_np['informations'][1].stop - define.areas_np['informations'][1].start,
+    define.areas_np['informations'][0].stop - define.areas_np['informations'][0].start
+)
+
 def layout_manage(keys):
     selectable_value_list = {}
     for key, values in define.value_list.items():
@@ -39,6 +44,10 @@ def layout_manage(keys):
         [
             sg.Text('曲名', size=(18, 1)),
             sg.Text(key='result_music', background_color=in_area_background_color)
+        ],
+        [
+            sg.Text('曲名(新)', size=(18, 1)),
+            sg.Text(key='result_music_new', background_color=in_area_background_color)
         ]
     ]
 
@@ -193,7 +202,7 @@ def layout_manage(keys):
             sg.Column([
                 [
                     sg.Column([
-                        [sg.Image(key='image_informations', size=define.informations_trimsize, background_color=background_color)],
+                        [sg.Image(key='image_informations', size=informations_size, background_color=background_color)],
                         [sg.Image(key='image_details', size=define.details_trimsize, background_color=background_color)]
                     ], background_color=background_color),
                     sg.Listbox(keys, key='list_keys', size=(24, 22), enable_events=True),
@@ -230,7 +239,7 @@ def display_informations(image):
     if image is not None:
         bytes = io.BytesIO()
         image.save(bytes, format='PNG')
-        window['image_informations'].update(data=bytes.getvalue(),visible=True)
+        window['image_informations'].update(data=bytes.getvalue(),visible=True,size=informations_size)
     else:
         window['image_informations'].update(visible=False)
 
@@ -251,6 +260,7 @@ def reset_informations():
     window['result_level'].update('')
     window['result_notes'].update('')
     window['result_music'].update('')
+    window['result_music_new'].update('')
 
 def set_informations(image):
     window['has_informations'].update(True)
@@ -270,6 +280,13 @@ def set_informations(image):
     window['result_level'].update(informations.level if informations.level is not None else '')
     window['result_notes'].update(informations.notes if informations.notes is not None else '')
     window['result_music'].update(informations.music if informations.music is not None else '')
+
+    import numpy as np
+    if image.height == 78:
+        music_new = recog.get_music_new(np.array(image))
+        window['result_music_new'].update(music_new if music_new is not None else '')
+    else:
+        window['result_music_new'].update('')
 
 def reset_details():
     window['has_details'].update(False)
