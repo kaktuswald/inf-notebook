@@ -194,7 +194,8 @@ def layout_manage(keys):
         ],
         [sg.Checkbox('未アノテーションのみ', key='only_not_annotation', enable_events=True, background_color=in_area_background_color)],
         [sg.Checkbox('曲名なしのみ', key='only_undefined_music', enable_events=True, background_color=in_area_background_color)],
-        [sg.Checkbox('F-COMBOのみ', key='only_full_combo', enable_events=True, background_color=in_area_background_color)]
+        [sg.Checkbox('F-COMBOのみ', key='only_full_combo', enable_events=True, background_color=in_area_background_color)],
+        [sg.Input(key='keyfilter', enable_events=True)]
     ]
 
     return [
@@ -532,4 +533,6 @@ def change_search_condition(keys, labels):
         keys = [key for key in keys if key in labels.keys() and labels[key]['informations'] is not None and labels[key]['informations']['music'] == '']
     if window['only_full_combo'].get():
         keys = [key for key in keys if key in labels.keys() and labels[key]['details'] is not None and (('clear_type_best' in labels[key]['details'].keys() and labels[key]['details']['clear_type_best'] == 'F-COMBO') or labels[key]['details']['clear_type_current'] == 'F-COMBO')]
+    if len(window['keyfilter'].get()) > 0:
+        keys = [key for key in keys if window['keyfilter'].get() in key]
     window['list_keys'].update(keys)

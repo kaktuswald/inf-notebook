@@ -402,7 +402,7 @@ class Recognition():
         if self.informations is None:
             return
 
-        music_trim_width = self.informations['music']['trim'][1].stop - self.informations['music']['trim'][1].start
-        self.music_brightness_filter = np.tile(np.array(self.informations['music']['brightness_thresholds']), (music_trim_width, 1)).T
+        music_maptrim_width = self.informations['music']['maptrim'][1].stop - self.informations['music']['maptrim'][1].start
+        self.music_brightness_filter = np.tile(np.array(self.informations['music']['brightness_thresholds']), (music_maptrim_width, 1)).T
 
 recog = Recognition()

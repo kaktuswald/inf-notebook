@@ -136,11 +136,7 @@ if __name__ == '__main__':
             gui.switch_has_informations()
         if event == 'has_details':
             gui.switch_has_details()
-        if event == 'only_not_annotation':
-            gui.change_search_condition(images.keys(), labels)
-        if event == 'only_undefined_music':
-            gui.change_search_condition(images.keys(), labels)
-        if event == 'only_full_combo':
+        if event in ['only_not_annotation', 'only_undefined_music', 'only_full_combo', 'keyfilter']:
             gui.change_search_condition(images.keys(), labels)
 
     window.close()
