@@ -124,10 +124,10 @@ if __name__ == '__main__':
             if label['details']['option_arrange_dp'] != '/':
                 key_left, key_right = label['details']['option_arrange_dp'].split('/')
                 area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
-                options[key_left][collection.key] = option_image.crop(area)
+                options[key_left][f'left-{collection.key}'] = option_image.crop(area)
                 left += define.option_widths[key_left] + define.option_widths['/']
                 area = [left, 0, left + define.option_trimsize[0], define.option_trimsize[1]]
-                options[key_right][collection.key] = option_image.crop(area)
+                options[key_right][f'right-{collection.key}'] = option_image.crop(area)
                 left += define.option_widths[key_right] + define.option_widths[',']
             if label['details']['option_arrange_sync'] != '':
                 key = label['details']['option_arrange_sync']
