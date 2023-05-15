@@ -110,8 +110,3 @@ class Setting():
     @property
     def ignore_download(self):
         return self.get_value('ignore_download')
-
-    @ignore_download.setter
-    def data_colignore_downloadlection(self, value):
-        self.set_value('ignore_download', value)
-    
