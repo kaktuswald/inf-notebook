@@ -451,14 +451,20 @@ def select_timestamp():
     if timestamp in imagevalues_result.keys():
         resultimage = imagevalues_result[timestamp]
     else:
-        resultimage = get_resultimagevalue(timestamp)
+        if timestamp in results:
+            resultimage = get_imagevalue(results[timestamp].image)
+        else:
+            resultimage = get_resultimagevalue(timestamp)
         imagevalues_result[timestamp] = resultimage
 
     if timestamp in imagevalues_filtered.keys():
         filteredimage = imagevalues_filtered[timestamp]
     else:
-        filteredimage = get_filteredimagevalue(timestamp)
-        imagevalues_filtered[timestamp] = filteredimage
+        if timestamp in results:
+            filteredimage = None
+        else:
+            filteredimage = get_filteredimagevalue(timestamp)
+            imagevalues_filtered[timestamp] = filteredimage
 
     if resultimage is not None:
         gui.display_image(resultimage, False, filteredimage is not None)
