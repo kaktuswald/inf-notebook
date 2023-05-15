@@ -91,11 +91,17 @@ class Recognition():
 
     def get_has_dead(self, np_value, play_side):
         trimmed = np_value[define.areas_np['dead'][play_side]]
-        return np.all((self.dead==0)|(trimmed==self.dead))
+        if np.all((self.dead==0)|(trimmed==self.dead)):
+            return True
+        else:
+            return False
     
     def get_has_rival(self, np_value):
         trimmed = np_value[define.areas_np['rival']]
-        return np.all((self.rival==0)|(trimmed==self.rival))
+        if np.all((self.rival==0)|(trimmed==self.rival)):
+            return True
+        else:
+            return False
     
     def get_level(self, image_level):
         crop_difficulty = image_level.crop(define.areas['difficulty'])
