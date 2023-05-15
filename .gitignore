@@ -145,11 +145,7 @@ musics*/
 
 env_*/
 
-musics_arcade_all.txt
-musics_infinitas_only.txt
-musics_registered.txt
-musics_missing_in_arcade.txt
-musics_wiki*.txt
+musics*.txt
 
 backgrounds_report.txt
 
