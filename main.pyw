@@ -635,7 +635,7 @@ if __name__ == '__main__':
     if version != '0.0.0.0' and get_latest_version() != version:
         gui.find_latest_version(latest_url)
 
-    if not setting.manage:
+    if not setting.ignore_download:
         Thread(target=check_resource).start()
     
     # version0.7.0.1以前の不具合対応のため
