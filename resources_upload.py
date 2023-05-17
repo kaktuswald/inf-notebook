@@ -21,6 +21,8 @@ if __name__ == '__main__':
 
         musics_timestamp = ResourceTimestamp(filename_musics)
         musics_timestamp.write_timestamp(timestamp)
+        
+        print(f'Upload complete {filename_musics}')
 
     if '-all' in argv or '-informations' in argv:
         filename_informations = f'{define.informations_resourcename}.res'
@@ -31,4 +33,6 @@ if __name__ == '__main__':
 
         musics_timestamp = ResourceTimestamp(filename_informations)
         musics_timestamp.write_timestamp(timestamp)
+
+        print(f'Upload complete {filename_informations}')
 

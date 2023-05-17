@@ -259,19 +259,21 @@ class Recognition():
 
     def get_music_new(self, np_value_informations):
         trimmed = np_value_informations[self.informations['music']['trim']]
-        background_key = trimmed[self.informations['music']['background_key_position']]
-        if not background_key in self.informations['music']['backgrounds'].keys():
-            return None
+
+        blue = np.where(trimmed[:,:,2]==self.informations['music']['bluevalue'],trimmed[:,:,2],0)
+        gray1 = np.where((trimmed[:,:,0]==trimmed[:,:,1])&(trimmed[:,:,0]==trimmed[:,:,2]),trimmed[:,:,0],0)
+        gray = np.where((gray1!=255)&(gray1>self.informations['music']['gray_threshold']),gray1,0)
+
+        if np.count_nonzero(gray) > np.count_nonzero(blue):
+            masked = np.where(self.informations['music']['mask']['gray']==1,gray,0)
+            targettable = self.informations['music']['table']['gray']
+        else:
+            masked = np.where(self.informations['music']['mask']['blue']==1,blue,0)
+            targettable = self.informations['music']['table']['blue']
         
-        filtered_background = np.where(trimmed!=self.informations['music']['backgrounds'][background_key], trimmed, 0)
-        filtered_mask = np.where(self.informations['music']['mask']==1, filtered_background, 0)
-
-        maptrimmed = filtered_mask[self.informations['music']['maptrim']]
-        filtered_brightness = np.where(maptrimmed>=self.music_brightness_filter, maptrimmed, 0)
-
         maxcounts = []
         maxcount_values = []
-        for line in filtered_brightness:
+        for line in masked:
             unique, counts = np.unique(line, return_counts=True)
             if len(counts) != 1:
                 index = -np.argmax(np.flip(counts[1:])) - 1
@@ -281,17 +283,16 @@ class Recognition():
                 maxcounts.append(0)
                 maxcount_values.append(0)
 
-        target = self.informations['music']['table']
         for y in np.argsort(maxcounts)[::-1]:
             color = int(maxcount_values[y])
-            bins = np.where(filtered_brightness[y]==color, 1, 0)
+            bins = np.where(masked[y]==color, 1, 0)
             hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-            mapkey = f"{y:02d}{''.join([format(v, '0x') for v in hexs])}"
-            if not mapkey in target:
+            mapkey = f"{y:02d}{color:02x}{''.join([format(v, '0x') for v in hexs])}"
+            if not mapkey in targettable:
                 return None
-            if type(target[mapkey]) == str:
-                return target[mapkey]
-            target = target[mapkey]
+            if type(targettable[mapkey]) == str:
+                return targettable[mapkey]
+            targettable = targettable[mapkey]
         
         return None
 
@@ -405,10 +406,5 @@ class Recognition():
         resourcename = f'informations{define.informations_recognition_version}'
         
         self.informations = load_resource_serialized(resourcename)
-        if self.informations is None:
-            return
-
-        music_maptrim_width = self.informations['music']['maptrim'][1].stop - self.informations['music']['maptrim'][1].start
-        self.music_brightness_filter = np.tile(np.array(self.informations['music']['brightness_thresholds']), (music_maptrim_width, 1)).T
 
 recog = Recognition()
