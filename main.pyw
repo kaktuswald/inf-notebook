@@ -9,7 +9,6 @@ import webbrowser
 import logging
 from urllib import request
 from urllib.parse import quote
-import ctypes
 
 from setting import Setting
 
@@ -46,6 +45,7 @@ from record import Record,rename_allfiles
 from graph import create_graphimage,save_graphimage,graphs_basepath
 from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
 from playdata import Recent
+from windows import get_handle,get_rect
 
 thread_time_normal = 0.3
 thread_time_result = 0.12
@@ -58,9 +58,6 @@ upload_confirm_message = [
 ]
 
 windowtitle = 'beatmania IIDX INFINITAS'
-
-FindWindowExW = ctypes.windll.user32.FindWindowExW
-GetWindowRect = ctypes.windll.user32.GetWindowRect
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
@@ -98,23 +95,29 @@ class ThreadMain(Thread):
             self.routine()
 
     def routine(self):
-        handle = FindWindowExW(None, None, None, windowtitle)
-        if handle == 0:
-            if self.handle != 0:
-                self.queues['log'].put(f'infinitas lost')
+        if self.handle == 0:
+            self.handle = get_handle(windowtitle)
+            if self.handle == 0:
+                return
+
+            self.queues['log'].put(f'infinitas find')
+            self.active = False
+            screenshot.xy = None
+        
+        rect = get_rect(self.handle)
+        width = rect.right - rect.left
+        height = rect.bottom - rect.top
+
+        if rect is None or not width or not height:
+            self.queues['log'].put(f'infinitas lost')
+            self.sleep_time = thread_time_wait
+
             self.handle = 0
             self.active = False
             screenshot.xy = None
             return
-        
-        if self.handle != handle:
-            self.queues['log'].put(f'infinitas find')
-            self.handle = handle
-        
-        rect = ctypes.wintypes.RECT()
-        GetWindowRect(handle, ctypes.pointer(rect))
-
-        if rect.right - rect.left != define.width or rect.bottom - rect.top != define.height:
+            
+        if width != define.width or height != define.height:
             if self.active:
                 self.queues['log'].put(f'infinitas deactivate')
                 self.sleep_time = thread_time_wait
