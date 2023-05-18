@@ -97,6 +97,25 @@ def open(recent):
             sg.Graph(key='graph recent shadow-color', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#000000')
         ],
         [
+            sg.Text('NORMAL', size=(15, 1), justification='right', background_color=background_color),
+            sg.Input('#157aea', size=(9, 1), key='recent NORMAL color', enable_events=True),
+            sg.Graph(key='graph recent NORMAL', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
+            sg.Text('HYPER', size=(15, 1), justification='right', background_color=background_color),
+            sg.Input('#eaea15', size=(9, 1), key='recent HYPER color', enable_events=True),
+            sg.Graph(key='graph recent HYPER', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
+            sg.Text('ANOTHER', size=(15, 1), justification='right', background_color=background_color),
+            sg.Input('#ea1515', size=(9, 1), key='recent ANOTHER color', enable_events=True),
+            sg.Graph(key='graph recent ANOTHER', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
+        ],
+        [
+            sg.Text('BEGINNER', size=(15, 1), justification='right', background_color=background_color),
+            sg.Input('#15ea25', size=(9, 1), key='recent BEGINNER color', enable_events=True),
+            sg.Graph(key='graph recent BEGINNER', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080'),
+            sg.Text('LEGGENDARIA', size=(15, 1), justification='right', background_color=background_color),
+            sg.Input('#9f2020', size=(9, 1), key='recent LEGGENDARIA color', enable_events=True),
+            sg.Graph(key='graph recent LEGGENDARIA', canvas_size=graph_color_size, graph_bottom_left=(0, 0), graph_top_right=graph_color_size, background_color='#808080')
+        ],
+        [
             sg.Column([
                 [
                     sg.Text('プレイ曲数', background_color=background_color_label, size=(26, None), justification='right'),
@@ -367,6 +386,12 @@ def generate_recent_css(window):
             css.append(f'  display: {display};')
             css.append(f'  color: {color};')
             css.append('}')
+
+    for key in ['BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA']:
+        color = window[f'recent {key} color'].get()
+        if pattern_color.fullmatch(color) is not None:
+            window[f'graph recent {key}'].update(background_color=color)
+            css.append(f'span.{key} {{ color: {color};}}')
 
     window['css'].update('\n'.join(css))
 

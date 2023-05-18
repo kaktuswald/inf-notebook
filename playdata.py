@@ -82,6 +82,7 @@ class Recent():
 
         self.json['list'].append({
             'timestamp': result.timestamp,
+            'difficulty': result.informations.difficulty,
             'music': result.informations.music,
             'new': result.has_new_record(),
             'score': score,

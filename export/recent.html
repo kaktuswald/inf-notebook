@@ -48,6 +48,26 @@ p.music {
 	width: 760px;
 	text-align: right;
 }
+
+span.BEGINNER {
+	color: #15ea25;
+}
+
+span.NORMAL {
+	color: #157aea;
+}
+
+span.HYPER {
+	color: #eaea15;
+}
+
+span.ANOTHER {
+	color: #ea1515;
+}
+
+span.LEGGENDARIA {
+	color: #9f2020;
+}
 		</style>
 		<script src='./jquery-3.6.4.min.js'></script>
 		<script>
@@ -73,9 +93,9 @@ function reflect(json)
 	json.list.reverse().forEach(item => {
 		let newItem = $(`<p class='music'>`);
 		if(!isNaN(item.music))
-			newItem.append(`<span>?????</span>`);
+			newItem.append(`<span class='music'>?????</span>`);
 		else
-			newItem.append(`<span class='music'>${item.music}</span>`);
+			newItem.append(`<span class='music ${item.difficulty}'>${item.music}</span>`);
 		$('#played_musics').append(newItem);
 	});
 
