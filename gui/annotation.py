@@ -274,7 +274,7 @@ def set_informations(image):
     if image.height == 78:
         monochrome = image.crop((0, 5, image.width, image.height-2)).convert('L')
 
-    informations = recog.get_informations(monochrome)
+    informations = recog.get_informations(image_informations=monochrome)
 
     window['result_play_mode'].update(informations.play_mode if informations.play_mode is not None else '')
     window['result_difficulty'].update(informations.difficulty if informations.difficulty is not None else '')

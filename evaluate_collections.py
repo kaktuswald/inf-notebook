@@ -15,7 +15,7 @@ def evaluate(filename, informations, details, key, label):
     results = [filename]
     
     if label['informations'] is not None and informations is not None:
-        recog_informations = recog.get_informations(informations)
+        recog_informations = recog.get_informations(image_informations=informations)
 
         if recog_informations.play_mode == label['informations']['play_mode']:
             results.append('ok')

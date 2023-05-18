@@ -296,7 +296,7 @@ class Recognition():
         
         return None
 
-    def check_newrecognition(self, np_value):
+    def check_newrecognition(self, result, np_value):
         if self.informations is None:
             return True
         
@@ -306,28 +306,50 @@ class Recognition():
         notes = self.get_notes_new(np_value_informations)
         music = self.get_music_new(np_value_informations)
         
-        if None in [play_mode, difficulty, level, notes, music]:
+        if result.informations.play_mode != play_mode:
             return False
+        if result.informations.difficulty != difficulty:
+            return False
+        if result.informations.level != level:
+            return False
+        if result.informations.notes != notes:
+            return False
+        if result.informations.music != music:
+            return False
+
         return True
 
-    def get_informations(self, image_informations):
-        crop_play_mode = image_informations.crop(define.informations_areas['play_mode'])
-        play_mode = self.play_mode.find(crop_play_mode)
-
-        crop_difficulty = image_informations.crop(define.informations_areas['difficulty'])
-        difficulty = self.difficulty.find(crop_difficulty)
-        if difficulty is not None:
-            crop_level = image_informations.crop(define.informations_areas['level'])
-            difficulty_level = self.level[difficulty].find(crop_level)
-            if difficulty_level is not None:
-                difficulty, level = difficulty_level.split('-')
-            else:
-                difficulty, level = None, None
+    def get_informations(self, image_informations=None, sliced_informations_np=None):
+        if sliced_informations_np is not None:
+            play_mode = self.get_play_mode_new(sliced_informations_np)
+            difficulty, level = self.get_difficulty_new(sliced_informations_np)
+            notes = self.get_notes_new(sliced_informations_np)
+            music = self.get_music_new(sliced_informations_np)
         else:
-            level = None
-        notes = get_notes(image_informations)
+            play_mode, difficulty, level, notes, music = None, None, None, None, None
 
-        music = self.get_music(image_informations)
+        if play_mode is None and image_informations is not None:
+            crop_play_mode = image_informations.crop(define.informations_areas['play_mode'])
+            play_mode = self.play_mode.find(crop_play_mode)
+
+        if (difficulty is None or level is None) and image_informations is not None:
+            crop_difficulty = image_informations.crop(define.informations_areas['difficulty'])
+            difficulty = self.difficulty.find(crop_difficulty)
+            if difficulty is not None:
+                crop_level = image_informations.crop(define.informations_areas['level'])
+                difficulty_level = self.level[difficulty].find(crop_level)
+                if difficulty_level is not None:
+                    difficulty, level = difficulty_level.split('-')
+                else:
+                    difficulty, level = None, None
+            else:
+                level = None
+        
+        if notes is None and image_informations is not None:
+            notes = get_notes(image_informations)
+
+        if music is None and image_informations is not None:
+            music = self.get_music(image_informations)
 
         return ResultInformations(play_mode, difficulty, level, notes, music)
 
@@ -369,9 +391,11 @@ class Recognition():
         trim_informations = screen.monochrome.crop(define.informations_trimarea)
         trim_details = screen.monochrome.crop(define.details_trimarea[play_side])
 
+        np_informations = screen.np_value[define.areas_np['informations']]
+
         return Result(
             screen.original,
-            self.get_informations(trim_informations),
+            self.get_informations(image_informations=trim_informations, sliced_informations_np=np_informations),
             play_side,
             self.get_has_rival(screen.np_value),
             self.get_has_dead(screen.np_value, play_side),
