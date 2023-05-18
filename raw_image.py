@@ -20,4 +20,4 @@ def save_raw(screen):
     if not os.path.exists(filepath):
         screen.save(filepath)
     
-    return filename
+    return filepath

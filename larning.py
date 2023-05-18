@@ -66,14 +66,6 @@ def create_masks_directory():
     if not os.path.exists(masks_dirpath):
         os.mkdir(masks_dirpath)
 
-def save_raw(screen):
-    if not os.path.exists(raws_basepath):
-        os.mkdir(raws_basepath)
-
-    filepath = os.path.join(raws_basepath, screen.filename)
-    if not os.path.exists(filepath):
-        screen.original.save(filepath)
-
 def load_larning_sources():
     labels = RawLabel()
 

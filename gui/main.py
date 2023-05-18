@@ -150,6 +150,11 @@ def layout_main(setting):
             sg.Button('誤認識を通報', key='button_upload', visible=setting.data_collection, disabled=True, pad=1)
         ],
         [
+            sg.Text('Ctrl+F10でスクリーンショットを保存', background_color=background_color),
+            sg.Text('', key='screenshot_filepath', font=('Arial', 10, 'bold'), text_color='#f0fc80', background_color=background_color),
+            sg.Checkbox('スクリーンショットを常時表示する', key='check_display_screenshot', visible=setting.manage, enable_events=True, background_color=background_color)
+        ],
+        [
             sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
         ]
     ]
@@ -183,10 +188,6 @@ def layout_main(setting):
     return [
         [
             sg.Column([
-                [
-                    sg.Text('Ctrl+F10でスクリーンショットを保存', visible=setting.manage, background_color=background_color),
-                    sg.Checkbox('スクリーンショットを常時表示する', key='check_display_screenshot', visible=setting.manage, enable_events=True, background_color=background_color)
-                ],
                 [
                     sg.Column(pane_left, pad=0, background_color=background_color),
                     sg.Column(pane_right, pad=0, background_color=background_color)

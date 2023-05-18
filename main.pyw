@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 from threading import Thread,Event
 from queue import Queue
 from os import system,getcwd
-from os.path import join,exists
+from os.path import join,exists,pardir
 import webbrowser
 import logging
 from urllib import request
@@ -330,9 +330,11 @@ def insert_results(result):
 def active_screenshot():
     screenshot.shot()
     image = screenshot.get_image()
-    filename = save_raw(image)
-    log_debug(f'save screen: {filename}')
-    gui.display_image(get_imagevalue(image))
+    if image is not None:
+        filepath = save_raw(image)
+        log_debug(f'save screen: {filepath}')
+        gui.display_image(get_imagevalue(image))
+        window['screenshot_filepath'].update(join(pardir, filepath))
 
 def log_debug(message):
     logger.debug(message)
@@ -600,8 +602,7 @@ def rename_allrecords():
     rename_allfiles(musics)
 
 if __name__ == '__main__':
-    if setting.manage:
-        keyboard.add_hotkey('ctrl+F10', active_screenshot)
+    keyboard.add_hotkey('ctrl+F10', active_screenshot)
 
     window = gui.generate_window(setting, version)
 
@@ -722,9 +723,9 @@ if __name__ == '__main__':
             if event == 'button_best_switch':
                 gui.switch_best_display()
             if event == 'timeout':
-                if not window['positioned'].visible and thread.active:
+                if not window['positioned'].visible and thread.handle:
                     window['positioned'].update(visible=True)
-                if window['positioned'].visible and not thread.active:
+                if window['positioned'].visible and not thread.handle:
                     window['positioned'].update(visible=False)
                 if music_search_time is not None and time.time() > music_search_time:
                     music_search_time = None

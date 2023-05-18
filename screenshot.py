@@ -93,6 +93,7 @@ class Capture:
 class Screenshot:
     xy = None
     screentable = load_resource_serialized('get_screen')
+    np_value = None
 
     def __init__(self):
         self.checkloading = Capture(define.get_screen_area['width'], define.get_screen_area['height'])
@@ -123,6 +124,9 @@ class Screenshot:
         self.np_value = self.capture.shot(self.xy[0], self.xy[1])[::-1, :, ::-1]
 
     def get_image(self):
+        if self.np_value is None:
+            return None
+        
         return Image.fromarray(self.np_value)
 
     def get_resultscreen(self):
