@@ -21,7 +21,7 @@ class Define():
         'background_count': 13,
         'background_key_position':  (641, 410, 1),
         'areas': {
-            "heightline1": (slice(0, 150), 420, 1),
+            "heightline1": (slice(5, 150), 420, 1),
             "heightline2": (slice(235, 630), 420, 1)
         }
     }
