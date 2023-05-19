@@ -112,16 +112,20 @@ class Screenshot:
         np_value = self.checkloading.shot(x, y)
         key = np.sum(np_value)
 
-        if not key in self.screentable.keys():
-            return None
-        
-        return self.screentable[key]
+        if not key:
+            return 'black'
+
+        if key in self.screentable.keys():
+            return self.screentable[key]
+
+        return None
 
     def shot(self):
         if self.xy is None:
-            return None
+            return False
         
         self.np_value = self.capture.shot(self.xy[0], self.xy[1])[::-1, :, ::-1]
+        return True
 
     def get_image(self):
         if self.np_value is None:

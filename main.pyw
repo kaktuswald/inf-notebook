@@ -78,6 +78,7 @@ class ThreadMain(Thread):
     confirmed_savable = False
     processed_result = False
     logs = []
+    screen_latest = None
 
     def __init__(self, event_close, queues):
         self.event_close = event_close
@@ -142,6 +143,10 @@ class ThreadMain(Thread):
                 return
             
             screen = screenshot.get_screen()
+
+        if screen != self.screen_latest:
+            log_debug(f'Screen {screen}')
+            self.screen_latest = screen
 
         if screen == 'loading':
             if not self.waiting:
@@ -328,7 +333,9 @@ def insert_results(result):
     window['table_results'].update(values=list_results)
 
 def active_screenshot():
-    screenshot.shot()
+    if not screenshot.shot():
+        return
+    
     image = screenshot.get_image()
     if image is not None:
         filepath = save_raw(image)
@@ -727,6 +734,10 @@ if __name__ == '__main__':
                     window['positioned'].update(visible=True)
                 if window['positioned'].visible and not thread.handle:
                     window['positioned'].update(visible=False)
+                if not window['captureenable'].visible and screenshot.xy:
+                    window['captureenable'].update(visible=True)
+                if window['captureenable'].visible and not screenshot.xy:
+                    window['captureenable'].update(visible=False)
                 if music_search_time is not None and time.time() > music_search_time:
                     music_search_time = None
                     gui.search_music_candidates()

@@ -122,7 +122,8 @@ def layout_main(setting):
         [
             sg.Text('画像表示スケール', background_color=background_color),
             sg.Combo(scales, key='scale', default_value='1/2', readonly=True),
-            sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
+            sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False),
+            sg.Text('スクショ可能', key='captureenable', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
         ],
         [
             sg.InputText(key='text_file_path', visible=setting.manage, size=(70, 1), enable_events=True),
@@ -151,8 +152,8 @@ def layout_main(setting):
         ],
         [
             sg.Text('Ctrl+F10でスクリーンショットを保存', background_color=background_color),
-            sg.Text('', key='screenshot_filepath', font=('Arial', 10, 'bold'), text_color='#f0fc80', background_color=background_color),
-            sg.Checkbox('スクリーンショットを常時表示する', key='check_display_screenshot', visible=setting.manage, enable_events=True, background_color=background_color)
+            sg.Checkbox('常時キャプチャー表示', key='check_display_screenshot', visible=setting.manage,  enable_events=True, background_color=background_color),
+            sg.Text('', key='screenshot_filepath', font=('Arial', 8, 'bold'), text_color='#f0fc80', background_color=background_color)
         ],
         [
             sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
