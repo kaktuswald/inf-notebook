@@ -23,8 +23,8 @@ def get_handle(title):
     exwresult = windll.user32.FindWindowExW(None, None, None, title)
     if exwresult != 0:
         return exwresult
-
-    return search(title)
+    
+    return 0
 
 def get_rect(handle):
     if handle == 0:
