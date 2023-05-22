@@ -45,12 +45,12 @@ from record import Record,rename_allfiles
 from graph import create_graphimage,save_graphimage,graphs_basepath
 from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
 from playdata import Recent
-from windows import get_handle,get_rect
+from windows import find_window,get_rect
 
+thread_time_wait_nonactive = 1
+thread_time_wait_loading = 30
 thread_time_normal = 0.3
 thread_time_result = 0.12
-thread_time_wait = 1
-thread_count_wait = int(30 / thread_time_wait)
 
 upload_confirm_message = [
     '曲名の誤認識を通報しますか？',
@@ -58,6 +58,7 @@ upload_confirm_message = [
 ]
 
 windowtitle = 'beatmania IIDX INFINITAS'
+exename = 'bm2dx.exe'
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
@@ -73,11 +74,9 @@ class ThreadMain(Thread):
     handle = 0
     active = False
     waiting = False
-    waiting_count = 0
     confirmed_result = False
     confirmed_savable = False
     processed_result = False
-    logs = []
     screen_latest = None
 
     def __init__(self, event_close, queues):
@@ -89,15 +88,14 @@ class ThreadMain(Thread):
         self.start()
 
     def run(self):
-        self.sleep_time = thread_time_wait
+        self.sleep_time = thread_time_wait_nonactive
         self.queues['log'].put('start thread')
-        while not self.event_close.is_set():
-            time.sleep(self.sleep_time)
+        while not self.event_close.wait(timeout=self.sleep_time):
             self.routine()
 
     def routine(self):
         if self.handle == 0:
-            self.handle = get_handle(windowtitle)
+            self.handle = find_window(windowtitle, exename)
             if self.handle == 0:
                 return
 
@@ -111,7 +109,7 @@ class ThreadMain(Thread):
 
         if rect is None or not width or not height:
             self.queues['log'].put(f'infinitas lost')
-            self.sleep_time = thread_time_wait
+            self.sleep_time = thread_time_wait_nonactive
 
             self.handle = 0
             self.active = False
@@ -121,7 +119,7 @@ class ThreadMain(Thread):
         if width != define.width or height != define.height:
             if self.active:
                 self.queues['log'].put(f'infinitas deactivate')
-                self.sleep_time = thread_time_wait
+                self.sleep_time = thread_time_wait_nonactive
 
             self.active = False
             screenshot.xy = None
@@ -132,20 +130,11 @@ class ThreadMain(Thread):
             self.waiting = False
             self.queues['log'].put(f'infinitas activate')
             self.sleep_time = thread_time_normal
+            screenshot.xy = (rect.left, rect.top)
 
-        screenshot.xy = (rect.left, rect.top)
-
-        if not self.waiting:
-            screen = screenshot.get_screen()
-        else:
-            self.waiting_count -= 1
-            if self.waiting_count > 0:
-                return
-            
-            screen = screenshot.get_screen()
+        screen = screenshot.get_screen()
 
         if screen != self.screen_latest:
-            log_debug(f'Screen {screen}')
             self.screen_latest = screen
 
         if screen == 'loading':
@@ -154,11 +143,8 @@ class ThreadMain(Thread):
                 self.confirmed_savable = False
                 self.processed_result = False
                 self.waiting = True
-                self.waiting_count = thread_count_wait
                 self.queues['log'].put('find loading: start waiting')
-                self.sleep_time = thread_time_wait
-            else:
-                self.waiting_count = thread_count_wait
+                self.sleep_time = thread_time_wait_loading
             return
             
         if self.waiting:
