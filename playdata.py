@@ -10,6 +10,8 @@ from version import version
 
 export_dirname = 'export'
 
+csssetting_filepath = join(export_dirname, 'css.json')
+
 recent_filepath = join(export_dirname, 'recent.json')
 summary_timestamp_filepath = join(export_dirname, 'summary_timestamp.txt')
 

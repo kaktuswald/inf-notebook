@@ -33,7 +33,7 @@ logger.debug('mode: manage')
 
 from version import version
 import gui.main as gui
-from gui.export import open as export_open
+from gui.export import open_export
 from gui.general import get_imagevalue
 from define import define
 from resources import play_sound_result,check_latest
@@ -684,7 +684,7 @@ if __name__ == '__main__':
             if event == 'button_tweet':
                 tweet()
             if event == 'button_export':
-                export_open(recent)
+                open_export(recent)
             if event == 'button_upload':
                 if gui.question('確認', upload_confirm_message):
                     result = results[selection.timestamp]
