@@ -10,8 +10,6 @@ from resources_generate import Report,save_resource_serialized,report_dirname
 
 recognition_define_filename = '_define_recognition_informations.json'
 
-background_ignore_keys_filename = 'background_ignore_keys.txt'
-
 arcadeallmusics_filename = 'musics_arcade_all.txt'
 infinitasonlymusics_filename = 'musics_infinitas_only.txt'
 
