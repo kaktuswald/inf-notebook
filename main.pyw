@@ -390,7 +390,10 @@ def select_result_today():
         window['difficulty'].update(ret.difficulty)
         window['search_music'].update(music)
 
-        gui.display_record(ret.get_targetrecord())
+        targetrecord = ret.get_targetrecord()
+        gui.display_record(targetrecord)
+        if targetrecord is not None:
+            gui.display_historyresult(targetrecord, result.timestamp)
     else:
         gui.display_record(None)
 
