@@ -52,7 +52,6 @@ class Screen:
         self.np_value = np_value
 
         self.original = Image.fromarray(np_value)
-        self.monochrome = self.original.convert('L')
         self.filename = filename
 
 class Capture:

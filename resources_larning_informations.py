@@ -7,6 +7,7 @@ import numpy as np
 from define import define
 import data_collection as dc
 from resources_generate import Report,save_resource_serialized,report_dirname
+from resources_larning import larning_multivalue
 
 recognition_define_filename = '_define_recognition_informations.json'
 
@@ -81,32 +82,6 @@ def load_define():
     )
 
     return ret
-
-def larning_multivalue(targets, report):
-    if len(targets) == 0:
-        report.append_log('count: 0')
-        return None
-
-    table = {}
-    for value in targets.keys():
-        keys = []
-        for key, np_value in targets[value].items():
-            bins = np.where(np_value.flatten()==informations_define['play_mode']['maskvalue'], 1, 0)
-            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-            tablekey = ''.join([format(v, '0x') for v in hexs])
-
-            if not tablekey in table.keys():
-                table[tablekey] = value
-                keys.append(tablekey)
-                report.append_log(f'{value}: {tablekey}')
-                report.saveimage_value(np_value, f'{value}-pattern{len(keys):02}-{tablekey}-{key}.png')
-    
-    report.append_log(f'Key count: {len(table)}')
-
-    if len(table) == 0:
-        return None
-
-    return table
 
 def filter(targets, report, bluevalue, gray_threshold):
     result = []
@@ -412,7 +387,7 @@ def larning_playmode(informations):
     
     report.append_log(f'Source count: {len(larning_targets)}')
 
-    table = larning_multivalue(larning_targets, report)
+    table = larning_multivalue(larning_targets, report, informations_define['play_mode']['maskvalue'])
     if table is None:
         report.report()
         return

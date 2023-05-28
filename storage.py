@@ -26,12 +26,12 @@ details_dirname = 'details'
 
 rivalname_fillbox = (
     (
-        define.details_areas['graphtarget']['name'][0],
-        define.details_areas['graphtarget']['name'][1]
+        define.details_graphtarget_name_area[0],
+        define.details_graphtarget_name_area[1]
     ),
     (
-        define.details_areas['graphtarget']['name'][2],
-        define.details_areas['graphtarget']['name'][3]
+        define.details_graphtarget_name_area[2],
+        define.details_graphtarget_name_area[3]
     )
 )
 
@@ -140,22 +140,12 @@ class StorageAccessor():
         if result.informations.music is None:
             informations_trim = True
 
-        if result.informations.play_mode == 'DP':
+        if result.details.clear_type.current is None:
             details_trim = True
-        
-        if not result.details.options.special:
-            if result.details.clear_type.best is None:
-                details_trim = True
-            if result.details.dj_level.best is None:
-                details_trim = True
-            if result.details.score.best is None:
-                details_trim = True
-            if result.details.clear_type.current is None:
-                details_trim = True
-            if result.details.dj_level.current is None:
-                details_trim = True
-            if result.details.score.current is None:
-                details_trim = True
+        if result.details.dj_level.current is None:
+            details_trim = True
+        if result.details.score.current is None:
+            details_trim = True
 
         if result.details.graphtarget is None:
             details_trim = True

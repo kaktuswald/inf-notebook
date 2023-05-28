@@ -55,7 +55,7 @@ class Report():
             self.log.append(f'Through count: {self.count_through}')
             self.log.append('Complete')
         else:
-            self.log.append(f'Error count: {self.count_through}')
+            self.log.append(f'Error count: {self.count_error}')
         
         report_filepath = join(self.report_dirpath, 'report.txt')
         with open(report_filepath, 'w', encoding='UTF-8') as f:

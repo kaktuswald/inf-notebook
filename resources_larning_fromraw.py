@@ -3,38 +3,13 @@ from sys import argv
 
 from define import define
 from resources_generate import Report,load_raws,save_resource_numpy
+from resources_larning import larning
 
 resourcenames = {
     'rival': 'rival',
     'play_side': 'play_side',
     'dead': 'dead'
 }
-
-def larning(targets, report):
-    if len(raws) == 0:
-        report.append_log('count: 0')
-        return None
-
-    patterns = []
-    listeds = []
-    for filename, np_value in targets.items():
-        listed = np_value.tolist()
-        if not listed in listeds:
-            patterns.append(np_value)
-            listeds.append(listed)
-            report.saveimage_value(np_value, f'pattern{len(patterns):02}-{filename}')
-    
-    report.append_log(f'pattern count: {len(patterns)}')
-
-    result = np.copy(patterns[0])
-    for target in patterns[1:]:
-        result = np.where(result|result==target, result, 0)
-
-    if np.sum(result) == 0:
-        report.append_log('Result equal 0')
-        return None
-
-    return result
 
 def larning_rival(raws):
     resourcename = resourcenames['rival']
@@ -187,4 +162,3 @@ if __name__ == '__main__':
 
     if '-all' in argv or '-dead' in argv:
         larning_dead(raws)
-    

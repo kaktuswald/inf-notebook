@@ -35,4 +35,3 @@ if __name__ == '__main__':
         musics_timestamp.write_timestamp(timestamp)
 
         print(f'Upload complete {filename_informations}')
-

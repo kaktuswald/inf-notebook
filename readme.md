@@ -167,26 +167,16 @@ python annotation.pyw
 
 #### 学習する
 ```shell
-python larning_collection.py -all
-python larning_music.py
+python resources_larning_informations.py
+python resources_larning_details.py
 ```
 
-#### 学習結果とラベルの照合
-```shell
-python evaluate_collection.py
-```
-
-evaluate_collection.csvが作成される。
+以下ファイルが作成される。
+- informations(バージョン).res
+- detailss(バージョン).res
 
 #### 学習した曲名認識データをアップロードする
 ```shell
-python resources_upload.py -musics
-```
-
-### リザルトの詳細認識の新手法
-精度が追いついたら置き換える。
-```shell
-python resources_larning_informations.py
 python resources_upload.py -informations
 ```
-- informations(バージョン).res
+

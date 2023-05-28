@@ -93,13 +93,13 @@ if __name__ == '__main__':
                 informations = None
             
             if values['has_details']:
-                display = ""
-                for key in ['default', 'lanes', 'measures']:
-                    if values[f'display_{key}']:
-                        display = key
+                graphtype = ""
+                for key in ['gauge', 'lanes', 'measures']:
+                    if values[f'graphtype_{key}']:
+                        graphtype = key
 
                 details = {
-                    'display': display,
+                    'graphtype': graphtype,
                     'option_arrange': values['option_arrange'],
                     'option_arrange_dp': f"{values['option_arrange_1p']}/{values['option_arrange_2p']}",
                     'option_arrange_sync': values['option_arrange_sync'],

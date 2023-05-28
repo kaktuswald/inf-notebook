@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import io
+import numpy as np
 
 from define import define
 from recog import recog
@@ -46,15 +47,15 @@ def layout_manage(keys):
             sg.Text(key='result_music', background_color=in_area_background_color)
         ],
         [
-            sg.Text('曲名(新)', size=(18, 1)),
-            sg.Text(key='result_music_new', background_color=in_area_background_color)
+            sg.Text('曲名(旧)', size=(18, 1)),
+            sg.Text(key='result_music_old', background_color=in_area_background_color)
         ]
     ]
 
     result_details = [
         [
             sg.Text('グラフ表示', size=(21, 1)),
-            sg.Text(key='result_graph', background_color=in_area_background_color)
+            sg.Text(key='result_graphtype', background_color=in_area_background_color)
         ],
         [
             sg.Text('配置オプション', size=(21, 1)),
@@ -125,9 +126,9 @@ def layout_manage(keys):
             sg.Input(key='music', size=(30, 1)),
         ],
         [
-            sg.Radio('デフォルト', group_id='display', key='display_default', disabled=True, background_color=in_area_background_color),
-            sg.Radio('レーン別', group_id='display', key='display_lanes', disabled=True, background_color=in_area_background_color),
-            sg.Radio('小節ごと', group_id='display', key='display_measures', disabled=True, background_color=in_area_background_color)
+            sg.Radio('ゲージ', group_id='graphtype', key='graphtype_gauge', disabled=True, background_color=in_area_background_color),
+            sg.Radio('レーン別', group_id='graphtype', key='graphtype_lanes', disabled=True, background_color=in_area_background_color),
+            sg.Radio('小節ごと', group_id='graphtype', key='graphtype_measures', disabled=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('オプション', size=(15, 1)),
@@ -261,20 +262,16 @@ def reset_informations():
     window['result_level'].update('')
     window['result_notes'].update('')
     window['result_music'].update('')
-    window['result_music_new'].update('')
+    window['result_music_old'].update('')
 
 def set_informations(image):
     window['has_informations'].update(True)
     switch_informations_controls()
 
-    if image.height == 71:
-        monochrome = image.convert('L')
-    if image.height == 75:
-        monochrome = image.crop((0, 3, image.width, image.height-1)).convert('L')
-    if image.height == 78:
-        monochrome = image.crop((0, 5, image.width, image.height-2)).convert('L')
-
-    informations = recog.get_informations(image_informations=monochrome)
+    if image.height != 78:
+        return
+    
+    informations = recog.get_informations(np.array(image))
 
     window['result_play_mode'].update(informations.play_mode if informations.play_mode is not None else '')
     window['result_difficulty'].update(informations.difficulty if informations.difficulty is not None else '')
@@ -282,18 +279,14 @@ def set_informations(image):
     window['result_notes'].update(informations.notes if informations.notes is not None else '')
     window['result_music'].update(informations.music if informations.music is not None else '')
 
-    import numpy as np
-    if image.height == 78:
-        music_new = recog.get_music_new(np.array(image))
-        window['result_music_new'].update(music_new if music_new is not None else '')
-    else:
-        window['result_music_new'].update('')
+    music_old = recog.get_music(image.convert('L').crop((0, 5, 460, 76)))
+    window['result_music_old'].update(music_old if music_old is not None else '')
 
 def reset_details():
     window['has_details'].update(False)
     switch_details_controls()
 
-    window['result_graph'].update('')
+    window['result_graphtype'].update('')
     window['result_option_arrange'].update('')
     window['result_option_flip'].update('')
     window['result_option_assist'].update('')
@@ -316,11 +309,14 @@ def set_details(image):
     window['has_details'].update(True)
     switch_details_controls()
 
-    monochrome = image.convert('L')
+    if image.mode == 'L':
+        return
+    
+    np_value = np.array(image)
 
-    window['result_graph'].update(recog.get_graph(monochrome))
+    window['result_graphtype'].update(recog.get_graphtype(np_value))
 
-    details = recog.get_details(monochrome)
+    details = recog.get_details(np_value)
     options = details.options
     clear_type = details.clear_type
     dj_level = details.dj_level
@@ -356,10 +352,13 @@ def set_result():
     window['difficulty'].update(window['result_difficulty'].get())
     window['level'].update(window['result_level'].get())
     window['notes'].update(window['result_notes'].get())
-    window['music'].update(window['result_music'].get())
+    music = window['result_music'].get()
+    window['music'].update(music)
+    if music == '':
+        window['music'].update(window['result_music_old'].get())
 
-    if window['result_graph'].get() != '':
-        window[f"display_{window['result_graph'].get()}"].update(True)
+    if window['result_graphtype'].get() != '':
+        window[f"graphtype_{window['result_graphtype'].get()}"].update(True)
 
     window['option_arrange'].update('')
     window['option_arrange_1p'].update('')
@@ -400,8 +399,8 @@ def set_labels(label):
         window['level'].update('')
         window['notes'].update('')
         window['music'].update('')
-        for key in ['default', 'lanes', 'measures']:
-            window[f'display_{key}'].update(False)
+        for key in ['gauge', 'lanes', 'measures']:
+            window[f'graphtype_{key}'].update(False)
         window['option_arrange'].update('')
         window['option_arrange_1p'].update('')
         window['option_arrange_2p'].update('')
@@ -443,8 +442,8 @@ def set_labels(label):
         window['music'].update('')
     
     if label['details'] is not None:
-        if label['details']['display'] != '':
-            window[f"display_{label['details']['display']}"].update(True)
+        if label['details']['graphtype'] != '':
+            window[f"graphtype_{label['details']['graphtype']}"].update(True)
         window['option_battle'].update(label['details']['option_battle'])
         window['option_arrange'].update(label['details']['option_arrange'])
         left, right = label['details']['option_arrange_dp'].split('/')
@@ -468,8 +467,8 @@ def set_labels(label):
         window['miss_count_new'].update(label['details']['miss_count_new'])
         window['graphtarget'].update(label['details']['graphtarget'] if 'graphtarget' in label['details'].keys() else '')
     else:
-        for key in ['default', 'lanes', 'measures']:
-            window[f'display_{key}'].update(False)
+        for key in ['gauge', 'lanes', 'measures']:
+            window[f'graphtype_{key}'].update(False)
         window['option_arrange'].update('')
         window['option_arrange_1p'].update('')
         window['option_arrange_2p'].update('')
@@ -503,8 +502,8 @@ def switch_informations_controls():
 def switch_details_controls():
     value = window['has_details'].get()
 
-    for key in ['default', 'lanes', 'measures']:
-        window[f'display_{key}'].update(disabled=not value)
+    for key in ['gauge', 'lanes', 'measures']:
+        window[f'graphtype_{key}'].update(disabled=not value)
     window['option_arrange'].update(disabled=not value)
     window['option_arrange_1p'].update(disabled=not value)
     window['option_arrange_2p'].update(disabled=not value)

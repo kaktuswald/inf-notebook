@@ -55,6 +55,12 @@ def layout_manage(filenames):
             sg.Checkbox('表示あり', key='rival', default=False, background_color=in_area_background_color)
         ],
         [
+            sg.Text('グラフ', size=(16, 1)),
+            sg.Radio('ゲージ', key='graph_gauge', group_id='graph', background_color=in_area_background_color),
+            sg.Radio('レーン', key='graph_lanes', group_id='graph', background_color=in_area_background_color),
+            sg.Radio('小節', key='graph_measures', group_id='graph', background_color=in_area_background_color),
+        ],
+        [
             sg.Text('リザルト', size=(16, 1)),
             sg.Text('モード', background_color=in_area_background_color),
             sg.Combo(['', 'SP', 'DP'], key='play_mode'),
@@ -80,17 +86,18 @@ def layout_manage(filenames):
                         ],
                         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)]
                     ], pad=0, background_color=background_color),
-                    sg.Listbox(filenames, key='list_screens', size=(27, 20), enable_events=True),
+                    sg.Listbox(filenames, key='list_screens', size=(27, 21), enable_events=True),
                     sg.Column([
                         [sg.Radio('すべて', default=True, key='search_all', group_id='search', enable_events=True, background_color=background_color)],
                         [sg.Radio('選曲のみ', key='search_only_music_select', group_id='search', enable_events=True, background_color=background_color)],
                         [sg.Radio('プレイ中のみ', key='search_only_playing', group_id='search', enable_events=True, background_color=background_color)],
-                        [sg.Radio('リザルトのみ', key='search_only_result', group_id='search', enable_events=True, background_color=background_color)]
+                        [sg.Radio('リザルトのみ', key='search_only_result', group_id='search', enable_events=True, background_color=background_color)],
+                        [sg.Radio('カットインなし', key='search_only_not_cutin', group_id='search', enable_events=True, background_color=background_color)]
                     ], pad=0, background_color=background_color)
                 ],
                 [
-                    sg.Column(manage_screen, size=(190, 190), background_color=in_area_background_color),
-                    sg.Column(manage_label, size=(400, 190), background_color=in_area_background_color),
+                    sg.Column(manage_screen, size=(190, 210), background_color=in_area_background_color),
+                    sg.Column(manage_label, size=(400, 210), background_color=in_area_background_color),
                 ],
             ], pad=0, background_color=background_color)
         ],
@@ -134,6 +141,9 @@ def set_labels(label):
     window['play_side'].update('')
     window['play_mode'].update('')
     window['dead'].update(False)
+    window['graph_gauge'].update(False)
+    window['graph_lanes'].update(False)
+    window['graph_measures'].update(False)
     if not label is None:
         if 'screen' in label.keys():
             window[f"screen_{label['screen']}"].update(True)
@@ -145,6 +155,8 @@ def set_labels(label):
             window['cutin_bit'].update(label['cutin_bit'])
         if 'rival' in label.keys():
             window['rival'].update(label['rival'])
+        if 'graphtype' in label.keys():
+            window[f"graph_{label['graphtype']}"].update(True)
         if 'play_side' in label.keys():
             window['play_side'].update(label['play_side'])
         if 'play_mode' in label.keys():
