@@ -6,8 +6,8 @@ from PIL import Image
 from glob import glob
 
 from raw_image import raws_basepath
-from larning import RawLabel,create_resource_directory
 from resources import resources_dirname
+from resources_larning import RawLabel
 
 error_output_count = 3
 report_dirname = 'report'
@@ -74,6 +74,10 @@ class RawData():
     def __init__(self, np_value, label):
         self.np_value = np_value
         self.label = label
+
+def create_resource_directory():
+    if not exists(resources_dirname):
+        mkdir(resources_dirname)
 
 def load_raws():
     labels = RawLabel()

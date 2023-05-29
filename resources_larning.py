@@ -1,4 +1,47 @@
 import numpy as np
+from os.path import join
+import json
+
+from raw_image import raws_basepath
+
+larningbase_direpath = 'larning'
+mask_images_dirpath = join(larningbase_direpath, 'mask_images')
+
+label_basics_filepath = join(raws_basepath, 'label.json')
+label_collections_filepath = join(raws_basepath, 'label.json')
+
+class RawLabel:
+    labels = {}
+
+    def __init__(self):
+        self.load()
+
+    def load(self):
+        try:
+            with open(label_basics_filepath) as f:
+                self.labels = json.load(f)
+        except Exception:
+            self.labels = {}
+
+    def save(self):
+        with open(label_basics_filepath, 'w') as f:
+            json.dump(self.labels, f, indent=2)
+
+    def get(self, filename):
+        if filename in self.labels:
+            return self.labels[filename]
+        
+        return None
+    
+    def all(self):
+        return self.labels.keys()
+
+    def remove(self, filename):
+        if filename in self.labels:
+            del self.labels[filename]
+
+    def update(self, filename, values):
+        self.labels[filename] = values
 
 def larning(targets, report):
     if len(targets) == 0:
