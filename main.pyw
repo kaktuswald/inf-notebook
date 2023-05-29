@@ -392,8 +392,7 @@ def select_result_today():
 
         targetrecord = ret.get_targetrecord()
         gui.display_record(targetrecord)
-        if targetrecord is not None:
-            gui.display_historyresult(targetrecord, result.timestamp)
+        gui.display_historyresult(targetrecord, result.timestamp)
     else:
         gui.display_record(None)
 

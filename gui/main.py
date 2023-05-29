@@ -353,6 +353,12 @@ def display_record(record):
     window['history_options'].update('')
 
 def display_historyresult(record, timestamp):
+    if record is None:
+        return
+    
+    if not timestamp in record['history']:
+        return
+    
     formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日 {timestamp[9:11]}:{timestamp[11:13]}:{timestamp[13:15]}'
     window['history_timestamp'].update(formatted_timestamp)
 
