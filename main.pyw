@@ -287,7 +287,7 @@ def save_result(result):
         return
 
     if ret:
-        log_debug(f'save result: {result.timestamp}.jpg')
+        log_debug(f'save result: {result.filename}')
 
 def save_filtered(result):
     try:
@@ -298,7 +298,7 @@ def save_filtered(result):
         return
 
     if ret:
-        log_debug(f'save filtered result: {result.timestamp}.jpg')
+        log_debug(f'save filtered result: {result.filename}')
 
 def insert_results(result):
     results[result.timestamp] = result
@@ -454,7 +454,7 @@ def select_timestamp():
         if timestamp in results:
             resultimage = get_imagevalue(results[timestamp].image)
         else:
-            resultimage = get_resultimagevalue(timestamp)
+            resultimage = get_resultimagevalue(selection.music, timestamp)
         imagevalues_result[timestamp] = resultimage
 
     if timestamp in imagevalues_filtered.keys():
@@ -463,7 +463,7 @@ def select_timestamp():
         if timestamp in results:
             filteredimage = None
         else:
-            filteredimage = get_filteredimagevalue(timestamp)
+            filteredimage = get_filteredimagevalue(selection.music, timestamp)
             imagevalues_filtered[timestamp] = filteredimage
 
     if resultimage is not None:
@@ -477,7 +477,7 @@ def save():
     if selection.today:
         save_result(results[selection.timestamp])
     if selection.graph:
-        save_graphimage(images_graph[selection.music])
+        save_graphimage(selection.music, images_graph[selection.music])
     window['button_save'].update(disabled=True)
 
 def filter():

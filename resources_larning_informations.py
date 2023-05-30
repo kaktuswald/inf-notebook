@@ -1,10 +1,12 @@
 from PIL import Image
 import json
 from sys import exit
-from os.path import join,isfile
+from os import mkdir
+from os.path import join,isfile,exists
 import numpy as np
 
 from define import define
+from result import generate_resultfilename
 import data_collection as dc
 from resources_generate import Report,save_resource_serialized,report_dirname
 from resources_larning import larning_multivalue
@@ -19,6 +21,7 @@ report_registered_musics_filename = 'musics_registered.txt'
 report_missing_musics_filename = 'musics_missing_in_arcade.txt'
 
 otherreport_basedir = join(report_dirname, 'music')
+musicfilenametest_basedir = join(report_dirname, 'music_filename')
 
 class Informations():
     def __init__(self, np_value, label):
@@ -610,6 +613,13 @@ def larning_musics(informations):
     registered_musics_filepath = join(otherreport_basedir, report_registered_musics_filename)
     with open(registered_musics_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(musics))
+    if not exists(musicfilenametest_basedir):
+        mkdir(musicfilenametest_basedir)
+    for music in musics:
+        filepath = join(musicfilenametest_basedir, generate_resultfilename(music, '')).replace('jpg', 'txt')
+        if not exists(filepath):
+            with open(filepath, 'w', encoding='UTF-8') as f:
+                f.write(music)
 
     check_musics(musics, report)
 

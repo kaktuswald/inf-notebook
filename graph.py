@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 from PIL import Image
 from os import mkdir
 from os.path import exists,join
+
+from result import generate_resultfilename
 from gui.static import background_color
 from gui.general import get_imagevalue
 
@@ -70,11 +72,11 @@ def create_graphimage(play_mode, difficulty, music, target_record):
 
     return image
 
-def save_graphimage(graphimage):
+def save_graphimage(music, graphimage):
     now = datetime.now()
     timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
 
-    filepath = join(graphs_basepath, f'{timestamp}.jpg')
+    filepath = join(graphs_basepath, generate_resultfilename(music, timestamp))
     try:
         graphimage.save(filepath)
     except Exception as ex:
