@@ -62,8 +62,11 @@ class Result():
 
         now = datetime.now()
         self.timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
-        self.filename = generate_resultfilename(self.informations.music, self.timestamp)
+        self.set_filename()
     
+    def set_filename(self):
+        self.filename = generate_resultfilename(self.informations.music, self.timestamp)
+
     def has_new_record(self):
         return any([
             self.details.clear_type.new,

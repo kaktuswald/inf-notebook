@@ -436,6 +436,7 @@ class Recognition():
             monochrome = screen.original.convert('L')
             trim_informations = monochrome.crop(define.informations_trimarea)
             result.informations.music = self.get_music(trim_informations)
+            result.set_filename()
 
         return result
     
