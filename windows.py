@@ -3,20 +3,23 @@ from ctypes import windll,c_bool,c_int,pointer,POINTER,WINFUNCTYPE,create_unicod
 from ctypes.wintypes import RECT,DWORD,MAX_PATH
 from os.path import basename
 
+desired_access = 0x1000
+
 def get_filename(wHnd):
     pId = ctypes.c_ulong()
     windll.user32.GetWindowThreadProcessId(wHnd, ctypes.pointer(pId))
     if not pId:
-        return 0
+        return None
 
-    pHnd = windll.kernel32.OpenProcess(0x0410, 0, pId)
+    pHnd = windll.kernel32.OpenProcess(desired_access, 0, pId)
     if not pHnd:
-        return 0
+        return None
 
     filepath = ctypes.create_unicode_buffer(MAX_PATH)
     length = DWORD(MAX_PATH)
     windll.kernel32.QueryFullProcessImageNameW(pHnd, 0, ctypes.pointer(filepath), ctypes.pointer(length))
     filename = basename(filepath.value)
+    windll.kernel32.CloseHandle(pHnd)
 
     return filename
 
