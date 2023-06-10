@@ -109,7 +109,7 @@ class Recent():
 
 def output():
     musics_record = get_record_musics()
-    musics_all = recog.musics
+    musics_all = recog.informations['music']['musics']
 
     summary_filenames = {
         'difficulties': {
