@@ -8,7 +8,8 @@ default = {
     'autosave': False,
     'autosave_filtered': False,
     'display_music': False,
-    'play_sound': False
+    'play_sound': False,
+    'savefilemusicname_right': False,
 }
 
 class Setting():
@@ -98,6 +99,14 @@ class Setting():
     @play_sound.setter
     def play_sound(self, value):
         self.set_value('play_sound', value)
+    
+    @property
+    def savefilemusicname_right(self):
+        return self.get_value('savefilemusicname_right')
+
+    @savefilemusicname_right.setter
+    def savefilemusicname_right(self, value):
+        self.set_value('savefilemusicname_right', value)
     
     @property
     def data_collection(self):

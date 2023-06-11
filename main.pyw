@@ -43,7 +43,8 @@ from raw_image import save_raw
 from storage import StorageAccessor
 from record import Record,rename_allfiles
 from graph import create_graphimage,save_graphimage,graphs_basepath
-from result import get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
+from result import result_save,result_savefiltered,get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
+from filter import filter as filter_result
 from playdata import Recent
 from windows import find_window,get_rect
 
@@ -237,25 +238,30 @@ class Selection():
         return self.record.get(self.play_mode, self.difficulty)
 
 def result_process(screen):
+    """リザルトを記録するときの処理をする
+
+    Args:
+        screen (Screen): screen.py
+    """
     result = recog.get_result(screen)
     if result is None:
         return
 
-    if setting.data_collection or window['force_upload'].get():
-        import numpy as np
-        newrecog_result = recog.check_newrecognition(result, np.array(screen.original))
+    resultimage = screen.original
+    images_result[result.timestamp] = resultimage
 
+    if setting.data_collection or window['force_upload'].get():
+        newrecog_result = recog.check_newrecognition(result, screen.np_value)
         storage.upload_collection(result, window['force_upload'].get() or not newrecog_result)
     
     if setting.newrecord_only and not result.has_new_record():
-        return None
+        return
     
     if setting.autosave:
-        save_result(result)
+        save_result(result, resultimage)
     
     if setting.autosave_filtered:
-        result.filter()
-        save_filtered(result)
+        save_filtered(result, resultimage)
     
     music = result.informations.music
     if music is not None:
@@ -276,29 +282,44 @@ def result_process(screen):
 
     if setting.display_result:
         window['table_results'].update(select_rows=[len(results)-1])
-        return None
 
-def save_result(result):
+def save_result(result, image):
+    if result.timestamp in timestamps_saved:
+        return
+    
+    ret = None
     try:
-        ret = result.save()
+        music = result.informations.music
+        ret = result_save(image, music, result.timestamp, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
         return
 
     if ret:
-        log_debug(f'save result: {result.filename}')
+        timestamps_saved.append(result.timestamp)
+        log_debug(f'save result: {ret}')
 
-def save_filtered(result):
+def save_filtered(result, resultimage):
+    if result.timestamp in images_filtered.keys():
+        return
+    
+    filteredimage = filter_result(result, resultimage)
+
+    ret = None
     try:
-        ret = result.save_filtered()
+        music = result.informations.music
+        ret = result_savefiltered(filteredimage, music, result.timestamp, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
         return
 
     if ret:
-        log_debug(f'save filtered result: {result.filename}')
+        images_filtered[result.timestamp] = filteredimage
+        log_debug(f'save filtered result: {ret}')
+    
+    return filteredimage
 
 def insert_results(result):
     results[result.timestamp] = result
@@ -364,12 +385,12 @@ def select_result_today():
 
     result = results[list_results[values['table_results'][0]][0]]
 
-    if result.timestamp in imagevalues_result:
+    if result.timestamp in imagevalues_result.keys():
         imagevalue = imagevalues_result[result.timestamp]
     else:
-        imagevalue = get_imagevalue(result.image)
+        imagevalue = get_imagevalue(images_result[result.timestamp])
         imagevalues_result[result.timestamp] = imagevalue
-    gui.display_image(imagevalue, not result.saved, True, True)
+    gui.display_image(imagevalue, not result.timestamp in timestamps_saved, True, True)
 
     music = result.informations.music
 
@@ -475,27 +496,29 @@ def select_timestamp():
 
 def save():
     if selection.today:
-        save_result(results[selection.timestamp])
+        save_result(results[selection.timestamp], images_result[selection.timestamp])
     if selection.graph:
-        save_graphimage(selection.music, images_graph[selection.music])
+        save_graphimage(selection.music, images_graph[selection.music], setting.savefilemusicname_right)
     window['button_save'].update(disabled=True)
 
 def filter():
-    if selection.today:
-        targetresult = results[selection.timestamp]
-
     if selection.timestamp in imagevalues_filtered.keys():
-        gui.display_image(imagevalues_filtered[selection.timestamp], selection.today and not targetresult.saved)
+        gui.display_image(
+            imagevalues_filtered[selection.timestamp],
+            selection.today and not selection.timestamp in timestamps_saved
+        )
     else:
         if selection.today:
-            if targetresult.filtered is not None:
-                filteredvalue = imagevalues_filtered[selection.timestamp]
+            targetresult = results[selection.timestamp]
+            if selection.timestamp in images_filtered.keys():
+                filteredimage = images_filtered[selection.timestamp]
             else:
-                targetresult.filter()
-                save_filtered(targetresult)
-                filteredvalue = get_imagevalue(targetresult.filtered)
-                imagevalues_filtered[selection.timestamp] = filteredvalue
-            gui.display_image(filteredvalue, not targetresult.saved)
+                filteredimage = save_filtered(targetresult, images_result[selection.timestamp])
+                images_filtered[selection.timestamp] = filteredimage
+            
+            imagevalue = get_imagevalue(filteredimage)
+            imagevalues_filtered[selection.timestamp] = imagevalue
+            gui.display_image(imagevalue, not targetresult.timestamp in timestamps_saved)
     
     selection.selection_filtered()
 
@@ -608,6 +631,9 @@ if __name__ == '__main__':
     results = {}
     list_results = []
     records = {}
+    timestamps_saved = []
+    images_result = {}
+    images_filtered = {}
     imagevalues_result = {}
     imagevalues_filtered = {}
     images_graph = {}
@@ -671,6 +697,8 @@ if __name__ == '__main__':
                 gui.switch_table(setting.display_music)
             if event == 'check_play_sound':
                 setting.play_sound = values['check_play_sound']
+            if event == 'check_savefilemusicname_right':
+                setting.savefilemusicname_right = values['check_savefilemusicname_right']
             if event == 'text_file_path':
                 if exists(values['text_file_path']):
                     screen = open_screenimage(values['text_file_path'])

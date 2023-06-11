@@ -72,11 +72,18 @@ def create_graphimage(play_mode, difficulty, music, target_record):
 
     return image
 
-def save_graphimage(music, graphimage):
+def save_graphimage(music, graphimage, musicname_right=False):
+    """グラフ画像をファイルに保存する
+
+    Args:
+        music (str): 曲名
+        graphimage (Image): 対象のグラフ画像
+        musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
+    """
     now = datetime.now()
     timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
 
-    filepath = join(graphs_basepath, generate_resultfilename(music, timestamp))
+    filepath = join(graphs_basepath, generate_resultfilename(music, timestamp, musicname_right))
     try:
         graphimage.save(filepath)
     except Exception as ex:
