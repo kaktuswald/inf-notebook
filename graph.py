@@ -37,7 +37,7 @@ def create_graphimage(play_mode, difficulty, music, target_record):
 
     x = [datetime.strptime(key, '%Y%m%d-%H%M%S') for key in history.keys()]
     score = [value['score']['value'] for value in history.values()]
-    miss_count = [value['miss_count']['value'] for value in history.values() if value['miss_count']['value'] is not None]
+    miss_count = [value['miss_count']['value'] for value in history.values()]
 
     title = f'{music}[{play_mode}{difficulty[0]}]'
 
