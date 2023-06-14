@@ -37,7 +37,7 @@ def create_graphimage(play_mode, difficulty, music, target_record):
 
     x = [datetime.strptime(key, '%Y%m%d-%H%M%S') for key in history.keys()]
     score = [value['score']['value'] for value in history.values()]
-    miss_count = [value['miss_count']['value'] for value in history.values() if value['miss_count']['value'] is not None]
+    miss_count = [value['miss_count']['value'] for value in history.values()]
 
     title = f'{music}[{play_mode}{difficulty[0]}]'
 
@@ -72,11 +72,18 @@ def create_graphimage(play_mode, difficulty, music, target_record):
 
     return image
 
-def save_graphimage(music, graphimage):
+def save_graphimage(music, graphimage, musicname_right=False):
+    """グラフ画像をファイルに保存する
+
+    Args:
+        music (str): 曲名
+        graphimage (Image): 対象のグラフ画像
+        musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
+    """
     now = datetime.now()
     timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
 
-    filepath = join(graphs_basepath, generate_resultfilename(music, timestamp))
+    filepath = join(graphs_basepath, generate_resultfilename(music, timestamp, musicname_right))
     try:
         graphimage.save(filepath)
     except Exception as ex:

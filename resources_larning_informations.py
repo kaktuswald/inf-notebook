@@ -361,13 +361,17 @@ def check_musics(musics, report):
 
     duplicates = list(set(arcade_all_musics) & set(infinitas_only_musics))
     if len(duplicates) > 0:
-        report.append_log(f"Duplicates: {','.join(duplicates)}")
+        report.error(f"Duplicates: {','.join(duplicates)}")
 
-    missingresult = sorted([music for music in arcade_all_musics if not music in musics])
+    missings_alllist = sorted([music for music in musics if not music in arcade_all_musics and not music in infinitas_only_musics])
+    if len(missings_alllist) > 0:
+        report.error(f"Missings: {','.join(missings_alllist)}")
+
+    missings_arcade = sorted([music for music in arcade_all_musics if not music in musics])
 
     missing_musics_filepath = join(otherreport_basedir, report_missing_musics_filename)
     with open(missing_musics_filepath, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(missingresult))
+        f.write('\n'.join(missings_arcade))
 
 def larning_playmode(informations):
     resourcename = 'playmode'
@@ -616,7 +620,8 @@ def larning_musics(informations):
     if not exists(musicfilenametest_basedir):
         mkdir(musicfilenametest_basedir)
     for music in musics:
-        filepath = join(musicfilenametest_basedir, generate_resultfilename(music, '')).replace('jpg', 'txt')
+        filename = generate_resultfilename(music, '').replace('jpg', 'txt')
+        filepath = join(musicfilenametest_basedir, filename)
         if not exists(filepath):
             with open(filepath, 'w', encoding='UTF-8') as f:
                 f.write(music)

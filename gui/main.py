@@ -11,18 +11,20 @@ best_display_modes = ('option', 'timestamp', )
 best_display_mode = best_display_modes[0]
 
 def layout_main(setting):
-    column_headers = ['日時', '曲名', 'M', 'CT', 'DL', 'SC', 'MC']
-    column_widths = [13, 13, 4, 3, 3, 3, 3]
+    column_headers = ['S', 'F', '日時', '曲名', 'MODE', 'CT', 'DL', 'SC', 'MC']
+    column_widths = [3, 3, 16, 16, 5, 3, 3, 3, 3]
 
     if setting.display_music:
-        column_visibles = [False, True, True, True, True, True, True]
+        column_visibles = [True, True, False, True, True, True, True, True, True]
     else:
-        column_visibles = [True, False, True, True, True, True, True]
+        column_visibles = [True, True, True, False, True, True, True, True, True]
     
     tabs_main = [[
         sg.Tab('今日のリザルト', [
             [sg.Table(
                 [],
+                header_font=('Arial', 8),
+                font=('Arial', 9),
                 key='table_results',
                 headings=column_headers,
                 auto_size_columns=False,
@@ -134,11 +136,12 @@ def layout_main(setting):
                 [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
                 [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
                 [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('リザルトを記録したときに音を出す', key='check_play_sound', default=setting.play_sound, enable_events=True, background_color=background_color)]
+                [sg.Checkbox('ファイル名の後尾に曲名をつける', key='check_savefilemusicname_right', default=setting.savefilemusicname_right, enable_events=True, background_color=background_color)]
             ], pad=0, background_color=background_color, vertical_alignment='top'),
             sg.Column([
                 [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('曲名を表示する', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)]
+                [sg.Checkbox('曲名を表示する', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)],
+                [sg.Checkbox('記録したときに音を出す', key='check_play_sound', default=setting.play_sound, enable_events=True, background_color=background_color)]
             ], pad=0, background_color=background_color, vertical_alignment='top')
         ],
         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
@@ -287,9 +290,9 @@ def display_image(value, savable=False, filterable=False, uploadable=False):
 
 def switch_table(display_music):
     if not display_music:
-        displaycolumns = ['日時', 'M', 'CT', 'DL', 'SC', 'MC']
+        displaycolumns = ['S', 'F', '日時', 'MODE', 'CT', 'DL', 'SC', 'MC']
     else:
-        displaycolumns = ['曲名', 'M', 'CT', 'DL', 'SC', 'MC']
+        displaycolumns = ['S', 'F', '曲名', 'MODE', 'CT', 'DL', 'SC', 'MC']
 
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)
 
