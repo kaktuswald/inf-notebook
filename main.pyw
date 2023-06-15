@@ -58,8 +58,8 @@ upload_confirm_message = [
     'リザルトから曲名を切り取った画像をクラウドにアップロードします。'
 ]
 
-windowtitle = 'screenshot-20221025001436.png'
-exename = 'mspaint.exe'
+windowtitle = 'beatmania IIDX INFINITAS'
+exename = 'bm2dx.exe'
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
@@ -315,8 +315,6 @@ def save_filtered(result, resultimage):
     if ret:
         images_filtered[result.timestamp] = filteredimage
         log_debug(f'save filtered result: {ret}')
-    
-    return filteredimage
 
 def insert_results(result):
     results[result.timestamp] = result
@@ -338,10 +336,9 @@ def insert_results(result):
     ])
 
     if setting.display_result:
-        table_selected_rows.clear()
-        table_selected_rows.append(len(results)-1)
-
-    refresh_table()
+        refresh_table([len(results)-1])
+    else:
+        refresh_table()
 
 def update_resultflag(saved=False, filtered=False):
     for row_index in table_selected_rows:
@@ -351,8 +348,11 @@ def update_resultflag(saved=False, filtered=False):
             list_results[row_index][1] = '☑'
     refresh_table()
 
-def refresh_table():
-    window['table_results'].update(values=list_results, select_rows=table_selected_rows)
+def refresh_table(rows=None):
+    if rows is not None:
+        window['table_results'].update(values=list_results, select_rows=rows)
+    else:
+        window['table_results'].update(values=list_results, select_rows=table_selected_rows)
 
 def clear_tableselection():
     table_selected_rows = []
@@ -529,21 +529,20 @@ def filter():
             timestamp = list_results[row_index][2]
             targetresult = results[timestamp]
             if not timestamp in images_filtered.keys():
-                filteredimage = save_filtered(targetresult, images_result[timestamp])
-                images_filtered[timestamp] = filteredimage
+                save_filtered(targetresult, images_result[timestamp])
             update_resultflag(filtered=True)
 
     if selection.timestamp in imagevalues_filtered.keys():
-        gui.display_image(
-            imagevalues_filtered[selection.timestamp],
-            selection.today and not selection.timestamp in timestamps_saved
-        )
+        imagevalue = imagevalues_filtered[selection.timestamp]
     else:
-        if selection.today:
-            filteredimage = images_filtered[selection.timestamp]
-            imagevalue = get_imagevalue(filteredimage)
-            imagevalues_filtered[selection.timestamp] = imagevalue
-            gui.display_image(imagevalue, not selection.timestamp in timestamps_saved)
+        filteredimage = images_filtered[selection.timestamp]
+        imagevalue = get_imagevalue(filteredimage)
+        imagevalues_filtered[selection.timestamp] = imagevalue
+
+    gui.display_image(
+        imagevalue,
+        selection.today and not selection.timestamp in timestamps_saved
+    )
     
     selection.selection_filtered()
 
@@ -747,14 +746,15 @@ if __name__ == '__main__':
                     result = results[selection.timestamp]
                     storage.upload_collection(result, True)
             if event == 'table_results':
-                table_selected_rows = values['table_results']
-                selection_result = select_result_today()
-                if selection_result is not None:
-                    selection = selection_result
-                    if selection.music is not None:
-                        window['music_candidates'].update([selection.music], set_to_index=[0])
-                    else:
-                        window['music_candidates'].update(set_to_index=[])
+                if values['table_results'] != table_selected_rows:
+                    table_selected_rows = values['table_results']
+                    selection_result = select_result_today()
+                    if selection_result is not None:
+                        selection = selection_result
+                        if selection.music is not None:
+                            window['music_candidates'].update([selection.music], set_to_index=[0])
+                        else:
+                            window['music_candidates'].update(set_to_index=[])
             if event == 'button_graph':
                 if selection is not None and selection.music is not None:
                     create_graph(selection, selection.get_targetrecord())
