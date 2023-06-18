@@ -3,7 +3,6 @@ import time
 import PySimpleGUI as sg
 from threading import Thread,Event
 from queue import Queue
-from os import system,getcwd
 from os.path import join,exists,pardir
 import webbrowser
 import logging
@@ -42,11 +41,11 @@ from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
 from record import Record,rename_allfiles
-from graph import create_graphimage,save_graphimage,graphs_basepath
-from result import result_save,result_savefiltered,get_resultimagevalue,get_filteredimagevalue,results_basepath,filtereds_basepath
+from graph import create_graphimage,save_graphimage
+from result import result_save,result_savefiltered,get_resultimagevalue,get_filteredimagevalue
 from filter import filter as filter_result
 from playdata import Recent
-from windows import find_window,get_rect
+from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs
 
 thread_time_wait_nonactive = 1
 thread_time_wait_loading = 30
@@ -66,10 +65,6 @@ tweet_url = 'https://twitter.com/intent/tweet'
 
 tweet_template_music = '&&music&&[&&play_mode&&&&D&&]'
 tweet_template_hashtag = '#IIDX #infinitas573 #infnotebook'
-
-results_dirpath = join(getcwd(), results_basepath)
-filtereds_dirpath = join(getcwd(), filtereds_basepath)
-graphs_dirpath = join(getcwd(), graphs_basepath)
 
 class ThreadMain(Thread):
     handle = 0
@@ -548,14 +543,14 @@ def filter():
 
 def open_folder():
     if selection.filtered:
-        system(f'explorer.exe {filtereds_dirpath}')
+        openfolder_filtereds()
         return
     
     if selection.graph:
-        system(f'explorer.exe {graphs_dirpath}')
+        openfolder_graphs()
         return
     
-    system(f'explorer.exe {results_dirpath}')
+    openfolder_results()
 
 def tweet():
     if len(values['music_candidates']) == 1:
