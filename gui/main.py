@@ -20,7 +20,7 @@ def layout_main(setting):
         column_visibles = [True, True, True, False, True, True, True, True, True]
     
     tabs_main = [[
-        sg.Tab('今日のリザルト', [
+        sg.Tab('最近のリザルト', [
             [sg.Table(
                 [],
                 header_font=('Arial', 8),

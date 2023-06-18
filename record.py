@@ -5,13 +5,15 @@ from glob import glob
 
 records_basepath = 'records'
 
+recent_filenmae = 'recent.json'
+recent_maxcount = 100
+
 if not exists(records_basepath):
     mkdir(records_basepath)
 
-class Record():
-    def __init__(self, music):
-        filename = f"{music.encode('UTF-8').hex()}.json"
-        self.filepath = join(records_basepath, filename)
+class Notebook():
+    def __init__(self):
+        self.filepath = join(records_basepath, self.filename)
 
         if not exists(self.filepath):
             self.json = {}
@@ -22,8 +24,65 @@ class Record():
                 self.json = json.load(f)
         except Exception:
             self.json = {}
+
+    def save(self):
+        with open(self.filepath, 'w') as f:
+            json.dump(self.json, f)
+
+class NotebookRecent(Notebook):
+    def __init__(self):
+        self.filename = recent_filenmae
+        super().__init__()
     
-    def get(self, play_mode, difficulty):
+    def append(self, result, saved, filtered):
+        if not 'timestamps' in self.json.keys():
+            self.json['timestamps'] = []
+        self.json['timestamps'].append(result.timestamp)
+
+        if not 'results' in self.json.keys():
+            self.json['results'] = {}
+        self.json['results'][result.timestamp] = {
+            'play_mode': result.informations.play_mode,
+            'difficulty': result.informations.difficulty,
+            'music': result.informations.music,
+            'clear_type': result.details.clear_type.new,
+            'dj_level': result.details.dj_level.new,
+            'score': result.details.score.new,
+            'miss_count': result.details.miss_count.new,
+            'saved': saved,
+            'filtered': filtered
+        }
+
+        if len(self.json['timestamps']) > recent_maxcount:
+            del self.json['results'][self.json['timestamps'][0]]
+            del self.json['timestamps'][0]
+    
+    @property
+    def timestamps(self):
+        if not 'timestamps' in self.json.keys():
+            return []
+        return self.json['timestamps']
+    
+    def get_result(self, timestamp):
+        if not 'results' in self.json.keys() or not timestamp in self.json['results']:
+            return None
+        return self.json['results'][timestamp]
+
+class NotebookMusic(Notebook):
+    def __init__(self, music):
+        self.filename = f"{music.encode('UTF-8').hex()}.json"
+        super().__init__()
+    
+    def get_recordlist(self, play_mode, difficulty):
+        """対象のプレイモード・難易度のレコードのリストを取得する
+
+        Args:
+            play_mode (str): SP か DP
+            difficulty (str): NORMAL か HYPER か ANOTHER か BEGINNER か LEGGENDARIA
+
+        Returns:
+            list: レコードのリスト
+        """
         if not play_mode in self.json.keys():
             return None
         if not difficulty in self.json[play_mode].keys():
@@ -31,10 +90,6 @@ class Record():
         
         return self.json[play_mode][difficulty]
 
-    def save(self):
-        with open(self.filepath, 'w') as f:
-            json.dump(self.json, f)
-    
     def delete(self):
         if exists(self.filepath):
             remove(self.filepath)
@@ -184,7 +239,7 @@ def rename_allfiles(musics):
 def get_record_musics():
     filepaths = glob(join(records_basepath, '*.json'))
     strings = [basename(filepath).removesuffix('.json') for filepath in filepaths]
-    musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
+    musics = [bytes.fromhex(string).decode('UTF-8') for string in strings if string != 'recent']
     return musics
 
 def delete_recordfile(music):

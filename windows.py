@@ -1,7 +1,15 @@
 import ctypes
 from ctypes import windll,c_bool,c_int,pointer,POINTER,WINFUNCTYPE,create_unicode_buffer
 from ctypes.wintypes import RECT,DWORD,MAX_PATH
-from os.path import basename
+from os import system,getcwd
+from os.path import basename,join
+
+from result import results_basepath,filtereds_basepath
+from graph import graphs_basepath
+
+results_dirpath = join(getcwd(), results_basepath)
+filtereds_dirpath = join(getcwd(), filtereds_basepath)
+graphs_dirpath = join(getcwd(), graphs_basepath)
 
 desired_access = 0x1000
 
@@ -49,6 +57,15 @@ def get_rect(handle):
     rect = RECT()
     windll.user32.GetWindowRect(handle, pointer(rect))
     return rect
+
+def openfolder_results():
+    system(f'explorer.exe {results_dirpath}')
+
+def openfolder_filtereds():
+    system(f'explorer.exe {filtereds_dirpath}')
+
+def openfolder_graphs():
+    system(f'explorer.exe {graphs_dirpath}')
 
 if __name__ == '__main__':
     windowtitle = 'beatmania IIDX INFINITAS'
