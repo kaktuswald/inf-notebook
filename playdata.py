@@ -4,7 +4,7 @@ from datetime import datetime
 from csv import writer
 
 from define import define
-from record import Record,get_record_musics,delete_recordfile
+from record import NotebookMusic,get_record_musics,delete_recordfile
 from recog import recog
 from version import version
 
@@ -146,10 +146,10 @@ def output():
             print(f'wrong music: {music}')
             delete_recordfile(music)
             continue
-        record = Record(music)
+        record = NotebookMusic(music)
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
-                r = record.get(play_mode, difficulty)
+                r = record.get_recordlist(play_mode, difficulty)
                 if r is None:
                     continue
 

@@ -40,7 +40,7 @@ from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
 from storage import StorageAccessor
-from record import Record,rename_allfiles
+from record import NotebookRecent,NotebookMusic,rename_allfiles
 from graph import create_graphimage,save_graphimage
 from result import result_save,result_savefiltered,get_resultimagevalue,get_filteredimagevalue
 from filter import filter as filter_result
@@ -192,27 +192,27 @@ class ThreadMain(Thread):
         self.processed_result = True
 
 class Selection():
-    def __init__(self, play_mode, difficulty, music, record):
+    def __init__(self, play_mode, difficulty, music, notebook):
         self.play_mode = play_mode
         self.difficulty = difficulty
         self.music = music
-        self.record = record
-        self.today = False
+        self.notebook = notebook
+        self.recent = False
         self.filtered = False
         self.graph = False
         self.timestamp = None
     
-    def selection_today(self, result):
-        self.today = True
+    def selection_recent(self, timestamp):
+        self.recent = True
         self.filtered = False
         self.graph = False
-        self.timestamp = result.timestamp
+        self.timestamp = timestamp
 
     def selection_graph(self):
         if self.music is None:
             return False
         
-        self.today = False
+        self.recent = False
         self.filtered = False
         self.graph = True
         self.timestamp = None
@@ -220,7 +220,7 @@ class Selection():
         return True
 
     def selection_timestamp(self, timestamp):
-        self.today = False
+        self.recent = False
         self.filtered = False
         self.graph = False
         self.timestamp = timestamp
@@ -229,8 +229,8 @@ class Selection():
         self.filtered = True
         self.graph = False
 
-    def get_targetrecord(self):
-        return self.record.get(self.play_mode, self.difficulty)
+    def get_targetrecordlist(self):
+        return self.notebook.get_recordlist(self.play_mode, self.difficulty)
 
 def result_process(screen):
     """リザルトを記録するときの処理をする
@@ -243,8 +243,6 @@ def result_process(screen):
         return
 
     resultimage = screen.original
-    images_result[result.timestamp] = resultimage
-
     if setting.data_collection or window['force_upload'].get():
         newrecog_result = recog.check_newrecognition(result, screen.np_value)
         storage.upload_collection(result, window['force_upload'].get() or not newrecog_result)
@@ -252,23 +250,32 @@ def result_process(screen):
     if setting.newrecord_only and not result.has_new_record():
         return
     
+    images_result[result.timestamp] = resultimage
+
+    saved = False
     if setting.autosave:
         save_result(result, resultimage)
+        saved = True
     
+    filtered = False
     if setting.autosave_filtered:
         save_filtered(result, resultimage)
+        filtered = True
     
+    notebook_recent.append(result, saved, filtered)
+    notebook_recent.save()
+
     music = result.informations.music
     if music is not None:
-        if music in records.keys():
-            record = records[music]
+        if music in notebooks_music.keys():
+            notebook = notebooks_music[music]
         else:
-            record = Record(music) if music is not None else None
-            records[music] = record
+            notebook = NotebookMusic(music) if music is not None else None
+            notebooks_music[music] = notebook
 
         if not result.dead or result.has_new_record():
-            record.insert(result)
-            record.save()
+            notebook.insert(result)
+            notebook.save()
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -311,14 +318,35 @@ def save_filtered(result, resultimage):
         images_filtered[result.timestamp] = filteredimage
         log_debug(f'save filtered result: {ret}')
 
+def insert_recentnotebook_results():
+    for timestamp in notebook_recent.timestamps:
+        target = notebook_recent.get_result(timestamp)
+        playmode = target['play_mode']
+        difficulty = target['difficulty']
+        list_results.insert(0, [
+            '☑' if target['saved'] else '',
+            '☑' if target['filtered'] else '',
+            timestamp,
+            target['music'] if target['music'] is not None else '??????',
+            f'{playmode}{difficulty[0]}' if playmode is not None and difficulty is not None else '???',
+            '☑' if target['clear_type'] else '',
+            '☑' if target['dj_level'] else '',
+            '☑' if target['score'] else '',
+            '☑' if target['miss_count'] else ''
+        ])
+
+    refresh_table()
+
 def insert_results(result):
-    results[result.timestamp] = result
+    global table_selected_rows
+
+    results_today[result.timestamp] = result
 
     play_mode = result.informations.play_mode
     difficulty = result.informations.difficulty
     music = result.informations.music
 
-    list_results.append([
+    list_results.insert(0, [
         '☑' if result.timestamp in timestamps_saved else '',
         '☑' if result.timestamp in images_filtered.keys() else '',
         result.timestamp,
@@ -330,10 +358,8 @@ def insert_results(result):
         '☑' if result.details.miss_count.new else ''
     ])
 
-    if setting.display_result:
-        refresh_table([len(results)-1])
-    else:
-        refresh_table()
+    table_selected_rows = [v + 1 for v in table_selected_rows]
+    refresh_table(setting.display_result)
 
 def update_resultflag(saved=False, filtered=False):
     for row_index in table_selected_rows:
@@ -343,9 +369,9 @@ def update_resultflag(saved=False, filtered=False):
             list_results[row_index][1] = '☑'
     refresh_table()
 
-def refresh_table(rows=None):
-    if rows is not None:
-        window['table_results'].update(values=list_results, select_rows=rows)
+def refresh_table(select_newest=False):
+    if select_newest:
+        window['table_results'].update(values=list_results, select_rows=[0])
     else:
         window['table_results'].update(values=list_results, select_rows=table_selected_rows)
 
@@ -388,7 +414,7 @@ def check_resource():
     if check_latest(storage, informations_filename):
         recog.load_resource_informations()
 
-def select_result_today():
+def select_result_recent():
     if len(table_selected_rows) == 0:
         return None
 
@@ -396,38 +422,42 @@ def select_result_today():
 
     if len(table_selected_rows) != 1:
         return None
+    
+    timestamp = list_results[table_selected_rows[0]][2]
+    target = notebook_recent.get_result(timestamp)
 
-    result = results[list_results[table_selected_rows[0]][2]]
-
-    if result.timestamp in imagevalues_result.keys():
-        imagevalue = imagevalues_result[result.timestamp]
+    if target['music'] in notebooks_music.keys():
+        notebook = notebooks_music[target['music']]
     else:
-        imagevalue = get_imagevalue(images_result[result.timestamp])
-        imagevalues_result[result.timestamp] = imagevalue
-    gui.display_image(imagevalue, not result.timestamp in timestamps_saved, True, True)
-
-    music = result.informations.music
+        notebook = NotebookMusic(target['music'])
+        notebooks_music[target['music']] = notebook
 
     ret = Selection(
-        result.informations.play_mode,
-        result.informations.difficulty,
-        result.informations.music,
-        records[music] if music is not None else None
+        target['play_mode'],
+        target['difficulty'],
+        target['music'],
+        notebook
     )
-    ret.selection_today(result)
+
+    ret.selection_recent(timestamp)
+
+    if timestamp in results_today.keys():
+        display_today(timestamp)
+    else:
+        display_history(ret)
     
-    if ret.record is not None:
+    if ret.notebook is not None:
         if ret.play_mode == 'SP':
             window['play_mode_sp'].update(True)
         if ret.play_mode == 'DP':
             window['play_mode_dp'].update(True)
         
         window['difficulty'].update(ret.difficulty)
-        window['search_music'].update(music)
+        window['search_music'].update(target['music'])
 
-        targetrecord = ret.get_targetrecord()
-        gui.display_record(targetrecord)
-        gui.display_historyresult(targetrecord, result.timestamp)
+        targetrecordlist = ret.get_targetrecordlist()
+        gui.display_record(targetrecordlist)
+        gui.display_historyresult(targetrecordlist, timestamp)
     else:
         gui.display_record(None)
 
@@ -453,26 +483,26 @@ def select_music_search():
 
     clear_tableselection()
 
-    if music in records.keys():
-        record = records[music]
+    if music in notebooks_music.keys():
+        notebook = notebooks_music[music]
     else:
-        record = Record(music)
-        records[music] = record
+        notebook = NotebookMusic(music)
+        notebooks_music[music] = notebook
 
-    if record.get(play_mode, difficulty) is None:
+    targetrecordlist = notebook.get_recordlist(play_mode, difficulty)
+    if targetrecordlist is None:
         gui.display_record(None)
         gui.display_image(None)
         return None
 
-    ret = Selection(play_mode, difficulty, music, record)
-    targetrecord = ret.record.get(play_mode, difficulty)
+    ret = Selection(play_mode, difficulty, music, notebook)
 
-    gui.display_record(targetrecord)
-    create_graph(ret, targetrecord)
+    gui.display_record(targetrecordlist)
+    create_graph(ret, targetrecordlist)
 
     return ret
 
-def select_timestamp():
+def select_history():
     if len(values['history']) != 1:
         return
     
@@ -481,50 +511,61 @@ def select_timestamp():
     timestamp = values['history'][0]
     selection.selection_timestamp(timestamp)
 
-    gui.display_historyresult(selection.get_targetrecord(), timestamp)
+    gui.display_historyresult(selection.get_targetrecordlist(), timestamp)
 
+    if timestamp in results_today.keys():
+        display_today(timestamp)
+    else:
+        display_history(selection)
+
+def load_resultimagevalues(timestamp, music):
+    imagevalues_result[timestamp] = get_resultimagevalue(music, timestamp)
+    imagevalues_filtered[timestamp] = get_filteredimagevalue(music, timestamp)
+
+def display_today(timestamp):
     if timestamp in imagevalues_result.keys():
         resultimage = imagevalues_result[timestamp]
     else:
-        if timestamp in results:
-            resultimage = get_imagevalue(results[timestamp].image)
-        else:
-            resultimage = get_resultimagevalue(selection.music, timestamp)
+        resultimage = get_imagevalue(images_result[timestamp])
         imagevalues_result[timestamp] = resultimage
+    gui.display_image(resultimage, not timestamp in timestamps_saved, True, True)
 
-    if timestamp in imagevalues_filtered.keys():
-        filteredimage = imagevalues_filtered[timestamp]
+def display_history(selection):
+    if not selection.timestamp in imagevalues_result.keys():
+        load_resultimagevalues(selection.timestamp, selection.music)
+    
+    imagevalue_result =  imagevalues_result[selection.timestamp]
+    imagevalue_filtered =  imagevalues_filtered[selection.timestamp]
+    if imagevalue_result is not None:
+        gui.display_image(imagevalue_result, False, imagevalue_filtered is not None, False)
     else:
-        if timestamp in results:
-            filteredimage = None
-        else:
-            filteredimage = get_filteredimagevalue(selection.music, timestamp)
-            imagevalues_filtered[timestamp] = filteredimage
-
-    if resultimage is not None:
-        gui.display_image(resultimage, False, filteredimage is not None)
-    else:
-        gui.display_image(filteredimage)
-        if filteredimage is not None:
+        if imagevalue_filtered is not None:
+            gui.display_image(imagevalue_filtered, False, False, False)
             selection.selection_filtered()
+        else:
+            gui.display_image(None)
 
 def save():
-    if selection.today:
+    if selection.recent:
         for row_index in table_selected_rows:
             timestamp = list_results[row_index][2]
-            save_result(results[timestamp], images_result[timestamp])
+            save_result(results_today[timestamp], images_result[timestamp])
+            notebook_recent.get_result(timestamp)['saved'] = True
+            notebook_recent.save()
         update_resultflag(saved=True)
     if selection.graph:
         save_graphimage(selection.music, images_graph[selection.music], setting.savefilemusicname_right)
     window['button_save'].update(disabled=True)
 
 def filter():
-    if selection.today:
+    if selection.recent and selection.timestamp in results_today.keys():
         for row_index in table_selected_rows:
             timestamp = list_results[row_index][2]
-            targetresult = results[timestamp]
+            targetresult = results_today[timestamp]
             if not timestamp in images_filtered.keys():
                 save_filtered(targetresult, images_result[timestamp])
+                notebook_recent.get_result(timestamp)['filtered'] = True
+                notebook_recent.save()
             update_resultflag(filtered=True)
 
     if selection.timestamp in imagevalues_filtered.keys():
@@ -536,7 +577,7 @@ def filter():
 
     gui.display_image(
         imagevalue,
-        selection.today and not selection.timestamp in timestamps_saved
+        selection.recent and not selection.timestamp in timestamps_saved
     )
     
     selection.selection_filtered()
@@ -566,7 +607,7 @@ def tweet():
             musics_text = []
             for index in values['table_results']:
                 text = tweet_template_music
-                result = results[list_results[index][2]]
+                result = results_today[list_results[index][2]]
                 music = result.informations.music
                 music = music if music is not None else '?????'
                 text = text.replace('&&play_mode&&', result.informations.play_mode)
@@ -585,10 +626,10 @@ def delete_record():
     if selection is None:
         return
 
-    if selection.music in records.keys():
-        del records[selection.music]
+    if selection.music in notebooks_music.keys():
+        del notebooks_music[selection.music]
 
-    selection.record.delete()
+    selection.notebook.delete()
     gui.search_music_candidates()
 
     gui.display_record(None)
@@ -600,13 +641,13 @@ def delete_targetrecord():
     if selection.timestamp is None:
         return
 
-    selection.record.delete_history(
+    selection.notebook.delete_history(
         selection.play_mode,
         selection.difficulty,
         selection.timestamp
     )
 
-    gui.display_record(selection.get_targetrecord())
+    gui.display_record(selection.get_targetrecordlist())
     gui.display_image(None)
 
 def create_graph(selection, targetrecord):
@@ -621,7 +662,7 @@ def create_graph(selection, targetrecord):
     
     selection.selection_graph()
 
-def rename_allrecords():
+def rename_all_musicnotebooks():
     if recog.musics is None:
         return
 
@@ -647,15 +688,21 @@ if __name__ == '__main__':
 
     screenshot = Screenshot()
 
-    results = {}
-    records = {}
+    notebook_recent = NotebookRecent()
+    notebooks_music = {}
+
+    results_today = {}
     timestamps_saved = []
+
     images_result = {}
     images_filtered = {}
     imagevalues_result = {}
     imagevalues_filtered = {}
+
     images_graph = {}
+
     selection = None
+
     recent = Recent()
 
     list_results = []
@@ -691,7 +738,9 @@ if __name__ == '__main__':
         Thread(target=check_resource).start()
     
     # version0.7.0.1以前の不具合対応のため
-    rename_allrecords()
+    rename_all_musicnotebooks()
+
+    insert_recentnotebook_results()
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
@@ -738,12 +787,12 @@ if __name__ == '__main__':
                 open_export(recent)
             if event == 'button_upload':
                 if gui.question('確認', upload_confirm_message):
-                    result = results[selection.timestamp]
+                    result = results_today[selection.timestamp]
                     storage.upload_collection(result, True)
             if event == 'table_results':
                 if values['table_results'] != table_selected_rows:
                     table_selected_rows = values['table_results']
-                    selection_result = select_result_today()
+                    selection_result = select_result_recent()
                     if selection_result is not None:
                         selection = selection_result
                         if selection.music is not None:
@@ -752,7 +801,7 @@ if __name__ == '__main__':
                             window['music_candidates'].update(set_to_index=[])
             if event == 'button_graph':
                 if selection is not None and selection.music is not None:
-                    create_graph(selection, selection.get_targetrecord())
+                    create_graph(selection, selection.get_targetrecordlist())
             if event == 'search_music':
                 music_search_time = time.time() + 1
             if event in ['play_mode_sp', 'play_mode_dp', 'difficulty', 'music_candidates']:
@@ -763,7 +812,7 @@ if __name__ == '__main__':
                 delete_record()
                 selection = None
             if event == 'history':
-                select_timestamp()
+                select_history()
             if event == '選択したリザルトの記録を削除する':
                 delete_targetrecord()
             if event == 'button_best_switch':
