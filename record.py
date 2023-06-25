@@ -41,14 +41,19 @@ class NotebookRecent(Notebook):
 
         if not 'results' in self.json.keys():
             self.json['results'] = {}
+        if result.details.options is None:
+            option = None
+        else:
+            option = ','.join([v for v in [result.details.options.arrange, result.details.options.flip] if v is not None])
         self.json['results'][result.timestamp] = {
             'play_mode': result.informations.play_mode,
             'difficulty': result.informations.difficulty,
             'music': result.informations.music,
-            'clear_type': result.details.clear_type.new,
-            'dj_level': result.details.dj_level.new,
-            'score': result.details.score.new,
-            'miss_count': result.details.miss_count.new,
+            'clear_type_new': result.details.clear_type.current if result.details.clear_type.new else None,
+            'dj_level_new': result.details.dj_level.current if result.details.dj_level.new else None,
+            'score_update': result.details.score.current - result.details.score.best if result.details.score.new else None,
+            'miss_count_update': result.details.miss_count.current - result.details.miss_count.best if result.details.miss_count.new and result.details.miss_count.best is not None else None,
+            'option': option,
             'saved': saved,
             'filtered': filtered
         }
