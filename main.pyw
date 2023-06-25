@@ -63,7 +63,7 @@ exename = 'bm2dx.exe'
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
 
-tweet_template_music = '&&music&&[&&play_mode&&&&D&&]'
+tweet_template_music = '&&music&&[&&play_mode&&&&D&&]&&update&&&&option&&'
 tweet_template_hashtag = '#IIDX #infinitas573 #infnotebook'
 
 class ThreadMain(Thread):
@@ -329,10 +329,10 @@ def insert_recentnotebook_results():
             timestamp,
             target['music'] if target['music'] is not None else '??????',
             f'{playmode}{difficulty[0]}' if playmode is not None and difficulty is not None else '???',
-            '☑' if target['clear_type'] else '',
-            '☑' if target['dj_level'] else '',
-            '☑' if target['score'] else '',
-            '☑' if target['miss_count'] else ''
+            '☑' if target['clear_type_new'] is not None else '',
+            '☑' if target['dj_level_new'] is not None else '',
+            '☑' if target['score_update'] is not None else '',
+            '☑' if target['miss_count_update'] is not None else ''
         ])
 
     refresh_table()
@@ -426,11 +426,14 @@ def select_result_recent():
     timestamp = list_results[table_selected_rows[0]][2]
     target = notebook_recent.get_result(timestamp)
 
-    if target['music'] in notebooks_music.keys():
-        notebook = notebooks_music[target['music']]
+    if target['music'] is not None:
+        if target['music'] in notebooks_music.keys():
+            notebook = notebooks_music[target['music']]
+        else:
+            notebook = NotebookMusic(target['music'])
+            notebooks_music[target['music']] = notebook
     else:
-        notebook = NotebookMusic(target['music'])
-        notebooks_music[target['music']] = notebook
+        notebook = None
 
     ret = Selection(
         target['play_mode'],
@@ -594,27 +597,49 @@ def open_folder():
     openfolder_results()
 
 def tweet():
-    if len(values['music_candidates']) == 1:
-        music_text = tweet_template_music
-        music_text = music_text.replace('&&play_mode&&', selection.play_mode)
-        if selection.music is not None:
-            music_text = music_text.replace('&&music&&', selection.music)
-        else:
-            music_text = music_text.replace('&&music&&', '?????')
-        music_text = music_text.replace('&&D&&', selection.difficulty[0])
+    if len(values['table_results']) > 0:
+        musics_text = []
+        for index in reversed(values['table_results']):
+            result = notebook_recent.get_result(list_results[index][2])
+
+            music = result['music']
+            music = music if music is not None else '??????'
+
+            text = tweet_template_music
+            text = text.replace('&&play_mode&&', result['play_mode'])
+            text = text.replace('&&D&&', result['difficulty'][0])
+            text = text.replace('&&music&&', music)
+            if result['clear_type_new'] is not None or result['dj_level_new'] is not None:
+                text = text.replace('&&update&&', ' '.join(v for v in [result['clear_type_new'], result['dj_level_new']] if v is not None))
+            else:
+                if result['score_update'] is not None:
+                    text = text.replace('&&update&&', f"自己ベスト+{result['score_update']}")
+                else:
+                    if result['miss_count_update'] is not None:
+                        text = text.replace('&&update&&', f"ミスカウント{result['miss_count_update']}")
+                    else:
+                        text = text.replace('&&update&&', '')
+            if result['option'] is not None:
+                if result['option'] == '':
+                    text = text.replace('&&option&&', '(正規)')
+                else:
+                    text = text.replace('&&option&&', f"({result['option']})")
+            else:
+                text = text.replace('&&option&&', '')
+
+            musics_text.append(text)
+        music_text = '\n'.join(musics_text)
     else:
-        if len(values['table_results']) > 0:
-            musics_text = []
-            for index in values['table_results']:
-                text = tweet_template_music
-                result = results_today[list_results[index][2]]
-                music = result.informations.music
-                music = music if music is not None else '?????'
-                text = text.replace('&&play_mode&&', result.informations.play_mode)
-                text = text.replace('&&music&&', music)
-                text = text.replace('&&D&&', result.informations.difficulty[0])
-                musics_text.append(text)
-            music_text = '\n'.join(musics_text)
+        if len(values['music_candidates']) == 1:
+            music_text = tweet_template_music
+            music_text = music_text.replace('&&play_mode&&', selection.play_mode)
+            if selection.music is not None:
+                music_text = music_text.replace('&&music&&', selection.music)
+            else:
+                music_text = music_text.replace('&&music&&', '?????')
+            music_text = music_text.replace('&&D&&', selection.difficulty[0])
+            music_text = music_text.replace('&&update&&', '')
+            music_text = music_text.replace('&&option&&', '')
         else:
             music_text = ''
 
