@@ -273,20 +273,18 @@ def error_message(title, message, exception):
         background_color=background_color
     )
 
-def display_image(value, savable=False, filterable=False, uploadable=False):
+def display_image(value, result=False, graph=False):
     subsample = int(window['scale'].get().split('/')[1])
 
     if value is not None:
         window['screenshot'].update(data=value, subsample=subsample, visible=True)
     else:
-        savable = False
-        filterable = False
         window['screenshot'].update(visible=False)
 
-    window['button_save'].update(disabled=value is None or not savable)
-    window['button_filter'].update(disabled=not filterable)
-    window['button_open_folder'].update(disabled=value is None)
-    window['button_upload'].update(disabled=not uploadable)
+    window['button_save'].update(disabled=not (result or graph))
+    window['button_filter'].update(disabled=not result)
+    window['button_open_folder'].update(disabled=not (result or graph))
+    window['button_upload'].update(disabled=not result)
 
 def switch_table(display_music):
     if not display_music:

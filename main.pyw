@@ -42,7 +42,7 @@ from raw_image import save_raw
 from storage import StorageAccessor
 from record import NotebookRecent,NotebookMusic,rename_allfiles
 from graph import create_graphimage,save_graphimage
-from result import result_save,result_savefiltered,get_resultimagevalue,get_filteredimagevalue
+from result import result_save,result_savefiltered,get_resultimage,get_filteredimage
 from filter import filter as filter_result
 from playdata import Recent
 from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs
@@ -245,7 +245,8 @@ def result_process(screen):
     resultimage = screen.original
     if setting.data_collection or window['force_upload'].get():
         newrecog_result = recog.check_newrecognition(result, screen.np_value)
-        storage.upload_collection(result, window['force_upload'].get() or not newrecog_result)
+        if storage.upload_collection(result, resultimage, window['force_upload'].get() or not newrecog_result):
+            timestamps_uploaded.append(result.timestamp)
     
     if setting.newrecord_only and not result.has_new_record():
         return
@@ -259,7 +260,14 @@ def result_process(screen):
     
     filtered = False
     if setting.autosave_filtered:
-        save_filtered(result, resultimage)
+        save_filtered(
+            resultimage,
+            result.timestamp,
+            result.informations.music,
+            result.play_side,
+            result.rival,
+            result.details.graphtarget == 'rival'
+        )
         filtered = True
     
     notebook_recent.append(result, saved, filtered)
@@ -299,23 +307,32 @@ def save_result(result, image):
         timestamps_saved.append(result.timestamp)
         log_debug(f'save result: {ret}')
 
-def save_filtered(result, resultimage):
-    if result.timestamp in images_filtered.keys():
-        return
-    
-    filteredimage = filter_result(result, resultimage)
+def save_filtered(resultimage, timestamp, music, play_side, loveletter, rivalname):
+    """リザルト画像にぼかしを入れて保存する
+
+    Args:
+        image (Image): 対象の画像(PIL)
+        timestamp (str): リザルトのタイムスタンプ
+        music (str): 曲名
+        play_side (str): 1P or 2P
+        loveletter (bool): ライバル挑戦状の有無
+        rivalname (bool): グラフターゲットのライバル名の有無
+
+    Returns:
+        Image: ぼかしを入れた画像
+    """
+    filteredimage = filter_result(resultimage, play_side, loveletter, rivalname)
 
     ret = None
     try:
-        music = result.informations.music
-        ret = result_savefiltered(filteredimage, music, result.timestamp, setting.savefilemusicname_right)
+        ret = result_savefiltered(filteredimage, music, timestamp, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
         return
 
     if ret:
-        images_filtered[result.timestamp] = filteredimage
+        images_filtered[timestamp] = filteredimage
         log_debug(f'save filtered result: {ret}')
 
 def insert_recentnotebook_results():
@@ -361,13 +378,11 @@ def insert_results(result):
     table_selected_rows = [v + 1 for v in table_selected_rows]
     refresh_table(setting.display_result)
 
-def update_resultflag(saved=False, filtered=False):
-    for row_index in table_selected_rows:
-        if saved:
-            list_results[row_index][0] = '☑'
-        if filtered:
-            list_results[row_index][1] = '☑'
-    refresh_table()
+def update_resultflag(row_index, saved=False, filtered=False):
+    if saved:
+        list_results[row_index][0] = '☑'
+    if filtered:
+        list_results[row_index][1] = '☑'
 
 def refresh_table(select_newest=False):
     if select_newest:
@@ -445,7 +460,7 @@ def select_result_recent():
     ret.selection_recent(timestamp)
 
     if timestamp in results_today.keys():
-        display_today(timestamp)
+        display_today(ret)
     else:
         display_history(ret)
     
@@ -517,73 +532,125 @@ def select_history():
     gui.display_historyresult(selection.get_targetrecordlist(), timestamp)
 
     if timestamp in results_today.keys():
-        display_today(timestamp)
+        display_today(selection)
     else:
         display_history(selection)
 
-def load_resultimagevalues(timestamp, music):
-    imagevalues_result[timestamp] = get_resultimagevalue(music, timestamp)
-    imagevalues_filtered[timestamp] = get_filteredimagevalue(music, timestamp)
+def load_resultimages(timestamp, music, recent=False):
+    image_result = get_resultimage(music, timestamp)
+    images_result[timestamp] = image_result
+    if image_result is not None:
+        timestamps_saved.append(timestamp)
 
-def display_today(timestamp):
-    if timestamp in imagevalues_result.keys():
-        resultimage = imagevalues_result[timestamp]
+    image_filtered = get_filteredimage(music, timestamp)
+    if not recent or image_result is None or image_filtered is not None:
+        images_filtered[timestamp] = image_filtered
+
+def display_today(selection):
+    if selection.timestamp in imagevalues_result.keys():
+        resultimage = imagevalues_result[selection.timestamp]
     else:
-        resultimage = get_imagevalue(images_result[timestamp])
-        imagevalues_result[timestamp] = resultimage
-    gui.display_image(resultimage, not timestamp in timestamps_saved, True, True)
+        resultimage = get_imagevalue(images_result[selection.timestamp])
+        imagevalues_result[selection.timestamp] = resultimage
+    gui.display_image(resultimage, result=True)
 
 def display_history(selection):
-    if not selection.timestamp in imagevalues_result.keys():
-        load_resultimagevalues(selection.timestamp, selection.music)
+    if not selection.timestamp in images_result.keys():
+        load_resultimages(selection.timestamp, selection.music, selection.timestamp in notebook_recent.timestamps)
     
-    imagevalue_result =  imagevalues_result[selection.timestamp]
-    imagevalue_filtered =  imagevalues_filtered[selection.timestamp]
-    if imagevalue_result is not None:
-        gui.display_image(imagevalue_result, False, imagevalue_filtered is not None, False)
+    if selection.timestamp in imagevalues_result.keys():
+        imagevalue_result = imagevalues_result[selection.timestamp]
     else:
-        if imagevalue_filtered is not None:
-            gui.display_image(imagevalue_filtered, False, False, False)
-            selection.selection_filtered()
+        imagevalue_result = get_imagevalue(images_result[selection.timestamp]) if selection.timestamp in images_result.keys() and images_result[selection.timestamp] is not None else None
+        imagevalues_result[selection.timestamp] = imagevalue_result
+
+    if imagevalue_result is not None:
+        gui.display_image(imagevalue_result, result=True)
+    else:
+        if selection.timestamp in imagevalues_filtered.keys():
+            imagevalue_filtered = imagevalues_filtered[selection.timestamp]
         else:
-            gui.display_image(None)
+            imagevalue_filtered = get_imagevalue(images_filtered[selection.timestamp]) if selection.timestamp in images_filtered.keys() and images_filtered[selection.timestamp] is not None else None
+            imagevalues_filtered[selection.timestamp] = imagevalue_filtered
+
+        gui.display_image(imagevalue_filtered, result=True)
+        if imagevalue_filtered is not None:
+            selection.selection_filtered()
 
 def save():
     if selection.recent:
         for row_index in table_selected_rows:
             timestamp = list_results[row_index][2]
-            save_result(results_today[timestamp], images_result[timestamp])
-            notebook_recent.get_result(timestamp)['saved'] = True
-            notebook_recent.save()
-        update_resultflag(saved=True)
+            if timestamp in results_today.keys() and not timestamp in timestamps_saved:
+                save_result(results_today[timestamp], images_result[timestamp])
+                notebook_recent.get_result(timestamp)['saved'] = True
+                update_resultflag(row_index, saved=True)
+        notebook_recent.save()
+        refresh_table()
     if selection.graph:
         save_graphimage(selection.music, images_graph[selection.music], setting.savefilemusicname_right)
-    window['button_save'].update(disabled=True)
 
 def filter():
-    if selection.recent and selection.timestamp in results_today.keys():
+    """ライバル欄にぼかしを入れて、ぼかし画像を表示する
+
+    最近のリザルトから選択している場合：
+        選択しているすべてのリザルトにぼかし処理を実行する。
+        ただし今日のリザルトでない場合は、リザルト画像がファイル保存されている場合のみ、処理が可能。
+
+    曲検索から選択している場合：
+        それが最近のリザルトに含まれている場合は、ぼかし処理ができない(tableのインデックスがわからないため)。
+        ぼかし画像の有無の確認のみ行い、画像がある場合はそれを表示する。
+    """
+    if selection.recent:
+        updated = False
         for row_index in table_selected_rows:
             timestamp = list_results[row_index][2]
-            targetresult = results_today[timestamp]
-            if not timestamp in images_filtered.keys():
-                save_filtered(targetresult, images_result[timestamp])
-                notebook_recent.get_result(timestamp)['filtered'] = True
-                notebook_recent.save()
-            update_resultflag(filtered=True)
+            target = notebook_recent.get_result(timestamp)
+            if not timestamp in images_result.keys():
+                load_resultimages(timestamp, target['music'], True)
+            if images_result[timestamp] is not None and not timestamp in images_filtered.keys():
+                save_filtered(
+                    images_result[timestamp],
+                    timestamp,
+                    target['music'],
+                    target['play_side'],
+                    target['has_loveletter'],
+                    target['has_graphtargetname']
+                )
+                target['filtered'] = True
+                update_resultflag(row_index, filtered=True)
+                updated = True
+        if updated:
+            notebook_recent.save()
+            refresh_table()
+    else:
+        if not selection.timestamp in images_result.keys() and not selection.timestamp in notebook_recent.timestamps:
+            load_resultimages(selection.timestamp, selection.music)
 
     if selection.timestamp in imagevalues_filtered.keys():
         imagevalue = imagevalues_filtered[selection.timestamp]
     else:
-        filteredimage = images_filtered[selection.timestamp]
-        imagevalue = get_imagevalue(filteredimage)
-        imagevalues_filtered[selection.timestamp] = imagevalue
+        filteredimage = images_filtered[selection.timestamp] if selection.timestamp in images_filtered.keys() else None
+        imagevalue = get_imagevalue(filteredimage) if filteredimage is not None else None
+        if imagevalue is not None:
+            imagevalues_filtered[selection.timestamp] = imagevalue
 
-    gui.display_image(
-        imagevalue,
-        selection.recent and not selection.timestamp in timestamps_saved
-    )
+    if imagevalue is not None:
+        gui.display_image(imagevalue, result=True)
+        selection.selection_filtered()
+
+def upload():
+    if not selection.recent:
+        return
     
-    selection.selection_filtered()
+    if not gui.question('確認', upload_confirm_message):
+        return
+    
+    for row_index in table_selected_rows:
+        timestamp = list_results[row_index][2]
+        if timestamp in results_today.keys() and not timestamp in timestamps_uploaded:
+            storage.upload_collection(results_today[timestamp], images_result[timestamp], True)
+            timestamps_uploaded.append(timestamp)
 
 def open_folder():
     if selection.filtered:
@@ -683,7 +750,7 @@ def create_graph(selection, targetrecord):
     images_graph[selection.music] = graphimage
 
     imagevalue = get_imagevalue(graphimage)
-    gui.display_image(imagevalue, True)
+    gui.display_image(imagevalue, graph=True)
     
     selection.selection_graph()
 
@@ -718,6 +785,7 @@ if __name__ == '__main__':
 
     results_today = {}
     timestamps_saved = []
+    timestamps_uploaded = []
 
     images_result = {}
     images_filtered = {}
@@ -811,9 +879,7 @@ if __name__ == '__main__':
             if event == 'button_export':
                 open_export(recent)
             if event == 'button_upload':
-                if gui.question('確認', upload_confirm_message):
-                    result = results_today[selection.timestamp]
-                    storage.upload_collection(result, True)
+                upload()
             if event == 'table_results':
                 if values['table_results'] != table_selected_rows:
                     table_selected_rows = values['table_results']

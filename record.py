@@ -54,6 +54,9 @@ class NotebookRecent(Notebook):
             'score_update': result.details.score.current - result.details.score.best if result.details.score.new else None,
             'miss_count_update': result.details.miss_count.current - result.details.miss_count.best if result.details.miss_count.new and result.details.miss_count.best is not None else None,
             'option': option,
+            'play_side': result.play_side,
+            'has_loveletter': result.rival,
+            'has_graphtargetname': result.details.graphtarget == 'rival',
             'saved': saved,
             'filtered': filtered
         }
