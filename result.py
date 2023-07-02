@@ -136,8 +136,8 @@ def generate_resultfilename(music, timestamp, musicname_right=False):
     else:
         return f"{timestamp}_{adjustmented}.jpg"
 
-def get_resultimagevalue(music, timestamp):
-    """リザルト画像のデータをファイルから取得する
+def get_resultimage(music, timestamp):
+    """リザルト画像をファイルから取得する
 
     最も古い形式はタイムスタンプのみのファイル名。
     曲名がファイル名の左側にあるときも右側にあるときもある。
@@ -153,22 +153,22 @@ def get_resultimagevalue(music, timestamp):
     filename = generate_resultfilename(music, timestamp)
     filepath = os.path.join(results_basepath, filename)
     if os.path.isfile(filepath):
-        return get_imagevalue(Image.open(filepath))
+        return Image.open(filepath)
     
     filename = generate_resultfilename(music, timestamp, True)
     filepath = os.path.join(results_basepath, filename)
     if os.path.isfile(filepath):
-        return get_imagevalue(Image.open(filepath))
+        return Image.open(filepath)
     
     filename = generate_resultfilename(None, timestamp)
     filepath = os.path.join(results_basepath, filename)
     if os.path.isfile(filepath):
-        return get_imagevalue(Image.open(filepath))
+        return Image.open(filepath)
     
     return None
 
-def get_filteredimagevalue(music, timestamp):
-    """ぼかしの入ったリザルト画像のデータをファイルから取得する
+def get_filteredimage(music, timestamp):
+    """ぼかしの入ったリザルト画像をファイルから取得する
 
     最も古い形式はタイムスタンプのみのファイル名。
     曲名がファイル名の左側にあるときも右側にあるときもある。
@@ -184,16 +184,16 @@ def get_filteredimagevalue(music, timestamp):
     filename = generate_resultfilename(music, timestamp)
     filepath = os.path.join(filtereds_basepath, filename)
     if os.path.isfile(filepath):
-        return get_imagevalue(Image.open(filepath))
+        return Image.open(filepath)
     
     filename = generate_resultfilename(music, timestamp, True)
     filepath = os.path.join(filtereds_basepath, filename)
     if os.path.isfile(filepath):
-        return get_imagevalue(Image.open(filepath))
+        return Image.open(filepath)
     
     filename = generate_resultfilename(None, timestamp)
     filepath = os.path.join(filtereds_basepath, filename)
     if os.path.isfile(filepath):
-        return get_imagevalue(Image.open(filepath))
+        return Image.open(filepath)
     
     return None

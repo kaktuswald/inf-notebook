@@ -121,7 +121,17 @@ class StorageAccessor():
         except Exception as ex:
             logger.exception(ex)
 
-    def upload_collection(self, result, force):
+    def upload_collection(self, result, image, force):
+        """収集画像をアップロードする
+
+        Args:
+            result (Result): 対象のリザルト(result.py)
+            image (Image): 対象のリザルト画像(PIL.Image)
+            force (bool): 強制アップロード
+
+        Returns:
+            bool: informationsとdetails両方アップロードした
+        """
         self.connect_client()
         if self.client is None:
             return
@@ -151,14 +161,16 @@ class StorageAccessor():
             details_trim = True
 
         if informations_trim:
-            trim = result.image.crop(define.informations_trimarea_new)
+            trim = image.crop(define.informations_trimarea_new)
             Thread(target=self.upload_informations, args=(object_name, trim,)).start()
         if details_trim:
             play_side = result.play_side
-            trim = result.image.crop(define.details_trimarea[play_side])
+            trim = image.crop(define.details_trimarea[play_side])
             image_draw = ImageDraw.Draw(trim)
             image_draw.rectangle(rivalname_fillbox, fill=0)
             Thread(target=self.upload_details, args=(object_name, trim,)).start()
+        
+        return informations_trim and details_trim
     
     def upload_resource(self, resourcename, targetfilepath):
         if self.bucket_resources is None:
