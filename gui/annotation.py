@@ -278,9 +278,7 @@ def set_informations(image):
     window['result_level'].update(informations.level if informations.level is not None else '')
     window['result_notes'].update(informations.notes if informations.notes is not None else '')
     window['result_music'].update(informations.music if informations.music is not None else '')
-
-    music_old = recog.get_music(image.convert('L').crop((0, 5, 460, 76)))
-    window['result_music_old'].update(music_old if music_old is not None else '')
+    window['result_music_old'].update('')
 
 def reset_details():
     window['has_details'].update(False)

@@ -123,50 +123,15 @@ class Recognition():
 
         return value
 
-    def get_music(self, image_informations):
-        if self.musics is None:
-            return None
+    def get_music(self, np_value_informations):
+        """曲名を取得する
 
-        if self.backgrounds is None:
-            return None
-        
-        background_key = str(image_informations.getpixel(self.background_key_position))
-        if not background_key in self.backgrounds.keys():
-            return None
-        
-        np_value = np.array(image_informations.crop(self.music_trimarea))
-        background_removed = np.where(self.backgrounds[background_key]!=np_value, np_value, 0)
-        gray_filtered = np.where(background_removed>=self.gray_filter, background_removed, 0)
+        Args:
+            np_value_informations (np.array): 対象のトリミングされたリザルト画像データ
 
-        masked = np.where(self.mask, 0, gray_filtered)
-
-        maxcounts = []
-        maxcount_values = []
-        for line in masked:
-            unique, counts = np.unique(line, return_counts=True)
-            if len(counts) != 1:
-                index = -np.argmax(np.flip(counts[1:])) - 1
-                maxcounts.append(counts[index])
-                maxcount_values.append(unique[index])
-            else:
-                maxcounts.append(0)
-                maxcount_values.append(0)
-
-        target = self.music_recognition
-        for y in np.argsort(maxcounts)[::-1]:
-            color = int(maxcount_values[y])
-            bins = np.where(masked[y]==color, 1, 0)
-            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-            mapkey = f"{y:02d}{''.join([format(v, '0x') for v in hexs])}"
-            if not mapkey in target:
-                return None
-            if type(target[mapkey]) == str:
-                return target[mapkey]
-            target = target[mapkey]
-        
-        return None
-
-    def get_music_new(self, np_value_informations):
+        Returns:
+            str: 曲名(認識失敗時はNone)
+        """
         trimmed = np_value_informations[self.informations['music']['trim']]
 
         blue = np.where(trimmed[:,:,2]==self.informations['music']['bluevalue'],trimmed[:,:,2],0)
@@ -382,24 +347,11 @@ class Recognition():
         
         return self.details['graphtarget'][mode][tablekey]
 
-    def check_newrecognition(self, result, np_value):
-        if self.informations is None:
-            return True
-        
-        np_value_informations = np_value[define.areas_np['informations']]
-        music = self.get_music_new(np_value_informations)
-        
-        if result.informations.music != music:
-            print(f'mismatch music {result.informations.music} {music}')
-            return False
-
-        return True
-
     def get_informations(self, np_value):
         play_mode = self.get_play_mode(np_value)
         difficulty, level = self.get_difficulty(np_value)
         notes = self.get_notes(np_value)
-        music = self.get_music_new(np_value)
+        music = self.get_music(np_value)
 
         return ResultInformations(play_mode, difficulty, level, notes, music)
 

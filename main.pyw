@@ -244,8 +244,7 @@ def result_process(screen):
 
     resultimage = screen.original
     if setting.data_collection or window['force_upload'].get():
-        newrecog_result = recog.check_newrecognition(result, screen.np_value)
-        if storage.upload_collection(result, resultimage, window['force_upload'].get() or not newrecog_result):
+        if storage.upload_collection(result, resultimage, window['force_upload'].get()):
             timestamps_uploaded.append(result.timestamp)
     
     if setting.newrecord_only and not result.has_new_record():
