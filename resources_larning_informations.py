@@ -86,38 +86,47 @@ def load_define():
 
     return ret
 
-def filter(targets, report, bluevalue, gray_threshold):
+def filter(targets, report, bluevalue, redvalue, gray_threshold):
     result = []
     grays = {}
     blues = {}
+    reds = {}
     for music, values in targets.items():
         result.append(f'{music}: {len(values)}')
         for key, value in values.items():
             blue = np.where(value[:,:,2]==bluevalue,value[:,:,2],0)
+            red = np.where(value[:,:,0]==redvalue,value[:,:,0],0)
             gray1 = np.where((value[:,:,0]==value[:,:,1])&(value[:,:,0]==value[:,:,2]),value[:,:,0],0)
             gray = np.where((gray1!=255)&(gray1>gray_threshold),gray1,0)
 
             blue_count = np.count_nonzero(blue)
+            red_count = np.count_nonzero(red)
             gray_count = np.count_nonzero(gray)
-            result.append(f'{key} blue: {blue_count} gray: {gray_count}')
+            result.append(f'{key} blue: {blue_count} red: {red_count}, gray: {gray_count}')
 
-            if gray_count > blue_count:
-                if not music in grays.keys():
-                    grays[music] = {}
-                grays[music][key] = gray
-            else:
+            max_count = max(blue_count, red_count, gray_count)
+            if max_count == blue_count:
                 if not music in blues.keys():
                     blues[music] = {}
                 blues[music][key] = blue
+            if max_count == red_count:
+                if not music in reds.keys():
+                    reds[music] = {}
+                reds[music][key] = red
+            if max_count == gray_count:
+                if not music in grays.keys():
+                    grays[music] = {}
+                grays[music][key] = gray
     
     report.append_log(f'Gray filter music count: {len(grays)}')
     report.append_log(f'Blue filter music count: {len(blues)}')
+    report.append_log(f'Red filter music count: {len(reds)}')
 
     result_report_filepath = join(otherreport_basedir, 'filtertype.txt')
     with open(result_report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(result))
     
-    return grays, blues
+    return grays, blues, reds
 
 def generate_mask(targets, report, name):
     report.append_log(f'Generate mask {name}')
@@ -602,16 +611,25 @@ def larning_musics(informations):
         if len(encoded) > 240:
             report.error(f'Record file name too long: {music}')
 
-    grays, blues = filter(targets, report, informations_define['music']['bluevalue'], informations_define['music']['gray_threshold'])
+    grays, blues, reds = filter(
+        targets,
+        report,
+        informations_define['music']['bluevalue'],
+        informations_define['music']['redvalue'],
+        informations_define['music']['gray_threshold']
+    )
     
     mask_gray = generate_mask(grays, report, 'gray')
     mask_blue = generate_mask(blues, report, 'blue')
+    mask_red = generate_mask(reds, report, 'red')
 
     filtered_grays = filter_mask(grays, mask_gray)
     filtered_blues = filter_mask(blues, mask_blue)
+    filtered_reds = filter_mask(reds, mask_red)
 
     table_gray = larning_music(filtered_grays, report, 'gray')
     table_blue = larning_music(filtered_blues, report, 'blue')
+    table_red = larning_music(filtered_reds, report, 'red')
 
     musics = sorted([*targets.keys()])
     registered_musics_filepath = join(otherreport_basedir, report_registered_musics_filename)
@@ -628,7 +646,7 @@ def larning_musics(informations):
 
     check_musics(musics, report)
 
-    outputtable({'gray': table_gray, 'blue': table_blue})
+    outputtable({'gray': table_gray, 'blue': table_blue, 'red': table_red})
 
     for key, target in informations.items():
         if not 'music' in target.label.keys() or target.label['music'] is None:
@@ -637,15 +655,23 @@ def larning_musics(informations):
         trimmed = target.np_value[informations_define['music']['trim']]
 
         blue = np.where(trimmed[:,:,2]==informations_define['music']['bluevalue'],trimmed[:,:,2],0)
+        red = np.where(trimmed[:,:,0]==informations_define['music']['redvalue'],trimmed[:,:,0],0)
         gray1 = np.where((trimmed[:,:,0]==trimmed[:,:,1])&(trimmed[:,:,0]==trimmed[:,:,2]),trimmed[:,:,0],0)
         gray = np.where((gray1!=255)&(gray1>informations_define['music']['gray_threshold']),gray1,0)
 
-        if np.count_nonzero(gray) > np.count_nonzero(blue):
+        gray_count = np.count_nonzero(gray)
+        blue_count = np.count_nonzero(blue)
+        red_count = np.count_nonzero(red)
+        max_count = max(gray_count, blue_count, red_count)
+        if max_count == gray_count:
             masked = np.where(mask_gray==1,gray,0)
             tabletarget = table_gray
-        else:
+        if max_count == blue_count:
             masked = np.where(mask_blue==1,blue,0)
             tabletarget = table_blue
+        if max_count == red_count:
+            masked = np.where(mask_red==1,red,0)
+            tabletarget = table_red
         
         maxcounts = []
         maxcount_values = []
@@ -680,9 +706,10 @@ def larning_musics(informations):
     return {
         'trim': informations_define['music']['trim'],
         'bluevalue': informations_define['music']['bluevalue'],
+        'redvalue': informations_define['music']['redvalue'],
         'gray_threshold': informations_define['music']['gray_threshold'],
-        'mask': {'blue': mask_blue, 'gray': mask_gray},
-        'table': {'blue': table_blue, 'gray': table_gray},
+        'mask': {'blue': mask_blue, 'red': mask_red, 'gray': mask_gray},
+        'table': {'blue': table_blue, 'red': table_red, 'gray': table_gray},
         'musics': musics
     }
 

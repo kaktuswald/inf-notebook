@@ -135,15 +135,23 @@ class Recognition():
         trimmed = np_value_informations[self.informations['music']['trim']]
 
         blue = np.where(trimmed[:,:,2]==self.informations['music']['bluevalue'],trimmed[:,:,2],0)
+        red = np.where(trimmed[:,:,0]==self.informations['music']['redvalue'],trimmed[:,:,0],0)
         gray1 = np.where((trimmed[:,:,0]==trimmed[:,:,1])&(trimmed[:,:,0]==trimmed[:,:,2]),trimmed[:,:,0],0)
         gray = np.where((gray1!=255)&(gray1>self.informations['music']['gray_threshold']),gray1,0)
 
-        if np.count_nonzero(gray) > np.count_nonzero(blue):
+        gray_count = np.count_nonzero(gray)
+        blue_count = np.count_nonzero(blue)
+        red_count = np.count_nonzero(red)
+        max_count = max(gray_count, blue_count, red_count)
+        if max_count == gray_count:
             masked = np.where(self.informations['music']['mask']['gray']==1,gray,0)
             targettable = self.informations['music']['table']['gray']
-        else:
+        if max_count == blue_count:
             masked = np.where(self.informations['music']['mask']['blue']==1,blue,0)
             targettable = self.informations['music']['table']['blue']
+        if max_count == red_count:
+            masked = np.where(self.informations['music']['mask']['red']==1,red,0)
+            targettable = self.informations['music']['table']['red']
         
         maxcounts = []
         maxcount_values = []
@@ -383,11 +391,6 @@ class Recognition():
             self.get_details(screen.np_value[define.areas_np['details'][play_side]])
         )
     
-        if result.informations.music is None:
-            monochrome = screen.original.convert('L')
-            trim_informations = monochrome.crop(define.informations_trimarea)
-            result.informations.music = self.get_music(trim_informations)
-
         return result
     
     def load_resource_musics(self):
