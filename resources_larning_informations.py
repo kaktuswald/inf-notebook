@@ -20,7 +20,7 @@ report_organize_filename = 'organize.txt'
 report_registered_musics_filename = 'musics_registered.txt'
 report_missing_musics_filename = 'musics_missing_in_arcade.txt'
 
-otherreport_basedir = join(report_dirname, 'music')
+otherreport_basedir = join(report_dirname, 'informations')
 musicfilenametest_basedir = join(report_dirname, 'music_filename')
 
 class Informations():

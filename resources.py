@@ -74,5 +74,6 @@ def check_latest(storage, filename):
     
     filepath = os.path.join(resources_dirname, filename)
     if storage.download_resource(filename, filepath):
+        logger.info(f'download {filename}')
         timestamp.write_timestamp(latest_timestamp)
         return True

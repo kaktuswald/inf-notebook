@@ -103,8 +103,6 @@ class Define():
             self.informations_trimpos[1] + self.informations_trimsize[1]
         )
 
-        self.musics_resourcename = f'musics{self.music_recognition_vesion}'
-
         self.informations_resourcename = f'informations{self.informations_recognition_version}'
         self.details_resourcename = f'details{self.details_recognition_version}'
 

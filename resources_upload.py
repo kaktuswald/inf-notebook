@@ -12,18 +12,6 @@ if __name__ == '__main__':
 
     storage = StorageAccessor()
 
-    if '-all' in argv or '-musics' in argv:
-        filename_musics = f'{define.musics_resourcename}.json'
-        filepath_musics = join(resources_dirname, filename_musics)
-        
-        storage.upload_resource(filename_musics, filepath_musics)
-        timestamp = storage.get_resource_timestamp(filename_musics)
-
-        musics_timestamp = ResourceTimestamp(filename_musics)
-        musics_timestamp.write_timestamp(timestamp)
-        
-        print(f'Upload complete {filename_musics}')
-
     if '-all' in argv or '-informations' in argv:
         filename_informations = f'{define.informations_resourcename}.res'
         filepath_informations = join(resources_dirname, filename_informations)
@@ -31,7 +19,20 @@ if __name__ == '__main__':
         storage.upload_resource(filename_informations, filepath_informations)
         timestamp = storage.get_resource_timestamp(filename_informations)
 
-        musics_timestamp = ResourceTimestamp(filename_informations)
-        musics_timestamp.write_timestamp(timestamp)
+        timestamp_informations = ResourceTimestamp(filename_informations)
+        timestamp_informations.write_timestamp(timestamp)
 
         print(f'Upload complete {filename_informations}')
+
+    if '-all' in argv or '-details' in argv:
+        filename_details = f'{define.details_resourcename}.json'
+        filepath_details = join(resources_dirname, filename_details)
+        
+        storage.upload_resource(filename_details, filepath_details)
+        timestamp = storage.get_resource_timestamp(filename_details)
+
+        timestamp_details = ResourceTimestamp(filename_details)
+        timestamp_details.write_timestamp(timestamp)
+        
+        print(f'Upload complete {filename_details}')
+

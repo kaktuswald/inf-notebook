@@ -30,9 +30,6 @@ class Recognition():
 
         self.load_resource_informations()
         self.load_resource_details()
-
-        self.musics = None
-        self.load_resource_musics()
     
     def get_is_savable(self, np_value):
         define_result_check = define.result_check

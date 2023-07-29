@@ -420,13 +420,13 @@ def get_latest_version():
             return None
 
 def check_resource():
-    musics_filename = f'{define.musics_resourcename}.json'
-    if check_latest(storage, musics_filename):
-        recog.load_resource_musics()
-
     informations_filename = f'{define.informations_resourcename}.res'
     if check_latest(storage, informations_filename):
         recog.load_resource_informations()
+
+    details_filename = f'{define.details_resourcename}.json'
+    if check_latest(storage, details_filename):
+        recog.load_resource_details()
 
 def select_result_recent():
     if len(table_selected_rows) == 0:
