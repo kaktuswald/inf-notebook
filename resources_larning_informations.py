@@ -757,8 +757,6 @@ def analyze(informations):
         result[music] = {}
         for play_mode in define.value_list['play_modes']:
             result[music][play_mode] = {}
-            for difficulty in define.value_list['difficulties']:
-                result[music][play_mode][difficulty] = None
         values = [music]
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
@@ -829,3 +827,8 @@ if __name__ == '__main__':
 
     filename = f'musictable{define.musictable_version}.res'
     save_resource_serialized(filename, musictable)
+
+    if len(music['musics']) != len(musictable['musics']):
+        print(f"Mismatch music count")
+        print(f"recog music count: {len(music['musics'])}")
+        print(f"musictable music count: {len(musictable['musics'])}")

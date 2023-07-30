@@ -761,7 +761,7 @@ def rename_all_musicnotebooks():
     if recog.informations is None:
         return
 
-    rename_allfiles(recog.informations['music']['musics'])
+    rename_allfiles(recog.musictable['musics'].keys())
 
 if __name__ == '__main__':
     keyboard.add_hotkey('ctrl+F10', active_screenshot)

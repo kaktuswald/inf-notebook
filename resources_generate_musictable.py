@@ -11,7 +11,8 @@ def load_musiclist(report):
     with open(musiclist_filepath, 'r', encoding='utf-8') as f:
         musiclist = f.read().split('\n')
 
-    table = {}
+    versions = {}
+    musics = {}
     for line in musiclist:
         if len(line) == 0:
             continue
@@ -20,64 +21,53 @@ def load_musiclist(report):
         values = [values[0], ','.join(values[1:-10]), *values[-10:]]
 
         version = values[0]
-        if not version in table.keys():
-            table[version] = {}
+        if not version in versions.keys():
+            versions[version] = []
 
         music = values[1]
         if music == '':
             report.error(f'Music blank error: {line}')
         
-        table[version][music] = {}
+        versions[version].append(music)
+        musics[music] = {'version': version}
         for play_mode in define.value_list['play_modes']:
-            table[version][music][play_mode] = {}
+            musics[music][play_mode] = {}
     
-        if values[2] != '-':
-            table[version][music]['SP']['BEGINNER'] = values[2] if values[2] != '0' else None
-        if values[3] != '-':
-            table[version][music]['SP']['NORMAL'] = values[3] if values[3] != '0' else None
-        if values[4] != '-':
-            table[version][music]['SP']['HYPER'] = values[4] if values[4] != '0' else None
-        if values[5] != '-':
-            table[version][music]['SP']['ANOTHER'] = values[5] if values[5] != '0' else None
-        if values[6] != '-':
-            table[version][music]['SP']['LEGGENDARIA'] = values[6] if values[6] != '0' else None
-        if values[7] != '-':
-            table[version][music]['DP']['BEGINNER'] = values[7] if values[7] != '0' else None
-        if values[8] != '-':
-            table[version][music]['DP']['NORMAL'] = values[8] if values[8] != '0' else None
-        if values[9] != '-':
-            table[version][music]['DP']['HYPER'] = values[9] if values[9] != '0' else None
-        if values[10] != '-':
-            table[version][music]['DP']['ANOTHER'] = values[10] if values[10] != '0' else None
-        if values[11] != '-':
-            table[version][music]['DP']['LEGGENDARIA'] = values[11] if values[11] != '0' else None
+        index = 2
+        for play_mode in define.value_list['play_modes']:
+            for difficulty in define.value_list['difficulties']:
+                if values[index] != '-':
+                    if values[index] == '0':
+                        print(music)
+                        exit()
+                    musics[music][play_mode][difficulty] = values[index]
 
-    table['Unknown'] = {}
+    versions['Unknown'] = []
 
-    return table
+    return versions, musics
 
-def reflect_collections_analyzed(report, table, analyzed):
+def reflect_collections_analyzed(report, versions, musics, analyzed):
     for music in analyzed.keys():
         version = 'Unknown'
-        for v, i in table.items():
-            if music in i.keys():
-                version = v
+        for key, value in versions.items():
+            if music in value:
+                version = key
                 break
 
         if version == 'Unknown':
-            table[version][music] = {}
+            versions[version].append(music)
+            musics[music] = {'version': 'Unknown'}
             for play_mode in define.value_list['play_modes']:
-                table[version][music][play_mode] = {}
-
+                musics[music][play_mode] = {}
+        
         for play_mode in analyzed[music].keys():
             for difficulty, value in analyzed[music][play_mode].items():
-                if value is not None:
-                    if difficulty in table[version][music][play_mode].keys() and value != table[version][music][play_mode][difficulty]:
-                        report.error(f"Mismatch {version} {music} {play_mode} {difficulty}: {value}, {table[version][music][play_mode][difficulty]}")
-                    else:
-                        table[version][music][play_mode][difficulty] = value
+                if difficulty in musics[music][play_mode].keys() and value != musics[music][play_mode][difficulty]:
+                    report.error(f"Mismatch {version} {music} {play_mode} {difficulty}: {value}, {musics[music][play_mode][difficulty]}")
+                else:
+                    musics[music][play_mode][difficulty] = value
 
-def reflect_scoredata(table, play_mode, filepath):
+def reflect_scoredata(versions, musics, play_mode, filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
         scoredata = f.read().split('\n')
 
@@ -86,46 +76,43 @@ def reflect_scoredata(table, play_mode, filepath):
         values = [values[0], ','.join(values[1:-39]), *values[-39:]]
 
         version = values[0]
-        if not version in table.keys():
+        if not version in versions.keys():
             continue
 
         music = values[1]
-        if not music in table[version].keys():
+        if not music in musics.keys():
             continue
 
-        if values[5] != '0' and not 'BEGGINER' in table[version][music][play_mode].keys():
-            table[version][music][play_mode]['BEGINNER'] = values[5]
-        if values[12] != '0' and not 'NORMAL' in table[version][music][play_mode].keys():
-            table[version][music][play_mode]['NORMAL'] = values[12]
-        if values[19] != '0' and not 'HYPER' in table[version][music][play_mode].keys():
-            table[version][music][play_mode]['HYPER'] = values[19]
-        if values[26] != '0' and not 'ANOTHER' in table[version][music][play_mode].keys():
-            table[version][music][play_mode]['ANOTHER'] = values[26]
-        if values[33] != '0' and not 'LEGGENDARIA' in table[version][music][play_mode].keys():
-            table[version][music][play_mode]['LEGGENDARIA'] = values[33]
+        if values[5] != '0' and not 'BEGGINER' in musics[music][play_mode].keys():
+            musics[music][play_mode]['BEGINNER'] = values[5]
+        if values[12] != '0' and not 'NORMAL' in musics[music][play_mode].keys():
+            musics[music][play_mode]['NORMAL'] = values[12]
+        if values[19] != '0' and not 'HYPER' in musics[music][play_mode].keys():
+            musics[music][play_mode]['HYPER'] = values[19]
+        if values[26] != '0' and not 'ANOTHER' in musics[music][play_mode].keys():
+            musics[music][play_mode]['ANOTHER'] = values[26]
+        if values[33] != '0' and not 'LEGGENDARIA' in musics[music][play_mode].keys():
+            musics[music][play_mode]['LEGGENDARIA'] = values[33]
 
 def generate(analyzed, reportdir):
     report = Report('musictable')
 
-    table = load_musiclist(report)
+    versions, musics = load_musiclist(report)
 
-    reflect_collections_analyzed(report, table, analyzed)
+    reflect_collections_analyzed(report, versions, musics, analyzed)
 
-    reflect_scoredata(table, 'SP', scoredata_sp_filename)
-    reflect_scoredata(table, 'DP', scoredata_dp_filename)
+    reflect_scoredata(versions, musics, 'SP', scoredata_sp_filename)
+    reflect_scoredata(versions, musics, 'DP', scoredata_dp_filename)
 
-    report.append_log(f'Total count: {sum([len(musics) for musics in table.values()])}')
+    report.append_log(f'Total count: {len(musics)}')
     report.append_log('')
-    
-    versions = {}
+
     report_versions = []
     report.append_log('Number of musics in each version.')
-    for version in table.keys():
-        versions[version] = []
-        report.append_log(f'{version}: {len(table[version])}')
-        report_versions.append(f'{version}: {len(table[version])}')
-        for music in table[version].keys():
-            report_versions.append(f'  {music}')
+    for version in versions.keys():
+        report.append_log(f'{version}: {len(versions[version])}')
+        report_versions.append(f'{version}: {len(versions[version])}')
+        report_versions.extend([f'  {music}' for music in versions[version]])
     report.append_log('')
 
     report_filepath = join(reportdir, 'musictable_versions.txt')
@@ -137,15 +124,14 @@ def generate(analyzed, reportdir):
         levels[play_mode] = {}
         for level in define.value_list['levels']:
             levels[play_mode][level] = []
-        for version in table.keys():
-            for music in table[version].keys():
-                for difficulty in define.value_list['difficulties']:
-                    if difficulty in table[version][music][play_mode].keys() and table[version][music][play_mode][difficulty] is not None:
-                        level = table[version][music][play_mode][difficulty]
-                        try:
-                            levels[play_mode][level].append({'music': music, 'difficulty': difficulty})
-                        except Exception as ex:
-                            report.error(f'Musics error?? {music}')
+        for music in musics.keys():
+            for difficulty in define.value_list['difficulties']:
+                if difficulty in musics[music][play_mode].keys():
+                    level = musics[music][play_mode][difficulty]
+                    try:
+                        levels[play_mode][level].append({'music': music, 'difficulty': difficulty})
+                    except Exception as ex:
+                        report.error(f'Musics error?? {music}')
 
     report_levels = []
     report.append_log('Number of musics in each difficulty.')
@@ -164,7 +150,7 @@ def generate(analyzed, reportdir):
     report.report()
     
     return {
-        # 'musics': musics,
+        'musics': musics,
         'versions': versions,
         'levels': levels,
     }
