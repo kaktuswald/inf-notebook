@@ -69,6 +69,7 @@ class Report():
         if len(self.log_error) > 0:
             print('Errors:')
             print('\n'.join(self.log_error[:error_output_count]))
+        print()
 
 class RawData():
     def __init__(self, np_value, label):

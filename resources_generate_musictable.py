@@ -1,15 +1,13 @@
 from os.path import join
 
 from define import define
+from resources_generate import Report
 
 scoredata_sp_filename = 'score_data_sp.csv'
 scoredata_dp_filename = 'score_data_dp.csv'
 musiclist_filepath = 'musics.csv'
-collections_analyzed_filename = 'musics_analyzed.csv'
 
-errors = []
-
-def load_musiclist():
+def load_musiclist(report):
     with open(musiclist_filepath, 'r', encoding='utf-8') as f:
         musiclist = f.read().split('\n')
 
@@ -27,7 +25,7 @@ def load_musiclist():
 
         music = values[1]
         if music == '':
-            errors.append(f'Music blank error: {line}')
+            report.error(f'Music blank error: {line}')
         
         table[version][music] = {}
         for play_mode in define.value_list['play_modes']:
@@ -55,57 +53,29 @@ def load_musiclist():
             table[version][music]['DP']['LEGGENDARIA'] = values[11] if values[11] != '0' else None
 
     table['Unknown'] = {}
+
     return table
 
-def reflect_collections_analyzed(table):
-    with open(collections_analyzed_filename, 'r', encoding='utf-8') as f:
-        analyzed = f.read().split('\n')
-
-    for line in analyzed:
-        if len(line) == 0:
-            continue
-
-        values = line.split(',')
-        values = [','.join(values[0:-10]), *values[-10:]]
-
-        music = values[0]
+def reflect_collections_analyzed(report, table, analyzed):
+    for music in analyzed.keys():
         version = 'Unknown'
         for v, i in table.items():
             if music in i.keys():
                 version = v
                 break
-        
+
         if version == 'Unknown':
             table[version][music] = {}
             for play_mode in define.value_list['play_modes']:
                 table[version][music][play_mode] = {}
 
-        if values[1] != '-':
-            if 'BEGINNER' in table[version][music]['SP'].keys() and values[1] != table[version][music]['SP']['BEGINNER']:
-                errors.append(f"Mismatch {version} {music} SP: {values[1]}, {table[version][music]['SP']['BEGINNER']}")
-            else:
-                table[version][music]['SP']['BEGINNER'] = values[1]
-        if values[2] != '-':
-            table[version][music]['SP']['NORMAL'] = values[2]
-        if values[3] != '-':
-            table[version][music]['SP']['HYPER'] = values[3]
-        if values[4] != '-':
-            if 'ANOTHER' in table[version][music]['SP'].keys() and values[4] != table[version][music]['SP']['ANOTHER']:
-                errors.append(f"Mismatch {version} {music} SP: {values[4]}, {table[version][music]['SP']['ANOTHER']}")
-            else:
-                table[version][music]['SP']['ANOTHER'] = values[4]
-        if values[5] != '-':
-            table[version][music]['SP']['LEGGENDARIA'] = values[5]
-        if values[6] != '-':
-            table[version][music]['DP']['BEGINNER'] = values[6]
-        if values[7] != '-':
-            table[version][music]['DP']['NORMAL'] = values[7]
-        if values[8] != '-':
-            table[version][music]['DP']['HYPER'] = values[8]
-        if values[9] != '-':
-            table[version][music]['DP']['ANOTHER'] = values[9]
-        if values[10] != '-':
-            table[version][music]['DP']['LEGGENDARIA'] = values[10]
+        for play_mode in analyzed[music].keys():
+            for difficulty, value in analyzed[music][play_mode].items():
+                if value is not None:
+                    if difficulty in table[version][music][play_mode].keys() and value != table[version][music][play_mode][difficulty]:
+                        report.error(f"Mismatch {version} {music} {play_mode} {difficulty}: {value}, {table[version][music][play_mode][difficulty]}")
+                    else:
+                        table[version][music][play_mode][difficulty] = value
 
 def reflect_scoredata(table, play_mode, filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -134,32 +104,31 @@ def reflect_scoredata(table, play_mode, filepath):
         if values[33] != '0' and not 'LEGGENDARIA' in table[version][music][play_mode].keys():
             table[version][music][play_mode]['LEGGENDARIA'] = values[33]
 
-if __name__ == '__main__':
-    with open(scoredata_dp_filename, 'r', encoding='utf-8') as f:
-        scoredata_dp = f.read().split('\n')
-    with open(collections_analyzed_filename, 'r', encoding='utf-8') as f:
-        analyzed = f.read().split('\n')
+def generate(analyzed, reportdir):
+    report = Report('musictable')
 
-    table = load_musiclist()
+    table = load_musiclist(report)
 
-    reflect_collections_analyzed(table)
+    reflect_collections_analyzed(report, table, analyzed)
 
     reflect_scoredata(table, 'SP', scoredata_sp_filename)
     reflect_scoredata(table, 'DP', scoredata_dp_filename)
 
-    print(f'Total count: {sum([len(musics) for musics in table.values()])}')
-    print('')
-
+    report.append_log(f'Total count: {sum([len(musics) for musics in table.values()])}')
+    report.append_log('')
+    
+    versions = {}
     report_versions = []
-    print('Number of musics in each version.')
+    report.append_log('Number of musics in each version.')
     for version in table.keys():
-        print(f'{version}: {len(table[version])}')
+        versions[version] = []
+        report.append_log(f'{version}: {len(table[version])}')
         report_versions.append(f'{version}: {len(table[version])}')
         for music in table[version].keys():
             report_versions.append(f'  {music}')
-    print('')
+    report.append_log('')
 
-    report_filepath = join('report', 'musics_versions.txt')
+    report_filepath = join(reportdir, 'musictable_versions.txt')
     with open(report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report_versions))
 
@@ -176,22 +145,26 @@ if __name__ == '__main__':
                         try:
                             levels[play_mode][level].append({'music': music, 'difficulty': difficulty})
                         except Exception as ex:
-                            errors.append(f'Musics error?? {music}')
+                            report.error(f'Musics error?? {music}')
 
     report_levels = []
-    print('Number of musics in each level.')
+    report.append_log('Number of musics in each difficulty.')
     for play_mode in define.value_list['play_modes']:
         for level in define.value_list['levels']:
-            print(f'{play_mode} level {level}: {len(levels[play_mode][level])}')
+            report.append_log(f'{play_mode} level {level}: {len(levels[play_mode][level])}')
             report_levels.append(f'{play_mode} level {level}: {len(levels[play_mode][level])}')
             for values in levels[play_mode][level]:
                 report_levels.append(f"  {values['music']} {values['difficulty']}")
-        print('')
+        report.append_log('')
 
-    report_filepath = join('report', 'musics_levels.txt')
+    report_filepath = join(reportdir, 'musictable_levels.txt')
     with open(report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report_levels))
 
-    if len(errors) > 0:
-        print('Errors:')
-        print('\n'.join(errors))
+    report.report()
+    
+    return {
+        # 'musics': musics,
+        'versions': versions,
+        'levels': levels,
+    }

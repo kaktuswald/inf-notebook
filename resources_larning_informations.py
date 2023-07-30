@@ -10,6 +10,7 @@ from result import generate_resultfilename
 import data_collection as dc
 from resources_generate import Report,save_resource_serialized,report_dirname
 from resources_larning import larning_multivalue
+from resources_generate_musictable import generate as generate_musictable
 
 recognition_define_filename = '_define_recognition_informations.json'
 
@@ -20,7 +21,9 @@ report_organize_filename = 'organize.txt'
 report_registered_musics_filename = 'musics_registered.txt'
 report_missing_musics_filename = 'musics_missing_in_arcade.txt'
 
-otherreport_basedir = join(report_dirname, 'informations')
+report_basedir_musicrecog = join(report_dirname, 'musicrecog')
+report_basedir_musictable = join(report_dirname, 'musictable')
+
 musicfilenametest_basedir = join(report_dirname, 'music_filename')
 
 class Informations():
@@ -122,7 +125,7 @@ def filter(targets, report, bluevalue, redvalue, gray_threshold):
     report.append_log(f'Blue filter music count: {len(blues)}')
     report.append_log(f'Red filter music count: {len(reds)}')
 
-    result_report_filepath = join(otherreport_basedir, 'filtertype.txt')
+    result_report_filepath = join(report_basedir_musicrecog, 'filtertype.txt')
     with open(result_report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(result))
     
@@ -150,7 +153,7 @@ def generate_mask(targets, report, name):
             if len(value) > 0:
                 output.append(f"{key}: ({len(value)}){' '.join([str(p) for p in value[:5]])}")
 
-    masks_report_filepath = join(otherreport_basedir, f'report_mask_{name}.txt')
+    masks_report_filepath = join(report_basedir_musicrecog, f'report_mask_{name}.txt')
     with open(masks_report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
 
@@ -252,7 +255,7 @@ def larning_music(targets, report, name):
             for k in keys:
                 not_uniques.append(f'({len(k):2}){k[0]}: {map_keys[k[0]]}')
 
-    notuniques_report_filepath = join(otherreport_basedir, f'noteunique_{name}.txt')
+    notuniques_report_filepath = join(report_basedir_musicrecog, f'noteunique_{name}.txt')
     with open(notuniques_report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(not_uniques))
 
@@ -285,7 +288,7 @@ def larning_music(targets, report, name):
             report.saveimage_errorvalue(value, f'_{escape_music_name}_{key}.png')
             inspect_result.append(f'{key}: {map_keys[key]}')
 
-    inspectresult_report_filepath = join(otherreport_basedir, f'inspect_{name}.txt')
+    inspectresult_report_filepath = join(report_basedir_musicrecog, f'inspect_{name}.txt')
     with open(inspectresult_report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(inspect_result))
 
@@ -378,7 +381,7 @@ def check_musics(musics, report):
 
     missings_arcade = sorted([music for music in arcade_all_musics if not music in musics])
 
-    missing_musics_filepath = join(otherreport_basedir, report_missing_musics_filename)
+    missing_musics_filepath = join(report_basedir_musicrecog, report_missing_musics_filename)
     with open(missing_musics_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(missings_arcade))
 
@@ -586,7 +589,7 @@ def larning_notes(informations):
     }
 
 def larning_musics(informations):
-    resourcename = 'music'
+    resourcename = 'musicrecog'
 
     report = Report(resourcename)
 
@@ -632,7 +635,7 @@ def larning_musics(informations):
     table_red = larning_music(filtered_reds, report, 'red')
 
     musics = sorted([*targets.keys()])
-    registered_musics_filepath = join(otherreport_basedir, report_registered_musics_filename)
+    registered_musics_filepath = join(report_basedir_musicrecog, report_registered_musics_filename)
     with open(registered_musics_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(musics))
     if not exists(musicfilenametest_basedir):
@@ -713,6 +716,74 @@ def larning_musics(informations):
         'musics': musics
     }
 
+def analyze(informations):
+    resourcename = 'analyze'
+
+    report = Report(resourcename)
+
+    report.append_log(f'Source count: {len(informations)}')
+
+    table = {}
+    for key, target in informations.items():
+        if not 'play_mode' in target.label.keys() or target.label['play_mode'] is None:
+            continue
+        if not 'difficulty' in target.label.keys() or target.label['difficulty'] is None:
+            continue
+        if not 'level' in target.label.keys() or target.label['level'] is None:
+            continue
+        if not 'music' in target.label.keys() or target.label['music'] is None:
+            continue
+        if not 'notes' in target.label.keys() or target.label['notes'] is None:
+            continue
+        
+        play_mode = target.label['play_mode']
+        difficulty = target.label['difficulty']
+        level = target.label['level']
+        music = target.label['music']
+
+        if not music in table.keys():
+            table[music] = {}
+            for pm in define.value_list['play_modes']:
+                table[music][pm] = {}
+                for df in define.value_list['difficulties']:
+                    table[music][pm][df] = {}
+        
+        if not level in table[music][play_mode][difficulty].values():
+            table[music][play_mode][difficulty][key] = level
+    
+    result = {}
+    output = []
+    for music in table.keys():
+        result[music] = {}
+        for play_mode in define.value_list['play_modes']:
+            result[music][play_mode] = {}
+            for difficulty in define.value_list['difficulties']:
+                result[music][play_mode][difficulty] = None
+        values = [music]
+        for play_mode in define.value_list['play_modes']:
+            for difficulty in define.value_list['difficulties']:
+                if len(table[music][play_mode][difficulty]) > 1 and play_mode == 'DP':
+                    if len(table[music]['SP'][difficulty]) == 1:
+                        for key, value in table[music][play_mode][difficulty].items():
+                            if value == table[music]['SP'][difficulty].values()[0]:
+                                del table[music][play_mode][difficulty][key]
+                if len(table[music][play_mode][difficulty]) == 1:
+                    result[music][play_mode][difficulty] = [*table[music][play_mode][difficulty].values()][0]
+                values.append([*table[music][play_mode][difficulty].values()][0] if len(table[music][play_mode][difficulty]) == 1 else '-')
+                if len(table[music][play_mode][difficulty]) > 1:
+                    report.error(f'{music} {play_mode} {difficulty}:')
+                    for key, value in table[music][play_mode][difficulty].items():
+                        report.error(f'  level {value}({key})')
+        output.append(','.join(values))
+
+    musics_analyzed_filepath = join(report_basedir_musictable, 'musics_analyzed.csv')
+    with open(musics_analyzed_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
+    
+    report.report()
+
+    return result
+
 if __name__ == '__main__':
     try:
         with open(dc.label_filepath) as f:
@@ -734,6 +805,9 @@ if __name__ == '__main__':
     
     organize(informations)
 
+    if not exists(report_basedir_musicrecog):
+        mkdir(report_basedir_musicrecog)
+
     play_mode = larning_playmode(informations)
     difficulty = larning_difficulty(informations)
     notes = larning_notes(informations)
@@ -746,3 +820,12 @@ if __name__ == '__main__':
         'notes': notes,
         'music': music
     })
+
+    if not exists(report_basedir_musictable):
+        mkdir(report_basedir_musictable)
+    
+    analyzed_musics = analyze(informations)
+    musictable = generate_musictable(analyzed_musics, report_basedir_musictable)
+
+    filename = f'musictable{define.musictable_version}.res'
+    save_resource_serialized(filename, musictable)
