@@ -246,8 +246,8 @@ def rename_allfiles(musics):
 
 def get_record_musics():
     filepaths = glob(join(records_basepath, '*.json'))
-    strings = [basename(filepath).removesuffix('.json') for filepath in filepaths]
-    musics = [bytes.fromhex(string).decode('UTF-8') for string in strings if string != 'recent']
+    strings = [basename(filepath).removesuffix('.json') for filepath in filepaths if not 'recent.json' in filepath]
+    musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
     return musics
 
 def delete_recordfile(music):

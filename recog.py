@@ -1,7 +1,5 @@
 import numpy as np
-import json
 from logging import getLogger
-from os.path import exists
 
 logger_child_name = 'recog'
 
@@ -9,7 +7,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
 from define import define
-from resources import recog_musics_filepath,load_resource_serialized,load_resource_numpy
+from resources import load_resource_serialized,load_resource_numpy
 from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,Result
 
 class Recog():
@@ -30,6 +28,7 @@ class Recognition():
 
         self.load_resource_informations()
         self.load_resource_details()
+        self.load_resource_musictable()
     
     def get_is_savable(self, np_value):
         define_result_check = define.result_check
@@ -390,30 +389,6 @@ class Recognition():
     
         return result
     
-    def load_resource_musics(self):
-        if not exists(recog_musics_filepath):
-            return
-        
-        with open(recog_musics_filepath) as f:
-            resource = json.load(f)
-        
-        self.music_trimarea = tuple(resource['define']['trimarea'])
-        self.background_key_position = tuple(resource['define']['background_key_position'])
-
-        self.backgrounds = {}
-        for background_key in resource['backgrounds'].keys():
-            self.backgrounds[background_key] = np.array(resource['backgrounds'][background_key])
-        
-        trimarea = resource['define']['trimarea']
-        width = trimarea[2] - trimarea[0]
-        self.gray_filter = np.tile(np.array(resource['define']['gray_thresholds']), (width, 1)).T
-
-        self.mask = np.array(resource['mask'])
-        
-        self.music_recognition = resource['recognition']
-
-        self.musics = resource['musics']
-    
     def load_resource_informations(self):
         resourcename = f'informations{define.informations_recognition_version}'
         
@@ -423,5 +398,10 @@ class Recognition():
         resourcename = f'details{define.details_recognition_version}'
         
         self.details = load_resource_serialized(resourcename)
+
+    def load_resource_musictable(self):
+        resourcename = f'musictable{define.musictable_version}'
+        
+        self.musictable = load_resource_serialized(resourcename)
 
 recog = Recognition()

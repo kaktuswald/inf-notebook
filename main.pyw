@@ -428,6 +428,10 @@ def check_resource():
     if check_latest(storage, details_filename):
         recog.load_resource_details()
 
+    musictable_filename = f'{define.musictable_resourcename}.json'
+    if check_latest(storage, musictable_filename):
+        recog.load_resource_musictable()
+
 def select_result_recent():
     if len(table_selected_rows) == 0:
         return None
@@ -754,21 +758,10 @@ def create_graph(selection, targetrecord):
     selection.selection_graph()
 
 def rename_all_musicnotebooks():
-    if recog.musics is None:
+    if recog.informations is None:
         return
 
-    def covering(target, musics):
-        if type(target) is dict:
-            for t in target.values():
-                covering(t, musics)
-        else:
-            musics.append(target)
-
-    musics = []
-    covering(recog.music_recognition, musics)
-    musics = set(musics)
-
-    rename_allfiles(musics)
+    rename_allfiles(recog.informations['music']['musics'])
 
 if __name__ == '__main__':
     keyboard.add_hotkey('ctrl+F10', active_screenshot)

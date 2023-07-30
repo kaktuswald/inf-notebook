@@ -161,7 +161,7 @@ class StorageAccessor():
             details_trim = True
 
         if informations_trim:
-            trim = image.crop(define.informations_trimarea_new)
+            trim = image.crop(define.informations_trimarea)
             Thread(target=self.upload_informations, args=(object_name, trim,)).start()
         if details_trim:
             play_side = result.play_side

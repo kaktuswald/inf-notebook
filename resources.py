@@ -18,9 +18,6 @@ sounds_dirname = 'sounds'
 
 sounds_dirpath = os.path.join(resources_dirname, sounds_dirname)
 
-recog_musics_filename = f'musics{define.music_recognition_vesion}.json'
-recog_musics_filepath = os.path.join(resources_dirname, recog_musics_filename)
-
 sound_result_filepath = os.path.join(sounds_dirpath, 'result.wav')
 
 class ResourceTimestamp():

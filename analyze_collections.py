@@ -1,27 +1,11 @@
 from PIL import Image
 import json
 from sys import exit
-from os import mkdir
-from os.path import join,isfile,exists
+from os.path import join,isfile
 import numpy as np
 
 from define import define
-from result import generate_resultfilename
 import data_collection as dc
-from resources_generate import Report,save_resource_serialized,report_dirname
-from resources_larning import larning_multivalue
-
-recognition_define_filename = '_define_recognition_informations.json'
-
-arcadeallmusics_filename = 'musics_arcade_all.txt'
-infinitasonlymusics_filename = 'musics_infinitas_only.txt'
-
-report_organize_filename = 'organize.txt'
-report_registered_musics_filename = 'musics_registered.txt'
-report_missing_musics_filename = 'musics_missing_in_arcade.txt'
-
-otherreport_basedir = join(report_dirname, 'informations')
-musicfilenametest_basedir = join(report_dirname, 'music_filename')
 
 class Informations():
     def __init__(self, np_value, label):
@@ -82,17 +66,26 @@ def analyze(informations):
         values = [music]
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
-                values.append([*table[music][play_mode][difficulty].values()][0] if len(table[music][play_mode][difficulty]) else '-')
+                if len(table[music][play_mode][difficulty]) > 1 and play_mode == 'DP':
+                    if len(table[music]['SP'][difficulty]) == 1:
+                        for key, value in table[music][play_mode][difficulty].items():
+                            if value == table[music]['SP'][difficulty].values()[0]:
+                                del table[music][play_mode][difficulty][key]
+                values.append([*table[music][play_mode][difficulty].values()][0] if len(table[music][play_mode][difficulty]) == 1 else '-')
                 if len(table[music][play_mode][difficulty]) > 1:
-                    errors.append(f'{music} {play_mode} {difficulty}: {[*table[music][play_mode][difficulty].keys()]}')
+                    errors.append(f'{music} {play_mode} {difficulty}:')
+                    for key, value in table[music][play_mode][difficulty].items():
+                        errors.append(f'  level {value}({key})')
         output.append(','.join(values))
 
     with open('musics_analyzed.csv', 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
-        f.write('\n')
-        f.write('\n')
-        f.write('errors:\n')
-        f.write('\n'.join(errors))
+    
+    if len(errors) > 0:
+        print(f'There was an error.')
+        erros_filepath = join('report', 'musics_analyzed_errors.txt')
+        with open(erros_filepath, 'w', encoding='UTF-8') as f:
+            f.write('\n'.join(errors))
 
 if __name__ == '__main__':
     try:
