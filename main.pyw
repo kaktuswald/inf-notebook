@@ -35,7 +35,7 @@ import gui.main as gui
 from gui.export import open_export
 from gui.general import get_imagevalue
 from define import define
-from resources import play_sound_result,check_latest
+from resources import resource,play_sound_result,check_latest
 from screenshot import Screenshot,open_screenimage
 from recog import recog
 from raw_image import save_raw
@@ -422,15 +422,16 @@ def get_latest_version():
 def check_resource():
     informations_filename = f'{define.informations_resourcename}.res'
     if check_latest(storage, informations_filename):
-        recog.load_resource_informations()
+        resource.load_resource_informations()
 
-    details_filename = f'{define.details_resourcename}.json'
+    details_filename = f'{define.details_resourcename}.res'
     if check_latest(storage, details_filename):
-        recog.load_resource_details()
+        resource.load_resource_details()
 
-    musictable_filename = f'{define.musictable_resourcename}.json'
+    musictable_filename = f'{define.musictable_resourcename}.res'
     if check_latest(storage, musictable_filename):
-        recog.load_resource_musictable()
+        resource.load_resource_musictable()
+        gui.update_musictable()
 
 def select_result_recent():
     if len(table_selected_rows) == 0:
@@ -758,10 +759,10 @@ def create_graph(selection, targetrecord):
     selection.selection_graph()
 
 def rename_all_musicnotebooks():
-    if recog.informations is None:
+    if resource.informations is None:
         return
 
-    rename_allfiles(recog.musictable['musics'].keys())
+    rename_allfiles(resource.musictable['musics'].keys())
 
 if __name__ == '__main__':
     keyboard.add_hotkey('ctrl+F10', active_screenshot)
@@ -885,6 +886,8 @@ if __name__ == '__main__':
             if event == 'button_graph':
                 if selection is not None and selection.music is not None:
                     create_graph(selection, selection.get_targetrecordlist())
+            if event == 'category_versions':
+                gui.search_music_candidates()
             if event == 'search_music':
                 music_search_time = time.time() + 1
             if event in ['play_mode_sp', 'play_mode_dp', 'difficulty', 'music_candidates']:

@@ -1,10 +1,10 @@
 import PySimpleGUI as sg
 
 from define import define
-from .static import title,icon_path,background_color,background_color_label,selected_background_color
-from record import get_record_musics
+from resources import resource
+from .static import title,icon_path,background_color,background_color_label,background_color2_label,selected_background_color
 
-scales = ['1/1', '1/2', '1/4']
+scales = ('1/1', '1/2', '1/4', )
 
 best_display_modes = ('option', 'timestamp', )
 
@@ -31,7 +31,7 @@ def layout_main(setting):
                 vertical_scroll_only=True,
                 col_widths=column_widths,
                 visible_column_map=column_visibles,
-                num_rows=18,
+                num_rows=21,
                 justification='center',
                 enable_events=True,
                 background_color=background_color
@@ -39,22 +39,26 @@ def layout_main(setting):
         ], pad=0, background_color=background_color),
         sg.Tab('曲検索', [
             [
-                sg.Text('プレイモード', size=(12, 1), background_color=background_color_label),
+                sg.Text('バージョン', size=(12, 1), background_color=background_color_label),
+                sg.Combo(['ALL', *resource.musictable['versions']], default_value='ALL', key='category_versions', readonly=True, enable_events=True, size=(20, 1))
+            ],
+            [
+                sg.Text('曲名絞り込み', size=(12, 1), background_color=background_color_label),
+                sg.Input(key='search_music', size=(20,1), enable_events=True)
+            ],
+            [
+                sg.Text('プレイモード', size=(12, 1), background_color=background_color2_label),
                 sg.Radio('SP', group_id='play_mode', key='play_mode_sp', enable_events=True, background_color=background_color),
                 sg.Radio('DP', group_id='play_mode', key='play_mode_dp', enable_events=True, background_color=background_color)
             ],
             [
-                sg.Text('譜面難易度', size=(12, 1), background_color=background_color_label),
+                sg.Text('譜面難易度', size=(12, 1), background_color=background_color2_label),
                 sg.Combo(define.value_list['difficulties'], key='difficulty', readonly=True, enable_events=True, size=(14, 1))
-            ],
-            [
-                sg.Text('曲名', size=(12, 1), background_color=background_color_label),
-                sg.Input(key='search_music', size=(20,1), enable_events=True)
             ],
             [
                 sg.Column([
                     [
-                        sg.Listbox([], key='music_candidates', size=(18,12), right_click_menu=['menu', ['選択した曲の記録を削除する']], horizontal_scroll=True, enable_events=True),
+                        sg.Listbox(resource.musictable['musics'], key='music_candidates', size=(20,12), right_click_menu=['menu', ['選択した曲の記録を削除する']], horizontal_scroll=True, enable_events=True),
                         sg.Listbox([], key='history', size=(15,13), right_click_menu=['menu', ['選択したリザルトの記録を削除する']], enable_events=True)
                     ]
                 ], pad=0, background_color=background_color)
@@ -218,6 +222,13 @@ def generate_window(setting, version):
 
     return window
 
+def update_musictable():
+    window['category_versions'].update(
+        'ALL',
+        values=['ALL', *resource.musictable['versions'].keys()]
+    )
+    search_music_candidates()
+
 def collection_request(image):
     ret = sg.popup_yes_no(
         '\n'.join([
@@ -295,13 +306,14 @@ def switch_table(display_music):
     window['table_results'].Widget.configure(displaycolumns=displaycolumns)
 
 def search_music_candidates():
-    input = window['search_music'].get()
-    if len(input) != 0:
-        musics = get_record_musics()
-        candidates = [music for music in musics if input in music]
-        window['music_candidates'].update(values=candidates)
-    else:
-        window['music_candidates'].update(values=[])
+    version = window['category_versions'].get()
+    music_piece = window['search_music'].get()
+
+    musics = resource.musictable['musics']
+
+    candidates = [music for music in musics if (version == 'ALL' or music in resource.musictable['versions'][version]) and music_piece in music]
+
+    window['music_candidates'].update(values=candidates)
 
 def display_record(record):
     if record is None:

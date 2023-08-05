@@ -12,6 +12,12 @@ from resources_larning import RawLabel
 error_output_count = 3
 report_dirname = 'report'
 
+def text_startred():
+    print('\033[31m')
+
+def text_endspecial():
+    print('\033[0m')
+
 class Report():
     count_through = 0
     count_error = 0
@@ -67,8 +73,10 @@ class Report():
         
         print('\n'.join(self.log))
         if len(self.log_error) > 0:
+            text_startred()
             print('Errors:')
             print('\n'.join(self.log_error[:error_output_count]))
+            text_endspecial()
         print()
 
 class RawData():

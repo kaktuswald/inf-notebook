@@ -37,10 +37,8 @@ def load_musiclist(report):
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
                 if values[index] != '-':
-                    if values[index] == '0':
-                        print(music)
-                        exit()
-                    musics[music][play_mode][difficulty] = values[index]
+                    musics[music][play_mode][difficulty] = values[index] if values[index] != '0' else None
+                index += 1
 
     versions['Unknown'] = []
 
@@ -112,12 +110,34 @@ def generate(analyzed, reportdir):
     for version in versions.keys():
         report.append_log(f'{version}: {len(versions[version])}')
         report_versions.append(f'{version}: {len(versions[version])}')
-        report_versions.extend([f'  {music}' for music in versions[version]])
+        for music in versions[version]:
+            levels = []
+            for play_mode in define.value_list['play_modes']:
+                for difficulty in define.value_list['difficulties']:
+                    if difficulty in musics[music][play_mode].keys() and musics[music][play_mode][difficulty] is not None:
+                        levels.append(f'{play_mode}{difficulty[0]}{musics[music][play_mode][difficulty]}')
+            report_versions.append(f"  {music}: {' '.join(levels)}")
     report.append_log('')
 
     report_filepath = join(reportdir, 'musictable_versions.txt')
     with open(report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report_versions))
+
+    leggendarias = {}
+    for play_mode in define.value_list['play_modes']:
+        leggendarias[play_mode] = {}
+        for music in musics.keys():
+            if 'LEGGENDARIA' in musics[music][play_mode].keys() and musics[music][play_mode]['LEGGENDARIA'] is not None:
+                leggendarias[play_mode][music] = musics[music][play_mode]['LEGGENDARIA']
+
+    report_leggendarias = []
+    for play_mode in define.value_list['play_modes']:
+        report_leggendarias.append(f'{play_mode}: {len(leggendarias[play_mode])}')
+        report_leggendarias.extend([f'  {key}: {value}' for key, value in leggendarias[play_mode].items()])
+
+    report_filepath = join(reportdir, 'musictable_leggendarias.txt')
+    with open(report_filepath, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(report_leggendarias))
 
     levels = {}
     for play_mode in define.value_list['play_modes']:
@@ -126,7 +146,7 @@ def generate(analyzed, reportdir):
             levels[play_mode][level] = []
         for music in musics.keys():
             for difficulty in define.value_list['difficulties']:
-                if difficulty in musics[music][play_mode].keys():
+                if difficulty in musics[music][play_mode].keys() and musics[music][play_mode][difficulty] != None:
                     level = musics[music][play_mode][difficulty]
                     try:
                         levels[play_mode][level].append({'music': music, 'difficulty': difficulty})
