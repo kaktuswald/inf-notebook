@@ -213,7 +213,7 @@ class Recognition():
 
     def get_graphtype(self, np_value):
         for key, value in resource.details['graphtype'].items():
-            trimmed = np_value[seresourcelf.details['define']['graphtype'][key]]
+            trimmed = np_value[resource.details['define']['graphtype'][key]]
             if np.all(trimmed==value):
                 return key
         return 'gauge'
