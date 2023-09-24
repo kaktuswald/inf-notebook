@@ -347,10 +347,10 @@ def insert_recentnotebook_results():
             timestamp,
             target['music'] if target['music'] is not None else '??????',
             f'{playmode}{difficulty[0]}' if playmode is not None and difficulty is not None else '???',
-            '☑' if target['clear_type_new'] is not None else '',
-            '☑' if target['dj_level_new'] is not None else '',
-            '☑' if target['score_update'] is not None else '',
-            '☑' if target['miss_count_update'] is not None else ''
+            '☑' if 'clear_type_new' in target.keys() and target['clear_type_new'] is not None else '',
+            '☑' if 'dj_level_new' in target.keys() and target['dj_level_new'] is not None else '',
+            '☑' if 'score_new' in target.keys() and target['score_new'] is not None else '',
+            '☑' if 'miss_count_new' in target.keys() and target['miss_count_new'] is not None else ''
         ])
 
     refresh_table()

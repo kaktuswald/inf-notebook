@@ -132,8 +132,8 @@ report/
 larning*/
 backgrounds*/
 musics*/
+registries*/
 
-*.csv
 *.zip
 *.exe
 
@@ -145,11 +145,8 @@ musics*/
 
 env_*/
 
-musics*.txt
-
-backgrounds_report.txt
-
 export/*.json
 export/*.txt
+export/*.csv
 
 _*.py
