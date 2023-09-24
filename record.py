@@ -6,7 +6,6 @@ from glob import glob
 records_basepath = 'records'
 
 recent_filenmae = 'recent.json'
-recent_maxcount = 100
 
 if not exists(records_basepath):
     mkdir(records_basepath)
@@ -30,8 +29,9 @@ class Notebook():
             json.dump(self.json, f)
 
 class NotebookRecent(Notebook):
-    def __init__(self):
+    def __init__(self, maxcount):
         self.filename = recent_filenmae
+        self.maxcount = maxcount
         super().__init__()
     
     def append(self, result, saved, filtered):
@@ -61,7 +61,7 @@ class NotebookRecent(Notebook):
             'filtered': filtered
         }
 
-        if len(self.json['timestamps']) > recent_maxcount:
+        while len(self.json['timestamps']) > self.maxcount:
             del self.json['results'][self.json['timestamps'][0]]
             del self.json['timestamps'][0]
     

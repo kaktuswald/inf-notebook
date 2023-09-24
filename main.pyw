@@ -47,6 +47,8 @@ from filter import filter as filter_result
 from playdata import Recent
 from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs
 
+recent_maxcount = 100
+
 thread_time_wait_nonactive = 1
 thread_time_wait_loading = 30
 thread_time_normal = 0.3
@@ -373,6 +375,8 @@ def insert_results(result):
         '☑' if result.details.score.new else '',
         '☑' if result.details.miss_count.new else ''
     ])
+    while len(list_results) > recent_maxcount:
+        del list_results[-1]
 
     table_selected_rows = [v + 1 for v in table_selected_rows]
     refresh_table(setting.display_result)
@@ -773,7 +777,7 @@ if __name__ == '__main__':
 
     screenshot = Screenshot()
 
-    notebook_recent = NotebookRecent()
+    notebook_recent = NotebookRecent(recent_maxcount)
     notebooks_music = {}
 
     results_today = {}
