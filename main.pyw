@@ -769,7 +769,7 @@ def rename_all_musicnotebooks():
     rename_allfiles(resource.musictable['musics'].keys())
 
 if __name__ == '__main__':
-    keyboard.add_hotkey('ctrl+F10', active_screenshot)
+    keyboard.add_hotkey('alt+F10', active_screenshot)
 
     window = gui.generate_window(setting, version)
 
