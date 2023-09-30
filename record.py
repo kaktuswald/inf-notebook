@@ -3,6 +3,8 @@ from os import remove,mkdir,rename
 from os.path import join,exists,basename
 from glob import glob
 
+from version import version
+
 records_basepath = 'records'
 
 recent_filenmae = 'recent.json'
@@ -33,6 +35,11 @@ class NotebookRecent(Notebook):
         self.filename = recent_filenmae
         self.maxcount = maxcount
         super().__init__()
+
+        if not 'version' in self.json.keys() or self.json['version'] != version:
+            self.json = {'version': version}
+            self.save()
+            return
     
     def append(self, result, saved, filtered):
         if not 'timestamps' in self.json.keys():
@@ -49,10 +56,14 @@ class NotebookRecent(Notebook):
             'play_mode': result.informations.play_mode,
             'difficulty': result.informations.difficulty,
             'music': result.informations.music,
-            'clear_type_new': result.details.clear_type.new if result.details.clear_type.new else None,
-            'dj_level_new': result.details.dj_level.new if result.details.dj_level.new else None,
-            'score_new': result.details.score.new if result.details.score.new else None,
-            'miss_count_new': result.details.miss_count.new if result.details.miss_count.new else None,
+            'clear_type_new': result.details.clear_type.new,
+            'dj_level_new': result.details.dj_level.new,
+            'score_new': result.details.score.new,
+            'miss_count_new': result.details.miss_count.new,
+            'update_clear_type': result.details.clear_type.current if result.details.clear_type.new else None,
+            'update_dj_level': result.details.dj_level.current if result.details.dj_level.new else None,
+            'update_score': result.details.score.current - result.details.score.best if result.details.score.new else None,
+            'update_miss_count': result.details.miss_count.current - result.details.miss_count.best if result.details.miss_count.new and result.details.miss_count.best is not None else None,
             'option': option,
             'play_side': result.play_side,
             'has_loveletter': result.rival,

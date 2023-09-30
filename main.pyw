@@ -684,14 +684,14 @@ def tweet():
             text = text.replace('&&play_mode&&', result['play_mode'])
             text = text.replace('&&D&&', result['difficulty'][0])
             text = text.replace('&&music&&', music)
-            if result['clear_type_new'] is not None or result['dj_level_new'] is not None:
-                text = text.replace('&&update&&', ' '.join(v for v in [result['clear_type_new'], result['dj_level_new']] if v is not None))
+            if result['update_clear_type'] is not None or result['update_dj_level'] is not None:
+                text = text.replace('&&update&&', ' '.join(v for v in [result['update_clear_type'], result['update_dj_level']] if v is not None))
             else:
-                if result['score_update'] is not None:
-                    text = text.replace('&&update&&', f"自己ベスト+{result['score_update']}")
+                if result['update_score'] is not None:
+                    text = text.replace('&&update&&', f"自己ベスト+{result['update_score']}")
                 else:
-                    if result['miss_count_update'] is not None:
-                        text = text.replace('&&update&&', f"ミスカウント{result['miss_count_update']}")
+                    if result['update_miss_count'] is not None:
+                        text = text.replace('&&update&&', f"ミスカウント{result['update_miss_count']}")
                     else:
                         text = text.replace('&&update&&', '')
             if result['option'] is not None:
