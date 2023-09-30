@@ -32,6 +32,7 @@ logger.debug('mode: manage')
 
 from version import version
 import gui.main as gui
+from gui.setting import open_setting
 from gui.export import open_export
 from gui.general import get_imagevalue
 from define import define
@@ -298,7 +299,7 @@ def save_result(result, image):
     ret = None
     try:
         music = result.informations.music
-        ret = result_save(image, music, result.timestamp, setting.savefilemusicname_right)
+        ret = result_save(image, music, result.timestamp, setting.imagesave_path, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
@@ -326,7 +327,7 @@ def save_filtered(resultimage, timestamp, music, play_side, loveletter, rivalnam
 
     ret = None
     try:
-        ret = result_savefiltered(filteredimage, music, timestamp, setting.savefilemusicname_right)
+        ret = result_savefiltered(filteredimage, music, timestamp, setting.imagesave_path, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
@@ -545,12 +546,12 @@ def select_history():
         display_history(selection)
 
 def load_resultimages(timestamp, music, recent=False):
-    image_result = get_resultimage(music, timestamp)
+    image_result = get_resultimage(music, timestamp, setting.imagesave_path)
     images_result[timestamp] = image_result
     if image_result is not None:
         timestamps_saved.append(timestamp)
 
-    image_filtered = get_filteredimage(music, timestamp)
+    image_filtered = get_filteredimage(music, timestamp, setting.imagesave_path)
     if not recent or image_result is None or image_filtered is not None:
         images_filtered[timestamp] = image_filtered
 
@@ -596,7 +597,7 @@ def save():
         notebook_recent.save()
         refresh_table()
     if selection.graph:
-        save_graphimage(selection.music, images_graph[selection.music], setting.savefilemusicname_right)
+        save_graphimage(selection.music, images_graph[selection.music], setting.imagesave_path, setting.savefilemusicname_right)
 
 def filter():
     """ライバル欄にぼかしを入れて、ぼかし画像を表示する
@@ -660,16 +661,23 @@ def upload():
             storage.upload_collection(results_today[timestamp], images_result[timestamp], True)
             timestamps_uploaded.append(timestamp)
 
-def open_folder():
-    if selection.filtered:
-        openfolder_filtereds()
-        return
+def open_folder_results():
+    ret = openfolder_results(setting.imagesave_path)
+    if ret is not None:
+        logger.exception(ret)
+        gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
+
+def open_folder_filtereds():
+    ret = openfolder_filtereds(setting.imagesave_path)
+    if ret is not None:
+        logger.exception(ret)
+        gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
     
-    if selection.graph:
-        openfolder_graphs()
-        return
-    
-    openfolder_results()
+def open_folder_graphs():
+    ret = openfolder_graphs(setting.imagesave_path)
+    if ret is not None:
+        logger.exception(ret)
+        gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
 
 def tweet():
     if len(values['table_results']) > 0:
@@ -818,6 +826,7 @@ if __name__ == '__main__':
 
     if not setting.has_key('data_collection'):
         setting.data_collection = gui.collection_request('resources/annotation.png')
+        setting.save()
         if setting.data_collection:
             window['button_upload'].update(visible=True)
 
@@ -865,12 +874,19 @@ if __name__ == '__main__':
                     gui.display_image(get_imagevalue(screen.original))
                     if recog.get_is_savable(screen.np_value):
                         result_process(screen)
+            if event == 'button_setting':
+                open_setting(setting)
+                window['button_upload'].update(visible=setting.data_collection)
             if event == 'button_save':
                 save()
             if event == 'button_filter':
                 filter()
-            if event == 'button_open_folder':
-                open_folder()
+            if event == 'button_open_folder_results':
+                open_folder_results()
+            if event == 'button_open_folder_filtereds':
+                open_folder_filtereds()
+            if event == 'button_open_folder_graphs':
+                open_folder_graphs()
             if event == 'button_tweet':
                 tweet()
             if event == 'button_export':

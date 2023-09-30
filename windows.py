@@ -1,15 +1,11 @@
 import ctypes
 from ctypes import windll,c_bool,c_int,pointer,POINTER,WINFUNCTYPE,create_unicode_buffer
 from ctypes.wintypes import RECT,DWORD,MAX_PATH
-from os import system,getcwd
-from os.path import basename,join
+from os import system
+from os.path import basename,join,exists
 
-from result import results_basepath,filtereds_basepath
-from graph import graphs_basepath
-
-results_dirpath = join(getcwd(), results_basepath)
-filtereds_dirpath = join(getcwd(), filtereds_basepath)
-graphs_dirpath = join(getcwd(), graphs_basepath)
+from result import results_dirname,filtereds_dirname
+from graph import graphs_dirname
 
 def get_filename(wHnd):
     pId = ctypes.c_ulong()
@@ -55,14 +51,29 @@ def get_rect(handle):
     windll.user32.GetWindowRect(handle, pointer(rect))
     return rect
 
-def openfolder_results():
-    system(f'explorer.exe {results_dirpath}')
+def openfolder_results(destination_dirpath):
+    dirpath = join(destination_dirpath, results_dirname)
+    try:
+        system(f'explorer.exe {dirpath}')
+    except Exception as ex:
+        return ex
+    return None
 
-def openfolder_filtereds():
-    system(f'explorer.exe {filtereds_dirpath}')
+def openfolder_filtereds(destination_dirpath):
+    dirpath = join(destination_dirpath, filtereds_dirname)
+    try:
+        system(f'explorer.exe {dirpath}')
+    except Exception as ex:
+        return ex
+    return None
 
-def openfolder_graphs():
-    system(f'explorer.exe {graphs_dirpath}')
+def openfolder_graphs(destination_dirpath):
+    dirpath = join(destination_dirpath, graphs_dirname)
+    try:
+        system(f'explorer.exe {dirpath}')
+    except Exception as ex:
+        return ex
+    return None
 
 if __name__ == '__main__':
     windowtitle = 'beatmania IIDX INFINITAS'

@@ -31,7 +31,7 @@ def layout_main(setting):
                 vertical_scroll_only=True,
                 col_widths=column_widths,
                 visible_column_map=column_visibles,
-                num_rows=21,
+                num_rows=17,
                 justification='center',
                 enable_events=True,
                 background_color=background_color
@@ -58,8 +58,21 @@ def layout_main(setting):
             [
                 sg.Column([
                     [
-                        sg.Listbox(resource.musictable['musics'], key='music_candidates', size=(20,12), right_click_menu=['menu', ['選択した曲の記録を削除する']], horizontal_scroll=True, enable_events=True),
-                        sg.Listbox([], key='history', size=(15,13), right_click_menu=['menu', ['選択したリザルトの記録を削除する']], enable_events=True)
+                        sg.Listbox(
+                            resource.musictable['musics'],
+                            key='music_candidates',
+                            size=(20,9),
+                            right_click_menu=['menu', ['選択した曲の記録を削除する']],
+                            horizontal_scroll=True,
+                            enable_events=True
+                        ),
+                        sg.Listbox(
+                            [],
+                            key='history',
+                            size=(15,10),
+                            right_click_menu=['menu', ['選択したリザルトの記録を削除する']],
+                            enable_events=True
+                        )
                     ]
                 ], pad=0, background_color=background_color)
             ]
@@ -135,27 +148,21 @@ def layout_main(setting):
             sg.InputText(key='text_file_path', visible=setting.manage, size=(70, 1), enable_events=True),
             sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
         ],
-        [
-            sg.Column([
-                [sg.Checkbox('更新があるときのみリザルトを記録する', key='check_newrecord_only', default=setting.newrecord_only, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('自動で画像をファイルに保存する', key='check_autosave', default=setting.autosave, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('自動でライバルを隠した画像をファイルに保存する', key='check_autosave_filtered', default=setting.autosave_filtered, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('ファイル名の後尾に曲名をつける', key='check_savefilemusicname_right', default=setting.savefilemusicname_right, enable_events=True, background_color=background_color)]
-            ], pad=0, background_color=background_color, vertical_alignment='top'),
-            sg.Column([
-                [sg.Checkbox('リザルトを都度表示する', key='check_display_result', default=setting.display_result, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('曲名を表示する', key='check_display_music', default=setting.display_music, enable_events=True, background_color=background_color)],
-                [sg.Checkbox('記録したときに音を出す', key='check_play_sound', default=setting.play_sound, enable_events=True, background_color=background_color)]
-            ], pad=0, background_color=background_color, vertical_alignment='top')
-        ],
         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
         [
-            sg.Button('ファイルに保存', key='button_save', disabled=True, pad=1),
-            sg.Button('ライバルを隠す', key='button_filter', disabled=True, pad=1),
-            sg.Button('フォルダを開く', key='button_open_folder', disabled=True, pad=1),
-            sg.Button('ツイート', key='button_tweet', pad=1),
-            sg.Button('エクスポート', key='button_export', pad=1),
-            sg.Button('誤認識を通報', key='button_upload', visible=setting.data_collection, disabled=True, pad=1)
+            sg.Button('ファイルに保存', key='button_save', disabled=True, size=(24, 1)),
+            sg.Button('ライバルを隠す(+保存)', key='button_filter', disabled=True, size=(24, 1)),
+            sg.Button('ツイート', key='button_tweet', size=(24, 1)),
+        ],
+        [
+            sg.Button('フォルダを開く', key='button_open_folder_results', size=(24, 1)),
+            sg.Button('フォルダを開く(ぼかし)', key='button_open_folder_filtereds', size=(24, 1)),
+            sg.Button('フォルダを開く(グラフ)', key='button_open_folder_graphs', size=(24, 1)),
+        ],
+        [
+            sg.Button('設定', key='button_setting', size=(24, 1)),
+            sg.Button('エクスポート', key='button_export', size=(24, 1)),
+            sg.Button('誤認識を通報', key='button_upload', visible=setting.data_collection, disabled=True, size=(24, 1))
         ],
         [
             sg.Text('Alt+F10でスクリーンショットを保存', background_color=background_color),
@@ -197,8 +204,18 @@ def layout_main(setting):
         [
             sg.Column([
                 [
-                    sg.Column(pane_left, pad=0, background_color=background_color),
-                    sg.Column(pane_right, pad=0, background_color=background_color)
+                    sg.Column(
+                        pane_left,
+                        pad=0,
+                        background_color=background_color,
+                        vertical_alignment="top"
+                    ),
+                    sg.Column(
+                        pane_right,
+                        pad=0,
+                        background_color=background_color,
+                        vertical_alignment="top"
+                    )
                 ]
             ], pad=0, background_color=background_color),
             sg.Output(key='output', size=(30, 34), visible=setting.manage)
@@ -294,7 +311,6 @@ def display_image(value, result=False, graph=False):
 
     window['button_save'].update(disabled=not (result or graph))
     window['button_filter'].update(disabled=not result)
-    window['button_open_folder'].update(disabled=not (result or graph))
     window['button_upload'].update(disabled=not result)
 
 def switch_table(display_music):

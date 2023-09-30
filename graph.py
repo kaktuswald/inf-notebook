@@ -10,10 +10,7 @@ from result import generate_resultfilename
 from gui.static import background_color
 from gui.general import get_imagevalue
 
-graphs_basepath = 'graphs'
-
-if not exists(graphs_basepath):
-    mkdir(graphs_basepath)
+graphs_dirname = 'graphs'
 
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
@@ -72,7 +69,7 @@ def create_graphimage(play_mode, difficulty, music, target_record):
 
     return image
 
-def save_graphimage(music, graphimage, musicname_right=False):
+def save_graphimage(music, graphimage, destination_dirpath, musicname_right=False):
     """グラフ画像をファイルに保存する
 
     Args:
@@ -80,10 +77,15 @@ def save_graphimage(music, graphimage, musicname_right=False):
         graphimage (Image): 対象のグラフ画像
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
     """
+    dirpath = join(destination_dirpath, graphs_dirname)
+
     now = datetime.now()
     timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
 
-    filepath = join(graphs_basepath, generate_resultfilename(music, timestamp, musicname_right))
+    if not exists(dirpath):
+        mkdir(dirpath)
+
+    filepath = join(dirpath, generate_resultfilename(music, timestamp, musicname_right))
     try:
         graphimage.save(filepath)
     except Exception as ex:

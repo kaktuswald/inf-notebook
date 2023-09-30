@@ -1,4 +1,5 @@
 import json
+from os import getcwd
 
 setting_filepath = 'setting.json'
 
@@ -10,6 +11,8 @@ default = {
     'display_music': False,
     'play_sound': False,
     'savefilemusicname_right': False,
+    'imagesave_path': getcwd(),
+    'data_collection': False
 }
 
 class Setting():
@@ -30,6 +33,8 @@ class Setting():
         if 'save_newrecord_only' in self.json.keys():
             self.json['newrecord_only'] = self.json['save_newrecord_only']
             del self.json['save_newrecord_only']
+        
+        self.save()
 
     def save(self):
         with open(setting_filepath, 'w') as f:
@@ -46,7 +51,6 @@ class Setting():
 
     def set_value(self, key, value):
         self.json[key] = value
-        self.save()
 
     @property
     def manage(self):
@@ -115,6 +119,14 @@ class Setting():
     @data_collection.setter
     def data_collection(self, value):
         self.set_value('data_collection', value)
+    
+    @property
+    def imagesave_path(self):
+        return self.get_value('imagesave_path')
+
+    @imagesave_path.setter
+    def imagesave_path(self, value):
+        self.set_value('imagesave_path', value)
     
     @property
     def ignore_download(self):
