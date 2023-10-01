@@ -72,7 +72,7 @@ csssetting = {
             'difficulties': {
                 'checked': ['ANOTHER'],
                 'clear_types': [],
-                'dj_levels': ['A', 'AAA', 'AAA']
+                'dj_levels': ['A', 'AA', 'AAA']
             },
             'levels': {
                 'checked': [],
@@ -85,7 +85,7 @@ csssetting = {
             'difficulties': {
                 'checked': ['ANOTHER'],
                 'clear_types': [],
-                'dj_levels': ['A', 'AAA', 'AAA']
+                'dj_levels': ['A', 'AA', 'AAA']
             },
             'levels': {
                 'checked': [],
