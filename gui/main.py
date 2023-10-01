@@ -31,7 +31,7 @@ def layout_main(setting):
                 vertical_scroll_only=True,
                 col_widths=column_widths,
                 visible_column_map=column_visibles,
-                num_rows=17,
+                num_rows=18,
                 justification='center',
                 enable_events=True,
                 background_color=background_color
@@ -61,7 +61,8 @@ def layout_main(setting):
                         sg.Listbox(
                             resource.musictable['musics'],
                             key='music_candidates',
-                            size=(20,9),
+                            font=('Arial', 9),
+                            size=(20,10),
                             right_click_menu=['menu', ['選択した曲の記録を削除する']],
                             horizontal_scroll=True,
                             enable_events=True
@@ -69,7 +70,8 @@ def layout_main(setting):
                         sg.Listbox(
                             [],
                             key='history',
-                            size=(15,10),
+                            font=('Arial', 9),
+                            size=(15,11),
                             right_click_menu=['menu', ['選択したリザルトの記録を削除する']],
                             enable_events=True
                         )
