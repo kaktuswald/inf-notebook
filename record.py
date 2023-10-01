@@ -254,15 +254,3 @@ def rename_allfiles(musics):
                 print(f'Rename {music}')
                 print(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
                 print(f'To(length: {len(full_filename)})\t\t{full_filename}')
-
-def get_record_musics():
-    filepaths = glob(join(records_basepath, '*.json'))
-    strings = [basename(filepath).removesuffix('.json') for filepath in filepaths if not 'recent.json' in filepath]
-    musics = [bytes.fromhex(string).decode('UTF-8') for string in strings]
-    return musics
-
-def delete_recordfile(music):
-    filename = f"{music.encode('UTF-8').hex()}.json"
-    filepath = join(records_basepath, filename)
-    if exists(filepath):
-        remove(filepath)

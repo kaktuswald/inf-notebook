@@ -5,7 +5,7 @@ from csv import writer
 
 from define import define
 from resources import resource
-from record import NotebookMusic,get_record_musics,delete_recordfile
+from record import NotebookMusic
 from version import version
 
 export_dirname = 'export'
