@@ -149,7 +149,8 @@ resourcesフォルダ内にいくつかのリソースファイルが作成さ�
 - play_side.npy
 - dead.npy
 
-### リザルトの詳細
+### リザルトの詳細と曲リスト
+リザルトの詳細
 - プレイモード(SP or DP)
 - 譜面難易度と☆とノーツ数
 - 曲名
@@ -158,7 +159,28 @@ resourcesフォルダ内にいくつかのリソースファイルが作成さ�
 - クリアランプ・DJレベル・スコア・ミスカウント
 - クリアランプ・DJレベル・スコア・ミスカウントのNEW RECORD
 
-以上の画像認識の学習を目的とする。
+曲リスト
+- 全曲の曲名ソート順の曲リスト
+- バージョンごとの曲リスト
+- レベルごとの曲リスト
+
+以上の画像認識の学習と全収録曲のリストの作成を目的とする。
+
+#### 収録曲情報
+registriesフォルダに各種ファイルを作っておく
+- versions.txt バージョンのリスト
+- musics.csv 全曲のリスト
+- categorycount_versions.csv バージョンカテゴリの各曲数
+- categorycount_difficulties.csv 難易度カテゴリの各曲数(BEGINNER,LEGGENDARIA)
+- categorycount_levels.csv レベルカテゴリの各曲数
+
+##### アーケードのCSVファイルからの難易度抽出
+originalscoredata_sp,originalscoredata_dpフォルダにダウンロードしたファイルを置いて(複数可)
+trim_scoredata_csv.pyを実行すると、曲名・バージョン・各難易度を切り出した
+trimmed_difficulties_sp.csv,trimmed_difficulties_dp.csvが作成される。
+```shell
+python registries/trim_scoredata_csv.py
+```
 
 #### GUI上で画像にラベル付けする
 ```shell
@@ -171,12 +193,15 @@ python resources_larning_informations.py
 python resources_larning_details.py
 ```
 
-以下ファイルが作成される。
+resourcesフォルダに以下ファイルが作成される。
 - informations(バージョン).res
 - detailss(バージョン).res
+- musictable(バージョン).res
 
 #### 学習した曲名認識データをアップロードする
 ```shell
+python resources_upload.py -all
 python resources_upload.py -informations
+python resources_upload.py -details
+python resources_upload.py -musictable
 ```
-

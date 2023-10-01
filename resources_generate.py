@@ -10,6 +10,7 @@ from resources import resources_dirname
 from resources_larning import RawLabel
 
 error_output_count = 3
+registries_dirname = 'registries'
 report_dirname = 'report'
 
 def text_startred():

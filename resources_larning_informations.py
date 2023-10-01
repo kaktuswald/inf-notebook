@@ -8,7 +8,7 @@ import numpy as np
 from define import define
 from result import generate_resultfilename
 import data_collection as dc
-from resources_generate import Report,save_resource_serialized,report_dirname
+from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 from resources_larning import larning_multivalue
 from resources_generate_musictable import generate as generate_musictable
 
@@ -20,6 +20,9 @@ infinitasonlymusics_filename = 'musics_infinitas_only.txt'
 report_organize_filename = 'organize.txt'
 report_registered_musics_filename = 'musics_registered.txt'
 report_missing_musics_filename = 'musics_missing_in_arcade.txt'
+
+arcadeallmusics_filepath = join(registries_dirname, arcadeallmusics_filename)
+infinitasonlymusics_filepath = join(registries_dirname, infinitasonlymusics_filename)
 
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
 report_basedir_musictable = join(report_dirname, 'musictable')
@@ -362,10 +365,10 @@ def outputtable(table):
         f.write('\n'.join(output))
 
 def check_musics(musics, report):
-    with open(arcadeallmusics_filename, 'r', encoding='utf-8') as f:
+    with open(arcadeallmusics_filepath, 'r', encoding='utf-8') as f:
         arcade_all_musics = f.read().split('\n')
 
-    with open(infinitasonlymusics_filename, 'r', encoding='utf-8') as f:
+    with open(infinitasonlymusics_filepath, 'r', encoding='utf-8') as f:
         infinitas_only_musics = f.read().split('\n')
 
     report.append_log(f'Arcade all music count: {len(arcade_all_musics)}')
