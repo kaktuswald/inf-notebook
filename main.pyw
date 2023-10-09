@@ -188,8 +188,6 @@ class ThreadMain(Thread):
 
         self.processed = True
         self.queues['result_screen'].put(resultscreen)
-        if setting.play_sound:
-            play_sound_result()
 
         self.sleep_time = thread_time_normal
         self.processed_result = True
@@ -252,6 +250,9 @@ def result_process(screen):
     
     if setting.newrecord_only and not result.has_new_record():
         return
+    
+    if setting.play_sound:
+        play_sound_result()
     
     images_result[result.timestamp] = resultimage
 
