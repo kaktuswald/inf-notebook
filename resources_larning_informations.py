@@ -343,6 +343,9 @@ def organize(informations):
         for difficulty, values in values.items():
             output.append(f'{music}: {difficulty} {values[0]} {values[1]}')
 
+    if not exists(report_dirname):
+        mkdir(report_dirname);
+    
     report_filepath = join(report_dirname, report_organize_filename)
     with open(report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
