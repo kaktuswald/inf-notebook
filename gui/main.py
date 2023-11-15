@@ -351,7 +351,7 @@ def display_record(record):
 
     if 'best' in record.keys():
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            if key in record['best']:
+            if key in record['best'] and record['best'][key] is not None:
                 value = record['best'][key]['value']
                 if 'options' in record['best'][key].keys() and record['best'][key]['options'] is not None:
                     if record['best'][key]['options']['arrange'] is not None:

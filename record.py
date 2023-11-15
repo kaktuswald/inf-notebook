@@ -89,6 +89,12 @@ class NotebookRecent(Notebook):
 
 class NotebookMusic(Notebook):
     def __init__(self, music):
+        """曲名をエンコード&16進数変換してファイル名にする
+
+        Note:
+            ファイル名から曲名にデコードする場合は
+            bytes.fromhex('ファイル名').decode('UTF-8')
+        """
         self.filename = f"{music.encode('UTF-8').hex()}.json"
         super().__init__()
     
@@ -232,10 +238,17 @@ class NotebookMusic(Notebook):
         if not difficulty in self.json[play_mode].keys():
             return
         
-        if timestamp in self.json[play_mode][difficulty]['timestamps']:
-            self.json[play_mode][difficulty]['timestamps'].remove(timestamp)
-        if timestamp in self.json[play_mode][difficulty]['history']:
-            del self.json[play_mode][difficulty]['history'][timestamp]
+        target = self.json[play_mode][difficulty]
+        if timestamp in target['timestamps']:
+            target['timestamps'].remove(timestamp)
+        if timestamp in target['history']:
+            del target['history'][timestamp]
+
+        if 'best' in target.keys():
+            for key in target['best'].keys():
+                if key != 'latest' and target['best'][key] is not None:
+                    if timestamp == target['best'][key]['timestamp']:
+                        target['best'][key] = None
         
         self.save()
 

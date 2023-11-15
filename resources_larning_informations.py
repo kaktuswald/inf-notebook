@@ -651,7 +651,8 @@ def larning_musics(informations):
         filepath = join(musicfilenametest_basedir, filename)
         if not exists(filepath):
             with open(filepath, 'w', encoding='UTF-8') as f:
-                f.write(music)
+                f.write(f'{music}\n')
+                f.write(f'{music.encode("UTF-8").hex()}\n')
 
     check_musics(musics, report)
 
