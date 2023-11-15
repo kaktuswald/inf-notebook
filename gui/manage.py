@@ -3,7 +3,6 @@ import io
 from PIL import Image
 
 from define import define
-from resources import masks
 from .static import title,icon_path,background_color,in_area_background_color
 
 default_box = (0, 0, 1280, 720)
@@ -23,13 +22,6 @@ def layout_manage(filenames):
         'BATTLE',
         'H-RANDOM'
     ]
-
-    images = {}
-    for key in masks.keys():
-        bytes = io.BytesIO()
-        image = Image.fromarray(masks[key].value)
-        image.save(bytes, format='PNG')
-        images[key] = bytes.getvalue()
 
     manage_screen = [
         [sg.Text('画面', size=(20, 1))],

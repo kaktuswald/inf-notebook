@@ -16,7 +16,7 @@ logger.debug('loaded manage.py')
 
 import gui.manage as gui
 from screenshot import Screenshot,open_screenimage
-from larning import RawLabel,raws_basepath
+from resources_larning import RawLabel,raws_basepath
 
 screenshot = Screenshot()
 
