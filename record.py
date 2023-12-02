@@ -233,23 +233,52 @@ class NotebookMusic(Notebook):
         self.insert_best(target, result, options_value)
     
     def delete_history(self, play_mode, difficulty, timestamp):
+        """指定の記録を削除する
+
+        対象の記録が現在のベスト記録の場合はベストから削除して
+        それより古い記録に遡り、直近のベスト記録を探して
+        見つかった場合はそれにする。
+
+        Args:
+            play_mode: プレイモード(SP or DP)
+            difficulty: 難易度(NORMAL - LEGGENDARIA)
+            timestamp: 削除対象のタイムスタンプ
+        """
         if not play_mode in self.json.keys():
             return
         if not difficulty in self.json[play_mode].keys():
             return
         
         target = self.json[play_mode][difficulty]
-        if timestamp in target['timestamps']:
-            target['timestamps'].remove(timestamp)
-        if timestamp in target['history']:
-            del target['history'][timestamp]
 
+        search_targets = []
         if 'best' in target.keys():
             for key in target['best'].keys():
                 if key != 'latest' and target['best'][key] is not None:
                     if timestamp == target['best'][key]['timestamp']:
                         target['best'][key] = None
+                        search_targets.append(key)
         
+        trimmed_timestamps = target['timestamps'][:target['timestamps'].index(timestamp)]
+        trimmed_timestamps.reverse()
+        while len(search_targets):
+            key = search_targets[0]
+            for ref_timestamp in trimmed_timestamps:
+                ref_result = target['history'][ref_timestamp]
+                if ref_result[key]['new']:
+                    target['best'][key] = {
+                        'value': ref_result[key]['value'],
+                        'timestamp': ref_timestamp,
+                        'options': ref_result['options']
+                    }
+                    break
+            del search_targets[0]
+
+        if timestamp in target['timestamps']:
+            target['timestamps'].remove(timestamp)
+        if timestamp in target['history']:
+            del target['history'][timestamp]
+
         self.save()
 
 def rename_allfiles(musics):
