@@ -251,16 +251,21 @@ class NotebookMusic(Notebook):
         
         target = self.json[play_mode][difficulty]
 
+        if not 'best' in target.keys():
+            target['best'] = {}
+
         search_targets = []
-        if 'best' in target.keys():
-            for key in target['best'].keys():
-                if key != 'latest' and target['best'][key] is not None:
-                    if timestamp == target['best'][key]['timestamp']:
-                        target['best'][key] = None
-                        search_targets.append(key)
-        
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            if key in target['best'].keys() and target['best'][key] is not None:
+                if timestamp == target['best'][key]['timestamp']:
+                    target['best'][key] = None
+                    search_targets.append(key)
+            else:
+                search_targets.append(key)
+    
         trimmed_timestamps = target['timestamps'][:target['timestamps'].index(timestamp)]
         trimmed_timestamps.reverse()
+
         while len(search_targets):
             key = search_targets[0]
             for ref_timestamp in trimmed_timestamps:
