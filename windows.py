@@ -36,7 +36,7 @@ def find_window(title, filename):
         windll.user32.GetWindowTextW(hWnd, buff, length + 1)
         if buff.value != title:
             return True
-        if get_filename(hWnd) == filename:
+        if get_filename(hWnd) in [filename, 0]:
             handles.append(hWnd)
         return True
     windll.user32.EnumWindows(enumWindowsProc(foreach_window), 0)
