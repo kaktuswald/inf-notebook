@@ -854,21 +854,6 @@ if __name__ == '__main__':
                 break
             if event == 'check_display_screenshot':
                 display_screenshot_enable = values['check_display_screenshot']
-            if event == 'check_display_result':
-                setting.display_result = values['check_display_result']
-            if event == 'check_newrecord_only':
-                setting.newrecord_only = values['check_newrecord_only']
-            if event == 'check_autosave':
-                setting.autosave = values['check_autosave']
-            if event == 'check_autosave_filtered':
-                setting.autosave_filtered = values['check_autosave_filtered']
-            if event == 'check_display_music':
-                setting.display_music = values['check_display_music']
-                gui.switch_table(setting.display_music)
-            if event == 'check_play_sound':
-                setting.play_sound = values['check_play_sound']
-            if event == 'check_savefilemusicname_right':
-                setting.savefilemusicname_right = values['check_savefilemusicname_right']
             if event == 'text_file_path':
                 if exists(values['text_file_path']):
                     screen = open_screenimage(values['text_file_path'])
