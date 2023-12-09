@@ -273,9 +273,11 @@ class NotebookMusic(Notebook):
                 if ref_result[key]['new']:
                     target['best'][key] = {
                         'value': ref_result[key]['value'],
-                        'timestamp': ref_timestamp,
-                        'options': ref_result['options']
+                        'timestamp': ref_timestamp
                     }
+                    # ref_resultにoptionsがないこともある
+                    if 'options' in ref_result.keys():
+                        target['best'][key]['options'] = ref_result['options']
                     break
             del search_targets[0]
 
