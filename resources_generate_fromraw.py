@@ -28,7 +28,7 @@ def generate_get_screen(raws):
             continue
 
         screen = raw.label['screen']
-        if not raw.label['screen'] in ['loading', 'result']:
+        if not raw.label['screen'] in ['loading', 'result', 'music_select']:
             continue
 
         np_value_reverse = raw.np_value[::-1, :, ::-1]

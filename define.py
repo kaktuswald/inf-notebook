@@ -12,7 +12,7 @@ class Define():
     # 幅は8の倍数でないとだめかも
     get_screen_area = {
         'left': 782,
-        'top': 690,
+        'top': 691,
         'width': 8,
         'height': 2
     }
@@ -83,6 +83,8 @@ class Define():
 
     musictable_version = '1.0'
     
+    musicselect_recognition_version = '1.0'
+
     filter_ranking_size = (386, 504)
     filter_ranking_position = {
         '1P': (876, 175),

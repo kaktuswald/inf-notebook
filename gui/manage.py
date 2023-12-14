@@ -84,7 +84,8 @@ def layout_manage(filenames):
                         [sg.Radio('選曲のみ', key='search_only_music_select', group_id='search', enable_events=True, background_color=background_color)],
                         [sg.Radio('プレイ中のみ', key='search_only_playing', group_id='search', enable_events=True, background_color=background_color)],
                         [sg.Radio('リザルトのみ', key='search_only_result', group_id='search', enable_events=True, background_color=background_color)],
-                        [sg.Radio('カットインなし', key='search_only_not_cutin', group_id='search', enable_events=True, background_color=background_color)]
+                        [sg.Radio('カットインなし', key='search_only_not_cutin', group_id='search', enable_events=True, background_color=background_color)],
+                        [sg.Radio('アノテーションなし', key='search_only_no_annotation', group_id='search', enable_events=True, background_color=background_color)]
                     ], pad=0, background_color=background_color)
                 ],
                 [
@@ -147,7 +148,7 @@ def set_labels(label):
             window['cutin_bit'].update(label['cutin_bit'])
         if 'rival' in label.keys():
             window['rival'].update(label['rival'])
-        if 'graphtype' in label.keys():
+        if 'graphtype' in label.keys() and label['graphtype'] is not None:
             window[f"graph_{label['graphtype']}"].update(True)
         if 'play_side' in label.keys():
             window['play_side'].update(label['play_side'])

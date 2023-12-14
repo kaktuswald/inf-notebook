@@ -157,6 +157,11 @@ class ThreadMain(Thread):
             shotted = True
             self.queues['display_image'].put(screenshot.get_image())
         
+        if screen == 'music_select':
+            if not shotted:
+                screenshot.shot()
+            self.queues['musicselect_screen'].put(screenshot.np_value)
+
         if screen != 'result':
             self.confirmed_result = False
             self.confirmed_savable = False
@@ -292,6 +297,9 @@ def result_process(screen):
         recent.insert(result)
 
     insert_results(result)
+
+def musicselect_process(np_value):
+    pass
 
 def save_result(result, image):
     if result.timestamp in timestamps_saved:
@@ -810,6 +818,7 @@ if __name__ == '__main__':
     queue_log = Queue()
     queue_display_image = Queue()
     queue_result_screen = Queue()
+    queue_musicselect_screen = Queue()
 
     storage = StorageAccessor()
 
@@ -819,7 +828,8 @@ if __name__ == '__main__':
         queues = {
             'log': queue_log,
             'display_image': queue_display_image,
-            'result_screen': queue_result_screen
+            'result_screen': queue_result_screen,
+            'musicselect_screen': queue_musicselect_screen
         }
     )
 
@@ -930,6 +940,8 @@ if __name__ == '__main__':
                     gui.display_image(get_imagevalue(queue_display_image.get_nowait()))
                 if not queue_result_screen.empty():
                     result_process(queue_result_screen.get_nowait())
+                if not queue_musicselect_screen.empty():
+                    musicselect_process(queue_musicselect_screen.get_nowait())
         except Exception as ex:
             log_debug(ex)
     

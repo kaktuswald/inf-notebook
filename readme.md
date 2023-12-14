@@ -31,7 +31,7 @@ python main.pyw
 ```
 - スクリーンショットのリアルタイム更新ができる
 - スクリーンショット代わりにpngが開ける
-- Ctrl+F10でスクリーンショットを撮ってファイル保存する
+- Alt+F10でスクリーンショットを撮ってファイル保存する
 - 標準出力がウィンドウに表示される
 
 ## ビルド
@@ -48,6 +48,59 @@ python generate_version.py v0.0.0.0
 pip install cx_Freeze==6.14.9
 python setup.py build
 ```
+
+## INFINITAS画面画像の収集と学習
+リザルト手帳を起動してAlt+F10を押すとスクリーンショットを撮って画像に保存する
+
+収集した画像を使って学習させ、リソースファイルを作成する
+
+### 基本的なところ
+- ローディング画面の検出
+- リザルト画面(ミッション・ビット獲得のカットインや撃墜の文字が出ていない)の検出
+- プレイサイドの認識(1P or 2P)
+- ライバル挑戦状が出ているかどうか
+- 途中落ちしているかどうか
+
+以上の画像認識の学習を目的とする。
+
+#### GUI上で画像にラベル付けする
+```shell
+python manage.pyw
+```
+
+#### いくつかのリソースを作る
+```shell
+python resources_generate_fromraw.py -all
+python resources_larning_fromraw.py -all
+```
+エラーが出なければOK
+
+resourcesフォルダ内にいくつかのリソースファイルが作成される。
+- get_screen.res
+- is_savable.res
+- rival.npy
+- play_side.npy
+- dead.npy
+
+### 選曲画面
+- プレイモード(SP or DP)
+- 曲名
+- 選択中の譜面難易度
+- 各譜面難易度のレベル
+- クリアランプ・DJレベル・スコア・ミスカウント
+
+#### GUI上で画像にラベル付けする
+```shell
+python annotation_musicselect.pyw
+```
+
+#### 学習する
+```shell
+python resources_larning_musicselect.py
+```
+
+resourcesフォルダ内にリソースファイルが作成される。
+- musicselect(バージョン).res
 
 ## リザルト画像の収集と学習
 
@@ -121,34 +174,6 @@ python download_collections.py
 
 ## 学習する
 
-### 基本的なところ
-- ローディング画面の検出
-- リザルト画面(ミッション・ビット獲得のカットインや撃墜の文字が出ていない)の検出
-- プレイサイドの認識(1P or 2P)
-- ライバル挑戦状が出ているかどうか
-- 途中落ちしているかどうか
-
-以上の画像認識の学習を目的とする。
-
-#### GUI上で画像にラベル付けする
-```shell
-python manage.pyw
-```
-
-#### いくつかのリソースを作る
-```shell
-python resources_generate_fromraw.py -all
-python resources_larning_fromraw.py -all
-```
-エラーが出なければOK
-
-resourcesフォルダ内にいくつかのリソースファイルが作成される。
-- get_screen.res
-- is_savable.res
-- rival.npy
-- play_side.npy
-- dead.npy
-
 ### リザルトの詳細と曲リスト
 リザルトの詳細
 - プレイモード(SP or DP)
@@ -184,7 +209,7 @@ python registries/trim_scoredata_csv.py
 
 #### GUI上で画像にラベル付けする
 ```shell
-python annotation.pyw
+python annotation_result.pyw
 ```
 
 #### 学習する
@@ -199,9 +224,15 @@ resourcesフォルダに以下ファイルが作成される。
 - musictable(バージョン).res
 
 #### 学習した曲名認識データをアップロードする
+すべての場合
 ```shell
 python resources_upload.py -all
+```
+
+指定したリソースファイルのみアップロードする場合
+```shell
 python resources_upload.py -informations
 python resources_upload.py -details
 python resources_upload.py -musictable
+python resources_upload.py -musicselect
 ```

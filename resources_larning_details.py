@@ -7,9 +7,10 @@ import numpy as np
 from define import define
 import data_collection as dc
 from resources_larning import larning
-from resources_generate import Report,save_resource_serialized
+from resources_generate import Report,registries_dirname,save_resource_serialized
 
-recognition_define_filename = '_define_recognition_details.json'
+recognition_define_filename = 'define_recognition_details.json'
+recognition_define_filepath = join(registries_dirname, recognition_define_filename)
 
 class Details():
     def __init__(self, np_value, label):
@@ -35,10 +36,10 @@ def load_details(labels):
 
 def load_define():
     try:
-        with open(recognition_define_filename) as f:
+        with open(recognition_define_filepath) as f:
             ret = json.load(f)
     except Exception:
-        print(f"{recognition_define_filename}を読み込めませんでした。")
+        print(f"{recognition_define_filepath}を読み込めませんでした。")
         return None
     
     ret['graphtype']['lanes'] = (

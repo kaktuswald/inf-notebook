@@ -30,6 +30,7 @@ class Resource():
         self.load_resource_informations()
         self.load_resource_details()
         self.load_resource_musictable()
+        self.load_resource_musicselect()
     
     def load_resource_informations(self):
         resourcename = f'informations{define.informations_recognition_version}'
@@ -45,6 +46,11 @@ class Resource():
         resourcename = f'musictable{define.musictable_version}'
         
         self.musictable = load_resource_serialized(resourcename)
+
+    def load_resource_musicselect(self):
+        resourcename = f'musicselect{define.musicselect_recognition_version}'
+        
+        self.musicselect = load_resource_serialized(resourcename)
 
 class ResourceTimestamp():
     def __init__(self, resourcename):

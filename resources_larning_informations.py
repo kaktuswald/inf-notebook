@@ -12,7 +12,7 @@ from resources_generate import Report,save_resource_serialized,registries_dirnam
 from resources_larning import larning_multivalue
 from resources_generate_musictable import generate as generate_musictable
 
-recognition_define_filename = '_define_recognition_informations.json'
+recognition_define_filename = 'define_recognition_informations.json'
 
 arcadeallmusics_filename = 'musics_arcade_all.txt'
 infinitasonlymusics_filename = 'musics_infinitas_only.txt'
@@ -21,6 +21,7 @@ report_organize_filename = 'organize.txt'
 report_registered_musics_filename = 'musics_registered.txt'
 report_missing_musics_filename = 'musics_missing_in_arcade.txt'
 
+recognition_define_filepath = join(registries_dirname, recognition_define_filename)
 arcadeallmusics_filepath = join(registries_dirname, arcadeallmusics_filename)
 infinitasonlymusics_filepath = join(registries_dirname, infinitasonlymusics_filename)
 
@@ -53,10 +54,10 @@ def load_informations(labels):
 
 def load_define():
     try:
-        with open(recognition_define_filename) as f:
+        with open(recognition_define_filepath) as f:
             ret = json.load(f)
     except Exception:
-        print(f"{recognition_define_filename}を読み込めませんでした。")
+        print(f"{recognition_define_filepath}を読み込めませんでした。")
         return None
     
     ret['play_mode']['trim'] = (

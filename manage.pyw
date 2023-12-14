@@ -94,5 +94,8 @@ if __name__ == '__main__':
         if event == 'search_only_not_cutin':
             targets = [filename for filename in filenames if labels.get(filename) is not None and 'screen' in labels.get(filename).keys() and labels.get(filename)['screen'] == 'result' and not labels.get(filename)['cutin_mission'] and not labels.get(filename)['cutin_bit']]
             window['list_screens'].update(targets)
+        if event == 'search_only_no_annotation':
+            targets = [filename for filename in filenames if labels.get(filename) is None]
+            window['list_screens'].update(targets)
 
     window.close()
