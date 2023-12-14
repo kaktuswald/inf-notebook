@@ -461,7 +461,7 @@ class Recognition():
 
         @staticmethod
         def get_levels(np_value):
-            ret = {'selectdifficulty': None}
+            ret = {}
             for difficulty in resource.musicselect['levels']['select']:
                 resourcetarget = resource.musicselect['levels']['select'][difficulty]
                 trimmed = np_value[resourcetarget['trim']]

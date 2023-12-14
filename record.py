@@ -232,6 +232,41 @@ class NotebookMusic(Notebook):
         self.insert_history(target, result, options_value)
         self.insert_best(target, result, options_value)
     
+    def update_best(self, values):
+        """選曲画面から取り込んだ認識結果からベスト記録を更新する
+
+        Args:
+            values: 認識結果
+        """
+        updated = False
+
+        playmode = values['playmode']
+        difficulty = values['difficulty']
+        if not playmode in self.json.keys():
+            self.json[playmode] = {}
+            updated = True
+        if not difficulty in self.json[playmode].keys():
+            self.json[playmode][difficulty] = {'level': None, 'timestamps': [], 'history': {}, 'best': {}}
+            updated = True
+        difficultykey = str.lower(difficulty)
+        if values['levels'][difficultykey] is not None and values['levels'][difficultykey] != self.json[playmode][difficulty]['level']:
+            self.json[playmode][difficulty]['level'] = values['levels'][difficultykey]
+            updated = True
+        if not 'best' in self.json[playmode][difficulty].keys():
+            self.json[playmode][difficulty]['best'] = {}
+            updated = True
+        target = self.json[playmode][difficulty]['best']
+        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
+            selfkey = key.replace('_', '')
+            if values[selfkey] is not None and (not key in target.keys() or target[key]['value'] != values[selfkey]):
+                target[key] = {
+                    'value': values[selfkey],
+                    'timestamp': None,
+                    'options': None
+                }
+                updated = True
+        return updated
+
     def delete_history(self, play_mode, difficulty, timestamp):
         """指定の記録を削除する
 

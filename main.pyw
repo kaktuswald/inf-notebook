@@ -38,7 +38,7 @@ from gui.general import get_imagevalue
 from define import define
 from resources import resource,play_sound_result,check_latest
 from screenshot import Screenshot,open_screenimage
-from recog import recog
+from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
 from record import NotebookRecent,NotebookMusic,rename_allfiles
@@ -299,7 +299,27 @@ def result_process(screen):
     insert_results(result)
 
 def musicselect_process(np_value):
-    pass
+    playmode = recog.MusicSelect.get_playmode(np_value)
+    difficulty = recog.MusicSelect.get_difficulty(np_value)
+    musicname = recog.MusicSelect.get_musicname(np_value)
+    if musicname is not None:
+        if musicname in notebooks_music.keys():
+            notebook = notebooks_music[musicname]
+        else:
+            notebook = NotebookMusic(musicname) if musicname is not None else None
+            notebooks_music[musicname] = notebook
+        if notebook.update_best({
+            'playmode': playmode,
+            'difficulty': difficulty,
+            'cleartype': recog.MusicSelect.get_cleartype(np_value),
+            'djlevel': recog.MusicSelect.get_djlevel(np_value),
+            'score': recog.MusicSelect.get_score(np_value),
+            'misscount': recog.MusicSelect.get_misscount(np_value),
+            'levels': recog.MusicSelect.get_levels(np_value)
+        }):
+            notebook.save()
+            if selection is not None and selection.play_mode == playmode and selection.music == musicname and selection.difficulty == difficulty:
+                gui.display_record(selection.get_targetrecordlist())
 
 def save_result(result, image):
     if result.timestamp in timestamps_saved:
