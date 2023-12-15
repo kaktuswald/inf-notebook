@@ -157,26 +157,27 @@ def output():
 
                 r = record.get_recordlist(play_mode, difficulty)
                 if r is not None:
-                    lines.extend([r['latest']['timestamp'], len(r['timestamps'])])
+                    lines.append(r['latest']['timestamp'] if 'latest' in r.keys() else '')
+                    lines.append(len(r['timestamps']) if 'timestamps' in r.keys() else '')
 
                     if 'best' in r.keys():
                         best = r['best']
 
                         for key in ['clear_type', 'dj_level']:
-                            if key in best and best[key]['value'] is not None:
+                            if key in best.keys() and best[key] is not None and best[key]['value'] is not None:
                                 if key == 'clear_type':
                                     summary[play_mode]['difficulties'][difficulty]['clear_types'][best[key]['value']] += 1
                                 if key == 'dj_level':
                                     summary[play_mode]['difficulties'][difficulty]['dj_levels'][best[key]['value']] += 1
 
-                                if 'level' in r.keys():
-                                    if key == 'clear_type':
-                                        summary[play_mode]['levels'][r['level']]['clear_types'][best[key]['value']] += 1
-                                    if key == 'dj_level':
-                                        summary[play_mode]['levels'][r['level']]['dj_levels'][best[key]['value']] += 1
+                                level = music_item[play_mode][difficulty]
+                                if key == 'clear_type':
+                                    summary[play_mode]['levels'][level]['clear_types'][best[key]['value']] += 1
+                                if key == 'dj_level':
+                                    summary[play_mode]['levels'][level]['dj_levels'][best[key]['value']] += 1
                             
                         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-                            if key in best:
+                            if key in best.keys() and best[key] is not None and 'value' in best[key].keys():
                                 lines.append(best[key]['value'] if best[key]['value'] is not None else '')
                             else:
                                 lines.append('')

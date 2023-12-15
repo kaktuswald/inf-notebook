@@ -249,22 +249,24 @@ class NotebookMusic(Notebook):
             self.json[playmode][difficulty] = {'level': None, 'timestamps': [], 'history': {}, 'best': {}}
             updated = True
         difficultykey = str.lower(difficulty)
-        if values['levels'][difficultykey] is not None and values['levels'][difficultykey] != self.json[playmode][difficulty]['level']:
-            self.json[playmode][difficulty]['level'] = values['levels'][difficultykey]
-            updated = True
+        if values['levels'][difficultykey] is not None and 'level' in self.json[playmode][difficulty].keys():
+            if values['levels'][difficultykey] != self.json[playmode][difficulty]['level']:
+                self.json[playmode][difficulty]['level'] = values['levels'][difficultykey]
+                updated = True
         if not 'best' in self.json[playmode][difficulty].keys():
             self.json[playmode][difficulty]['best'] = {}
             updated = True
         target = self.json[playmode][difficulty]['best']
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
             selfkey = key.replace('_', '')
-            if values[selfkey] is not None and (not key in target.keys() or target[key]['value'] != values[selfkey]):
-                target[key] = {
-                    'value': values[selfkey],
-                    'timestamp': None,
-                    'options': None
-                }
-                updated = True
+            if values[selfkey] is not None:
+                if not key in target.keys() or target[key] is None or target[key]['value'] != values[selfkey]:
+                    target[key] = {
+                        'value': values[selfkey],
+                        'timestamp': None,
+                        'options': None
+                    }
+                    updated = True
         return updated
 
     def delete_history(self, play_mode, difficulty, timestamp):

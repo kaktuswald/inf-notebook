@@ -118,17 +118,27 @@ def larning_levels():
 
     evaluate_targets = {}
     for key, target in imagevalues.items():
-        if 'difficulty' in target.label.keys() and target.label['difficulty'] == '':
+        if not 'difficulty' in target.label.keys() or target.label['difficulty'] == '':
             continue
         evaluate_targets[key] = target
+
+        musicname = target.label['musicname']
+        if not musicname in evaluate_musictable.keys():
+            evaluate_musictable[musicname] = {'SP': {}, 'DP': {}}
+
         for difficulty in difficulties:
             level_key = f'level_{difficulty}'
-            if level_key in target.label.keys() and target.label[level_key] == '':
+            if not level_key in target.label.keys() or target.label[level_key] == '':
                 continue
             if str.upper(difficulty) == target.label['difficulty']:
                 targets['select'][difficulty][key] = target
             else:
                 targets['noselect'][difficulty][key] = target
+            
+            playmode = target.label['playmode']
+            if playmode is not None:
+                level = target.label[level_key]
+                evaluate_musictable[musicname][playmode][difficulty] = level
 
     for difficulty in difficulties:
         define_target = musicselect_define['levels']['select'][difficulty]
@@ -151,6 +161,10 @@ def larning_levels():
             if tablekey in table.keys() and value != table[tablekey]:
                 report.error(f'Duplicate select {difficulty} {tablekey} {value} {table[tablekey]}')
             table[tablekey] = value
+
+        for level in define.value_list['levels']:
+            keys = [k for k, v in table.items() if v == level]
+            report.append_log(f'select {difficulty} {level}: {keys}')
 
         resource['levels']['select'][difficulty] = {
             'trim': trim,
@@ -178,6 +192,10 @@ def larning_levels():
             if tablekey in table.keys() and value != table[tablekey]:
                 report.error(f'Duplicate noselect {difficulty} {tablekey} {value} {table[tablekey]}')
             table[tablekey] = value
+        
+        for level in define.value_list['levels']:
+            keys = [k for k, v in table.items() if v == level]
+            report.append_log(f'noselect {difficulty} {level}: {keys}')
 
         resource['levels']['noselect'][difficulty] = {
             'trim': trim,
@@ -467,8 +485,7 @@ def larning_musicname_convertdefine():
     resource_target['arcade'] = {
         'area': (
             slice(arcade['area'][0][0], arcade['area'][0][1]),
-            slice(arcade['area'][1][0], arcade['area'][1][1]),
-            arcade['area'][2]
+            slice(arcade['area'][1][0], arcade['area'][1][1])
         ),
         'masks': [np.tile(np.array(m), arcade_slicevalue).T for m in arcade['masks']]
     }
@@ -507,8 +524,9 @@ def larning_musicname_arcade(targets, report):
             break
 
         cropped = target.np_value[resource_target['area']]
-        counts = [np.count_nonzero(np.where(cropped==mask, cropped, 0)) for mask in resource_target['masks']]
-        recogkey = max(counts)
+        masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
+        counts = [np.count_nonzero(np.where(masked==mask, masked, 0)) for mask in resource_target['masks']]
+        recogkey = ''.join([str(count) for count in counts])
 
         musicname = target.label['musicname']
 
@@ -517,7 +535,7 @@ def larning_musicname_arcade(targets, report):
             report.error(f'{key}: no value arcade {musicname} {counts}')
             report.saveimage_errorvalue(cropped, f'maskerror-{key}')
         else:
-            table[recogkey] = target.label['musicname']
+            table[recogkey] = musicname
 
 def larning_musicname_infinitas(targets, report):
     resource_target = resource['musicname']['infinitas']
@@ -537,7 +555,7 @@ def larning_musicname_infinitas(targets, report):
             report.error(f'{key}: no value infinitas {musicname} {recogkey}')
             report.saveimage_errorvalue(cropped, f'maskerror-{key}')
         else:
-            table[recogkey] = target.label['musicname']
+            table[recogkey] = musicname
 
 def larning_musicname_leggendaria(targets, report):
     resource_target = resource['musicname']['leggendaria']
@@ -556,7 +574,7 @@ def larning_musicname_leggendaria(targets, report):
             report.error(f'{key}: no value leggendaria {musicname} {recogkey}')
             report.saveimage_errorvalue(cropped, f'maskerror-{key}')
         else:
-            table[recogkey] = target.label['musicname']
+            table[recogkey] = musicname
 
 def larning_musicname():
     report = Report('musicselect_musicname')
@@ -591,27 +609,28 @@ def larning_musicname():
         if resultmusicname is None:
             resource_target = resource['musicname']['arcade']
             cropped = target.np_value[resource_target['area']]
-            counts = [np.count_nonzero(np.where(cropped==mask, cropped, 0)) for mask in resource_target['masks']]
-            key = max(counts)
-            if key in resource_target['table'].keys():
-                resultmusicname = resource_target['table'][key]
+            masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
+            counts = [np.count_nonzero(np.where(masked==mask, masked, 0)) for mask in resource_target['masks']]
+            tablekey = ''.join([str(count) for count in counts])
+            if tablekey in resource_target['table'].keys():
+                resultmusicname = resource_target['table'][tablekey]
     
         if resultmusicname is None:
             resource_target = resource['musicname']['infinitas']
             cropped = target.np_value[resource_target['area']]
             maskeds = [np.where(cropped==maskvalue, cropped, 0) for maskvalue in resource_target['maskvalues']]
             counts = [np.count_nonzero(v) for v in maskeds]
-            key = max(counts)
-            if key in resource_target['table'].keys():
-                resultmusicname = resource_target['table'][max(counts)]
+            tablekey = max(counts)
+            if tablekey in resource_target['table'].keys():
+                resultmusicname = resource_target['table'][tablekey]
         
         if resultmusicname is None:
             resource_target = resource['musicname']['leggendaria']
             cropped = target.np_value[resource_target['area']]
             masked = np.where(cropped==resource_target['maskvalue'], cropped, 0)
-            key = np.count_nonzero(masked)
-            if key in resource_target['table'].keys():
-                resultmusicname = resource_target['table'][key]
+            tablekey = np.count_nonzero(masked)
+            if tablekey in resource_target['table'].keys():
+                resultmusicname = resource_target['table'][tablekey]
 
         if(musicname == resultmusicname):
             report.through()

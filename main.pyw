@@ -50,10 +50,10 @@ from windows import find_window,get_rect,openfolder_results,openfolder_filtereds
 
 recent_maxcount = 100
 
-thread_time_wait_nonactive = 1
-thread_time_wait_loading = 30
-thread_time_normal = 0.3
-thread_time_result = 0.12
+thread_time_wait_nonactive = 1  # INFINITASがアクティブでないときのスレッド周期
+thread_time_wait_loading = 30   # INFINITASがローディング中のときのスレッド周期
+thread_time_normal = 0.3        # 通常のスレッド周期
+thread_time_result = 0.12       # リザルトのときのスレッド周期
 
 upload_confirm_message = [
     '曲名の誤認識を通報しますか？',
@@ -73,9 +73,9 @@ class ThreadMain(Thread):
     handle = 0
     active = False
     waiting = False
-    confirmed_result = False
-    confirmed_savable = False
-    processed_result = False
+    confirmed_somescreen = False
+    confirmed_processable = False
+    processed = False
     screen_latest = None
 
     def __init__(self, event_close, queues):
@@ -138,9 +138,9 @@ class ThreadMain(Thread):
 
         if screen == 'loading':
             if not self.waiting:
-                self.confirmed_result = False
-                self.confirmed_savable = False
-                self.processed_result = False
+                self.confirmed_somescreen = False
+                self.confirmed_processable = False
+                self.processed = False
                 self.waiting = True
                 self.queues['log'].put('find loading: start waiting')
                 self.sleep_time = thread_time_wait_loading
@@ -160,42 +160,47 @@ class ThreadMain(Thread):
         if screen == 'music_select':
             if not shotted:
                 screenshot.shot()
-            self.queues['musicselect_screen'].put(screenshot.np_value)
+            musicname = recog.MusicSelect.get_musicname(screenshot.np_value)
 
-        if screen != 'result':
-            self.confirmed_result = False
-            self.confirmed_savable = False
-            self.processed_result = False
+        if not screen in ['result', 'music_select'] or (screen == 'music_select' and musicname is None):
+            self.confirmed_somescreen = False
+            self.confirmed_processable = False
+            self.processed = False
             return
         
-        if not self.confirmed_result:
-            self.confirmed_result = True
-            self.sleep_time = thread_time_result
+        if not self.confirmed_somescreen:
+            self.confirmed_somescreen = True
+            if screen == 'result':
+                # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
+                self.sleep_time = thread_time_result
         
-        if self.processed_result:
+        if self.processed:
             return
         
         if not shotted:
             screenshot.shot()
         
-        if not recog.get_is_savable(screenshot.np_value):
+        if screen == 'result' and not recog.get_is_savable(screenshot.np_value):
             return
         
-        if not self.confirmed_savable:
-            self.confirmed_savable = True
+        if not self.confirmed_processable:
+            self.confirmed_processable = True
             self.find_time = time.time()
             return
 
         if time.time() - self.find_time <= thread_time_normal*2-0.1:
             return
 
-        resultscreen = screenshot.get_resultscreen()
+        if screen == 'result':
+            resultscreen = screenshot.get_resultscreen()
 
-        self.processed = True
-        self.queues['result_screen'].put(resultscreen)
+            self.queues['result_screen'].put(resultscreen)
 
-        self.sleep_time = thread_time_normal
-        self.processed_result = True
+            self.sleep_time = thread_time_normal
+            self.processed = True
+        
+        if screen == 'music_select':
+            self.queues['musicselect_screen'].put(screenshot.np_value)
 
 class Selection():
     def __init__(self, play_mode, difficulty, music, notebook):

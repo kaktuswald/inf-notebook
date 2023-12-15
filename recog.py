@@ -375,25 +375,27 @@ class Recognition():
         def get_musicname(np_value):
             resource_target = resource.musicselect['musicname']['arcade']
             cropped = np_value[resource_target['area']]
-            counts = [np.count_nonzero(np.where(cropped==mask, cropped, 0)) for mask in resource_target['masks']]
-            key = max(counts)
-            if key in resource_target['table'].keys():
-                return resource_target['table'][key]
+            masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
+            counts = [np.count_nonzero(np.where(masked==mask, masked, 0)) for mask in resource_target['masks']]
+            recogkey = ''.join([str(count) for count in counts])
+            if recogkey in resource_target['table'].keys():
+                return resource_target['table'][recogkey]
         
             resource_target = resource.musicselect['musicname']['infinitas']
             cropped = np_value[resource_target['area']]
             maskeds = [np.where(cropped==maskvalue, cropped, 0) for maskvalue in resource_target['maskvalues']]
             counts = [np.count_nonzero(v) for v in maskeds]
-            key = max(counts)
-            if key in resource_target['table'].keys():
-                return resource_target['table'][max(counts)]
+            recogkey = max(counts)
+            if recogkey in resource_target['table'].keys():
+                return resource_target['table'][recogkey]
             
             resource_target = resource.musicselect['musicname']['leggendaria']
             cropped = np_value[resource_target['area']]
             masked = np.where(cropped==resource_target['maskvalue'], cropped, 0)
-            key = np.count_nonzero(masked)
-            if key in resource_target['table'].keys():
-                return resource_target['table'][key]
+            recogkey = np.count_nonzero(masked)
+            if recogkey in resource_target['table'].keys():
+                return resource_target['table'][recogkey]
+            
         @staticmethod
         def get_difficulty(np_value):
             targetresource = resource.musicselect['levels']['select']
