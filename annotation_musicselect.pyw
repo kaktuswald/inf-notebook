@@ -1,9 +1,10 @@
 import PySimpleGUI as sg
 import json
-from os.path import exists,join
+from os.path import exists,join,basename
 from PIL import Image
 import logging
 import numpy as np
+from glob import glob
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -17,8 +18,7 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.annotation_musicselect as gui
-from resources_larning import RawLabel,raws_basepath
-from resources_larning_musicselect import label_filepath
+from resources_larning_musicselect import raws_musicselect_basepath,label_filepath
 
 images = {}
 np_values = {}
@@ -29,7 +29,7 @@ def update_annotation():
     global labels
 
 def load_image(filename):
-    filepath = join(raws_basepath, filename)
+    filepath = join(raws_musicselect_basepath, filename)
 
     if not exists(filepath):
         return None
@@ -37,13 +37,14 @@ def load_image(filename):
     return Image.open(filepath)
 
 if __name__ == '__main__':
+    files = glob(join(raws_musicselect_basepath, '*.png'))
+    filenames = [*map(basename, files)]
+
     try:
         with open(label_filepath) as f:
             labels = json.load(f)
     except Exception:
         labels = {}
-
-    filenames = [filename for filename, values in RawLabel().labels.items() if 'screen' in values.keys() and values['screen'] == 'music_select']
 
     logger.debug(f'current annotation count: {len(labels)}')
     

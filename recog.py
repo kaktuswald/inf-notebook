@@ -375,24 +375,33 @@ class Recognition():
         def get_musicname(np_value):
             resource_target = resource.musicselect['musicname']['arcade']
             cropped = np_value[resource_target['area']]
-            masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
-            counts = [np.count_nonzero(np.where(masked==mask, masked, 0)) for mask in resource_target['masks']]
-            recogkey = ''.join([str(count) for count in counts])
+            firstmasked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
+            filtered = np.where((resource_target['threshold'][0]<=firstmasked)&(firstmasked<=resource_target['threshold'][1]), firstmasked, 0)
+            maskeds = [np.where(filtered==mask, filtered, 0) for mask in resource_target['masks']]
+            firstcounts = [np.count_nonzero(masked) for masked in maskeds]
+            recogtarget = maskeds[firstcounts.index(max(firstcounts))]
+            counts = [np.count_nonzero(line) for line in recogtarget[:]]
+            recogkey = ''.join([format(count, '#04x')[2:] for count in counts])
             if recogkey in resource_target['table'].keys():
                 return resource_target['table'][recogkey]
         
             resource_target = resource.musicselect['musicname']['infinitas']
             cropped = np_value[resource_target['area']]
-            maskeds = [np.where(cropped==maskvalue, cropped, 0) for maskvalue in resource_target['maskvalues']]
-            counts = [np.count_nonzero(v) for v in maskeds]
-            recogkey = max(counts)
+            filtereds = []
+            for index in range(len(resource_target['thresholds'])):
+                threshold = resource_target['thresholds'][index]
+                masked = np.where((threshold[0]<=cropped[:,index])&(cropped[:,index]<=threshold[1]), 1, 0)
+                filtereds.append(masked)
+            resultfiltered = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
+            recogkey = np.count_nonzero(resultfiltered)
             if recogkey in resource_target['table'].keys():
                 return resource_target['table'][recogkey]
             
             resource_target = resource.musicselect['musicname']['leggendaria']
             cropped = np_value[resource_target['area']]
             masked = np.where(cropped==resource_target['maskvalue'], cropped, 0)
-            recogkey = np.count_nonzero(masked)
+            counts = [np.count_nonzero(line) for line in masked[:]]
+            recogkey = ''.join([format(count, '#04x')[2:] for count in counts])
             if recogkey in resource_target['table'].keys():
                 return resource_target['table'][recogkey]
             

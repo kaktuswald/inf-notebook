@@ -220,6 +220,7 @@ def reflect_recognized():
     window['level_leggendaria'].update(window['result_level_leggendaria'].get())
 
     window['playmode'].update(window['result_playmode'].get())
+    window['musictype'].update('ARCADE')
     window['musicname'].update(window['result_musicname'].get())
     window['difficulty'].update(window['result_difficulty'].get())
     window['cleartype'].update(window['result_cleartype'].get())
