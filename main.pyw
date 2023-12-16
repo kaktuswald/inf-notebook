@@ -737,6 +737,7 @@ def tweet():
                     else:
                         text = text.replace('&&update&&', '')
             if result['option'] is not None:
+            if not selection.graph and result['option'] is not None:
                 if result['option'] == '':
                     text = text.replace('&&option&&', '(正規)')
                 else:
