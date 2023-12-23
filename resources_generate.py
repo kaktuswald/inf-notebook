@@ -24,14 +24,15 @@ class Report():
     count_error = 0
     count_errorvalue_save = 0
 
-    def __init__(self, resourcename):
+    def __init__(self, name):
+        self.name = name
         self.log = []
         self.log_error = []
 
         if not exists(report_dirname):
             mkdir(report_dirname)
         
-        self.report_dirpath = join(report_dirname, resourcename)
+        self.report_dirpath = join(report_dirname, name)
         for filepath in glob(join(self.report_dirpath, '*')):
             remove(filepath)
         if not exists(self.report_dirpath):
@@ -72,6 +73,7 @@ class Report():
                 f.write('Errors:\n')
                 f.write('\n'.join(self.log_error))
         
+        print(self.name)
         print('\n'.join(self.log))
         if len(self.log_error) > 0:
             text_startred()

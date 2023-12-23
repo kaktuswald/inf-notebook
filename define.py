@@ -60,7 +60,7 @@ class Define():
     informations_trimpos = (410, 633)
     informations_trimsize = (460, 71)
 
-    informations_recognition_version = '2.1'
+    informations_recognition_version = '2.2'
     informations_trimarea = (410, 628, 870, 706)
 
     informations_areas = {

@@ -106,47 +106,57 @@ class Recognition():
             """
             trimmed = np_value_informations[resource.informations['music']['trim']]
 
-            blue = np.where(trimmed[:,:,2]==resource.informations['music']['bluevalue'],trimmed[:,:,2],0)
-            red = np.where(trimmed[:,:,0]==resource.informations['music']['redvalue'],trimmed[:,:,0],0)
-            gray1 = np.where((trimmed[:,:,0]==trimmed[:,:,1])&(trimmed[:,:,0]==trimmed[:,:,2]),trimmed[:,:,0],0)
-            gray = np.where((gray1!=255)&(gray1>resource.informations['music']['gray_threshold']),gray1,0)
+            lower = resource.informations['music']['factors']['blue']['lower']
+            upper = resource.informations['music']['factors']['blue']['upper']
+            filtereds = []
+            for i in range(trimmed.shape[2]):
+                filtereds.append(np.where((lower[:,:,i]<=trimmed[:,:,i])&(trimmed[:,:,i]<=upper[:,:,i]), trimmed[:,:,i], 0))
+            blue = np.where((filtereds[0]!=0)&(filtereds[1]!=0)&(filtereds[2]!=0), filtereds[2], 0)
+
+            lower = resource.informations['music']['factors']['red']['lower']
+            upper = resource.informations['music']['factors']['red']['upper']
+            filtereds = []
+            for i in range(trimmed.shape[2]):
+                filtereds.append(np.where((lower[:,:,i]<=trimmed[:,:,i])&(trimmed[:,:,i]<=upper[:,:,i]), trimmed[:,:,i], 0))
+            red = np.where((filtereds[0]!=0)&(filtereds[1]!=0)&(filtereds[2]!=0), trimmed[:,:,0], 0)
+
+            lower = resource.informations['music']['factors']['gray']['lower']
+            upper = resource.informations['music']['factors']['gray']['upper']
+            filtereds = []
+            for i in range(trimmed.shape[2]):
+                filtereds.append(np.where((lower[:,:,i]<=trimmed[:,:,i])&(trimmed[:,:,i]<=upper[:,:,i]), trimmed[:,:,i], 0))
+            gray = np.where((filtereds[0]==filtereds[1])&(filtereds[0]==filtereds[2]), filtereds[0], 0)
 
             gray_count = np.count_nonzero(gray)
             blue_count = np.count_nonzero(blue)
             red_count = np.count_nonzero(red)
             max_count = max(gray_count, blue_count, red_count)
             if max_count == gray_count:
-                masked = np.where(resource.informations['music']['mask']['gray']==1,gray,0)
-                targettable = resource.informations['music']['table']['gray']
+                masked = np.where(resource.informations['music']['masks']['gray']==1,gray,0)
+                targettable = resource.informations['music']['tables']['gray']
             if max_count == blue_count:
-                masked = np.where(resource.informations['music']['mask']['blue']==1,blue,0)
-                targettable = resource.informations['music']['table']['blue']
+                masked = np.where(resource.informations['music']['masks']['blue']==1,blue,0)
+                targettable = resource.informations['music']['tables']['blue']
             if max_count == red_count:
-                masked = np.where(resource.informations['music']['mask']['red']==1,red,0)
-                targettable = resource.informations['music']['table']['red']
+                masked = np.where(resource.informations['music']['masks']['red']==1,red,0)
+                targettable = resource.informations['music']['tables']['red']
             
-            maxcounts = []
-            maxcount_values = []
-            for line in masked:
-                unique, counts = np.unique(line, return_counts=True)
-                if len(counts) != 1:
-                    index = -np.argmax(np.flip(counts[1:])) - 1
-                    maxcounts.append(counts[index])
-                    maxcount_values.append(unique[index])
-                else:
-                    maxcounts.append(0)
-                    maxcount_values.append(0)
+            for height in range(masked.shape[0]):
+                unique, counts = np.unique(masked[height], return_counts=True)
+                if len(unique) == 1:
+                    continue
+                index = -np.argmax(np.flip(counts[1:])) - 1
+                intensity = unique[index]
+                bins = np.where(masked[height]==intensity, 1, 0)
+                hexs = bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+                tablekey = f"{height:02d}{''.join([format(v, '0x') for v in hexs])}"
+                if not tablekey in targettable.keys():
+                    break
 
-            for y in np.argsort(maxcounts)[::-1]:
-                color = int(maxcount_values[y])
-                bins = np.where(masked[y]==color, 1, 0)
-                hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-                mapkey = f"{y:02d}{color:02x}{''.join([format(v, '0x') for v in hexs])}"
-                if not mapkey in targettable:
-                    return None
-                if type(targettable[mapkey]) == str:
-                    return targettable[mapkey]
-                targettable = targettable[mapkey]
+                if type(targettable[tablekey]) == str:
+                    return targettable[tablekey]
+                
+                targettable = targettable[tablekey]
             
             return None
 
