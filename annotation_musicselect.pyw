@@ -81,6 +81,7 @@ if __name__ == '__main__':
                 'level_hyper': values['level_hyper'],
                 'level_another': values['level_another'],
                 'level_leggendaria': values['level_leggendaria'],
+                'version': values['version'],
                 'musictype': values['musictype'],
                 'musicname': values['musicname'],
                 'cleartype': values['cleartype'],
@@ -93,7 +94,7 @@ if __name__ == '__main__':
                 json.dump(labels, f, indent=2)
         if event == 'button_recog' and not target_key is None:
             gui.reflect_recognized()
-        if event in ['only_not_annotation', 'only_undefined_musicname', 'only_full_combo', 'keyfilter']:
+        if event in ['only_not_annotation', 'only_undefined_musicname', 'only_undefined_version', 'keyfilter']:
             gui.change_search_condition(filenames, labels)
 
     window.close()

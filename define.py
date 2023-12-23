@@ -101,6 +101,7 @@ class Define():
         self.informations_resourcename = f'informations{self.informations_recognition_version}'
         self.details_resourcename = f'details{self.details_recognition_version}'
         self.musictable_resourcename = f'musictable{self.musictable_version}'
+        self.musicselect_resourcename = f'musicselect{self.musicselect_recognition_version}'
 
         self.details_trimarea = {}
         for play_side in self.details_trimpos.keys():

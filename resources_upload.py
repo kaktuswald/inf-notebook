@@ -41,3 +41,10 @@ if __name__ == '__main__':
         
         if upload(filename_musictable, filepath_musictable): 
             print(f'Upload complete {filename_musictable}')
+    
+    if '-all' in argv or '-musicselect' in argv:
+        filename_musicselect = f'{define.musicselect_resourcename}.res'
+        filepath_musicselect = join(resources_dirname, filename_musicselect)
+        
+        if upload(filename_musicselect, filepath_musicselect): 
+            print(f'Upload complete {filename_musicselect}')

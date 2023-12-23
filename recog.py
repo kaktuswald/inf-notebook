@@ -380,47 +380,83 @@ class Recognition():
                 return None
             return resource.musicselect['playmode']['table'][tablekey]
         
-        
+        @staticmethod
+        def get_version(np_value):
+            for table in resource.musicselect['version']:
+                cropped = np_value[table['trim']]
+                reshaped = cropped.reshape(cropped.shape[0]*cropped.shape[1], cropped.shape[2])
+                hexes = [''.join([format(b, '02x') for b in point]) for point in reshaped]
+                tablekey = ''.join(hexes)
+
+                if tablekey in table['table'].keys():
+                    return table['table'][tablekey]
+            return None
+
         @staticmethod
         def get_musicname(np_value):
-            resource_target = resource.musicselect['musicname']['arcade']
-            cropped = np_value[resource_target['area']]
-            firstmasked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
-            filtered = np.where((resource_target['threshold'][0]<=firstmasked)&(firstmasked<=resource_target['threshold'][1]), firstmasked, 0)
-            maskeds = [np.where(filtered==mask, filtered, 0) for mask in resource_target['masks']]
-            firstcounts = [np.count_nonzero(masked) for masked in maskeds]
-            recogtarget = maskeds[firstcounts.index(max(firstcounts))]
-            counts = [np.count_nonzero(line) for line in recogtarget[:]]
-            recogkey = ''.join([format(count, '#04x')[2:] for count in counts])
-            if recogkey in resource_target['table'].keys():
-                return resource_target['table'][recogkey]
-        
             resource_target = resource.musicselect['musicname']['infinitas']
-            cropped = np_value[resource_target['area']]
+            cropped = np_value[resource_target['trim']]
             filtereds = []
             for index in range(len(resource_target['thresholds'])):
                 threshold = resource_target['thresholds'][index]
-                masked = np.where((threshold[0]<=cropped[:,index])&(cropped[:,index]<=threshold[1]), 1, 0)
+                masked = np.where((threshold[0]<=cropped[:,:,index])&(cropped[:,:,index]<=threshold[1]), 1, 0)
                 filtereds.append(masked)
-            resultfiltered = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
-            recogkey = np.count_nonzero(resultfiltered)
-            if recogkey in resource_target['table'].keys():
-                return resource_target['table'][recogkey]
+            bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
+            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
+            recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
+            tabletarget = resource_target['table']
+            for recogkey in recogkeys:
+                if not recogkey in tabletarget.keys():
+                    break
+                if type(tabletarget[recogkey]) is str:
+                    return tabletarget[recogkey]
+                tabletarget = tabletarget[recogkey]
             
             resource_target = resource.musicselect['musicname']['leggendaria']
-            cropped = np_value[resource_target['area']]
-            masked = np.where(cropped==resource_target['maskvalue'], cropped, 0)
-            counts = [np.count_nonzero(line) for line in masked[:]]
-            recogkey = ''.join([format(count, '#04x')[2:] for count in counts])
-            if recogkey in resource_target['table'].keys():
-                return resource_target['table'][recogkey]
-            
+            cropped = np_value[resource_target['trim']]
+            filtereds = []
+            for index in range(len(resource_target['thresholds'])):
+                threshold = resource_target['thresholds'][index]
+                masked = np.where((threshold[0]<=cropped[:,:,index])&(cropped[:,:,index]<=threshold[1]), 1, 0)
+                filtereds.append(masked)
+            bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
+            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
+            recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
+            tabletarget = resource_target['table']
+            for recogkey in recogkeys:
+                if not recogkey in tabletarget.keys():
+                    break
+                if type(tabletarget[recogkey]) is str:
+                    return tabletarget[recogkey]
+                tabletarget = tabletarget[recogkey]
+
+            resource_target = resource.musicselect['musicname']['arcade']
+            thresholds = resource_target['thresholds']
+            cropped = np_value[resource_target['trim']]
+            masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
+            filtered = [np.where((thresholds[i][0]<=masked[i])&(masked[i]<=thresholds[i][1]), 1, 0) for i in range(masked.shape[0])]
+            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in filtered]
+            recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
+            tabletarget = resource_target['table']
+            for recogkey in recogkeys:
+                if not recogkey in tabletarget.keys():
+                    return None
+                if type(tabletarget[recogkey]) is str:
+                    return tabletarget[recogkey]
+                tabletarget = tabletarget[recogkey]
+            return None
+        
         @staticmethod
         def get_difficulty(np_value):
             targetresource = resource.musicselect['levels']['select']
             for difficulty in targetresource.keys():
                 trimmed = np_value[targetresource[difficulty]['trim']]
-                bins = np.where(trimmed==targetresource[difficulty]['maskvalue'], 1, 0)
+                filtereds = []
+                for index in range(len(targetresource[difficulty]['thresholds'])):
+                    threshold = targetresource[difficulty]['thresholds'][index]
+                    masked = np.where((threshold[0]<=trimmed[:,:,index])&(trimmed[:,:,index]<=threshold[1]), 1, 0)
+                    filtereds.append(masked)
+                bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
                 hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
                 tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
                 if tablekey in targetresource[difficulty]['table'].keys():
@@ -486,20 +522,31 @@ class Recognition():
             for difficulty in resource.musicselect['levels']['select']:
                 resourcetarget = resource.musicselect['levels']['select'][difficulty]
                 trimmed = np_value[resourcetarget['trim']]
-                bins = np.where(trimmed==resourcetarget['maskvalue'], 1, 0)
+                
+                filtereds = []
+                for index in range(len(resourcetarget['thresholds'])):
+                    threshold = resourcetarget['thresholds'][index]
+                    masked = np.where((threshold[0]<=trimmed[:,:,index])&(trimmed[:,:,index]<=threshold[1]), 1, 0)
+                    filtereds.append(masked)
+                bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
                 hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
                 tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
                 if tablekey in resourcetarget['table'].keys():
-                    ret[difficulty] = resourcetarget['table'][tablekey]
+                    ret[str.upper(difficulty)] = resourcetarget['table'][tablekey]
                     break
             for difficulty in resource.musicselect['levels']['noselect']:
                 resourcetarget = resource.musicselect['levels']['noselect'][difficulty]
                 trimmed = np_value[resourcetarget['trim']]
-                bins = np.where((trimmed[:,:,0]==trimmed[:,:,1])&(trimmed[:,:,0]==trimmed[:,:,2])&(trimmed[:,:,0]==resourcetarget['maskvalue']), 1, 0)
+                threshold = resourcetarget['threshold']
+                filtereds = []
+                for index in range(trimmed.shape[2]):
+                    masked = np.where((threshold[0]<=trimmed[:,:,index])&(trimmed[:,:,index]<=threshold[1]), 1, 0)
+                    filtereds.append(masked)
+                bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
                 hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
                 tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
                 if tablekey in resourcetarget['table'].keys():
-                    ret[difficulty] = resourcetarget['table'][tablekey]
+                    ret[str.upper(difficulty)] = resourcetarget['table'][tablekey]
             return ret
 
     @staticmethod

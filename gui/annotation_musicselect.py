@@ -14,6 +14,41 @@ def layout_manage(keys):
     selectable_value_list = {}
     for key, values in define.value_list.items():
         selectable_value_list[key] = ['', *values]
+    selectable_value_list['versions'] = [
+        '',
+        '1st',
+        'substream',
+        '2nd style',
+        '3rd style',
+        '4th style',
+        '5th style',
+        '6th style',
+        '7th style',
+        '8th style',
+        '9th style',
+        '10th style',
+        'IIDX RED',
+        'HAPPY SKY',
+        'DistorteD',
+        'GOLD',
+        'DJ TROOPERS',
+        'EMPRESS',
+        'SIRIUS',
+        'Resort Anthem',
+        'Lincle',
+        'tricoro',
+        'SPADA',
+        'PENDUAL',
+        'copula',
+        'SINOBUZ',
+        'CANNON BALLERS',
+        'Rootage',
+        'HEROIC VERSE',
+        'BISTROVER',
+        'CastHour',
+        'RESIDENT',
+        'INFINITAS'
+    ]
     selectable_value_list['musictypes'] = ['', 'ARCADE', 'INFINITAS', 'LEGGENDARIA']
 
     results1 = [
@@ -42,6 +77,10 @@ def layout_manage(keys):
         [
             sg.Text('プレイモード', size=(15, 1)),
             sg.Text(key='result_playmode', background_color=in_area_background_color)
+        ],
+        [
+            sg.Text('バージョン', size=(15, 1)),
+            sg.Text(key='result_version', background_color=in_area_background_color)
         ],
         [
             sg.Text('曲名', size=(15, 1)),
@@ -75,8 +114,12 @@ def layout_manage(keys):
             sg.Combo(selectable_value_list['play_modes'], key='playmode', readonly=True, enable_events=True)
         ],
         [
+            sg.Text('バージョン', size=(18, 1)),
+            sg.Combo(selectable_value_list['versions'], key='version', size=(18, 1), readonly=True, enable_events=True)
+        ],
+        [
             sg.Text('曲名の種別', size=(18, 1)),
-            sg.Combo(selectable_value_list['musictypes'], key='musictype', readonly=True, enable_events=True)
+            sg.Combo(selectable_value_list['musictypes'], key='musictype', size=(16, 1), readonly=True, enable_events=True)
         ],
         [
             sg.Text('曲名', size=(18, 1)),
@@ -84,7 +127,7 @@ def layout_manage(keys):
         ],
         [
             sg.Text('選択難易度', size=(18, 1)),
-            sg.Combo(selectable_value_list['difficulties'], key='difficulty', size=(13, 1), readonly=True)
+            sg.Combo(selectable_value_list['difficulties'], key='difficulty', size=(14, 1), readonly=True)
         ],
         [
             sg.Text('クリアタイプ', size=(18, 1)),
@@ -128,7 +171,7 @@ def layout_manage(keys):
         ],
         [sg.Checkbox('未アノテーションのみ', key='only_not_annotation', enable_events=True, background_color=in_area_background_color)],
         [sg.Checkbox('曲名なしのみ', key='only_undefined_musicname', enable_events=True, background_color=in_area_background_color)],
-        [sg.Checkbox('F-COMBOのみ', key='only_full_combo', enable_events=True, background_color=in_area_background_color)],
+        [sg.Checkbox('バージョンなしのみ', key='only_undefined_version', enable_events=True, background_color=in_area_background_color)],
         [sg.Input(key='keyfilter', enable_events=True)]
     ]
 
@@ -177,6 +220,7 @@ def display_image(image):
 
 def clear_results():
     window['result_playmode'].update('')
+    window['result_version'].update('')
     window['result_musicname'].update('')
     window['result_difficulty'].update('')
     window['result_cleartype'].update('')
@@ -191,6 +235,7 @@ def clear_results():
 
 def recognize(image):
     playmode = recog.MusicSelect.get_playmode(image)
+    version = recog.MusicSelect.get_version(image)
     musicname = recog.MusicSelect.get_musicname(image)
     difficulty = recog.MusicSelect.get_difficulty(image)
     cleartype = recog.MusicSelect.get_cleartype(image)
@@ -200,17 +245,18 @@ def recognize(image):
     levels = recog.MusicSelect.get_levels(image)
 
     window['result_playmode'].update(playmode if playmode is not None else '')
+    window['result_version'].update(version if version is not None else '')
     window['result_musicname'].update(musicname if musicname is not None else '')
     window['result_difficulty'].update(difficulty if difficulty is not None else '')
     window['result_cleartype'].update(cleartype if cleartype is not None else '')
     window['result_djlevel'].update(djlevel if djlevel is not None else '')
     window['result_score'].update(score if score is not None else '')
     window['result_misscount'].update(misscount if misscount is not None else '')
-    window['result_level_beginner'].update(levels['beginner'] if 'beginner' in levels.keys() else '')
-    window['result_level_normal'].update(levels['normal'] if 'normal' in levels.keys() else '')
-    window['result_level_hyper'].update(levels['hyper'] if 'hyper' in levels.keys() else '')
-    window['result_level_another'].update(levels['another'] if 'another' in levels.keys() else '')
-    window['result_level_leggendaria'].update(levels['leggendaria'] if 'leggendaria' in levels.keys() else '')
+    window['result_level_beginner'].update(levels['BEGINNER'] if 'BEGINNER' in levels.keys() else '')
+    window['result_level_normal'].update(levels['NORMAL'] if 'NORMAL' in levels.keys() else '')
+    window['result_level_hyper'].update(levels['HYPER'] if 'HYPER' in levels.keys() else '')
+    window['result_level_another'].update(levels['ANOTHER'] if 'ANOTHER' in levels.keys() else '')
+    window['result_level_leggendaria'].update(levels['LEGGENDARIA'] if 'LEGGENDARIA' in levels.keys() else '')
 
 def reflect_recognized():
     window['level_beginner'].update(window['result_level_beginner'].get())
@@ -220,6 +266,7 @@ def reflect_recognized():
     window['level_leggendaria'].update(window['result_level_leggendaria'].get())
 
     window['playmode'].update(window['result_playmode'].get())
+    window['version'].update(window['result_version'].get())
     window['musictype'].update('ARCADE')
     window['musicname'].update(window['result_musicname'].get())
     window['difficulty'].update(window['result_difficulty'].get())
@@ -232,6 +279,7 @@ def reflect_recognized():
 
 def clear_labels():
     window['playmode'].update('')
+    window['version'].update('')
     window['musictype'].update('')
     window['musicname'].update('')
     window['difficulty'].update('')
@@ -247,6 +295,7 @@ def clear_labels():
 
 def set_labels(label):
     window['playmode'].update(label['playmode'])
+    window['version'].update(label['version'] if 'version' in label.keys() else '')
     window['musictype'].update(label['musictype'] if 'musictype' in label.keys() else '')
     window['musicname'].update(label['musicname'])
     window['difficulty'].update(label['difficulty'])
@@ -264,9 +313,9 @@ def change_search_condition(keys, labels):
     if window['only_not_annotation'].get():
         keys = [key for key in keys if not key in labels.keys()]
     if window['only_undefined_musicname'].get():
-        keys = [key for key in keys if key in labels.keys() and labels[key]['informations'] is not None and labels[key]['informations']['musicname'] == '']
-    if window['only_full_combo'].get():
-        keys = [key for key in keys if key in labels.keys() and labels[key]['details'] is not None and (('cleartype_best' in labels[key]['details'].keys() and labels[key]['details']['cleartype_best'] == 'F-COMBO') or labels[key]['details']['cleartype_current'] == 'F-COMBO')]
+        keys = [key for key in keys if key in labels.keys() and (not 'musicname' in labels[key].keys() or labels[key]['musicname'] == '')]
+    if window['only_undefined_version'].get():
+        keys = [key for key in keys if key in labels.keys() and (not 'version' in labels[key].keys() or labels[key]['version'] == '')]
     if len(window['keyfilter'].get()) > 0:
         keys = [key for key in keys if window['keyfilter'].get() in key]
     window['list_keys'].update(keys)

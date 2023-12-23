@@ -248,10 +248,9 @@ class NotebookMusic(Notebook):
         if not difficulty in self.json[playmode].keys():
             self.json[playmode][difficulty] = {'level': None, 'timestamps': [], 'history': {}, 'best': {}}
             updated = True
-        difficultykey = str.lower(difficulty)
-        if values['levels'][difficultykey] is not None and 'level' in self.json[playmode][difficulty].keys():
-            if values['levels'][difficultykey] != self.json[playmode][difficulty]['level']:
-                self.json[playmode][difficulty]['level'] = values['levels'][difficultykey]
+        if values['levels'][difficulty] is not None and 'level' in self.json[playmode][difficulty].keys():
+            if values['levels'][difficulty] != self.json[playmode][difficulty]['level']:
+                self.json[playmode][difficulty]['level'] = values['levels'][difficulty]
                 updated = True
         if not 'best' in self.json[playmode][difficulty].keys():
             self.json[playmode][difficulty]['best'] = {}

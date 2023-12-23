@@ -160,9 +160,9 @@ class ThreadMain(Thread):
         if screen == 'music_select':
             if not shotted:
                 screenshot.shot()
-            musicname = recog.MusicSelect.get_musicname(screenshot.np_value)
+            version = recog.MusicSelect.get_version(screenshot.np_value)
 
-        if not screen in ['result', 'music_select'] or (screen == 'music_select' and musicname is None):
+        if not screen in ['result', 'music_select'] or (screen == 'music_select' and version is None):
             self.confirmed_somescreen = False
             self.confirmed_processable = False
             self.processed = False
@@ -305,26 +305,47 @@ def result_process(screen):
 
 def musicselect_process(np_value):
     playmode = recog.MusicSelect.get_playmode(np_value)
+    if playmode is None:
+        return
+    
     difficulty = recog.MusicSelect.get_difficulty(np_value)
+    if difficulty is None:
+        return
+    
     musicname = recog.MusicSelect.get_musicname(np_value)
-    if musicname is not None:
-        if musicname in notebooks_music.keys():
-            notebook = notebooks_music[musicname]
-        else:
-            notebook = NotebookMusic(musicname) if musicname is not None else None
-            notebooks_music[musicname] = notebook
-        if notebook.update_best({
-            'playmode': playmode,
-            'difficulty': difficulty,
-            'cleartype': recog.MusicSelect.get_cleartype(np_value),
-            'djlevel': recog.MusicSelect.get_djlevel(np_value),
-            'score': recog.MusicSelect.get_score(np_value),
-            'misscount': recog.MusicSelect.get_misscount(np_value),
-            'levels': recog.MusicSelect.get_levels(np_value)
-        }):
-            notebook.save()
-            if selection is not None and selection.play_mode == playmode and selection.music == musicname and selection.difficulty == difficulty:
-                gui.display_record(selection.get_targetrecordlist())
+    if musicname is None or not musicname in resource.musictable['musics'].keys():
+        return
+    
+    music_information = resource.musictable['musics'][musicname]
+    version = recog.MusicSelect.get_version(np_value)
+    if version != music_information['version'] and (version in ['1st', 'substream'] and music_information['version'] != '1st&substream'):
+        return
+
+    if not playmode in music_information.keys():
+        return
+    if not difficulty in music_information[playmode].keys():
+        return
+    
+    levels = recog.MusicSelect.get_levels(np_value)
+    if not difficulty in levels.keys() or levels[difficulty] != music_information[playmode][difficulty]:
+        return
+    if musicname in notebooks_music.keys():
+        notebook = notebooks_music[musicname]
+    else:
+        notebook = NotebookMusic(musicname) if musicname is not None else None
+        notebooks_music[musicname] = notebook
+    if notebook.update_best({
+        'playmode': playmode,
+        'difficulty': difficulty,
+        'cleartype': recog.MusicSelect.get_cleartype(np_value),
+        'djlevel': recog.MusicSelect.get_djlevel(np_value),
+        'score': recog.MusicSelect.get_score(np_value),
+        'misscount': recog.MusicSelect.get_misscount(np_value),
+        'levels': recog.MusicSelect.get_levels(np_value)
+    }):
+        notebook.save()
+        if selection is not None and selection.play_mode == playmode and selection.music == musicname and selection.difficulty == difficulty:
+            gui.display_record(selection.get_targetrecordlist())
 
 def save_result(result, image):
     if result.timestamp in timestamps_saved:
@@ -736,7 +757,6 @@ def tweet():
                         text = text.replace('&&update&&', f"ミスカウント{result['update_miss_count']}")
                     else:
                         text = text.replace('&&update&&', '')
-            if result['option'] is not None:
             if not selection.graph and result['option'] is not None:
                 if result['option'] == '':
                     text = text.replace('&&option&&', '(正規)')
