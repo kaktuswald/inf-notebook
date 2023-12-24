@@ -41,7 +41,7 @@ from screenshot import Screenshot,open_screenimage
 from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
-from record import NotebookRecent,NotebookMusic,rename_allfiles
+from record import NotebookRecent,NotebookMusic,rename_allfiles,rename_wrongfiles
 from graph import create_graphimage,save_graphimage
 from result import result_save,result_savefiltered,get_resultimage,get_filteredimage
 from filter import filter as filter_result
@@ -825,11 +825,11 @@ def create_graph(selection, targetrecord):
     
     selection.selection_graph()
 
-def rename_all_musicnotebooks():
-    if resource.informations is None:
-        return
+def rename_musicnotebooks():
+    if resource.musictable is not None:
+        rename_allfiles(resource.musictable['musics'].keys())
 
-    rename_allfiles(resource.musictable['musics'].keys())
+    rename_wrongfiles()
 
 if __name__ == '__main__':
     keyboard.add_hotkey('alt+F10', active_screenshot)
@@ -894,7 +894,8 @@ if __name__ == '__main__':
         Thread(target=check_resource).start()
     
     # version0.7.0.1以前の不具合対応のため
-    rename_all_musicnotebooks()
+    # version0.14.0.0以降の曲名修正
+    rename_musicnotebooks()
 
     insert_recentnotebook_results()
 

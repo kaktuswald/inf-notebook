@@ -1,13 +1,18 @@
 import json
 from os import remove,mkdir,rename
-from os.path import join,exists,basename
-from glob import glob
+from os.path import join,exists
 
 from version import version
 
 records_basepath = 'records'
 
 recent_filenmae = 'recent.json'
+
+# 曲名の誤りの修正
+# 該当のファイルがあった場合はファイル名を変更する
+fileconverts = [
+    ('♥LOVE2 シュガー→♥','♥LOVE2 シュガ→♥')
+]
 
 if not exists(records_basepath):
     mkdir(records_basepath)
@@ -339,3 +344,14 @@ def rename_allfiles(musics):
                 print(f'Rename {music}')
                 print(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
                 print(f'To(length: {len(full_filename)})\t\t{full_filename}')
+
+def rename_wrongfiles():
+    for target, renamed in fileconverts:
+        target_encoded = target.encode('UTF-8').hex()
+        target_filepath = join(records_basepath, f'{target_encoded}.json')
+        if exists(target_filepath):
+            renamed_encoded = renamed.encode('UTF-8').hex()
+            renamed_filepath = join(records_basepath, f'{renamed_encoded}.json')
+            rename(target_filepath, renamed_filepath)
+            print(f'Rename {target} to {renamed}')
+
