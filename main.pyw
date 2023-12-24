@@ -493,6 +493,10 @@ def check_resource():
         resource.load_resource_musictable()
         gui.update_musictable()
 
+    musicselect_filename = f'{define.musicselect_resourcename}.res'
+    if check_latest(storage, musicselect_filename):
+        resource.load_resource_musicselect()
+
 def select_result_recent():
     if len(table_selected_rows) == 0:
         return None
