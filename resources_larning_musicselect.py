@@ -891,6 +891,7 @@ def evaluate():
 
     table = musictable['musics']
     for musicname in table.keys():
+        escaped = musicname.encode('unicode-escape').decode('utf-8')
         if musicname in evaluate_musictable.keys():
             if 'version' in evaluate_musictable[musicname].keys():
                 pass
@@ -908,15 +909,15 @@ def evaluate():
                             tablelevel = table[musicname][playmode][difficulty]
 
                         if resultlevel != tablelevel:
-                            report.error(f'Mismatch {musicname} {playmode} {difficulty}: {resultlevel} {tablelevel}')
+                            report.error(f'Mismatch {musicname} {playmode} {difficulty}: {resultlevel} {tablelevel}({escaped})')
                 else:
-                    report.error(f'Not registered {musicname} {playmode}')
+                    report.error(f'Not registered {musicname} {playmode}({escaped})')
         else:
-            report.error(f'Not registered {musicname}')
+            report.error(f'Not registered {musicname}({escaped})')
     
     for musicname in evaluate_musictable.keys():
         if not musicname in table.keys():
-            report.error(f'Not exist {musicname}')
+            report.error(f'Not exist {musicname}({escaped})')
     
     report.report()
 
