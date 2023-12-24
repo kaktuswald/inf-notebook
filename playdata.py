@@ -202,13 +202,14 @@ def output():
 
     for play_mode in define.value_list['play_modes']:
         filepath = join(export_dirname, f'{play_mode}.csv')
-        with open(filepath, 'w', encoding='cp932', newline='\n') as f:
+        with open(filepath, 'w', encoding='UTF-8', newline='\n') as f:
             w = writer(f)
             for line in csv_output[play_mode]:
                 try:
                     w.writerow(line)
                 except Exception as ex:
                     print('エンコードに失敗', line[0])
+                    print(ex)
     
     with open(summary_timestamp_filepath, 'w') as f:
         f.write(str(datetime.now()))
