@@ -218,7 +218,6 @@ class NotebookMusic(Notebook):
             target[result.informations.difficulty] = {}
         target = target[result.informations.difficulty]
 
-        target['level'] = result.informations.level
         target['notes'] = result.informations.notes
 
         options = result.details.options
@@ -251,12 +250,8 @@ class NotebookMusic(Notebook):
             self.json[playmode] = {}
             updated = True
         if not difficulty in self.json[playmode].keys():
-            self.json[playmode][difficulty] = {'level': None, 'timestamps': [], 'history': {}, 'best': {}}
+            self.json[playmode][difficulty] = {'timestamps': [], 'history': {}, 'best': {}}
             updated = True
-        if values['levels'][difficulty] is not None and 'level' in self.json[playmode][difficulty].keys():
-            if values['levels'][difficulty] != self.json[playmode][difficulty]['level']:
-                self.json[playmode][difficulty]['level'] = values['levels'][difficulty]
-                updated = True
         if not 'best' in self.json[playmode][difficulty].keys():
             self.json[playmode][difficulty]['best'] = {}
             updated = True
