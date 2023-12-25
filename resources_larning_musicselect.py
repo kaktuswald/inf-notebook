@@ -549,8 +549,12 @@ def larning_musicname_arcade(targets, report):
             break
         cropped = target.np_value[resource_target['trim']]
         masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
-        filtered = [np.where((th[i][0]<=masked[i])&(masked[i]<=th[i][1]), 1, 0) for i in range(masked.shape[0])]
-        hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in filtered]
+        bins = [np.where((th[i][0]<=masked[i])&(masked[i]<=th[i][1]), 1, 0) for i in range(masked.shape[0])]
+        valid_count = np.count_nonzero(bins)
+        if valid_count <= 0:
+            report.error(f'Key valid count is less than 0: {musicname} {key} {valid_count}')
+            continue
+        hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
         for recogkey in recogkeys[:-1]:
@@ -593,6 +597,10 @@ def larning_musicname_infinitas(targets, report):
             masked = np.where((threshold[0]<=cropped[:,:,index])&(cropped[:,:,index]<=threshold[1]), 1, 0)
             filtereds.append(masked)
         bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
+        valid_count = np.count_nonzero(bins)
+        if valid_count <= 0:
+            report.error(f'Key valid count is less than 0: {musicname} {key} {valid_count}')
+            continue
         hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
@@ -632,6 +640,10 @@ def larning_musicname_leggendaria(targets, report):
             masked = np.where((threshold[0]<=cropped[:,:,index])&(cropped[:,:,index]<=threshold[1]), 1, 0)
             filtereds.append(masked)
         bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
+        valid_count = np.count_nonzero(bins)
+        if valid_count <= 0:
+            report.error(f'Key valid count is less than 0: {musicname} {key} {valid_count}')
+            continue
         hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
@@ -734,8 +746,8 @@ def larning_musicname():
             thresholds = resource_target['thresholds']
             cropped = target.np_value[resource_target['trim']]
             masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
-            filtered = [np.where((thresholds[i][0]<=masked[i])&(masked[i]<=thresholds[i][1]), 1, 0) for i in range(masked.shape[0])]
-            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in filtered]
+            bins = [np.where((thresholds[i][0]<=masked[i])&(masked[i]<=thresholds[i][1]), 1, 0) for i in range(masked.shape[0])]
+            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
             recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
             tabletarget = resource_target['table']
             for recogkey in recogkeys:

@@ -434,8 +434,8 @@ class Recognition():
             thresholds = resource_target['thresholds']
             cropped = np_value[resource_target['trim']]
             masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
-            filtered = [np.where((thresholds[i][0]<=masked[i])&(masked[i]<=thresholds[i][1]), 1, 0) for i in range(masked.shape[0])]
-            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in filtered]
+            bins = [np.where((thresholds[i][0]<=masked[i])&(masked[i]<=thresholds[i][1]), 1, 0) for i in range(masked.shape[0])]
+            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
             recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
             tabletarget = resource_target['table']
             for recogkey in recogkeys:
