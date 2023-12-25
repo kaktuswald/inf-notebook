@@ -191,10 +191,12 @@ def output():
     for play_mode in define.value_list['play_modes']:
         for summary_key1 in summary_keys1:
             for summary_key2 in summary_keys2:
-                lines = [['', *define.value_list[summary_key2], 'TOTAL']]
+                lines = [['', *define.value_list[summary_key2], 'NO DATA', 'TOTAL']]
                 for key in define.value_list[summary_key1]:
-                    targets = summary[play_mode][summary_key1][key][summary_key2].values()
-                    lines.append([key, *targets])
+                    total_count = summary[play_mode][summary_key1][key][summary_key2]['TOTAL']
+                    targets = [*summary[play_mode][summary_key1][key][summary_key2].values()][:-1]
+                    no_data_count = total_count - sum(targets)
+                    lines.append([key, *targets, no_data_count, total_count])
                 filepath = join(export_dirname, f'{play_mode}-{summary_filenames[summary_key1][summary_key2]}.csv')
                 with open(filepath, 'w', newline='\n') as f:
                     w = writer(f)
