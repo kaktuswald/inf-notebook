@@ -62,7 +62,7 @@ def larning_playmode():
     larning_targets = {}
     evaluate_targets = {}
     for key, target in imagevalues.items():
-        if not 'playmode' in target.label.keys() or target.label['playmode'] is None:
+        if not 'playmode' in target.label.keys() or target.label['playmode'] == '':
             continue
         
         value = target.label['playmode']
@@ -563,7 +563,7 @@ def larning_musicname_arcade(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: arcade {musicname} {recogkeys}')
+            report.append_log(f'{key}: arcade ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
@@ -610,7 +610,7 @@ def larning_musicname_infinitas(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: infinitas {musicname} {recogkeys}')
+            report.append_log(f'{key}: infinitas ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
@@ -653,7 +653,7 @@ def larning_musicname_leggendaria(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: leggendaria {musicname} {recogkeys}')
+            report.append_log(f'{key}: leggendaria ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
