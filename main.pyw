@@ -497,6 +497,11 @@ def check_resource():
     if check_latest(storage, musicselect_filename):
         resource.load_resource_musicselect()
 
+    check_latest(storage, musicnamechanges_filename)
+    rename_changemusicname()
+
+    print('complete check resources')
+
 def select_result_recent():
     if len(table_selected_rows) == 0:
         return None
@@ -829,12 +834,6 @@ def create_graph(selection, targetrecord):
     
     selection.selection_graph()
 
-def rename_musicnotebooks():
-    if resource.musictable is not None:
-        rename_allfiles(resource.musictable['musics'].keys())
-
-    rename_wrongfiles()
-
 if __name__ == '__main__':
     keyboard.add_hotkey('alt+F10', active_screenshot)
 
@@ -897,9 +896,8 @@ if __name__ == '__main__':
     if not setting.ignore_download:
         Thread(target=check_resource).start()
     
-    # version0.7.0.1以前の不具合対応のため
-    # version0.14.0.0以降の曲名修正
-    rename_musicnotebooks()
+    if resource.musictable is not None:
+        rename_allfiles(resource.musictable['musics'].keys())
 
     insert_recentnotebook_results()
 

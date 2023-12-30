@@ -54,6 +54,7 @@ class Resource():
 
 class ResourceTimestamp():
     def __init__(self, resourcename):
+        self.resourcename = resourcename
         self.filepath = os.path.join(resources_dirname, f'{resourcename}.timestamp')
     
     def get_timestamp(self):
@@ -65,7 +66,7 @@ class ResourceTimestamp():
         return timestamp
 
     def write_timestamp(self, timestamp):
-        print(timestamp)
+        print(self.resourcename, timestamp)
         with open(self.filepath, 'w') as f:
             f.write(timestamp)
 

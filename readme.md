@@ -218,6 +218,18 @@ python resources_larning_informations.py
 python resources_larning_details.py
 ```
 
+#### 誤った曲名の修正
+記録を保存するファイルのファイル名に「曲名をエンコードした文字列」を使用している。
+
+そのため曲名の修正があった場合は該当ファイルのファイル名を変更する必要がある。
+
+その定義をresources/musicnamechanges.resに記述する(中身はjson)
+```json
+[
+    ["♥LOVE2 シュガー→♥", "♥LOVE2 シュガ→♥"]
+]
+```
+
 resourcesフォルダに以下ファイルが作成される。
 - informations(バージョン).res
 - detailss(バージョン).res
@@ -235,4 +247,5 @@ python resources_upload.py -informations
 python resources_upload.py -details
 python resources_upload.py -musictable
 python resources_upload.py -musicselect
+python resources_upload.py -musicnamechanges
 ```

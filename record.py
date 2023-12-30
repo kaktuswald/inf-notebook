@@ -3,16 +3,13 @@ from os import remove,mkdir,rename
 from os.path import join,exists
 
 from version import version
+from resources import resources_dirname
 
 records_basepath = 'records'
 
-recent_filenmae = 'recent.json'
+musicnamechanges_filename = 'musicnamechanges.res'
 
-# 曲名の誤りの修正
-# 該当のファイルがあった場合はファイル名を変更する
-fileconverts = [
-    ('♥LOVE2 シュガー→♥','♥LOVE2 シュガ→♥')
-]
+recent_filenmae = 'recent.json'
 
 if not exists(records_basepath):
     mkdir(records_basepath)
@@ -30,7 +27,6 @@ class Notebook():
                 self.json = json.load(f)
         except Exception:
             self.json = {}
-
     def save(self):
         with open(self.filepath, 'w') as f:
             json.dump(self.json, f)
@@ -325,6 +321,17 @@ class NotebookMusic(Notebook):
         self.save()
 
 def rename_allfiles(musics):
+    """短縮された記録ファイルのファイル名を修正する
+
+    Note:
+        曲名をエンコードし文字列変換したものをファイル名としている
+        version0.7.0.1以前はファイル名を最大128文字と制限をしていたが
+        それだとファイル名から曲名へ逆変換が不可能になって不具合を起こしたので
+        該当曲のファイル名をすべて変更する
+
+    Args:
+        musics (list (string)): 曲名のリスト
+    """
     string_max_length = 128
 
     for music in musics:
@@ -340,13 +347,34 @@ def rename_allfiles(musics):
                 print(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
                 print(f'To(length: {len(full_filename)})\t\t{full_filename}')
 
-def rename_wrongfiles():
-    for target, renamed in fileconverts:
+def rename_changemusicname():
+    """曲名の誤っていた記録ファイルのファイル名を修正する
+
+    Note:
+        曲名が誤っていた場合にファイル名を変更する
+        INFINITASしかなかった曲がACに収録されて
+        公式サイトからダウンロードしたCSVファイルの曲名が誤っていたとき等に対応する
+        万一変更後のファイル名のファイルは既に存在する場合は削除してしまう
+    """
+    filepath = join(resources_dirname, musicnamechanges_filename)
+    if not exists(filepath):
+        return
+    
+    try:
+        with open(filepath, encoding='UTF-8')as f:
+            convertlist = json.load(f)
+    except Exception as ex:
+        print(ex)
+        return
+    
+    for target, renamed in convertlist:
         target_encoded = target.encode('UTF-8').hex()
         target_filepath = join(records_basepath, f'{target_encoded}.json')
         if exists(target_filepath):
             renamed_encoded = renamed.encode('UTF-8').hex()
             renamed_filepath = join(records_basepath, f'{renamed_encoded}.json')
+            if exists(renamed_filepath):
+                remove(renamed_filepath)
             rename(target_filepath, renamed_filepath)
             print(f'Rename {target} to {renamed}')
 

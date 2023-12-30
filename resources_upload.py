@@ -4,6 +4,7 @@ from os.path import join
 from define import define
 from resources import ResourceTimestamp,resources_dirname
 from storage import StorageAccessor
+from record import musicnamechanges_filename
 
 def upload(filename, filepath):
     storage.upload_resource(filename, filepath)
@@ -48,3 +49,9 @@ if __name__ == '__main__':
         
         if upload(filename_musicselect, filepath_musicselect): 
             print(f'Upload complete {filename_musicselect}')
+    
+    if '-all' in argv or '-musicnamechanges' in argv:
+        filepath_musicnamechanges = join(resources_dirname, musicnamechanges_filename)
+
+        if upload(musicnamechanges_filename, filepath_musicnamechanges):
+            print(f'Upload complete {musicnamechanges_filename}')
