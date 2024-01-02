@@ -19,6 +19,11 @@ def layout_main(setting):
     else:
         column_visibles = [True, True, True, False, True, True, True, True, True]
     
+    if not resource.musictable is None:
+        versions = ['ALL', *resource.musictable['versions']]
+    else:
+        versions = ['ALL']
+    
     tabs_main = [[
         sg.Tab('最近のリザルト', [
             [sg.Table(
@@ -40,7 +45,7 @@ def layout_main(setting):
         sg.Tab('曲検索', [
             [
                 sg.Text('バージョン', size=(12, 1), background_color=background_color_label),
-                sg.Combo(['ALL', *resource.musictable['versions']], default_value='ALL', key='category_versions', readonly=True, enable_events=True, size=(20, 1))
+                sg.Combo(versions, default_value='ALL', key='category_versions', readonly=True, enable_events=True, size=(20, 1))
             ],
             [
                 sg.Text('曲名絞り込み', size=(12, 1), background_color=background_color_label),
@@ -59,7 +64,7 @@ def layout_main(setting):
                 sg.Column([
                     [
                         sg.Listbox(
-                            resource.musictable['musics'],
+                            resource.musictable['musics'] if not resource.musictable is None else [],
                             key='music_candidates',
                             font=('Arial', 9),
                             size=(20,10),
