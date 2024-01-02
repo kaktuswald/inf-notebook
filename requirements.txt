@@ -1,7 +1,7 @@
-numpy==1.24.2
+numpy==1.26.2
 keyboard==0.13.5
-pillow==9.5.0
-PySimpleGUI==4.60.4
-google-cloud-storage==2.8.0
-matplotlib==3.7.1
+pillow==10.1.0
+PySimpleGUI==4.60.5
+google-cloud-storage==2.14.0
+matplotlib==3.8.2
 pyperclip==1.8.2
