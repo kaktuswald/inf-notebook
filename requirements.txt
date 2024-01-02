@@ -1,4 +1,4 @@
-numpy==1.26.2
+numpy==1.24.2
 keyboard==0.13.5
 pillow==10.1.0
 PySimpleGUI==4.60.5
