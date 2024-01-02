@@ -41,7 +41,7 @@ from screenshot import Screenshot,open_screenimage
 from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
-from record import NotebookRecent,NotebookMusic,rename_allfiles,rename_wrongfiles
+from record import NotebookRecent,NotebookMusic,rename_allfiles,rename_changemusicname,musicnamechanges_filename
 from graph import create_graphimage,save_graphimage
 from result import result_save,result_savefiltered,get_resultimage,get_filteredimage
 from filter import filter as filter_result

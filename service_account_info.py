@@ -1,12 +1,1 @@
-service_account_info = {
-    "type": "service_account",
-    "project_id": "infinitas-memorise-storage",
-    "private_key_id": "aedeb6404cdb6ac40e683a7f6778d1c3bba89cf4",
-    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCg0BP2osi6pzM5\njwGM9NLmq98Yg43KQ/VZYNEJU6W2j9VHePGwFNJwYkv6NYLJvgozlWVla/j+beQE\nFshlktjMQqZUKYmy23V57sTJGlPyndcu8d23QnU2+vTIcj6ckJQ5kduACwTyUJLY\niXkGsvSnGYFeMn2Krw9cCk2N123s80cv9kCAyRiCpwu24Psrm0k3YwqAYEpyUkUT\nOZuIJ5BixFxkoxhCTnqiKt/ecBW4dcX1BbXryHBN7CsK8Yta7+aaRvxMlvv+Y2sz\n1Q3hBGipXSdRzxalSYWmgCAr6haEHMTfIzAsRCzU/W2BYMrqoSLRPZ6yCVODFLNb\nA8oDwEFvAgMBAAECggEAShJuD529jdQ0ESAg27dtaZjjIxx9dBxHZ8rjnkMsQmIQ\nIGLCGJQOtntgebiqLJjfhBEdalEImNEvRP7lgXvZZoSQrpWPepYBj49+jw8Ued1g\nX5xCvwXajd+cXrPYyS8DR1062Mi6l46rhRgVahOGA24JG8Vv9DBch82rGVmQpaJS\nAPWR2AWDCa79I43TIfSZQVoc+aDzABJR+fRzLGFuWI9A2c1rdJudtUyaxGzUV4Ri\nenMF9hiP3r6hbsSuSty1u3TiHHQBt7V/tSDvt748Y7lBKZtxOsx1TT1NffPawJYG\nU3qXa4W19s/C6/JTkciACDkLapu/q+LoIMR63AArCQKBgQDWvxArdphflPj8fgzp\nzW9JcafU8cmLqKA78J26VXNdm3GSaDy8oLwIgNMDUMktjZGN79Tp5sCk/IvT5Bki\nPqrn6GTIwE8MT3KDLp2DRajhroJyXZufCcAhme7vChgF60O51Kl3E6nptifePqk6\nNP8VgDs1LiDzJeNDeyoBzbeemwKBgQC/tKLKk4Ui8O+qeCkuNjj/dYLpvmcDB7GG\nxWNQWDU4+lhmTCo0KayuhTk6wRBjlLaPXLAYBUfJw2rfJlGP5T+Jc2/JWBuvB9k1\nVwohOzKmd94zp0CqCfR/kh74gX6LDSR18QSOxOQHmZ3nj8+YNI9E82A56KmtjENo\nMaGX+FaLvQKBgDYXkn8gNGl/IOiY56/M64dYdaoR7W6cXyA6D8Dr3U9q5ES4tPPe\nmP6bVIu1QbeTvWI/UyZH1aa5Zo9NGXeiyXH4+8oFhuPW70VT7KEwXsXaK0mbgqOg\n1SChoancpQh4pmqcwsMX1Ojl1U0KA56B0u8bic5vfCVDGefZkk85/lKZAoGAfrPx\nwDf+D5j0nlOqzAs0YssVCk44oU0NbUi6mhiinJUBpiMC5dUBd5s/tvBxV4+rlVcq\nX8Xlq5mH4hLeZ1+aPctY/9dG/MkQK2vqmwoYMOQarUMGvxuzSDmYVKCptVerWHRC\nkeXZ3JgQQELRbwSWCHleiQeYVcbVqmDbL6kH8nUCgYEAp7tmU5L+UGxyx2CBYQcI\nFVMWaoytlbYiLiDUaPD4NyRytl7+99hHnCFiPw6CymHsFDD1DCnjYeypQwKOpv6N\nXgakFQMMdveNMavJgF/KHzpl7PTqfSbSqHSADZSgDm49SeD0q+t05D5BLblGejMt\nKpQF1uA1LRNPqK+YfTAM6Zs=\n-----END PRIVATE KEY-----\n",
-    "client_email": "accessor@infinitas-memorise-storage.iam.gserviceaccount.com",
-    "client_id": "105235973592786571860",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/accessor%40infinitas-memorise-storage.iam.gserviceaccount.com"
-  }
+service_account_info = None
