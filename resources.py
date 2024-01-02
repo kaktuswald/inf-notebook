@@ -66,7 +66,7 @@ class ResourceTimestamp():
         return timestamp
 
     def write_timestamp(self, timestamp):
-        logger.info(self.resourcename, timestamp)
+        logger.info(f'Update timestamp {self.resourcename} {timestamp}')
         with open(self.filepath, 'w') as f:
             f.write(timestamp)
 
@@ -105,7 +105,7 @@ def check_latest(storage, filename):
     
     filepath = os.path.join(resources_dirname, filename)
     if storage.download_resource(filename, filepath):
-        logger.info(f'download {filename}')
+        logger.info(f'Download {filename}')
         timestamp.write_timestamp(latest_timestamp)
         return True
 
