@@ -1,6 +1,12 @@
 import json
 from os import remove,mkdir,rename
 from os.path import join,exists
+from logging import getLogger
+
+logger_child_name = 'record'
+
+logger = getLogger().getChild(logger_child_name)
+logger.debug(f'loaded resources.py')
 
 from version import version
 from resources import resources_dirname
@@ -343,9 +349,9 @@ def rename_allfiles(musics):
                 full_filename = f'{string}.json'
                 full_filepath = join(records_basepath, full_filename)
                 rename(omitted_filepath, full_filepath)
-                print(f'Rename {music}')
-                print(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
-                print(f'To(length: {len(full_filename)})\t\t{full_filename}')
+                logger.info(f'Rename {music}')
+                logger.info(f'From(length: {len(omitted_filename)})\t{omitted_filename}')
+                logger.info(f'To(length: {len(full_filename)})\t\t{full_filename}')
 
 def rename_changemusicname():
     """曲名の誤っていた記録ファイルのファイル名を修正する
@@ -364,7 +370,7 @@ def rename_changemusicname():
         with open(filepath, encoding='UTF-8')as f:
             convertlist = json.load(f)
     except Exception as ex:
-        print(ex)
+        logger.debug(ex)
         return
     
     for target, renamed in convertlist:
@@ -376,5 +382,5 @@ def rename_changemusicname():
             if exists(renamed_filepath):
                 remove(renamed_filepath)
             rename(target_filepath, renamed_filepath)
-            print(f'Rename {target} to {renamed}')
+            logger.info(f'Rename {target} to {renamed}')
 

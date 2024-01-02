@@ -500,7 +500,7 @@ def check_resource():
     check_latest(storage, musicnamechanges_filename)
     rename_changemusicname()
 
-    print('complete check resources')
+    logger.info('complete check resources')
 
 def select_result_recent():
     if len(table_selected_rows) == 0:

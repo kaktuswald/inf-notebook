@@ -66,7 +66,7 @@ class ResourceTimestamp():
         return timestamp
 
     def write_timestamp(self, timestamp):
-        print(self.resourcename, timestamp)
+        logger.info(self.resourcename, timestamp)
         with open(self.filepath, 'w') as f:
             f.write(timestamp)
 

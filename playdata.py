@@ -2,6 +2,12 @@ import json
 from os.path import exists,join
 from datetime import datetime
 from csv import writer
+from logging import getLogger
+
+logger_child_name = 'resources'
+
+logger = getLogger().getChild(logger_child_name)
+logger.debug(f'loaded resources.py')
 
 from define import define
 from resources import resource
@@ -210,8 +216,8 @@ def output():
                 try:
                     w.writerow(line)
                 except Exception as ex:
-                    print('エンコードに失敗', line[0])
-                    print(ex)
+                    logger.debug('エンコードに失敗', line[0])
+                    logger.debug(ex)
     
     with open(summary_timestamp_filepath, 'w') as f:
         f.write(str(datetime.now()))
