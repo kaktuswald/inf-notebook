@@ -33,7 +33,7 @@ executables = (
     [
         Executable(
             'main.pyw',
-            copyright='Copyright (C) 2022-2023',
+            copyright='Copyright (C) 2022-2024',
             base=base,
             shortcut_name=u'ビートマニアリザルト手帳',
             shortcut_dir=u'ビートマニアリザルト手帳',

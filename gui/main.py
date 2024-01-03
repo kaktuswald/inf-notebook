@@ -64,7 +64,7 @@ def layout_main(setting):
                 sg.Column([
                     [
                         sg.Listbox(
-                            resource.musictable['musics'] if not resource.musictable is None else [],
+                            [*resource.musictable['musics'].keys()] if not resource.musictable is None else [],
                             key='music_candidates',
                             font=('Arial', 9),
                             size=(20,10),
