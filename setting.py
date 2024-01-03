@@ -11,8 +11,7 @@ default = {
     'display_music': False,
     'play_sound': False,
     'savefilemusicname_right': False,
-    'imagesave_path': getcwd(),
-    'data_collection': False
+    'imagesave_path': getcwd()
 }
 
 class Setting():
