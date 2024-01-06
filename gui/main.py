@@ -351,8 +351,12 @@ def display_record(record):
             window[f'history_{key}'].update('')
         return
     
-    window['history'].update([*reversed(record['timestamps'])])
-    window['played_count'].update(len(record['timestamps']))
+    if 'timestamps' in record.keys():
+        window['history'].update([*reversed(record['timestamps'])])
+        window['played_count'].update(len(record['timestamps']))
+    else:
+        window['history'].update([])
+        window['played_count'].update(0)
 
     if 'best' in record.keys():
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
@@ -392,7 +396,7 @@ def display_historyresult(record, timestamp):
     if record is None:
         return
     
-    if not timestamp in record['history']:
+    if not 'history' in record.keys() or not timestamp in record['history']:
         return
     
     formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日 {timestamp[9:11]}:{timestamp[11:13]}:{timestamp[13:15]}'

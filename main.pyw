@@ -294,9 +294,7 @@ def result_process(screen):
             notebook = NotebookMusic(music) if music is not None else None
             notebooks_music[music] = notebook
 
-        if not result.dead or result.has_new_record():
-            notebook.insert(result)
-            notebook.save()
+        notebook.insert(result)
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -334,7 +332,7 @@ def musicselect_process(np_value):
     else:
         notebook = NotebookMusic(musicname) if musicname is not None else None
         notebooks_music[musicname] = notebook
-    if notebook.update_best({
+    if notebook.update_best_musicselect({
         'playmode': playmode,
         'difficulty': difficulty,
         'cleartype': recog.MusicSelect.get_cleartype(np_value),

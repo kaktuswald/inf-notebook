@@ -175,7 +175,7 @@ class NotebookMusic(Notebook):
             'options': options
         }
 
-    def insert_best(self, target, result, options):
+    def update_best_result(self, target, result, options):
         if not 'best' in target.keys() or not 'latest' in target['best'].keys():
             target['best'] = {}
         
@@ -187,6 +187,7 @@ class NotebookMusic(Notebook):
             'score': result.details.score,
             'miss_count': result.details.miss_count,
         }
+        updated = False
         for key, value in targets.items():
             if value.new:
                 target['best'][key] = {
@@ -194,6 +195,7 @@ class NotebookMusic(Notebook):
                     'timestamp': result.timestamp,
                     'options': options
                 }
+                updated = True
             else:
                 if not key in target['best'].keys() and value.best is not None:
                     target['best'][key] = {
@@ -201,6 +203,9 @@ class NotebookMusic(Notebook):
                         'timestamp': None,
                         'options': None
                     }
+                    updated = True
+        
+        return updated
 
     def insert(self, result):
         if result.informations.play_mode is None:
@@ -234,11 +239,19 @@ class NotebookMusic(Notebook):
         else:
             options_value = None
 
-        self.insert_latest(target, result, options_value)
-        self.insert_history(target, result, options_value)
-        self.insert_best(target, result, options_value)
+        updated = False
+        if not result.dead or result.has_new_record():
+            self.insert_latest(target, result, options_value)
+            self.insert_history(target, result, options_value)
+            updated = True
+
+        if self.update_best_result(target, result, options_value):
+            updated = True
+        
+        if updated:
+            self.save()
     
-    def update_best(self, values):
+    def update_best_musicselect(self, values):
         """選曲画面から取り込んだ認識結果からベスト記録を更新する
 
         Args:
