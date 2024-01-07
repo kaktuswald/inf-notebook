@@ -54,6 +54,11 @@ def open_setting(setting):
                     sg.Input(setting.imagesave_path, key='imagesave_path', size=(50, 1)),
                     sg.Button('...', key='button_browse'),
                 ],
+                [sg.Text('エクスポート', background_color=background_color_label)],
+                [
+                    sg.Text('', size=(2, 1), background_color=background_dark),
+                    sg.Checkbox('終了時にCSVファイルをエクスポートする', key='check_autoexport', default=setting.autoexport, background_color=background_dark)
+                ],
                 [sg.Text('リザルト画像の収集', background_color=background_color_label)],
                 [
                     sg.Text('', size=(2, 1), background_color=background_dark),
@@ -100,6 +105,7 @@ def open_setting(setting):
             setting.play_sound = values['check_play_sound']
             setting.savefilemusicname_right = values['check_savefilemusicname_right']
             setting.imagesave_path = values['imagesave_path']
+            setting.autoexport = values['check_autoexport']
             setting.data_collection = values['check_data_collection']
             setting.save()
             gui.switch_table(setting.display_music)

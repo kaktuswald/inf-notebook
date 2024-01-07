@@ -45,7 +45,7 @@ from record import NotebookRecent,NotebookMusic,rename_allfiles,rename_changemus
 from graph import create_graphimage,save_graphimage
 from result import result_save,result_savefiltered,get_resultimage,get_filteredimage
 from filter import filter as filter_result
-from playdata import Recent
+from playdata import Recent,output
 from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs
 from image import generateimage_summary,generateimage_musicinformation
 
@@ -1015,6 +1015,9 @@ if __name__ == '__main__':
         except Exception as ex:
             log_debug(ex)
     
+    if setting.autoexport:
+        output()
+
     window.close()
 
     del screenshot

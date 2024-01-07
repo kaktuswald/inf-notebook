@@ -11,7 +11,8 @@ default = {
     'display_music': False,
     'play_sound': False,
     'savefilemusicname_right': False,
-    'imagesave_path': getcwd()
+    'imagesave_path': getcwd(),
+    'autoexport': False
 }
 
 class Setting():
@@ -126,6 +127,14 @@ class Setting():
     @imagesave_path.setter
     def imagesave_path(self, value):
         self.set_value('imagesave_path', value)
+    
+    @property
+    def autoexport(self):
+        return self.get_value('autoexport')
+
+    @autoexport.setter
+    def autoexport(self, value):
+        self.set_value('autoexport', value)
     
     @property
     def ignore_download(self):
