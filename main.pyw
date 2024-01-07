@@ -47,6 +47,7 @@ from result import result_save,result_savefiltered,get_resultimage,get_filteredi
 from filter import filter as filter_result
 from playdata import Recent
 from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs
+from image import generateimage_summary,generateimage_musicinformation
 
 recent_maxcount = 100
 
@@ -68,6 +69,8 @@ tweet_url = 'https://twitter.com/intent/tweet'
 
 tweet_template_music = '&&music&&[&&play_mode&&&&D&&]&&update&&&&option&&'
 tweet_template_hashtag = '#IIDX #infinitas573 #infnotebook'
+
+musicselect_targetrecord = None
 
 class ThreadMain(Thread):
     handle = 0
@@ -302,6 +305,8 @@ def result_process(screen):
     insert_results(result)
 
 def musicselect_process(np_value):
+    global musicselect_targetrecord
+
     playmode = recog.MusicSelect.get_playmode(np_value)
     if playmode is None:
         return
@@ -327,11 +332,17 @@ def musicselect_process(np_value):
     levels = recog.MusicSelect.get_levels(np_value)
     if not difficulty in levels.keys() or levels[difficulty] != music_information[playmode][difficulty]:
         return
+    
     if musicname in notebooks_music.keys():
         notebook = notebooks_music[musicname]
     else:
         notebook = NotebookMusic(musicname) if musicname is not None else None
         notebooks_music[musicname] = notebook
+    
+    targetrecord = notebook.get_recordlist(playmode, difficulty)
+    if targetrecord is not None and targetrecord == musicselect_targetrecord:
+        return
+
     if notebook.update_best_musicselect({
         'playmode': playmode,
         'difficulty': difficulty,
@@ -342,8 +353,15 @@ def musicselect_process(np_value):
         'levels': recog.MusicSelect.get_levels(np_value)
     }):
         notebook.save()
-        if selection is not None and selection.play_mode == playmode and selection.music == musicname and selection.difficulty == difficulty:
-            gui.display_record(selection.get_targetrecordlist())
+    
+    musicselect_targetrecord = notebook.get_recordlist(playmode, difficulty)
+
+    clear_tableselection()
+    gui.display_record(musicselect_targetrecord)
+    window['music_candidates'].update([musicname], set_to_index=[0])
+    gui.display_historyresult(musicselect_targetrecord, None)
+    image = generateimage_musicinformation(playmode, difficulty, musicname, musicselect_targetrecord)
+    gui.display_image(get_imagevalue(image))
 
 def save_result(result, image):
     if result.timestamp in timestamps_saved:
@@ -832,8 +850,12 @@ def create_graph(selection, targetrecord):
     
     selection.selection_graph()
 
+def display_summaryimage():
+    gui.display_image(get_imagevalue(generateimage_summary()))
+
 if __name__ == '__main__':
     keyboard.add_hotkey('alt+F10', active_screenshot)
+    keyboard.add_hotkey('alt+F9', display_summaryimage)
 
     window = gui.generate_window(setting, version)
 
@@ -898,6 +920,7 @@ if __name__ == '__main__':
         rename_allfiles(resource.musictable['musics'].keys())
 
     insert_recentnotebook_results()
+    display_summaryimage()
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
