@@ -55,6 +55,7 @@ thread_time_wait_nonactive = 1  # INFINITASがアクティブでないときの�
 thread_time_wait_loading = 30   # INFINITASがローディング中のときのスレッド周期
 thread_time_normal = 0.3        # 通常のスレッド周期
 thread_time_result = 0.12       # リザルトのときのスレッド周期
+thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
 
 upload_confirm_message = [
     '曲名の誤認識を通報しますか？',
@@ -76,6 +77,7 @@ class ThreadMain(Thread):
     handle = 0
     active = False
     waiting = False
+    musicselect = False
     confirmed_somescreen = False
     confirmed_processable = False
     processed = False
@@ -120,8 +122,8 @@ class ThreadMain(Thread):
             
         if width != define.width or height != define.height:
             if self.active:
-                self.queues['log'].put(f'infinitas deactivate')
                 self.sleep_time = thread_time_wait_nonactive
+                self.queues['log'].put(f'infinitas deactivate: {self.sleep_time}')
 
             self.active = False
             screenshot.xy = None
@@ -130,52 +132,73 @@ class ThreadMain(Thread):
         if not self.active:
             self.active = True
             self.waiting = False
-            self.queues['log'].put(f'infinitas activate')
+            self.musicselect = False
             self.sleep_time = thread_time_normal
+            self.queues['log'].put(f'infinitas activate: {self.sleep_time}')
             screenshot.xy = (rect.left, rect.top)
 
         screen = screenshot.get_screen()
 
         if screen != self.screen_latest:
+            self.confirmed_somescreen = False
+            self.confirmed_processable = False
+            self.processed = False
             self.screen_latest = screen
 
         if screen == 'loading':
             if not self.waiting:
-                self.confirmed_somescreen = False
-                self.confirmed_processable = False
-                self.processed = False
                 self.waiting = True
-                self.queues['log'].put('find loading: start waiting')
+                self.musicselect = False
                 self.sleep_time = thread_time_wait_loading
+                self.queues['log'].put(f'find loading: start waiting: {self.sleep_time}')
             return
             
         if self.waiting:
             self.waiting = False
-            self.queues['log'].put('lost loading: end waiting')
             self.sleep_time = thread_time_normal
+            self.queues['log'].put(f'lost loading: end waiting: {self.sleep_time}')
 
+        # ここから先はローディング中じゃないときのみ
+        
         shotted = False
         if display_screenshot_enable:
             screenshot.shot()
             shotted = True
             self.queues['display_image'].put(screenshot.get_image())
         
+        if screen != 'music_select' and self.musicselect:
+            # 画面が選曲から抜けたとき
+            self.musicselect = False
+            self.sleep_time = thread_time_normal
+            self.queues['log'].put(f'screen out music select: {self.sleep_time}')
+
         if screen == 'music_select':
+            if not self.musicselect:
+                # 画面が選曲に入ったとき
+                self.musicselect = True
+                self.sleep_time = thread_time_musicselect
+                self.queues['log'].put(f'screen in music select: {self.sleep_time}')
+
             if not shotted:
                 screenshot.shot()
-            version = recog.MusicSelect.get_version(screenshot.np_value)
+            if recog.MusicSelect.get_version(screenshot.np_value) is not None:
+                self.queues['musicselect_screen'].put(screenshot.np_value)
+            return
 
-        if not screen in ['result', 'music_select'] or (screen == 'music_select' and version is None):
+        if screen != 'result':
             self.confirmed_somescreen = False
             self.confirmed_processable = False
             self.processed = False
             return
         
+        # ここから先はリザルトのみ
+
         if not self.confirmed_somescreen:
             self.confirmed_somescreen = True
             if screen == 'result':
                 # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
                 self.sleep_time = thread_time_result
+                self.queues['log'].put(f'screen in result: {self.sleep_time}')
         
         if self.processed:
             return
@@ -200,10 +223,8 @@ class ThreadMain(Thread):
             self.queues['result_screen'].put(resultscreen)
 
             self.sleep_time = thread_time_normal
+            self.queues['log'].put(f'processing result screen: {self.sleep_time}')
             self.processed = True
-        
-        if screen == 'music_select':
-            self.queues['musicselect_screen'].put(screenshot.np_value)
 
 class Selection():
     def __init__(self, play_mode, difficulty, music, notebook):
