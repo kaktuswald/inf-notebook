@@ -12,7 +12,23 @@ default = {
     'play_sound': False,
     'savefilemusicname_right': False,
     'imagesave_path': getcwd(),
-    'autoexport': False
+    'autoexport': False,
+    'summaries' : {
+        'SP': {
+            '8': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+            '9': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+            '10': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+            '11': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+            '12': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']}
+        },
+        'DP': {
+            '8': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+            '9': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+            '10': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+            '11': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+            '12': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']}
+        }
+    }
 }
 
 class Setting():
@@ -135,6 +151,14 @@ class Setting():
     @autoexport.setter
     def autoexport(self, value):
         self.set_value('autoexport', value)
+       
+    @property
+    def summaries(self):
+        return self.get_value('summaries')
+
+    @summaries.setter
+    def summaries(self, value):
+        self.set_value('summaries', value)
     
     @property
     def ignore_download(self):

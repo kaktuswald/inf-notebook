@@ -361,7 +361,7 @@ def musicselect_process(np_value):
         notebooks_music[musicname] = notebook
     
     targetrecord = notebook.get_recordlist(playmode, difficulty)
-    if targetrecord is not None and targetrecord == musicselect_targetrecord:
+    if targetrecord is not None and targetrecord is musicselect_targetrecord:
         return
 
     if notebook.update_best_musicselect({
@@ -872,7 +872,7 @@ def create_graph(selection, targetrecord):
     selection.selection_graph()
 
 def display_summaryimage():
-    gui.display_image(get_imagevalue(generateimage_summary()))
+    gui.display_image(get_imagevalue(generateimage_summary(setting.summaries)))
 
 if __name__ == '__main__':
     keyboard.add_hotkey('alt+F10', active_screenshot)

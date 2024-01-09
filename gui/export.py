@@ -134,8 +134,6 @@ def open_export(recent):
         ],
         [sg.Text('難易度ごとの各クリアタイプ・各DJレベルの曲数や、レベルごとの各クリアタイプ・各DJレベルの曲数を統計したファイルを作成します。', background_color=background_color)],
         [sg.Text('たとえば、SP-難易度-DJレベル.csv はSPの難易度ごとに各DJレベルの曲数を統計したデータです。', background_color=background_color)],
-        [sg.Text('各行の「total」はリザルト手帳で記録済みの曲数です。', background_color=background_color)],
-        [sg.Text('INFINITASに収録されている曲数とは異なるのでご注意ください。', background_color=background_color)]
     ]
 
     tab_obs = [
@@ -144,22 +142,43 @@ def open_export(recent):
                 [sg.Text('OBSとは録画や配信をするためのソフトウェアです。', background_color=background_color_label)]
             ], pad=5, background_color=background_color_label)
         ],
-        [sg.Text('exportフォルダに含まれる最近のデータ(recent.html)と統計データ(summary.html)は、OBSに追加することができます。', background_color=background_color)],
-        [sg.Text('ソースにブラウザを追加して、ローカルファイルのチェックを入れて対象のhtmlファイルを指定してください。', background_color=background_color)],
+        [sg.Text('exportフォルダに含まれるいくつかのファイルは、OBSに追加することができます。', background_color=background_color)],
+        [sg.Text('統計データ(summary.png)と選曲情報(musicinformation.png)はソースに画像を追加して、対象の画像ファイルを指定してください。', background_color=background_color)],
+        [sg.Text('最近のデータ(recent.html)と統計データ(summary.html)はソースにブラウザを追加して、ローカルファイルのチェックを入れて対象のhtmlファイルを指定してください。', background_color=background_color)],
         [
-            sg.Column([
-                [sg.Text('recent.html', background_color=background_color_label)]
-            ], pad=5, background_color=background_color_label)
+            sg.Column([[
+                sg.Text('summary.png', background_color=background_color_label),
+                sg.Column([
+                    [sg.Text('起動時に表示する統計データの画像です。', background_color=background_color)]
+                ], pad=1, background_color=background_color)
+            ]], pad=5, background_color=background_color_label)
         ],
-        [sg.Text('過去12時間以内のプレイ曲数と曲名が表示できます。', background_color=background_color)],
         [
-            sg.Column([
-                [sg.Text('summary.html', background_color=background_color_label)]
-            ], pad=5, background_color=background_color_label)
+            sg.Column([[
+                sg.Text('musicinformation.png', background_color=background_color_label),
+                sg.Column([
+                    [sg.Text('選曲中に表示する曲情報の画像です。', background_color=background_color)]
+                ], pad=1, background_color=background_color)
+            ]], pad=5, background_color=background_color_label)
         ],
-        [sg.Text('CSV出力で作られた統計データファイルを表示できます。', background_color=background_color)],
-        [sg.Text('デフォルトではSP,DP両方のANOTHERのA,AA,AAAの曲数を表示します。', background_color=background_color)],
-        [sg.Text('表示内容を変更するときは「統計データ」タブでカスタムCSSを作成してください。', background_color=background_color)],
+        [
+            sg.Column([[
+                sg.Text('recent.html', background_color=background_color_label),
+                sg.Column([
+                    [sg.Text('過去12時間以内のプレイ曲数と曲名が表示できます。', background_color=background_color)]
+                ], pad=1, background_color=background_color)
+            ]], pad=5, background_color=background_color_label)
+        ],
+        [
+            sg.Column([[
+                sg.Text('summary.html', background_color=background_color_label),
+                sg.Column([
+                    [sg.Text('CSV出力で作られた統計データファイルを表示できます。', background_color=background_color)],
+                    [sg.Text('デフォルトではSP,DP両方のANOTHERのA,AA,AAAの曲数を表示します。', background_color=background_color)],
+                    [sg.Text('表示内容を変更するときは「統計データ」タブでカスタムCSSを作成してください。', background_color=background_color)],
+                ], pad=1, background_color=background_color)
+            ]], pad=5, background_color=background_color_label)
+        ],
         [
             sg.Column([
                 [sg.Text('カスタムCSS', background_color=background_color_label)]
