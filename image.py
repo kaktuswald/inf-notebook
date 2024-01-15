@@ -20,6 +20,7 @@ image = Image.new("RGBA", (1280, 720), background)
 draw = ImageDraw.Draw(image)
 
 font_title = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 80)
+font_musicname = ImageFont.truetype('Resources/Fonts/hanazomefont.ttf', 80)
 font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 48)
 
 output_directory = 'export'
@@ -122,15 +123,15 @@ def generateimage_summary(setting):
 def generateimage_musicinformation(playmode, difficulty, musicname, record):
     draw.rectangle((0, 0, 1280, 720), fill=background)
 
-    bbox = draw.multiline_textbbox((0, 0), musicname, font=font_title)
+    bbox = draw.multiline_textbbox((0, 0), musicname, font=font_musicname)
     if bbox[2] >= 1240:
         musicnameimage = Image.new("RGBA", (bbox[2], 100), background)
         musicnamedraw = ImageDraw.Draw(musicnameimage)
-        musicnamedraw.multiline_text((0, 0), musicname, font=font_title)
+        musicnamedraw.multiline_text((0, 0), musicname, font=font_musicname)
         resized = musicnameimage.resize((1240, 100))
         image.paste(resized, (20, 20))
     else:
-        draw.multiline_text((20, 20), musicname, fill=textcolor, font=font_title)
+        draw.multiline_text((20, 20), musicname, fill=textcolor, font=font_musicname)
     draw.multiline_text((50, 120), f'{playmode} {difficulty}', fill=colors_difficulty[difficulty], font=font)
 
     if 'timestamps' in record.keys():
