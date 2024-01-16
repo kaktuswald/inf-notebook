@@ -20,6 +20,8 @@ recognition_define_filepath = join(registries_dirname, recognition_define_filena
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
 report_basedir_musictable = join(report_dirname, 'musictable')
 
+key_valid_count_minimum = 18
+
 class ImageValues():
     def __init__(self, np_value, label):
         self.np_value = np_value
@@ -537,23 +539,20 @@ def larning_musicname_arcade(targets, report):
     table = resource_target['table'] = {}
 
     evaluate = {}
+    minimum_valid_count = (
+        None,
+        None,
+        (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
+    )
     for key, target in targets.items():
-        if False:
-            if key != '20231210-203050-697158.png':
         musicname = target.label['musicname']
-                continue
-            v = target.np_value[199:251, 667:668]
-            v2 = np.where((v[:,:,0]==v[:,:,1])&(v[:,:,0]==v[:,:,2]),v[:,:,0],0)
-            v3 = ','.join(map(str, v2.flatten().tolist()))
-            print(v3)
-            break
+
         cropped = target.np_value[resource_target['trim']]
         masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
         bins = [np.where((th[i][0]<=masked[i])&(masked[i]<=th[i][1]), 1, 0) for i in range(masked.shape[0])]
         valid_count = np.count_nonzero(bins)
-        if valid_count <= 0:
-            report.error(f'Key valid count is less than 0: {musicname} {key} {valid_count}')
-            continue
+        if valid_count < minimum_valid_count[2]:
+            minimum_valid_count = (musicname, key, valid_count)
         hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
@@ -576,6 +575,9 @@ def larning_musicname_arcade(targets, report):
             evaluate[musicname] = []
         evaluate[musicname].append(''.join(recogkeys))
     
+    if minimum_valid_count[2] < key_valid_count_minimum:
+        report.error(f'Arcade key valid count is less than {key_valid_count_minimum}: {minimum_valid_count[0]} {minimum_valid_count[1]} {minimum_valid_count[2]}')
+
     for musicname in evaluate.keys():
         count = len(set(evaluate[musicname]))
         if(count != 1):
@@ -587,6 +589,11 @@ def larning_musicname_infinitas(targets, report):
     table = resource_target['table'] = {}
 
     evaluate = {}
+    minimum_valid_count = (
+        None,
+        None,
+        (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
+    )
     for key, target in targets.items():
         musicname = target.label['musicname']
 
@@ -598,9 +605,8 @@ def larning_musicname_infinitas(targets, report):
             filtereds.append(masked)
         bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
         valid_count = np.count_nonzero(bins)
-        if valid_count <= 0:
-            report.error(f'Key valid count is less than 0: {musicname} {key} {valid_count}')
-            continue
+        if valid_count < minimum_valid_count[2]:
+            minimum_valid_count = (musicname, key, valid_count)
         hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
@@ -619,6 +625,9 @@ def larning_musicname_infinitas(targets, report):
                 report.error(f'{musicname}: infinitas duplicate {target[recogkeys[-1]]}({key})')
                 report.saveimage_errorvalue(cropped, f'duplicate-infinitas-{key}')
     
+    if minimum_valid_count[2] < key_valid_count_minimum:
+        report.error(f'Infinitas key valid count is less than {key_valid_count_minimum}: {minimum_valid_count[0]} {minimum_valid_count[1]} {minimum_valid_count[2]}')
+
     for musicname in evaluate.keys():
         count = len(set(evaluate[musicname]))
         if(count != 1):
@@ -630,6 +639,11 @@ def larning_musicname_leggendaria(targets, report):
     table = resource_target['table'] = {}
 
     evaluate = {}
+    minimum_valid_count = (
+        None,
+        None,
+        (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
+    )
     for key, target in targets.items():
         musicname = target.label['musicname']
 
@@ -641,9 +655,8 @@ def larning_musicname_leggendaria(targets, report):
             filtereds.append(masked)
         bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
         valid_count = np.count_nonzero(bins)
-        if valid_count <= 0:
-            report.error(f'Key valid count is less than 0: {musicname} {key} {valid_count}')
-            continue
+        if valid_count < minimum_valid_count[2]:
+            minimum_valid_count = (musicname, key, valid_count)
         hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
@@ -666,6 +679,9 @@ def larning_musicname_leggendaria(targets, report):
             evaluate[musicname] = []
         evaluate[musicname].append(''.join(recogkeys))
     
+    if minimum_valid_count[2] < key_valid_count_minimum:
+        report.error(f'Leggendaria key valid count is less than {key_valid_count_minimum}: {minimum_valid_count[0]} {minimum_valid_count[1]} {minimum_valid_count[2]}')
+
     for musicname in evaluate.keys():
         count = len(set(evaluate[musicname]))
         if(count != 1):
@@ -909,6 +925,7 @@ def evaluate():
                 pass
             else:
                 report.error(f'Not registered version {musicname}')
+            
             for playmode in define.value_list['play_modes']:
                 if playmode in evaluate_musictable[musicname].keys():
                     for difficulty in define.value_list['difficulties']:
@@ -928,8 +945,8 @@ def evaluate():
             report.error(f'Not registered {musicname}({escaped})')
     
     for musicname in evaluate_musictable.keys():
-        if not musicname in table.keys():
-            report.error(f'Not exist {musicname}({escaped})')
+        if musicname != "" and not musicname in table.keys():
+            report.error(f'Not exist {musicname}')
     
     report.report()
 
