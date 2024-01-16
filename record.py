@@ -104,8 +104,8 @@ class NotebookSummary(Notebook):
         super().__init__()
     
     def allimport(self):
-        Thread(target=self.import_async).start()
         self.counter = [None, None]
+        Thread(target=self.import_async).start()
         return self.counter
     
     def import_async(self):

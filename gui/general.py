@@ -61,7 +61,7 @@ def progress(title, message, counter):
     while True:
         event, values = window.read(timeout=100)
         window['-PROG-'].update(counter[0])
-        if len(set(counter)) == 1:
+        if counter[1] is not None and len(set(counter)) == 1:
             break
 
     window.close()
