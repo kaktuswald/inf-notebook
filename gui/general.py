@@ -36,3 +36,32 @@ def question(title, message):
     )
 
     return result == 'Yes'
+
+def progress(title, message, counter):
+    if type(message) is list:
+        message = '\n'.join(message)
+
+    layout = [
+        [sg.Text(message, background_color=background_color)],
+        [sg.ProgressBar(counter[1], key='-PROG-')],
+    ]
+    window = sg.Window(
+        title,
+        layout,
+        icon=icon_path,
+        grab_anywhere=True,
+        return_keyboard_events=True,
+        resizable=False,
+        finalize=True,
+        enable_close_attempted_event=True,
+        background_color=background_color,
+        keep_on_top=True,
+    )
+
+    while True:
+        event, values = window.read(timeout=100)
+        window['-PROG-'].update(counter[0])
+        if len(set(counter)) == 1:
+            break
+
+    window.close()

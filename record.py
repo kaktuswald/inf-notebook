@@ -2,6 +2,7 @@ import json
 from os import remove,mkdir,rename
 from os.path import join,exists
 from logging import getLogger
+from threading import Thread
 
 logger_child_name = 'record'
 
@@ -9,13 +10,15 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug(f'loaded resources.py')
 
 from version import version
-from resources import resources_dirname
+from resources import resource,resources_dirname
+from define import define
 
 records_basepath = 'records'
 
 musicnamechanges_filename = 'musicnamechanges.res'
 
-recent_filenmae = 'recent.json'
+recent_filename = 'recent.json'
+summary_filename = 'summary.json'
 
 if not exists(records_basepath):
     mkdir(records_basepath)
@@ -33,13 +36,14 @@ class Notebook():
                 self.json = json.load(f)
         except Exception:
             self.json = {}
+    
     def save(self):
         with open(self.filepath, 'w') as f:
             json.dump(self.json, f)
 
 class NotebookRecent(Notebook):
     def __init__(self, maxcount):
-        self.filename = recent_filenmae
+        self.filename = recent_filename
         self.maxcount = maxcount
         super().__init__()
 
@@ -93,6 +97,72 @@ class NotebookRecent(Notebook):
         if not 'results' in self.json.keys() or not timestamp in self.json['results']:
             return None
         return self.json['results'][timestamp]
+
+class NotebookSummary(Notebook):
+    def __init__(self):
+        self.filename = summary_filename
+        super().__init__()
+    
+    def allimport(self):
+        Thread(target=self.import_async).start()
+        self.counter = [None, None]
+        return self.counter
+    
+    def import_async(self):
+        self.counter[0] = 0
+        self.counter[1] = len(resource.musictable['musics'])
+        for musicname, music_item in resource.musictable['musics'].items():
+            self.json[musicname] = {'SP': {}, 'DP': {}}
+            record = NotebookMusic(musicname)
+            for playmode in define.value_list['play_modes']:
+                for difficulty in define.value_list['difficulties']:
+                    if not difficulty in music_item[playmode].keys() or music_item[playmode][difficulty] is None:
+                        continue
+
+                    r = record.get_recordlist(playmode, difficulty)
+                    if r is None:
+                        continue
+
+                    self.json[musicname][playmode][difficulty] = {}
+                    target = self.json[musicname][playmode][difficulty]
+                    if 'latest' in r.keys() and 'timestamp' in r['latest'].keys():
+                        target['latest'] = r['latest']['timestamp']
+                    else:
+                        target['latest'] = None
+
+                    if 'timestamps' in r.keys():
+                        target['playcount'] = len(r['timestamps'])
+                    else:
+                        target['playcount'] = None
+
+                    if 'best' in r.keys():
+                        if 'clear_type' in r['best'].keys() and r['best']['clear_type'] is not None:
+                            target['cleartype'] = r['best']['clear_type']['value']
+                        else:
+                            target['cleartype'] = None
+                        
+                        if 'dj_level' in r['best'].keys() and r['best']['dj_level'] is not None:
+                            target['djlevel'] = r['best']['dj_level']['value']
+                        else:
+                            target['djlevel'] = None
+
+                        if 'score' in r['best'].keys() and r['best']['score'] is not None:
+                            target['score'] = r['best']['score']['value']
+                        else:
+                            target['score'] = None
+
+                        if 'miss_count' in r['best'].keys() and r['best']['miss_count'] is not None:
+                            target['misscount'] = r['best']['miss_count']['value']
+                        else:
+                            target['misscount'] = None
+                    else:
+                        target['best'] = {
+                            'cleartype': None,
+                            'djlevel': None,
+                            'score': None,
+                            'misscount': None
+                        }
+            self.counter[0] += 1
 
 class NotebookMusic(Notebook):
     def __init__(self, music):

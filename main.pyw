@@ -34,14 +34,14 @@ from version import version
 import gui.main as gui
 from gui.setting import open_setting
 from gui.export import open_export
-from gui.general import get_imagevalue
+from gui.general import get_imagevalue,progress
 from define import define
 from resources import resource,play_sound_result,check_latest
 from screenshot import Screenshot,open_screenimage
 from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
-from record import NotebookRecent,NotebookMusic,rename_allfiles,rename_changemusicname,musicnamechanges_filename
+from record import NotebookRecent,NotebookSummary,NotebookMusic,rename_allfiles,rename_changemusicname,musicnamechanges_filename
 from graph import create_graphimage,save_graphimage
 from result import result_save,result_savefiltered,get_resultimage,get_filteredimage
 from filter import filter as filter_result
@@ -64,6 +64,11 @@ upload_confirm_message = [
 
 windowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
+notebooksummary_confirm_message = [
+    '各曲の記録ファイルから１つのまとめ記録ファイルを作成しています。',
+    '時間がかかる場合がありますが次回からは実行されません。'
+]
+
 
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
@@ -885,6 +890,7 @@ if __name__ == '__main__':
     screenshot = Screenshot()
 
     notebook_recent = NotebookRecent(recent_maxcount)
+    notebook_summary = NotebookSummary()
     notebooks_music = {}
 
     results_today = {}
@@ -942,6 +948,11 @@ if __name__ == '__main__':
 
     insert_recentnotebook_results()
     display_summaryimage()
+
+    if len(notebook_summary.json) == 0:
+        counter = notebook_summary.allimport()
+        progress("お待ちください", notebooksummary_confirm_message, counter)
+        notebook_summary.save()
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
