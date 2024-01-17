@@ -324,6 +324,7 @@ def result_process(screen):
             notebooks_music[music] = notebook
 
         notebook.insert(result)
+        notebook_summary.import_targetmusic(music, notebook)
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -950,7 +951,7 @@ if __name__ == '__main__':
     display_summaryimage()
 
     if len(notebook_summary.json) == 0:
-        counter = notebook_summary.allimport()
+        counter = notebook_summary.start_import()
         progress("お待ちください", notebooksummary_confirm_message, counter)
         notebook_summary.save()
 

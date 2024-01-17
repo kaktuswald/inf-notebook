@@ -103,66 +103,78 @@ class NotebookSummary(Notebook):
         self.filename = summary_filename
         super().__init__()
     
-    def allimport(self):
+    def start_import(self):
+        """全曲の記録の取り込みを開始する
+        """
         self.counter = [None, None]
         Thread(target=self.import_async).start()
         return self.counter
     
     def import_async(self):
+        """非同期で全曲の記録を取り込む
+        """
         self.counter[0] = 0
         self.counter[1] = len(resource.musictable['musics'])
-        for musicname, music_item in resource.musictable['musics'].items():
-            self.json[musicname] = {'SP': {}, 'DP': {}}
-            record = NotebookMusic(musicname)
-            for playmode in define.value_list['play_modes']:
-                for difficulty in define.value_list['difficulties']:
-                    if not difficulty in music_item[playmode].keys() or music_item[playmode][difficulty] is None:
-                        continue
-
-                    r = record.get_recordlist(playmode, difficulty)
-                    if r is None:
-                        continue
-
-                    self.json[musicname][playmode][difficulty] = {}
-                    target = self.json[musicname][playmode][difficulty]
-                    if 'latest' in r.keys() and 'timestamp' in r['latest'].keys():
-                        target['latest'] = r['latest']['timestamp']
-                    else:
-                        target['latest'] = None
-
-                    if 'timestamps' in r.keys():
-                        target['playcount'] = len(r['timestamps'])
-                    else:
-                        target['playcount'] = None
-
-                    if 'best' in r.keys():
-                        if 'clear_type' in r['best'].keys() and r['best']['clear_type'] is not None:
-                            target['cleartype'] = r['best']['clear_type']['value']
-                        else:
-                            target['cleartype'] = None
-                        
-                        if 'dj_level' in r['best'].keys() and r['best']['dj_level'] is not None:
-                            target['djlevel'] = r['best']['dj_level']['value']
-                        else:
-                            target['djlevel'] = None
-
-                        if 'score' in r['best'].keys() and r['best']['score'] is not None:
-                            target['score'] = r['best']['score']['value']
-                        else:
-                            target['score'] = None
-
-                        if 'miss_count' in r['best'].keys() and r['best']['miss_count'] is not None:
-                            target['misscount'] = r['best']['miss_count']['value']
-                        else:
-                            target['misscount'] = None
-                    else:
-                        target['best'] = {
-                            'cleartype': None,
-                            'djlevel': None,
-                            'score': None,
-                            'misscount': None
-                        }
+        for musicname in resource.musictable['musics'].keys():
+            notebook = NotebookMusic(musicname)
+            self.import_targetmusic(musicname, notebook)
             self.counter[0] += 1
+    
+    def import_targetmusic(self, musicname, notebook):
+        """対象の曲の記録を取り込む
+        
+        Args:
+            musicname (str): 曲名
+            notebook (NotebookMusic): 対象曲の記録
+        """
+        self.json[musicname] = {'SP': {}, 'DP': {}}
+        music_item = resource.musictable['musics'][musicname]
+        for playmode in define.value_list['play_modes']:
+            for difficulty in define.value_list['difficulties']:
+                if not difficulty in music_item[playmode].keys() or music_item[playmode][difficulty] is None:
+                    continue
+
+                r = notebook.get_recordlist(playmode, difficulty)
+                if r is None:
+                    continue
+
+                self.json[musicname][playmode][difficulty] = {}
+                target = self.json[musicname][playmode][difficulty]
+                if 'latest' in r.keys() and 'timestamp' in r['latest'].keys():
+                    target['latest'] = r['latest']['timestamp']
+                else:
+                    target['latest'] = None
+
+                if 'timestamps' in r.keys():
+                    target['playcount'] = len(r['timestamps'])
+                else:
+                    target['playcount'] = None
+
+                if 'best' in r.keys():
+                    if 'clear_type' in r['best'].keys() and r['best']['clear_type'] is not None:
+                        target['cleartype'] = r['best']['clear_type']['value']
+                    else:
+                        target['cleartype'] = None
+                    
+                    if 'dj_level' in r['best'].keys() and r['best']['dj_level'] is not None:
+                        target['djlevel'] = r['best']['dj_level']['value']
+                    else:
+                        target['djlevel'] = None
+
+                    if 'score' in r['best'].keys() and r['best']['score'] is not None:
+                        target['score'] = r['best']['score']['value']
+                    else:
+                        target['score'] = None
+
+                    if 'miss_count' in r['best'].keys() and r['best']['miss_count'] is not None:
+                        target['misscount'] = r['best']['miss_count']['value']
+                    else:
+                        target['misscount'] = None
+                else:
+                    target['cleartype'] = None
+                    target['djlevel'] = None
+                    target['score'] = None
+                    target['misscount'] = None
 
 class NotebookMusic(Notebook):
     def __init__(self, music):
@@ -277,7 +289,62 @@ class NotebookMusic(Notebook):
         
         return updated
 
+    def update_achievement(self, target, result):
+        """達成記録を更新する
+
+        Args:
+            target (dict): 記録の対象部分
+            result (Result): 対象のリザルト
+        
+        Returns:
+            bool: 更新があった
+        """
+        if not 'achievement' in target.keys():
+            target['achievement'] = {
+                'fixed': {'clear_type': None, 'dj_level': None},
+                'S-RANDOM': {'clear_type': None, 'dj_level': None},
+                'DBM': {'clear_type': None, 'dj_level': None}
+            }
+        
+        details = result.details
+        options = details.options
+
+        achievement_key = None
+        if not options.special:
+            if options.arrange in [None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR']:
+                achievement_key = 'fixed'
+            if options.arrange in ['S-RANDOM', 'S-RAN/S-RAN']:
+                achievement_key = 'S-RANDOM'
+        else:
+            if options.battle and options.arrange == 'MIRROR' and options.assist == 'A-SCR':
+                achievement_key = 'DBM'
+        if achievement_key is None:
+            return False
+        
+        updated = False
+        results = {'clear_type': details.clear_type, 'dj_level': details.dj_level}
+        for k, v in results.items():
+            if achievement_key != 'DBM':
+                value = v.current if v.new else v.best
+            else:
+                if target['achievement'][achievement_key][k] is None:
+                    value = v.current
+                else:
+                    index_current = define.value_list[k].index(v.current)
+                    index_recorded = define.value_list[k].index(target['achievement'][achievement_key][k])
+                    value = v.current if index_current > index_recorded else None
+            if value is not None and target['achievement'][achievement_key][k] != value:
+                target['achievement'][achievement_key][k] = value
+                updated = True
+        
+        return updated
+
     def insert(self, result):
+        """対象のリザルトを記録に追加する
+
+        Args:
+            result (Result): 追加対象のリザルト
+        """
         if result.informations.play_mode is None:
             return
         if result.informations.difficulty is None:
@@ -318,6 +385,10 @@ class NotebookMusic(Notebook):
         if self.update_best_result(target, result, options_value):
             updated = True
         
+        if result.details.options is not None:
+            if self.update_achievement(target, result):
+                updated = True
+
         if updated:
             self.save()
     

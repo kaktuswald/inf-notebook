@@ -22,6 +22,7 @@ draw = ImageDraw.Draw(image)
 font_title = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 80)
 font_musicname = ImageFont.truetype('Resources/Fonts/hanazomefont.ttf', 80)
 font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 48)
+font_small = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 36)
 
 output_directory = 'export'
 output_filename_summary = 'summary.png'
@@ -129,40 +130,58 @@ def generateimage_musicinformation(playmode, difficulty, musicname, record):
         musicnamedraw = ImageDraw.Draw(musicnameimage)
         musicnamedraw.multiline_text((0, 0), musicname, font=font_musicname)
         resized = musicnameimage.resize((1240, 100))
-        image.paste(resized, (20, 20))
+        image.paste(resized, (20, 10))
     else:
-        draw.multiline_text((20, 20), musicname, fill=textcolor, font=font_musicname)
-    draw.multiline_text((50, 120), f'{playmode} {difficulty}', fill=colors_difficulty[difficulty], font=font)
+        draw.multiline_text((20, 10), musicname, fill=textcolor, font=font_musicname)
+    draw.multiline_text((50, 100), f'{playmode} {difficulty}', fill=colors_difficulty[difficulty], font=font)
 
     if 'timestamps' in record.keys():
         count = str(len(record['timestamps']))
-        draw.multiline_text((20, 200), 'Played count.', fill=textcolor, font=font)
+        draw.multiline_text((20, 170), 'Played count.', fill=textcolor, font=font)
         bbox = draw.multiline_textbbox((0, 0), count, font=font_title)
-        draw.multiline_text((680-bbox[2], 170), count, fill=textcolor, font=font_title)
+        draw.multiline_text((680-bbox[2], 140), count, fill=textcolor, font=font_title)
 
     if 'latest' in record.keys():
-        draw.multiline_text((20, 300), 'Last time played.', fill=textcolor, font=font)
-        draw.multiline_text((500, 270), record['latest']['timestamp'], fill=textcolor, font=font_title)
+        draw.multiline_text((20, 260), 'Last time played.', fill=textcolor, font=font)
+        draw.multiline_text((500, 230), record['latest']['timestamp'], fill=textcolor, font=font_title)
 
     if 'best' in record.keys():
-        draw.multiline_text((20, 400), 'Options when update a new record.', fill=textcolor, font=font)
+        draw.multiline_text((20, 330), 'Options when update a new record.', fill=textcolor, font=font)
         for keyindex in range(len(musicinformation_keys)):
             key = musicinformation_keys[keyindex]
-            draw.multiline_text((50, keyindex*100+460), str.upper(key.replace('_', ' ')), fill=textcolor, font=font_title)
+            draw.multiline_text((50, keyindex*90+390), str.upper(key.replace('_', ' ')), fill=textcolor, font=font_title)
 
             if not key in record['best'].keys() or record['best'][key] is None:
                 break
 
             value = str(record['best'][key]['value'])
             bbox = draw.multiline_textbbox((0, 0), value, font=font_title)
-            draw.multiline_text((750-bbox[2], keyindex*100+460), value, fill=textcolor, font=font_title)
+            draw.multiline_text((750-bbox[2], keyindex*90+390), value, fill=textcolor, font=font_title)
 
             has_options = 'options' in record['best'][key].keys() and record['best'][key]['options'] is not None
             if has_options and 'arrange' in record['best'][key]['options'].keys():
                 arrange = record['best'][key]['options']['arrange']
-                draw.multiline_text((800, keyindex*100+460), arrange if arrange is not None else '-----', fill=textcolor, font=font_title)
+                draw.multiline_text((800, keyindex*90+390), arrange if arrange is not None else '-----', fill=textcolor, font=font_title)
             else:
-                draw.multiline_text((800, keyindex*100+460), '?????', fill=textcolor, font=font_title)
+                draw.multiline_text((800, keyindex*90+390), '?????', fill=textcolor, font=font_title)
 
+    keys1 = {'fixed': 'FIXED', 'S-RANDOM': 'S-RANDOM', 'DBM': 'DBM'}
+    if 'achievement' in record.keys():
+        draw.multiline_text((20, 570), 'Achievement status for each options.', fill=textcolor, font=font)
+        index1 = 0
+        for key1 in keys1.keys():
+            index2 = 0
+            if playmode == 'SP' and key1 == 'DBM':
+                continue
+            bbox = draw.multiline_textbbox((0, 0), keys1[key1], font=font_small)
+            draw.multiline_text(((index1+0.5)*350-bbox[2]/2+50, 630), keys1[key1], fill=textcolor, font=font_small)
+            for key2 in ['clear_type', 'dj_level']:
+                value = record['achievement'][key1][key2]
+                if value is None:
+                    continue
+                draw.multiline_text((index1*350+index2*200+100, 670), value, fill=textcolor, font=font_small)
+                index2 += 1
+            index1 += 1
+        
     image.save(join(output_directory, output_filename_musicinformation))
     return image
