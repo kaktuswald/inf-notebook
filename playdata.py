@@ -11,7 +11,7 @@ logger.debug(f'loaded resources.py')
 
 from define import define
 from resources import resource
-from record import NotebookMusic
+from record import NotebookMusic,NotebookSummary
 from version import version
 
 export_dirname = 'export'
@@ -114,6 +114,9 @@ class Recent():
             json.dump(self.json, f)
 
 def output():
+    notebook = NotebookSummary()
+    musictable = resource.musictable
+
     summary_filenames = {
         'difficulties': {
             'clear_types': '難易度-クリアタイプ',
@@ -144,9 +147,9 @@ def output():
                     for value_key in [*define.value_list[summary_key2], 'TOTAL']:
                         summary[play_mode][summary_key1][key][summary_key2][value_key] = 0
 
-    for music, music_item in resource.musictable['musics'].items():
+    for musicname, music_item in musictable['musics'].items():
         version = music_item['version']
-        record = NotebookMusic(music)
+        notebook_target = notebook.json[musicname]
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
                 if not difficulty in music_item[play_mode].keys() or music_item[play_mode][difficulty] is None:
@@ -159,39 +162,27 @@ def output():
                 summary[play_mode]['levels'][level]['clear_types']['TOTAL'] += 1
                 summary[play_mode]['levels'][level]['dj_levels']['TOTAL'] += 1
 
-                lines = [version, music, difficulty, level]
+                lines = [version, musicname, difficulty, level]
 
-                r = record.get_recordlist(play_mode, difficulty)
-                if r is not None:
-                    lines.append(r['latest']['timestamp'] if 'latest' in r.keys() else '')
-                    lines.append(len(r['timestamps']) if 'timestamps' in r.keys() else '')
-
-                    if 'best' in r.keys():
-                        best = r['best']
-
-                        for key in ['clear_type', 'dj_level']:
-                            if key in best.keys() and best[key] is not None and best[key]['value'] is not None:
-                                if key == 'clear_type':
-                                    summary[play_mode]['difficulties'][difficulty]['clear_types'][best[key]['value']] += 1
-                                if key == 'dj_level':
-                                    summary[play_mode]['difficulties'][difficulty]['dj_levels'][best[key]['value']] += 1
-
-                                level = music_item[play_mode][difficulty]
-                                if key == 'clear_type':
-                                    summary[play_mode]['levels'][level]['clear_types'][best[key]['value']] += 1
-                                if key == 'dj_level':
-                                    summary[play_mode]['levels'][level]['dj_levels'][best[key]['value']] += 1
-                            
-                        for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
-                            if key in best.keys() and best[key] is not None and 'value' in best[key].keys():
-                                lines.append(best[key]['value'] if best[key]['value'] is not None else '')
-                            else:
-                                lines.append('')
-                    else:
-                        lines.extend(['', '', '', ''])
-                else:
+                if not play_mode in notebook_target.keys() or not difficulty in notebook_target[play_mode].keys():
                     lines.extend(['', '', '', '', '', ''])
+                else:
+                    record = notebook_target[play_mode][difficulty]
+                    lines.append(record['latest'] if record['latest'] is not None else '')
+                    lines.append(record['playcount'] if record['playcount'] is not None else '')
+                    lines.append(record['cleartype'] if record['cleartype'] is not None else '')
+                    lines.append(record['djlevel'] if record['djlevel'] is not None else '')
+                    lines.append(record['score'] if record['score'] is not None else '')
+                    lines.append(record['misscount'] if record['misscount'] is not None else '')
 
+                    level = music_item[play_mode][difficulty]
+                    if record['cleartype'] is not None:
+                        summary[play_mode]['difficulties'][difficulty]['clear_types'][record['cleartype']] += 1
+                        summary[play_mode]['levels'][level]['clear_types'][record['cleartype']] += 1
+                    if record['djlevel'] is not None:
+                        summary[play_mode]['difficulties'][difficulty]['dj_levels'][record['djlevel']] += 1
+                        summary[play_mode]['levels'][level]['dj_levels'][record['djlevel']] += 1
+                
                 csv_output[play_mode].append(lines)
 
     for play_mode in define.value_list['play_modes']:
