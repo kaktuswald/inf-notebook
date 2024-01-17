@@ -149,7 +149,7 @@ def output():
 
     for musicname, music_item in musictable['musics'].items():
         version = music_item['version']
-        notebook_target = notebook.json[musicname]
+        notebook_target = notebook.json[musicname] if musicname in notebook.json.keys() else None
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
                 if not difficulty in music_item[play_mode].keys() or music_item[play_mode][difficulty] is None:
@@ -164,7 +164,7 @@ def output():
 
                 lines = [version, musicname, difficulty, level]
 
-                if not play_mode in notebook_target.keys() or not difficulty in notebook_target[play_mode].keys():
+                if notebook_target is None or not play_mode in notebook_target.keys() or not difficulty in notebook_target[play_mode].keys():
                     lines.extend(['', '', '', '', '', ''])
                 else:
                     record = notebook_target[play_mode][difficulty]
