@@ -3,6 +3,7 @@ from os import remove,mkdir,rename
 from os.path import join,exists
 from logging import getLogger
 from threading import Thread
+from copy import deepcopy
 
 logger_child_name = 'record'
 
@@ -177,6 +178,12 @@ class NotebookSummary(Notebook):
                     target['misscount'] = None
 
 class NotebookMusic(Notebook):
+    achievement_default = {
+        'fixed': {'clear_type': None, 'dj_level': None},
+        'S-RANDOM': {'clear_type': None, 'dj_level': None},
+        'DBM': {'clear_type': None, 'dj_level': None}
+    }
+
     def __init__(self, music):
         """曲名をエンコード&16進数変換してファイル名にする
 
@@ -202,7 +209,12 @@ class NotebookMusic(Notebook):
         if not difficulty in self.json[play_mode].keys():
             return None
         
-        return self.json[play_mode][difficulty]
+        target = self.json[play_mode][difficulty]
+        if 'timestamps' in target.keys() and len(target['timestamps']) > 0 and not 'achievement' in target.keys():
+            self.generate_achievement_from_histories(target)
+            self.save()
+        
+        return target
 
     def delete(self):
         if exists(self.filepath):
@@ -289,6 +301,48 @@ class NotebookMusic(Notebook):
         
         return updated
 
+    def generate_achievement_from_histories(self, target):
+        """達成記録を過去の記録データから作成する
+
+        Args:
+            target (dict): 記録の対象部分
+        """
+        target['achievement'] = deepcopy(self.achievement_default)
+        achievement = target['achievement']
+
+        targetkeys = {
+            'clear_type': define.value_list['clear_types'],
+            'dj_level': define.value_list['dj_levels']
+        }
+        for timestamp in reversed(target['timestamps']):
+            record = target['history'][timestamp]
+
+            if not 'options' in record.keys() or record['options'] is None:
+                continue
+
+            achievement_key = None
+            if not record['options']['special']:
+                if record['options']['arrange'] in [None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR']:
+                    achievement_key = 'fixed'
+                if record['options']['arrange'] in ['S-RANDOM', 'S-RAN/S-RAN']:
+                    achievement_key = 'S-RANDOM'
+            else:
+                if record['options']['battle'] and record['options']['arrange'] == 'OFF/MIR' and record['options']['assist'] == 'A-SCR':
+                    achievement_key = 'DBM'
+            if achievement_key is None:
+                continue
+
+            for key, valuelist in targetkeys.items():
+                value = record[key]['value']
+                is_updated = achievement[achievement_key][key] is None
+                if not is_updated:
+                    index_current = valuelist.index(value)
+                    index_recorded = valuelist.index(achievement[achievement_key][key])
+                    if index_current > index_recorded:
+                        is_updated = True
+                if is_updated:
+                    achievement[achievement_key][key] = value
+        
     def update_achievement(self, target, result):
         """達成記録を更新する
 
@@ -300,11 +354,7 @@ class NotebookMusic(Notebook):
             bool: 更新があった
         """
         if not 'achievement' in target.keys():
-            target['achievement'] = {
-                'fixed': {'clear_type': None, 'dj_level': None},
-                'S-RANDOM': {'clear_type': None, 'dj_level': None},
-                'DBM': {'clear_type': None, 'dj_level': None}
-            }
+            target['achievement'] = deepcopy(self.achievement_default)
         
         details = result.details
         options = details.options
@@ -316,25 +366,25 @@ class NotebookMusic(Notebook):
             if options.arrange in ['S-RANDOM', 'S-RAN/S-RAN']:
                 achievement_key = 'S-RANDOM'
         else:
-            if options.battle and options.arrange == 'MIRROR' and options.assist == 'A-SCR':
+            if options.battle and options.arrange == 'OFF/MIR' and options.assist == 'A-SCR':
                 achievement_key = 'DBM'
         if achievement_key is None:
             return False
         
         updated = False
-        results = {'clear_type': details.clear_type, 'dj_level': details.dj_level}
-        for k, v in results.items():
-            if achievement_key != 'DBM':
-                value = v.current if v.new else v.best
-            else:
-                if target['achievement'][achievement_key][k] is None:
-                    value = v.current
-                else:
-                    index_current = define.value_list[k].index(v.current)
-                    index_recorded = define.value_list[k].index(target['achievement'][achievement_key][k])
-                    value = v.current if index_current > index_recorded else None
-            if value is not None and target['achievement'][achievement_key][k] != value:
-                target['achievement'][achievement_key][k] = value
+        results = [
+            ('clear_type', define.value_list['clear_types'], details.clear_type.current),
+            ('dj_level', define.value_list['dj_levels'], details.dj_level.current)
+        ]
+        for key, valuelist, value in results:
+            is_updated = target['achievement'][achievement_key][key] is None
+            if not is_updated:
+                index_current = valuelist.index(value)
+                index_recorded = valuelist.index(target['achievement'][achievement_key][key])
+                if index_current > index_recorded:
+                    is_updated = True
+            if is_updated:
+                target['achievement'][achievement_key][key] = value
                 updated = True
         
         return updated

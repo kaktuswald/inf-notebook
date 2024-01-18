@@ -174,12 +174,12 @@ def generateimage_musicinformation(playmode, difficulty, musicname, record):
             if playmode == 'SP' and key1 == 'DBM':
                 continue
             bbox = draw.multiline_textbbox((0, 0), keys1[key1], font=font_small)
-            draw.multiline_text(((index1+0.5)*350-bbox[2]/2+50, 630), keys1[key1], fill=textcolor, font=font_small)
+            draw.multiline_text(((index1+0.5)*380-bbox[2]/2+50, 630), keys1[key1], fill=textcolor, font=font_small)
             for key2 in ['clear_type', 'dj_level']:
                 value = record['achievement'][key1][key2]
                 if value is None:
                     continue
-                draw.multiline_text((index1*350+index2*200+100, 670), value, fill=textcolor, font=font_small)
+                draw.multiline_text((index1*380+index2*240+100, 670), value, fill=textcolor, font=font_small)
                 index2 += 1
             index1 += 1
         
