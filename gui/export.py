@@ -10,7 +10,7 @@ import json
 from define import define
 from .static import title,icon_path,background_color,background_color_label,selected_background_color
 from .general import message
-from playdata import output,export_dirname,csssetting_filepath
+from export import output,export_dirname,csssetting_filepath
 
 icon_image = Image.open(icon_path)
 resized_icon = icon_image.resize((32, 32))

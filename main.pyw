@@ -42,12 +42,11 @@ from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
 from record import NotebookRecent,NotebookSummary,NotebookMusic,rename_allfiles,rename_changemusicname,musicnamechanges_filename
-from graph import create_graphimage,save_graphimage
-from result import result_save,result_savefiltered,get_resultimage,get_filteredimage
+from graph import create_graphimage
 from filter import filter as filter_result
-from playdata import Recent,output
-from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs
-from image import generateimage_summary,generateimage_musicinformation
+from export import Recent,output
+from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs,openfolder_scoreinformations
+from image import save_resultimage,save_resultimage_filtered,save_scoreinformationimage,save_graphimage,get_resultimage,get_resultimage_filtered,generateimage_summary,generateimage_musicinformation
 
 recent_maxcount = 100
 
@@ -239,35 +238,58 @@ class Selection():
         self.notebook = notebook
         self.recent = False
         self.filtered = False
+        self.scoreinformation = False
         self.graph = False
         self.timestamp = None
+        self.image = None
     
     def selection_recent(self, timestamp):
         self.recent = True
         self.filtered = False
+        self.scoreinformation = False
         self.graph = False
         self.timestamp = timestamp
+        self.image = None
 
-    def selection_graph(self):
+    def selection_scoreinformation(self, image):
         if self.music is None:
             return False
         
         self.recent = False
         self.filtered = False
+        self.scoreinformation = True
+        self.graph = False
+        self.timestamp = None
+        self.image = image
+
+        return True
+
+    def selection_graph(self, image):
+        if self.music is None:
+            return False
+        
+        self.recent = False
+        self.filtered = False
+        self.scoreinformation = False
         self.graph = True
         self.timestamp = None
+        self.image = image
 
         return True
 
     def selection_timestamp(self, timestamp):
         self.recent = False
         self.filtered = False
+        self.scoreinformation = False
         self.graph = False
         self.timestamp = timestamp
+        self.image = None
     
     def selection_filtered(self):
         self.filtered = True
+        self.scoreinformation = False
         self.graph = False
+        self.image = None
 
     def get_targetrecordlist(self):
         return self.notebook.get_recordlist(self.play_mode, self.difficulty)
@@ -305,7 +327,9 @@ def result_process(screen):
         save_filtered(
             resultimage,
             result.timestamp,
-            result.informations.music,
+            result.music,
+            result.play_mode,
+            result.difficulty,
             result.play_side,
             result.rival,
             result.details.graphtarget == 'rival'
@@ -317,11 +341,7 @@ def result_process(screen):
 
     music = result.informations.music
     if music is not None:
-        if music in notebooks_music.keys():
-            notebook = notebooks_music[music]
-        else:
-            notebook = NotebookMusic(music) if music is not None else None
-            notebooks_music[music] = notebook
+        notebook = get_notebook_targetmusic(music)
 
         notebook.insert(result)
         notebook_summary.import_targetmusic(music, notebook)
@@ -360,11 +380,7 @@ def musicselect_process(np_value):
     if not difficulty in levels.keys() or levels[difficulty] != music_information[playmode][difficulty]:
         return
     
-    if musicname in notebooks_music.keys():
-        notebook = notebooks_music[musicname]
-    else:
-        notebook = NotebookMusic(musicname) if musicname is not None else None
-        notebooks_music[musicname] = notebook
+    notebook = get_notebook_targetmusic(musicname)
     
     targetrecord = notebook.get_recordlist(playmode, difficulty)
     if targetrecord is not None and targetrecord is musicselect_targetrecord:
@@ -397,7 +413,8 @@ def save_result(result, image):
     ret = None
     try:
         music = result.informations.music
-        ret = result_save(image, music, result.timestamp, setting.imagesave_path, setting.savefilemusicname_right)
+        scoretype = {'playmode': result.informations.play_mode, 'difficulty': result.informations.difficulty}
+        ret = save_resultimage(image, music, result.timestamp, setting.imagesave_path, scoretype, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
@@ -405,15 +422,16 @@ def save_result(result, image):
 
     if ret:
         timestamps_saved.append(result.timestamp)
-        log_debug(f'save result: {ret}')
 
-def save_filtered(resultimage, timestamp, music, play_side, loveletter, rivalname):
+def save_filtered(resultimage, timestamp, music, play_mode, difficulty, play_side, loveletter, rivalname):
     """リザルト画像にぼかしを入れて保存する
 
     Args:
         image (Image): 対象の画像(PIL)
         timestamp (str): リザルトのタイムスタンプ
         music (str): 曲名
+        play_mode (str): プレイモード
+        difficulty (str): 譜面難易度
         play_side (str): 1P or 2P
         loveletter (bool): ライバル挑戦状の有無
         rivalname (bool): グラフターゲットのライバル名の有無
@@ -425,7 +443,8 @@ def save_filtered(resultimage, timestamp, music, play_side, loveletter, rivalnam
 
     ret = None
     try:
-        ret = result_savefiltered(filteredimage, music, timestamp, setting.imagesave_path, setting.savefilemusicname_right)
+        scoretype = {'playmode': play_mode, 'difficulty': difficulty}
+        ret = save_resultimage_filtered(filteredimage, music, timestamp, setting.imagesave_path, scoretype, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
@@ -433,7 +452,6 @@ def save_filtered(resultimage, timestamp, music, play_side, loveletter, rivalnam
 
     if ret:
         images_filtered[timestamp] = filteredimage
-        log_debug(f'save filtered result: {ret}')
 
 def insert_recentnotebook_results():
     for timestamp in notebook_recent.timestamps:
@@ -558,11 +576,7 @@ def select_result_recent():
     target = notebook_recent.get_result(timestamp)
 
     if target['music'] is not None:
-        if target['music'] in notebooks_music.keys():
-            notebook = notebooks_music[target['music']]
-        else:
-            notebook = NotebookMusic(target['music'])
-            notebooks_music[target['music']] = notebook
+        notebook = get_notebook_targetmusic(target['music'])
     else:
         notebook = None
 
@@ -613,15 +627,11 @@ def select_music_search():
     if difficulty == '':
         return None
 
-    music = values['music_candidates'][0]
+    musicname = values['music_candidates'][0]
 
     clear_tableselection()
 
-    if music in notebooks_music.keys():
-        notebook = notebooks_music[music]
-    else:
-        notebook = NotebookMusic(music)
-        notebooks_music[music] = notebook
+    notebook = get_notebook_targetmusic(musicname)
 
     targetrecordlist = notebook.get_recordlist(play_mode, difficulty)
     if targetrecordlist is None:
@@ -629,10 +639,12 @@ def select_music_search():
         gui.display_image(None)
         return None
 
-    ret = Selection(play_mode, difficulty, music, notebook)
+    ret = Selection(play_mode, difficulty, musicname, notebook)
 
     gui.display_record(targetrecordlist)
-    create_graph(ret, targetrecordlist)
+    image = generateimage_musicinformation(play_mode, difficulty, musicname, targetrecordlist)
+    gui.display_image(get_imagevalue(image), others=True)
+    ret.selection_scoreinformation(image)
 
     return ret
 
@@ -644,6 +656,7 @@ def select_history():
 
     timestamp = values['history'][0]
     selection.selection_timestamp(timestamp)
+    gui.switch_openfolder_others()
 
     gui.display_historyresult(selection.get_targetrecordlist(), timestamp)
 
@@ -652,13 +665,14 @@ def select_history():
     else:
         display_history(selection)
 
-def load_resultimages(timestamp, music, recent=False):
-    image_result = get_resultimage(music, timestamp, setting.imagesave_path)
+def load_resultimages(timestamp, music, playmode, difficulty, recent=False):
+    scoretype = {'playmode': playmode, 'difficulty': difficulty}
+    image_result = get_resultimage(music, timestamp, setting.imagesave_path, scoretype)
     images_result[timestamp] = image_result
     if image_result is not None:
         timestamps_saved.append(timestamp)
 
-    image_filtered = get_filteredimage(music, timestamp, setting.imagesave_path)
+    image_filtered = get_resultimage_filtered(music, timestamp, setting.imagesave_path, scoretype)
     if not recent or image_result is None or image_filtered is not None:
         images_filtered[timestamp] = image_filtered
 
@@ -672,7 +686,13 @@ def display_today(selection):
 
 def display_history(selection):
     if not selection.timestamp in images_result.keys():
-        load_resultimages(selection.timestamp, selection.music, selection.timestamp in notebook_recent.timestamps)
+        load_resultimages(
+            selection.timestamp,
+            selection.music,
+            selection.play_mode,
+            selection.difficulty,
+            selection.timestamp in notebook_recent.timestamps
+        )
     
     if selection.timestamp in imagevalues_result.keys():
         imagevalue_result = imagevalues_result[selection.timestamp]
@@ -694,6 +714,10 @@ def display_history(selection):
             selection.selection_filtered()
 
 def save():
+    """画像を保存する
+    
+    最近のリザルトを選択している場合はリザルト画像を保存する。
+    """
     if selection.recent:
         for row_index in table_selected_rows:
             timestamp = list_results[row_index][2]
@@ -703,8 +727,12 @@ def save():
                 update_resultflag(row_index, saved=True)
         notebook_recent.save()
         refresh_table()
-    if selection.graph:
-        save_graphimage(selection.music, images_graph[selection.music], setting.imagesave_path, setting.savefilemusicname_right)
+    if selection.image is not None:
+        scoretype = {'playmode': selection.play_mode, 'difficulty': selection.difficulty}
+        if selection.scoreinformation:
+            save_scoreinformationimage(selection.image, selection.music, setting.imagesave_path, scoretype, setting.savefilemusicname_right)
+        if selection.graph:
+            save_graphimage(selection.image, selection.music, setting.imagesave_path, scoretype, setting.savefilemusicname_right)
 
 def filter():
     """ライバル欄にぼかしを入れて、ぼかし画像を表示する
@@ -723,12 +751,14 @@ def filter():
             timestamp = list_results[row_index][2]
             target = notebook_recent.get_result(timestamp)
             if not timestamp in images_result.keys():
-                load_resultimages(timestamp, target['music'], True)
+                load_resultimages(timestamp, target['music'], target['play_mode'], target['difficulty'], True)
             if images_result[timestamp] is not None and not timestamp in images_filtered.keys():
                 save_filtered(
                     images_result[timestamp],
                     timestamp,
                     target['music'],
+                    target['play_mode'],
+                    target['difficulty'],
                     target['play_side'],
                     target['has_loveletter'],
                     target['has_graphtargetname']
@@ -741,7 +771,7 @@ def filter():
             refresh_table()
     else:
         if not selection.timestamp in images_result.keys() and not selection.timestamp in notebook_recent.timestamps:
-            load_resultimages(selection.timestamp, selection.music)
+            load_resultimages(selection.timestamp, selection.music, selection.play_mode, selection.difficulty)
 
     if selection.timestamp in imagevalues_filtered.keys():
         imagevalue = imagevalues_filtered[selection.timestamp]
@@ -786,6 +816,12 @@ def open_folder_graphs():
         logger.exception(ret)
         gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
 
+def open_folder_scoreinformations():
+    ret = openfolder_scoreinformations(setting.imagesave_path)
+    if ret is not None:
+        logger.exception(ret)
+        gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
+
 def tweet():
     if len(values['table_results']) > 0:
         musics_text = []
@@ -799,6 +835,13 @@ def tweet():
             text = text.replace('&&play_mode&&', result['play_mode'])
             text = text.replace('&&D&&', result['difficulty'][0])
             text = text.replace('&&music&&', music)
+
+            if selection.graph or selection.scoreinformation:
+                text = text.replace('&&update&&', '')
+                text = text.replace('&&option&&', '')
+                musics_text.append(text)
+                continue
+
             if result['update_clear_type'] is not None or result['update_dj_level'] is not None:
                 text = text.replace('&&update&&', ' '.join(v for v in [result['update_clear_type'], result['update_dj_level']] if v is not None))
             else:
@@ -809,7 +852,8 @@ def tweet():
                         text = text.replace('&&update&&', f"ミスカウント{result['update_miss_count']}")
                     else:
                         text = text.replace('&&update&&', '')
-            if not selection.graph and result['option'] is not None:
+
+            if result['option'] is not None:
                 if result['option'] == '':
                     text = text.replace('&&option&&', '(正規)')
                 else:
@@ -865,20 +909,49 @@ def delete_targetrecord():
     gui.display_record(selection.get_targetrecordlist())
     gui.display_image(None)
 
+def view_scoreinformation(selection):
+    image = generateimage_musicinformation(
+        selection.play_mode,
+        selection.difficulty,
+        selection.music,
+        selection.get_targetrecordlist()
+    )
+
+    gui.display_image(get_imagevalue(image), others=True)
+
+    selection.selection_scoreinformation(image)
+
 def create_graph(selection, targetrecord):
-    graphimage = create_graphimage(selection.play_mode, selection.difficulty, selection.music, targetrecord)
-    if graphimage is None:
+    image = create_graphimage(selection.play_mode, selection.difficulty, selection.music, targetrecord)
+    if image is None:
         return
 
-    images_graph[selection.music] = graphimage
-
-    imagevalue = get_imagevalue(graphimage)
-    gui.display_image(imagevalue, graph=True)
+    gui.display_image(get_imagevalue(image), others=True)
     
-    selection.selection_graph()
+    selection.selection_graph(image)
 
 def display_summaryimage():
     gui.display_image(get_imagevalue(generateimage_summary(setting.summaries)))
+
+def get_notebook_targetmusic(musicname):
+    """目的の曲の記録を取得する
+
+    未ロードの曲の場合はロードする。
+    ファイルが見つからない場合は新規のファイルを作成する。
+
+    Args:
+        musicname (str): 曲名
+    
+    Returns:
+        (NotebookMusic): 記録データ
+    """
+    if musicname in notebooks_music.keys():
+        return notebooks_music[musicname]
+
+    notebook = NotebookMusic(musicname)
+    notebooks_music[musicname] = notebook
+
+    return notebook
 
 if __name__ == '__main__':
     keyboard.add_hotkey('alt+F10', active_screenshot)
@@ -902,8 +975,6 @@ if __name__ == '__main__':
     images_filtered = {}
     imagevalues_result = {}
     imagevalues_filtered = {}
-
-    images_graph = {}
 
     selection = None
 
@@ -984,8 +1055,13 @@ if __name__ == '__main__':
                 open_folder_results()
             if event == 'button_open_folder_filtereds':
                 open_folder_filtereds()
-            if event == 'button_open_folder_graphs':
-                open_folder_graphs()
+            if event == 'button_open_folder_scoreinformations':
+                open_folder_scoreinformations()
+            if event == 'button_open_folder_others':
+                if selection.scoreinformation:
+                    open_folder_scoreinformations()
+                if selection.graph:
+                    open_folder_graphs()
             if event == 'button_tweet':
                 tweet()
             if event == 'button_export':
@@ -998,24 +1074,30 @@ if __name__ == '__main__':
                     selection_result = select_result_recent()
                     if selection_result is not None:
                         selection = selection_result
+                        gui.switch_openfolder_others()
                         if selection.music is not None:
                             window['music_candidates'].update([selection.music], set_to_index=[0])
                         else:
                             window['music_candidates'].update(set_to_index=[])
+            if event == 'button_scoreinfotmation':
+                if selection is not None and selection.music is not None:
+                    view_scoreinformation(selection)
+                    gui.switch_openfolder_others('譜面記録')
             if event == 'button_graph':
                 if selection is not None and selection.music is not None:
                     create_graph(selection, selection.get_targetrecordlist())
+                    gui.switch_openfolder_others('グラフ')
             if event == 'category_versions':
                 gui.search_music_candidates()
             if event == 'search_music':
                 music_search_time = time.time() + 1
             if event in ['play_mode_sp', 'play_mode_dp', 'difficulty', 'music_candidates']:
-                selection_result = select_music_search()
-                if selection_result is not None:
-                    selection = selection_result
+                selection = select_music_search()
+                gui.switch_openfolder_others('譜面記録')
             if event == '選択した曲の記録を削除する':
                 delete_record()
                 selection = None
+                gui.switch_openfolder_others()
             if event == 'history':
                 select_history()
             if event == '選択したリザルトの記録を削除する':
@@ -1040,6 +1122,7 @@ if __name__ == '__main__':
                     clear_tableselection()
                     window['music_candidates'].update(set_to_index=[])
                     selection = None
+                    gui.switch_openfolder_others()
                     gui.display_image(get_imagevalue(queue_display_image.get_nowait()))
                 if not queue_result_screen.empty():
                     result_process(queue_result_screen.get_nowait())

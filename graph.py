@@ -3,14 +3,9 @@ import numpy as np
 from math import ceil
 from matplotlib import pyplot as plt
 from PIL import Image
-from os import mkdir
-from os.path import exists,join
 
-from result import generate_resultfilename
 from gui.static import background_color
 from gui.general import get_imagevalue
-
-graphs_dirname = 'graphs'
 
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
@@ -65,28 +60,6 @@ def create_graphimage(play_mode, difficulty, music, target_record):
         ax1.legend(h1, l1, loc='center left')
 
     figure.canvas.draw()
-    image = Image.fromarray(np.array(figure.canvas.renderer.buffer_rgba())).convert('RGB')
+    image = Image.fromarray(np.array(figure.canvas.renderer.buffer_rgba()))
 
     return image
-
-def save_graphimage(music, graphimage, destination_dirpath, musicname_right=False):
-    """グラフ画像をファイルに保存する
-
-    Args:
-        music (str): 曲名
-        graphimage (Image): 対象のグラフ画像
-        musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
-    """
-    dirpath = join(destination_dirpath, graphs_dirname)
-
-    now = datetime.now()
-    timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
-
-    if not exists(dirpath):
-        mkdir(dirpath)
-
-    filepath = join(dirpath, generate_resultfilename(music, timestamp, musicname_right))
-    try:
-        graphimage.save(filepath)
-    except Exception as ex:
-        print(ex)

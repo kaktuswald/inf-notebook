@@ -159,12 +159,12 @@ def layout_main(setting):
         [
             sg.Button('ファイルに保存', key='button_save', disabled=True, size=(24, 1)),
             sg.Button('ライバルを隠す(+保存)', key='button_filter', disabled=True, size=(24, 1)),
-            sg.Button('ツイート', key='button_tweet', size=(24, 1)),
+            sg.Button('ポスト', key='button_tweet', size=(24, 1)),
         ],
         [
-            sg.Button('フォルダを開く', key='button_open_folder_results', size=(24, 1)),
+            sg.Button('フォルダを開く(リザルト)', key='button_open_folder_results', size=(24, 1)),
             sg.Button('フォルダを開く(ぼかし)', key='button_open_folder_filtereds', size=(24, 1)),
-            sg.Button('フォルダを開く(グラフ)', key='button_open_folder_graphs', size=(24, 1)),
+            sg.Button('フォルダを開く', key='button_open_folder_others', size=(24, 1), disabled=True),
         ],
         [
             sg.Button('設定', key='button_setting', size=(24, 1)),
@@ -194,7 +194,8 @@ def layout_main(setting):
         ],
         [
             sg.Text('プレイ回数', size=(11, 1), background_color=background_color_label),
-            sg.Text(key='played_count', size=(13, 1), background_color=background_color),
+            sg.Text(key='played_count', size=(5, 1), background_color=background_color),
+            sg.Button('譜面記録', key='button_scoreinfotmation'),
             sg.Button('グラフ', key='button_graph')
         ],
         [
@@ -296,7 +297,7 @@ def error_message(title, message, exception):
         background_color=background_color
     )
 
-def display_image(value, result=False, graph=False):
+def display_image(value, result=False, others=False):
     subsample = int(window['scale'].get().split('/')[1])
 
     if value is not None:
@@ -304,7 +305,7 @@ def display_image(value, result=False, graph=False):
     else:
         window['screenshot'].update(visible=False)
 
-    window['button_save'].update(disabled=not (result or graph))
+    window['button_save'].update(disabled=not (result or others))
     window['button_filter'].update(disabled=not result)
     window['button_upload'].update(disabled=not result)
 
@@ -418,3 +419,9 @@ def switch_best_display():
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'best_{key}_option'].update(visible=best_display_mode == 'option')
         window[f'best_{key}_timestamp'].update(visible=best_display_mode == 'timestamp')
+
+def switch_openfolder_others(label=None):
+    if label is not None:
+        window['button_open_folder_others'].update(f'フォルダを開く({label})', disabled=False)
+    else:
+        window['button_open_folder_others'].update(f'フォルダを開く', disabled=True)
