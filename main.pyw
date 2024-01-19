@@ -1131,8 +1131,7 @@ if __name__ == '__main__':
         except Exception as ex:
             log_debug(ex)
     
-    if setting.autoexport:
-        output()
+    output()
 
     window.close()
 

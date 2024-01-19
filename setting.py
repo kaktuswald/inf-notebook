@@ -12,7 +12,6 @@ default = {
     'play_sound': False,
     'savefilemusicname_right': False,
     'imagesave_path': getcwd(),
-    'autoexport': False,
     'summaries' : {
         'SP': {
             '8': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
@@ -49,6 +48,8 @@ class Setting():
         if 'save_newrecord_only' in self.json.keys():
             self.json['newrecord_only'] = self.json['save_newrecord_only']
             del self.json['save_newrecord_only']
+        if 'autoexport' in self.json.keys():
+            del self.json['autoexport']
         
         self.save()
 
@@ -144,14 +145,6 @@ class Setting():
     def imagesave_path(self, value):
         self.set_value('imagesave_path', value)
     
-    @property
-    def autoexport(self):
-        return self.get_value('autoexport')
-
-    @autoexport.setter
-    def autoexport(self, value):
-        self.set_value('autoexport', value)
-       
     @property
     def summaries(self):
         return self.get_value('summaries')

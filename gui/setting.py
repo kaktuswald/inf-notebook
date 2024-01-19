@@ -94,7 +94,6 @@ def open_setting(setting):
             [sg.Text('エクスポートされたCSVファイルから、チェックした成績を達成している曲の数を表示します。', background_color=background_dark)],
             [sg.Text('リザルト手帳の起動時に表示するほか、Alt+F9で再表示します。', background_color=background_dark)],
             [sg.Text('表示したデータはexportフォルダに画像保存します。', background_color=background_dark)],
-            [sg.Checkbox('リザルト手帳の終了時にCSVファイルをエクスポートする', key='check_autoexport', default=setting.autoexport, background_color=background_color_label)],
             *controls
         ], pad=0, size=(640, 300), background_color=background_dark, scrollable=True, vertical_scroll_only=True)
     ]]
@@ -148,7 +147,6 @@ def open_setting(setting):
             setting.play_sound = values['check_play_sound']
             setting.savefilemusicname_right = values['check_savefilemusicname_right']
             setting.imagesave_path = values['imagesave_path']
-            setting.autoexport = values['check_autoexport']
             setting.data_collection = values['check_data_collection']
             setting.summaries = set_summarysetting(window)
             setting.save()
