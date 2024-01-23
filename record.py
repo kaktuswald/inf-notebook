@@ -314,10 +314,12 @@ class NotebookMusic(Notebook):
             'clear_type': define.value_list['clear_types'],
             'dj_level': define.value_list['dj_levels']
         }
-        for timestamp in reversed(target['timestamps']):
+        for timestamp in target['timestamps']:
             record = target['history'][timestamp]
 
             if not 'options' in record.keys() or record['options'] is None:
+                continue
+            if not 'special' in record.keys() or record['options'].keys():
                 continue
 
             achievement_key = None

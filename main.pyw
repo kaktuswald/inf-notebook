@@ -327,9 +327,9 @@ def result_process(screen):
         save_filtered(
             resultimage,
             result.timestamp,
-            result.music,
-            result.play_mode,
-            result.difficulty,
+            result.informations.music,
+            result.informations.play_mode,
+            result.informations.difficulty,
             result.play_side,
             result.rival,
             result.details.graphtarget == 'rival'
