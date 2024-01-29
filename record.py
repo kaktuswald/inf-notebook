@@ -128,7 +128,7 @@ class NotebookSummary(Notebook):
             musicname (str): 曲名
             notebook (NotebookMusic): 対象曲の記録
         """
-        self.json[musicname] = {'SP': {}, 'DP': {}}
+        self.json['musics'][musicname] = {'SP': {}, 'DP': {}}
         music_item = resource.musictable['musics'][musicname]
         for playmode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
@@ -139,8 +139,8 @@ class NotebookSummary(Notebook):
                 if r is None:
                     continue
 
-                self.json[musicname][playmode][difficulty] = {}
-                target = self.json[musicname][playmode][difficulty]
+                self.json['musics'][musicname][playmode][difficulty] = {}
+                target = self.json['musics'][musicname][playmode][difficulty]
                 if 'latest' in r.keys() and 'timestamp' in r['latest'].keys():
                     target['latest'] = r['latest']['timestamp']
                 else:

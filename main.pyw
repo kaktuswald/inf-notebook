@@ -345,6 +345,7 @@ def result_process(screen):
 
         notebook.insert(result)
         notebook_summary.import_targetmusic(music, notebook)
+        notebook_summary.save()
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -1021,7 +1022,10 @@ if __name__ == '__main__':
     insert_recentnotebook_results()
     display_summaryimage()
 
-    if len(notebook_summary.json) == 0:
+    if not 'musics' in notebook_summary.json.keys():
+        # バージョン0.14.2.1以前からjson構造変更
+        notebook_summary.json = {'musics': notebook_summary.json}
+        
         counter = notebook_summary.start_import()
         progress("お待ちください", notebooksummary_confirm_message, counter)
         notebook_summary.save()
@@ -1065,7 +1069,7 @@ if __name__ == '__main__':
             if event == 'button_tweet':
                 tweet()
             if event == 'button_export':
-                open_export(recent)
+                open_export(recent, notebook_summary)
             if event == 'button_upload':
                 upload()
             if event == 'table_results':
@@ -1131,7 +1135,7 @@ if __name__ == '__main__':
         except Exception as ex:
             log_debug(ex)
     
-    output()
+    output(notebook_summary)
 
     window.close()
 

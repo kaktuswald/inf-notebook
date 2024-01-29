@@ -96,7 +96,7 @@ csssetting = {
     }
 }
 
-def open_export(recent):
+def open_export(recent, notebook_summary):
     global csssetting
 
     try:
@@ -430,7 +430,7 @@ def open_export(recent):
         if 'check' in event:
             generate_summary_css(window)
         if event == 'button_output_csv':
-            output()
+            output(notebook_summary)
             message('完了', '出力が完了しました。')
         if event == 'button_clear_recent':
             recent.clear()

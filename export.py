@@ -113,8 +113,12 @@ class Recent():
         with open(recent_filepath, 'w') as f:
             json.dump(self.json, f)
 
-def output():
-    notebook = NotebookSummary()
+def output(notebook):
+    """CSVファイルを出力する
+    
+    Args:
+        notebook (NotebookSummary): 対象のデータ
+    """
     musictable = resource.musictable
 
     summary_filenames = {
@@ -149,7 +153,7 @@ def output():
 
     for musicname, music_item in musictable['musics'].items():
         version = music_item['version']
-        notebook_target = notebook.json[musicname] if musicname in notebook.json.keys() else None
+        notebook_target = notebook.json['musics'][musicname] if musicname in notebook.json['musics'].keys() else None
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
                 if not difficulty in music_item[play_mode].keys() or music_item[play_mode][difficulty] is None:
@@ -214,4 +218,5 @@ def output():
         f.write(str(datetime.now()))
 
 if __name__ == '__main__':
-    output()
+    notebook = NotebookSummary()
+    output(notebook)
