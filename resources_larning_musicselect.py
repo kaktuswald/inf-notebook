@@ -20,7 +20,7 @@ recognition_define_filepath = join(registries_dirname, recognition_define_filena
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
 report_basedir_musictable = join(report_dirname, 'musictable')
 
-key_valid_count_minimum = 18
+key_valid_count_minimum = 16
 
 class ImageValues():
     def __init__(self, np_value, label):

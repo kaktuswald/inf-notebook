@@ -6,7 +6,7 @@ from os.path import join,isfile,exists
 import numpy as np
 
 from define import define
-from result import generate_resultfilename
+from image import generate_filename
 import data_collection as dc
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 from resources_larning import larning_multivalue
@@ -624,7 +624,7 @@ def larning_musics(informations):
     if not exists(musicfilenametest_basedir):
         mkdir(musicfilenametest_basedir)
     for music in musics:
-        filename = generate_resultfilename(music, '').replace('jpg', 'txt')
+        filename = generate_filename(music, '').replace('jpg', 'txt')
         filepath = join(musicfilenametest_basedir, filename)
         if not exists(filepath):
             with open(filepath, 'w', encoding='UTF-8') as f:
