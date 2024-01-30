@@ -34,7 +34,7 @@ from version import version
 import gui.main as gui
 from gui.setting import open_setting
 from gui.export import open_export
-from gui.general import get_imagevalue,progress
+from gui.general import get_imagevalue,progress,question
 from define import define
 from resources import resource,play_sound_result,check_latest
 from screenshot import Screenshot,open_screenimage
@@ -790,7 +790,7 @@ def upload():
     if not selection.recent:
         return
     
-    if not gui.question('確認', upload_confirm_message):
+    if not question('確認', upload_confirm_message):
         return
     
     for row_index in table_selected_rows:
