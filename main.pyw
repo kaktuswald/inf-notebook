@@ -564,6 +564,22 @@ def check_resource():
 
     logger.info('complete check resources')
 
+    queue_functions.put(notebooksummary_startimport)
+
+def notebooksummary_startimport():
+    """全曲記録データを各曲記録ファイルから作成する
+
+    Note:
+        バージョン0.14.2.1以前からjson構造変更
+    """
+
+    if not 'musics' in notebook_summary.json.keys():
+        notebook_summary.json = {'musics': notebook_summary.json}
+        
+        counter = notebook_summary.start_import()
+        progress("お待ちください", notebooksummary_confirm_message, counter)
+        notebook_summary.save()
+
 def select_result_recent():
     if len(table_selected_rows) == 0:
         return None
@@ -988,6 +1004,7 @@ if __name__ == '__main__':
     queue_display_image = Queue()
     queue_result_screen = Queue()
     queue_musicselect_screen = Queue()
+    queue_functions = Queue()
 
     storage = StorageAccessor()
 
@@ -1021,14 +1038,6 @@ if __name__ == '__main__':
 
     insert_recentnotebook_results()
     display_summaryimage()
-
-    if not 'musics' in notebook_summary.json.keys():
-        # バージョン0.14.2.1以前からjson構造変更
-        notebook_summary.json = {'musics': notebook_summary.json}
-        
-        counter = notebook_summary.start_import()
-        progress("お待ちください", notebooksummary_confirm_message, counter)
-        notebook_summary.save()
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
@@ -1132,6 +1141,9 @@ if __name__ == '__main__':
                     result_process(queue_result_screen.get_nowait())
                 if not queue_musicselect_screen.empty():
                     musicselect_process(queue_musicselect_screen.get_nowait())
+                if not queue_functions.empty():
+                    queue_functions.get_nowait()()
+
         except Exception as ex:
             log_debug(ex)
     
