@@ -397,6 +397,8 @@ def musicselect_process(np_value):
         'levels': recog.MusicSelect.get_levels(np_value)
     }):
         notebook.save()
+        notebook_summary.import_targetmusic(musicname, notebook)
+        notebook_summary.save()
     
     musicselect_targetrecord = notebook.get_recordlist(playmode, difficulty)
 

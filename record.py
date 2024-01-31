@@ -448,7 +448,7 @@ class NotebookMusic(Notebook):
         """選曲画面から取り込んだ認識結果からベスト記録を更新する
 
         Args:
-            values: 認識結果
+            values (dict): 認識結果
         """
         updated = False
 
