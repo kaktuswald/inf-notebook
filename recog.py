@@ -372,6 +372,10 @@ class Recognition():
     class MusicSelect():
         @staticmethod
         def get_playmode(np_value):
+            if resource.musicselect is None:
+                return None
+            if not 'playmode' in resource.musicselect.keys():
+                return None
             trimmed = np_value[resource.musicselect['playmode']['trim']].flatten()
             bins = np.where(trimmed==resource.musicselect['playmode']['maskvalue'], 1, 0)
             hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
@@ -382,6 +386,8 @@ class Recognition():
         
         @staticmethod
         def get_version(np_value):
+            if resource.musicselect is None:
+                return None
             for table in resource.musicselect['version']:
                 cropped = np_value[table['trim']]
                 reshaped = cropped.reshape(cropped.shape[0]*cropped.shape[1], cropped.shape[2])
@@ -394,6 +400,9 @@ class Recognition():
 
         @staticmethod
         def get_musicname(np_value):
+            if resource.musicselect is None:
+                return None
+            
             resource_target = resource.musicselect['musicname']['infinitas']
             cropped = np_value[resource_target['trim']]
             filtereds = []
@@ -448,6 +457,8 @@ class Recognition():
         
         @staticmethod
         def get_difficulty(np_value):
+            if resource.musicselect is None:
+                return None
             targetresource = resource.musicselect['levels']['select']
             for difficulty in targetresource.keys():
                 trimmed = np_value[targetresource[difficulty]['trim']]
@@ -465,8 +476,12 @@ class Recognition():
 
         @staticmethod
         def get_cleartype(np_value):
+            if resource.musicselect is None:
+                return None
             trimmed = np_value[resource.musicselect['cleartype']['trim']]
             uniques, counts = np.unique(trimmed, return_counts=True)
+            if len(uniques) == 0:
+                return None
             color = uniques[np.argmax(counts)]
             if color in resource.musicselect['cleartype']['table'].keys():
                 return resource.musicselect['cleartype']['table'][color]
@@ -474,6 +489,8 @@ class Recognition():
 
         @staticmethod
         def get_djlevel(np_value):
+            if resource.musicselect is None:
+                return None
             trimmed = np_value[resource.musicselect['djlevel']['trim']]
             count = np.count_nonzero(trimmed==resource.musicselect['djlevel']['maskvalue'])
             if count in resource.musicselect['djlevel']['table'].keys():
@@ -482,6 +499,8 @@ class Recognition():
 
         @staticmethod
         def get_score(np_value):
+            if resource.musicselect is None:
+                return None
             trimmed = np_value[resource.musicselect['score']['trim']]
             score = None
             for dig in range(resource.musicselect['score']['digit']):
@@ -500,6 +519,8 @@ class Recognition():
 
         @staticmethod
         def get_misscount(np_value):
+            if resource.musicselect is None:
+                return None
             trimmed = np_value[resource.musicselect['misscount']['trim']]
             score = None
             for dig in range(resource.musicselect['misscount']['digit']):
@@ -518,6 +539,9 @@ class Recognition():
 
         @staticmethod
         def get_levels(np_value):
+            if resource.musicselect is None:
+                return None
+            
             ret = {}
             for difficulty in resource.musicselect['levels']['select']:
                 resourcetarget = resource.musicselect['levels']['select'][difficulty]
