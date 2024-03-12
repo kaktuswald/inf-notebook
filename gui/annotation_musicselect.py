@@ -7,7 +7,7 @@ from recog import Recognition as recog
 from .static import title,icon_path,background_color
 
 imagescale = 1 / 2
-imagesize = list((np.array([1280, 720],dtype=np.int32) * imagescale).astype(np.int32))
+imagesize = list((np.array([696, 546],dtype=np.int32) * imagescale).astype(np.int32))
 in_area_background_color='#5779dd'
 
 def layout_manage(keys):
@@ -180,15 +180,15 @@ def layout_manage(keys):
             sg.Column([
                 [
                     sg.Image(key='image', size=imagesize, background_color=background_color),
-                    sg.Listbox(keys, key='list_keys', size=(24, 22), enable_events=True),
+                    sg.Listbox(keys, key='list_keys', size=(24, 19), enable_events=True),
                 ],
                 [
-                    sg.Column(results1, size=(300, 190), background_color=in_area_background_color),
-                    sg.Column(results2, size=(500, 190), background_color=in_area_background_color),
+                    sg.Column(results1, size=(200, 215), background_color=in_area_background_color),
+                    sg.Column(results2, size=(340, 215), background_color=in_area_background_color),
                 ],
             ], pad=0, background_color=background_color),
             sg.Column([
-                [sg.Column(manage_label_define, size=(385,580), background_color=in_area_background_color)],
+                [sg.Column(manage_label_define, size=(385,540), background_color=in_area_background_color)],
             ], pad=0, background_color=background_color)
         ]
     ]
@@ -233,7 +233,12 @@ def clear_results():
     window['result_level_another'].update('')
     window['result_level_leggendaria'].update('')
 
+from resources import resource
+
 def recognize(image):
+    if resource.musicselect is None:
+        return
+    
     playmode = recog.MusicSelect.get_playmode(image)
     version = recog.MusicSelect.get_version(image)
     musicname = recog.MusicSelect.get_musicname(image)

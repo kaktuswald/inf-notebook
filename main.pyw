@@ -306,7 +306,7 @@ def result_process(screen):
 
     resultimage = screen.original
     if setting.data_collection or window['force_upload'].get():
-        if storage.upload_collection(result, resultimage, window['force_upload'].get()):
+        if storage.start_uploadcollection(result, resultimage, window['force_upload'].get()):
             timestamps_uploaded.append(result.timestamp)
     
     if setting.newrecord_only and not result.has_new_record():
@@ -525,6 +525,19 @@ def active_screenshot():
         log_debug(f'save screen: {filepath}')
         gui.display_image(get_imagevalue(image))
         window['screenshot_filepath'].update(join(pardir, filepath))
+
+def upload_musicselect():
+    """
+    選曲画面の一部を学習用にアップロードする
+    """
+    if not screenshot.shot():
+        return
+    
+    image = screenshot.get_image()
+    if image is not None:
+        storage.start_uploadmusicselect(image)
+        log_debug(f'upload screen')
+        gui.display_image(get_imagevalue(image))
 
 def log_debug(message):
     logger.debug(message)
@@ -973,6 +986,7 @@ def get_notebook_targetmusic(musicname):
 if __name__ == '__main__':
     keyboard.add_hotkey('alt+F10', active_screenshot)
     keyboard.add_hotkey('alt+F9', display_summaryimage)
+    keyboard.add_hotkey('alt+F8', upload_musicselect)
 
     window = gui.generate_window(setting, version)
 

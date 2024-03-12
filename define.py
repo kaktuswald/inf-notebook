@@ -84,6 +84,9 @@ class Define():
     musictable_version = '1.0'
     
     musicselect_recognition_version = '1.0'
+    musicselect_trimarea = (18, 102, 714, 648)
+
+    musicselect_rivals_name_area = (378, 410, 490, 538)
 
     filter_ranking_size = (386, 504)
     filter_ranking_position = {

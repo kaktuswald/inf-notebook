@@ -5,22 +5,19 @@ from os.path import join,isfile
 import numpy as np
 
 from define import define
-from raw_image import raws_basepath
+from data_collection import collection_basepath
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 from resources_larning import larning_multivalue
 
-raws_musicselect_basepath = join(raws_basepath, 'musicselect')
-
-label_filepath = join(raws_basepath, 'label_musicselect.json')
+images_musicselect_basepath = join(collection_basepath, 'musicselect')
+label_filepath = join(collection_basepath, 'label_musicselect.json')
 
 recognition_define_filename = 'define_recognition_musicselect.json'
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
 
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
 report_basedir_musictable = join(report_dirname, 'musictable')
-
-key_valid_count_minimum = 16
 
 class ImageValues():
     def __init__(self, np_value, label):
@@ -32,7 +29,7 @@ def load_images(labels):
 
     imagevaleus = {}
     for filename in keys:
-        filepath = join(raws_musicselect_basepath, filename)
+        filepath = join(images_musicselect_basepath, filename)
         if isfile(filepath):
             np_value = np.array(Image.open(filepath))
             imagevaleus[filename] = ImageValues(np_value, labels[filename])
@@ -535,6 +532,7 @@ def larning_musicname_convertdefine():
 def larning_musicname_arcade(targets, report):
     resource_target = resource['musicname']['arcade']
     th = resource_target['thresholds']
+    key_valid_count_minimum = musicselect_define['musicname']['arcade']['key_valid_count_minimum']
 
     table = resource_target['table'] = {}
 
@@ -585,6 +583,7 @@ def larning_musicname_arcade(targets, report):
 
 def larning_musicname_infinitas(targets, report):
     resource_target = resource['musicname']['infinitas']
+    key_valid_count_minimum = musicselect_define['musicname']['infinitas']['key_valid_count_minimum']
 
     table = resource_target['table'] = {}
 
@@ -635,6 +634,7 @@ def larning_musicname_infinitas(targets, report):
 
 def larning_musicname_leggendaria(targets, report):
     resource_target = resource['musicname']['leggendaria']
+    key_valid_count_minimum = musicselect_define['musicname']['leggendaria']['key_valid_count_minimum']
 
     table = resource_target['table'] = {}
 
