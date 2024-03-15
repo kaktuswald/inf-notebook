@@ -29,21 +29,21 @@ colors_difficulty = {
     'LEGGENDARIA': (208, 0, 208, 255)
 }
 
-image = Image.new("RGBA", (1280, 720), background)
+image = Image.new("RGBA", (1920, 1080), background)
 draw = ImageDraw.Draw(image)
 
-font_title = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 80)
-font_musicname = ImageFont.truetype('Resources/Fonts/hanazomefont.ttf', 80)
-font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 48)
-font_small = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 36)
+font_title = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 120)
+font_musicname = ImageFont.truetype('Resources/Fonts/hanazomefont.ttf', 120)
+font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 72)
+font_small = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 54)
 
 musicinformation_keys = ['score', 'miss_count']
 
 summarytypes = {'cleartypes': 'クリアタイプ', 'djlevels': 'DJレベル'}
-summarytypes_xpositions = {'cleartypes': (250, 700), 'djlevels': (750, 1050)}
-playmode_xposition = 50
-level_xposition = 200
-total_exposition = 1250
+summarytypes_xpositions = {'cleartypes': (375, 1050), 'djlevels': (1125, 1575)}
+playmode_xposition = 75
+level_xposition = 300
+total_exposition = 1875
 
 def generate_filename(music, timestamp, scoretype=None, musicname_right=False):
     """保存ファイル名を作る
@@ -226,17 +226,17 @@ def load_image(music, timestamp, destination_dirpath, target_dirname, scoretype)
     return None
 
 def generateimage_summary(setting):
-    draw.rectangle((0, 0, 1280, 720), fill=background)
-    draw.multiline_text((20, 20), 'Number of goals achieved.', fill=textcolor, font=font_title)
+    draw.rectangle((0, 0, 1920, 1080), fill=background)
+    draw.multiline_text((30, 30), 'Number of goals achieved.', fill=textcolor, font=font_title)
 
     bbox = draw.multiline_textbbox((0, 0), 'CLEAR TYPE', font=font)
-    draw.multiline_text((summarytypes_xpositions['cleartypes'][1] - bbox[2], 150), 'CLEAR TYPE', fill=textcolor, font=font)
+    draw.multiline_text((summarytypes_xpositions['cleartypes'][1] - bbox[2], 225), 'CLEAR TYPE', fill=textcolor, font=font)
 
     bbox = draw.multiline_textbbox((0, 0), 'DJ LEVEL', font=font)
-    draw.multiline_text((summarytypes_xpositions['djlevels'][1] - bbox[2], 150), 'DJ LEVEL', fill=textcolor, font=font)
+    draw.multiline_text((summarytypes_xpositions['djlevels'][1] - bbox[2], 225), 'DJ LEVEL', fill=textcolor, font=font)
 
     bbox = draw.multiline_textbbox((0, 0), 'TOTAL', font=font)
-    draw.multiline_text((total_exposition - bbox[2], 150), 'TOTAL', fill=textcolor, font=font)
+    draw.multiline_text((total_exposition - bbox[2], 225), 'TOTAL', fill=textcolor, font=font)
 
     summaryvalues = {}
     for playmode in define.value_list['play_modes']:
@@ -284,10 +284,10 @@ def generateimage_summary(setting):
             total = str(len(resource.musictable['levels'][playmode][level]))
 
             for index in range(levelcount):
-                draw.multiline_text((playmode_xposition, line*50+200), playmode, fill=textcolor, font=font)
+                draw.multiline_text((playmode_xposition, line*75+300), playmode, fill=textcolor, font=font)
                 
                 bbox = draw.multiline_textbbox((0, 0), level, font=font)
-                draw.multiline_text((level_xposition-bbox[2], line*50+200), level, fill=textcolor, font=font)
+                draw.multiline_text((level_xposition-bbox[2], line*75+300), level, fill=textcolor, font=font)
 
                 for summarytype in summarytypes.keys():
                     if index >= len(items[summarytype]) or not summarytype in table[playmode][level].keys():
@@ -295,12 +295,12 @@ def generateimage_summary(setting):
 
                     key, value = items[summarytype][index]
 
-                    draw.multiline_text((summarytypes_xpositions[summarytype][0], line*50+200), key, fill=textcolor, font=font)
+                    draw.multiline_text((summarytypes_xpositions[summarytype][0], line*75+300), key, fill=textcolor, font=font)
                     bbox = draw.multiline_textbbox((0, 0), value, font=font)
-                    draw.multiline_text((summarytypes_xpositions[summarytype][1]-bbox[2], line*50+200), value, fill=textcolor, font=font)
+                    draw.multiline_text((summarytypes_xpositions[summarytype][1]-bbox[2], line*75+300), value, fill=textcolor, font=font)
 
                 bbox = draw.multiline_textbbox((0, 0), total, font=font)
-                draw.multiline_text((total_exposition-bbox[2], line*50+200), total, fill=textcolor, font=font)
+                draw.multiline_text((total_exposition-bbox[2], line*75+300), total, fill=textcolor, font=font)
 
                 line += 1
 
@@ -309,64 +309,64 @@ def generateimage_summary(setting):
     return image
 
 def generateimage_musicinformation(playmode, difficulty, musicname, record):
-    draw.rectangle((0, 0, 1280, 720), fill=background)
+    draw.rectangle((0, 0, 1920, 1080), fill=background)
 
     bbox = draw.multiline_textbbox((0, 0), musicname, font=font_musicname)
     if bbox[2] >= 1240:
-        musicnameimage = Image.new("RGBA", (bbox[2], 100), background)
+        musicnameimage = Image.new("RGBA", (bbox[2], 150), background)
         musicnamedraw = ImageDraw.Draw(musicnameimage)
         musicnamedraw.multiline_text((0, 0), musicname, font=font_musicname)
-        resized = musicnameimage.resize((1240, 100))
-        image.paste(resized, (20, 10))
+        resized = musicnameimage.resize((1860, 150))
+        image.paste(resized, (30, 15))
     else:
-        draw.multiline_text((20, 10), musicname, fill=textcolor, font=font_musicname)
-    draw.multiline_text((50, 100), f'{playmode} {difficulty}', fill=colors_difficulty[difficulty], font=font)
+        draw.multiline_text((30, 15), musicname, fill=textcolor, font=font_musicname)
+    draw.multiline_text((75, 150), f'{playmode} {difficulty}', fill=colors_difficulty[difficulty], font=font)
 
     if 'timestamps' in record.keys():
         count = str(len(record['timestamps']))
-        draw.multiline_text((20, 170), 'Played count.', fill=textcolor, font=font)
+        draw.multiline_text((30, 255), 'Played count.', fill=textcolor, font=font)
         bbox = draw.multiline_textbbox((0, 0), count, font=font_title)
-        draw.multiline_text((680-bbox[2], 140), count, fill=textcolor, font=font_title)
+        draw.multiline_text((1020-bbox[2], 210), count, fill=textcolor, font=font_title)
 
     if 'latest' in record.keys():
-        draw.multiline_text((20, 260), 'Last time played.', fill=textcolor, font=font)
-        draw.multiline_text((500, 230), record['latest']['timestamp'], fill=textcolor, font=font_title)
+        draw.multiline_text((30, 390), 'Last time played.', fill=textcolor, font=font)
+        draw.multiline_text((750, 345), record['latest']['timestamp'], fill=textcolor, font=font_title)
 
     if 'best' in record.keys():
-        draw.multiline_text((20, 330), 'Options when update a new record.', fill=textcolor, font=font)
+        draw.multiline_text((30, 495), 'Options when update a new record.', fill=textcolor, font=font)
         for keyindex in range(len(musicinformation_keys)):
             key = musicinformation_keys[keyindex]
-            draw.multiline_text((50, keyindex*90+390), str.upper(key.replace('_', ' ')), fill=textcolor, font=font_title)
+            draw.multiline_text((75, keyindex*135+585), str.upper(key.replace('_', ' ')), fill=textcolor, font=font_title)
 
             if not key in record['best'].keys() or record['best'][key] is None:
                 break
 
             value = str(record['best'][key]['value'])
             bbox = draw.multiline_textbbox((0, 0), value, font=font_title)
-            draw.multiline_text((750-bbox[2], keyindex*90+390), value, fill=textcolor, font=font_title)
+            draw.multiline_text((1125-bbox[2], keyindex*135+585), value, fill=textcolor, font=font_title)
 
             has_options = 'options' in record['best'][key].keys() and record['best'][key]['options'] is not None
             if has_options and 'arrange' in record['best'][key]['options'].keys():
                 arrange = record['best'][key]['options']['arrange']
-                draw.multiline_text((800, keyindex*90+390), arrange if arrange is not None else '-----', fill=textcolor, font=font_title)
+                draw.multiline_text((1200, keyindex*135+585), arrange if arrange is not None else '-----', fill=textcolor, font=font_title)
             else:
-                draw.multiline_text((800, keyindex*90+390), '?????', fill=textcolor, font=font_title)
+                draw.multiline_text((1200, keyindex*135+585), '?????', fill=textcolor, font=font_title)
 
     keys1 = {'fixed': 'FIXED', 'S-RANDOM': 'S-RANDOM', 'DBM': 'DBM'}
     if 'achievement' in record.keys():
-        draw.multiline_text((20, 570), 'Achievement status for each options.', fill=textcolor, font=font)
+        draw.multiline_text((30, 855), 'Achievement status for each options.', fill=textcolor, font=font)
         index1 = 0
         for key1 in keys1.keys():
             index2 = 0
             if playmode == 'SP' and key1 == 'DBM':
                 continue
             bbox = draw.multiline_textbbox((0, 0), keys1[key1], font=font_small)
-            draw.multiline_text(((index1+0.5)*380-bbox[2]/2+50, 630), keys1[key1], fill=textcolor, font=font_small)
+            draw.multiline_text(((index1+0.5)*570-bbox[2]/2+75, 945), keys1[key1], fill=textcolor, font=font_small)
             for key2 in ['clear_type', 'dj_level']:
                 value = record['achievement'][key1][key2]
                 if value is None:
                     continue
-                draw.multiline_text((index1*380+index2*240+100, 670), value, fill=textcolor, font=font_small)
+                draw.multiline_text((index1*570+index2*360+150, 1005), value, fill=textcolor, font=font_small)
                 index2 += 1
             index1 += 1
         

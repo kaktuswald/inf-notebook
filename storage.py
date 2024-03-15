@@ -179,24 +179,29 @@ class StorageAccessor():
         informations_trim = force
         details_trim = force
 
-        if result.informations.play_mode is None:
+        if result.informations is None:
             informations_trim = True
-        if result.informations.difficulty is None:
-            informations_trim = True
-        if result.informations.level is None:
-            informations_trim = True
-        if result.informations.music is None:
-            informations_trim = True
+        else:
+            if result.informations.play_mode is None:
+                informations_trim = True
+            if result.informations.difficulty is None:
+                informations_trim = True
+            if result.informations.level is None:
+                informations_trim = True
+            if result.informations.music is None:
+                informations_trim = True
 
-        if result.details.clear_type.current is None:
+        if result.details is None:
             details_trim = True
-        if result.details.dj_level.current is None:
-            details_trim = True
-        if result.details.score.current is None:
-            details_trim = True
-
-        if result.details.graphtarget is None:
-            details_trim = True
+        else:
+            if result.details.clear_type is None or result.details.clear_type.current is None:
+                details_trim = True
+            if result.details.dj_level is None or result.details.dj_level.current is None:
+                details_trim = True
+            if result.details.score is None or result.details.score.current is None:
+                details_trim = True
+            if result.details.graphtarget is None:
+                details_trim = True
 
         if informations_trim:
             trim = image.crop(define.informations_trimarea)
@@ -312,4 +317,4 @@ class StorageAccessor():
             blob.delete()
             count += 1
 
-        print(f'download cont: {count}')
+        print(f'download count: {count}')

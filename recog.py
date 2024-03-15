@@ -39,6 +39,9 @@ class Recognition():
         
         @staticmethod
         def get_play_mode(np_value_informations):
+            if resource.informations is None:
+                return None
+            
             trimmed = np_value_informations[resource.informations['play_mode']['trim']].flatten()
             bins = np.where(trimmed==resource.informations['play_mode']['maskvalue'], 1, 0)
             hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
@@ -49,8 +52,12 @@ class Recognition():
 
         @staticmethod
         def get_difficulty(np_value_informations):
+            if resource.informations is None:
+                return None, None
+            
             trimmed = np_value_informations[resource.informations['difficulty']['trim']]
-            uniques, counts = np.unique(trimmed, return_counts=True)
+            converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
+            uniques, counts = np.unique(converted, return_counts=True)
             difficultykey = uniques[np.argmax(counts)]
             if not difficultykey in resource.informations['difficulty']['table']['difficulty'].keys():
                 return None, None
@@ -71,6 +78,9 @@ class Recognition():
 
         @staticmethod
         def get_notes(np_value_informations):
+            if resource.informations is None:
+                return None
+            
             trimmed = np_value_informations[resource.informations['notes']['trim']]
             splited = np.hsplit(trimmed, resource.informations['notes']['digit'])
 
@@ -104,6 +114,9 @@ class Recognition():
             Returns:
                 str: 曲名(認識失敗時はNone)
             """
+            if resource.informations is None:
+                return None
+
             trimmed = np_value_informations[resource.informations['music']['trim']]
 
             lower = resource.informations['music']['factors']['blue']['lower']
@@ -162,7 +175,11 @@ class Recognition():
 
         @staticmethod
         def get_options(np_value):
-            trimmed = np_value[resource.details['define']['option']['trim']]
+            if resource.details is None:
+                return None
+
+            playside = define.details_get_playside(np_value)
+            trimmed = np_value[resource.details['define']['option']['trim'][playside]]
 
             def generatekey(np_value):
                 bins = np.where(np_value==resource.details['define']['option']['maskvalue'], 1, 0)
@@ -174,7 +191,7 @@ class Recognition():
             assist = None
             battle = False
             while True:
-                tablekey = generatekey(trimmed[:, :resource.details['option']['lengths'][0]*8:2])
+                tablekey = generatekey(trimmed[:, :resource.details['option']['lengths'][0]*2])
                 value = None
                 for length in resource.details['option']['lengths']:
                     if tablekey[:length] in resource.details['option'].keys():
@@ -210,14 +227,21 @@ class Recognition():
 
         @staticmethod
         def get_graphtype(np_value):
+            if resource.details is None:
+                return None
+
             for key, value in resource.details['graphtype'].items():
-                trimmed = np_value[resource.details['define']['graphtype'][key]]
+                playside = define.details_get_playside(np_value)
+                trimmed = np_value[resource.details['define']['graphtype'][playside][key]]
                 if np.all(trimmed==value):
                     return key
             return 'gauge'
 
         @staticmethod
         def get_clear_type(np_value):
+            if resource.details is None:
+                return None
+
             result = {'best': None, 'current': None}
             for key in result.keys():
                 trimmed = np_value[resource.details['define']['clear_type'][key]]
@@ -236,6 +260,9 @@ class Recognition():
 
         @staticmethod
         def get_dj_level(np_value):
+            if resource.details is None:
+                return None
+
             result = {'best': None, 'current': None}
             for key in result.keys():
                 trimmed = np_value[resource.details['define']['dj_level'][key]]
@@ -253,6 +280,9 @@ class Recognition():
 
         @staticmethod
         def get_score(np_value):
+            if resource.details is None:
+                return None
+
             trimmed = np_value[resource.details['define']['score']['best']]
             best = None
             for dig in range(resource.details['define']['score']['digit']):
@@ -291,6 +321,9 @@ class Recognition():
 
         @staticmethod
         def get_miss_count(np_value):
+            if resource.details is None:
+                return None
+
             trimmed = np_value[resource.details['define']['miss_count']['best']]
             best = None
             for dig in range(resource.details['define']['miss_count']['digit']):
@@ -329,6 +362,9 @@ class Recognition():
         
         @staticmethod
         def get_graphtarget(np_value):
+            if resource.details is None:
+                return None
+
             trimmed = np_value[resource.details['define']['graphtarget']['trimmode']]
             uniques, counts = np.unique(trimmed, return_counts=True)
             mode = uniques[np.argmax(counts)]

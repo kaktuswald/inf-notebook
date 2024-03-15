@@ -44,9 +44,6 @@ def load_informations(labels):
         filepath = join(dc.informations_basepath, filename)
         if isfile(filepath):
             image = Image.open(filepath)
-            if image.height != 78:
-                continue
-
             np_value = np.array(image)
             informations[key] = Informations(np_value, labels[key]['informations'])
     
@@ -68,8 +65,7 @@ def load_define():
 
     ret['difficulty']['trim'] = (
         slice(ret['difficulty']['trim'][0][0], ret['difficulty']['trim'][0][1]),
-        slice(ret['difficulty']['trim'][1][0], ret['difficulty']['trim'][1][1]),
-        ret['difficulty']['trim'][2]
+        slice(ret['difficulty']['trim'][1][0], ret['difficulty']['trim'][1][1])
     )
     ret['difficulty']['trimlevel'] = (
         slice(ret['difficulty']['trimlevel'][0][0], ret['difficulty']['trimlevel'][0][1]),
@@ -436,15 +432,16 @@ def larning_difficulty(informations):
         level = target.label['level']
         
         trimmed = target.np_value[informations_define['difficulty']['trim']]
+        converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
 
-        uniques, counts = np.unique(trimmed, return_counts=True)
+        uniques, counts = np.unique(converted, return_counts=True)
         difficultykey = uniques[np.argmax(counts)]
         
         if not difficultykey in table['difficulty'].keys():
             table['difficulty'][difficultykey] = difficulty
             result[difficulty] = {'log': f'difficulty {difficulty}: {difficultykey}({key})', 'levels': {}}
         
-        leveltrimmed = trimmed[informations_define['difficulty']['trimlevel']].flatten()
+        leveltrimmed = converted[informations_define['difficulty']['trimlevel']].flatten()
         bins = np.where(leveltrimmed==difficultykey, 1, 0)
         hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
         levelkey = ''.join([format(v, '0x') for v in hexs])
@@ -469,8 +466,9 @@ def larning_difficulty(informations):
 
     for key, target in evaluate_targets.items():
         trimmed = target.np_value[informations_define['difficulty']['trim']]
+        converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
 
-        uniques, counts = np.unique(trimmed, return_counts=True)
+        uniques, counts = np.unique(converted, return_counts=True)
         difficultykey = uniques[np.argmax(counts)]
 
         difficulty = None
@@ -478,11 +476,11 @@ def larning_difficulty(informations):
             difficulty = table['difficulty'][difficultykey]
 
         if difficulty != target.label['difficulty']:
-            report.saveimage_errorvalue(trimmed, f'{key}.png')
+            report.saveimage_errorvalue(converted, f'{key}.png')
             report.error(f'Mismatch difficulty {difficulty} {key}')
             continue
 
-        leveltrimmed = trimmed[informations_define['difficulty']['trimlevel']]
+        leveltrimmed = converted[informations_define['difficulty']['trimlevel']]
         bins = np.where(leveltrimmed.flatten()==difficultykey, 1, 0)
         hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
         levelkey = ''.join([format(v, '0x') for v in hexs])

@@ -147,7 +147,7 @@ def layout_main(setting):
     pane_left = [
         [
             sg.Text('画像表示スケール', background_color=background_color),
-            sg.Combo(scales, key='scale', default_value='1/2', readonly=True),
+            sg.Combo(scales, key='scale', default_value='1/3', readonly=True),
             sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False),
             sg.Text('スクショ可能', key='captureenable', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
         ],

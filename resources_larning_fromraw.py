@@ -64,11 +64,7 @@ def larning_playside(raws):
     for filename, raw in raws.items():
         if not 'screen' in raw.label.keys() or raw.label['screen'] != 'result':
             continue
-        if not 'dead' in raw.label.keys():
-            continue
-        if not 'cutin_mission' in raw.label.keys() or raw.label['cutin_mission']:
-            continue
-        if not 'cutin_bit' in raw.label.keys() or raw.label['cutin_bit']:
+        if not 'is_savable' in raw.label.keys() or raw.label['is_savable']:
             continue
         if not 'play_side' in raw.label.keys() or not raw.label['play_side'] in define.value_list['play_sides']:
             continue

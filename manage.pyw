@@ -69,9 +69,7 @@ if __name__ == '__main__':
                 screen.filename,
                 {
                     'screen': screen_name,
-                    'trigger': values['trigger'],
-                    'cutin_mission': values['cutin_mission'],
-                    'cutin_bit': values['cutin_bit'],
+                    'is_savable': values['is_savable'],
                     'rival': values['rival'],
                     'graphtype': graph,
                     'play_mode': values['play_mode'],
@@ -90,9 +88,6 @@ if __name__ == '__main__':
             window['list_screens'].update(targets)
         if event == 'search_only_result':
             targets = [filename for filename in filenames if labels.get(filename) is not None and 'screen' in labels.get(filename).keys() and labels.get(filename)['screen'] == 'result']
-            window['list_screens'].update(targets)
-        if event == 'search_only_not_cutin':
-            targets = [filename for filename in filenames if labels.get(filename) is not None and 'screen' in labels.get(filename).keys() and labels.get(filename)['screen'] == 'result' and not labels.get(filename)['cutin_mission'] and not labels.get(filename)['cutin_bit']]
             window['list_screens'].update(targets)
         if event == 'search_only_no_annotation':
             targets = [filename for filename in filenames if labels.get(filename) is None]

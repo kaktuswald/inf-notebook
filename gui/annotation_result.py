@@ -9,9 +9,10 @@ from .static import title,icon_path,background_color
 in_area_background_color='#5779dd'
 
 informations_size = (
-    define.areas_np['informations'][1].stop - define.areas_np['informations'][1].start,
-    define.areas_np['informations'][0].stop - define.areas_np['informations'][0].start
+    (define.areas_np['informations'][1].stop - define.areas_np['informations'][1].start) // 2,
+    (define.areas_np['informations'][0].stop - define.areas_np['informations'][0].start) // 2
 )
+details_size = (define.details_trimsize[0] // 3, define.details_trimsize[1] // 3)
 
 def layout_manage(keys):
     selectable_value_list = {}
@@ -45,10 +46,6 @@ def layout_manage(keys):
         [
             sg.Text('曲名', size=(18, 1)),
             sg.Text(key='result_music', background_color=in_area_background_color)
-        ],
-        [
-            sg.Text('曲名(旧)', size=(18, 1)),
-            sg.Text(key='result_music_old', background_color=in_area_background_color)
         ]
     ]
 
@@ -205,7 +202,7 @@ def layout_manage(keys):
                 [
                     sg.Column([
                         [sg.Image(key='image_informations', size=informations_size, background_color=background_color)],
-                        [sg.Image(key='image_details', size=define.details_trimsize, background_color=background_color)]
+                        [sg.Image(key='image_details', size=details_size, background_color=background_color)]
                     ], background_color=background_color),
                     sg.Listbox(keys, key='list_keys', size=(24, 22), enable_events=True),
                 ],
@@ -241,7 +238,8 @@ def display_informations(image):
     if image is not None:
         bytes = io.BytesIO()
         image.save(bytes, format='PNG')
-        window['image_informations'].update(data=bytes.getvalue(),visible=True,size=informations_size)
+        image = image.resize((image.width // 2, image.height // 2))
+        window['image_informations'].update(data=bytes.getvalue(),subsample=2,visible=True,size=informations_size)
     else:
         window['image_informations'].update(visible=False)
 
@@ -249,7 +247,8 @@ def display_details(image):
     if image is not None:
         bytes = io.BytesIO()
         image.save(bytes, format='PNG')
-        window['image_details'].update(data=bytes.getvalue(),visible=True,size=define.details_trimsize)
+        image = image.resize((image.width // 3, image.height // 3))
+        window['image_details'].update(data=bytes.getvalue(),subsample=3,visible=True,size=details_size)
     else:
         window['image_details'].update(visible=False)
 
@@ -262,15 +261,11 @@ def reset_informations():
     window['result_level'].update('')
     window['result_notes'].update('')
     window['result_music'].update('')
-    window['result_music_old'].update('')
 
 def set_informations(image):
     window['has_informations'].update(True)
     switch_informations_controls()
 
-    if image.height != 78:
-        return
-    
     informations = recog.Result.get_informations(np.array(image))
 
     window['result_play_mode'].update(informations.play_mode if informations.play_mode is not None else '')
@@ -278,7 +273,6 @@ def set_informations(image):
     window['result_level'].update(informations.level if informations.level is not None else '')
     window['result_notes'].update(informations.notes if informations.notes is not None else '')
     window['result_music'].update(informations.music if informations.music is not None else '')
-    window['result_music_old'].update('')
 
 def reset_details():
     window['has_details'].update(False)
@@ -331,19 +325,19 @@ def set_details(image):
         window['result_option_flip'].update('')
         window['result_option_assist'].update('')
         window['result_option_battle'].update(visible=False)
-    window['result_clear_type_best'].update(clear_type.best if clear_type.best is not None else '')
-    window['result_clear_type_current'].update(clear_type.current if clear_type.current is not None else '')
-    window['result_clear_type_new'].update(visible=clear_type.new)
-    window['result_dj_level_best'].update(dj_level.best if dj_level.best is not None else '')
-    window['result_dj_level_current'].update(dj_level.current if dj_level.current is not None else '')
-    window['result_dj_level_new'].update(visible=dj_level.new)
-    window['result_score_best'].update(score.best if score.best is not None else '')
-    window['result_score_current'].update(score.current if score.current is not None else '')
-    window['result_score_new'].update(visible=score.new)
-    window['result_miss_count_best'].update(miss_count.best if miss_count.best is not None else '')
-    window['result_miss_count_current'].update(miss_count.current if miss_count.current is not None else '')
-    window['result_miss_count_new'].update(visible=miss_count.new)
-    window['result_graphtarget'].update(details.graphtarget if details.graphtarget is not None else '')
+    window['result_clear_type_best'].update(clear_type.best if clear_type is not None and clear_type.best is not None else '')
+    window['result_clear_type_current'].update(clear_type.current if clear_type is not None and clear_type.current is not None else '')
+    window['result_clear_type_new'].update(visible=clear_type is not None and clear_type.new)
+    window['result_dj_level_best'].update(dj_level.best if dj_level is not None and dj_level.best is not None else '')
+    window['result_dj_level_current'].update(dj_level.current if dj_level is not None and dj_level.current is not None else '')
+    window['result_dj_level_new'].update(visible=dj_level is not None and dj_level.new)
+    window['result_score_best'].update(score.best if score is not None and score.best is not None else '')
+    window['result_score_current'].update(score.current if score is not None and score.current is not None else '')
+    window['result_score_new'].update(visible=score is not None and score.new)
+    window['result_miss_count_best'].update(miss_count.best if miss_count is not None and miss_count.best is not None else '')
+    window['result_miss_count_current'].update(miss_count.current if miss_count is not None and miss_count.current is not None else '')
+    window['result_miss_count_new'].update(visible=miss_count is not None and miss_count.new)
+    window['result_graphtarget'].update(details.graphtarget if details is not None and details.graphtarget is not None else '')
 
 def set_result():
     window['play_mode'].update(window['result_play_mode'].get())
@@ -352,9 +346,6 @@ def set_result():
     window['notes'].update(window['result_notes'].get())
     music = window['result_music'].get()
     window['music'].update(music)
-    if music == '':
-        window['music'].update(window['result_music_old'].get())
-
     if window['result_graphtype'].get() != '':
         window[f"graphtype_{window['result_graphtype'].get()}"].update(True)
 

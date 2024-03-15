@@ -42,22 +42,25 @@ def load_define():
         print(f"{recognition_define_filepath}を読み込めませんでした。")
         return None
     
-    ret['graphtype']['lanes'] = (
-        slice(ret['graphtype']['lanes'][0][0], ret['graphtype']['lanes'][0][1]),
-        slice(ret['graphtype']['lanes'][1][0], ret['graphtype']['lanes'][1][1]),
-        ret['graphtype']['lanes'][2]
-    )
-    ret['graphtype']['measures'] = (
-        slice(ret['graphtype']['measures'][0][0], ret['graphtype']['measures'][0][1]),
-        slice(ret['graphtype']['measures'][1][0], ret['graphtype']['measures'][1][1]),
-        ret['graphtype']['measures'][2]
-    )
+    graphtypes = {}
+    for playside in ret['graphtype'].keys():
+        graphtypes[playside] = {}
+        for graphtype in ret['graphtype'][playside].keys():
+            graphtypes[playside][graphtype] = (
+                slice(ret['graphtype'][playside][graphtype][0][0], ret['graphtype'][playside][graphtype][0][1]),
+                slice(ret['graphtype'][playside][graphtype][1][0], ret['graphtype'][playside][graphtype][1][1]),
+                ret['graphtype'][playside][graphtype][2]
+            )
+    ret['graphtype'] = graphtypes
 
-    ret['option']['trim'] = (
-        slice(ret['option']['trim'][0][0], ret['option']['trim'][0][1]),
-        slice(ret['option']['trim'][1][0], ret['option']['trim'][1][1]),
-        ret['option']['trim'][2]
-    )
+    option_trims = {}
+    for playside in ret['option']['trim'].keys():
+        option_trims[playside] = (
+            slice(ret['option']['trim'][playside][0][0], ret['option']['trim'][playside][0][1]),
+            slice(ret['option']['trim'][playside][1][0], ret['option']['trim'][playside][1][1]),
+            ret['option']['trim'][playside][2]
+        )
+    ret['option']['trim'] = option_trims
     ret['option']['trimlong'] = (
         slice(ret['option']['trimlong'][0][0], ret['option']['trimlong'][0][1], ret['option']['trimlong'][0][2]),
         slice(ret['option']['trimlong'][1][0], ret['option']['trimlong'][1][1], ret['option']['trimlong'][1][2])
@@ -165,14 +168,16 @@ def larning_graphtype(details):
     for key, target in details.items():
         if not 'graphtype' in target.label.keys() or target.label['graphtype'] == '':
             continue
+        
+        playside = define.details_get_playside(target.np_value)
 
         if target.label['graphtype'] != 'gauge':
             value = target.label['graphtype']
-            trimmed = target.np_value[trimareas[value]]
+            trimmed = target.np_value[trimareas[playside][value]]
             if not value in table.keys():
                 table[value] = trimmed
                 report.saveimage_value(trimmed, f'{value}.png')
-                report.append_log(f'{value}: {trimmed.tolist()}')
+                report.append_log(f'({key}({playside})){value}: {trimmed.tolist()}')
 
         evaluate_targets[key] = target
     
@@ -181,7 +186,8 @@ def larning_graphtype(details):
 
         recoged = 'gauge'
         for k, np_value in table.items():
-            trimmed = target.np_value[trimareas[k]]
+            playside = define.details_get_playside(target.np_value)
+            trimmed = target.np_value[trimareas[playside][k]]
             if np.all(trimmed==np_value):
                 recoged = k
         
@@ -189,7 +195,7 @@ def larning_graphtype(details):
             report.through()
         else:
             report.saveimage_errorvalue(trimmed, f'{key}.png')
-            report.error(f'Mismatch {key} {recoged} {value}')
+            report.error(f'Mismatch {key} {playside} {recoged} {value}')
 
     report.report()
 
@@ -203,18 +209,18 @@ def larning_option(details):
         for v in define.value_list[k]:
             result[v] = []
     result['BATTLE'] = []
-    lengths = [details_define['option']['width'][value]//8 for value in result.keys()]
+    lengths = [details_define['option']['width'][value]//16*8 for value in result.keys()]
     sorted_lengths = sorted(set(lengths))
     sorted_lengths.reverse()
     max_length = sorted_lengths[0]
 
     def generatekey(np_value):
-        bins = np.where(np_value==details_define['option']['maskvalue'], 1, 0)
+        bins = np.where(np_value[:, ::4]==details_define['option']['maskvalue'], 1, 0).T
         hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
         return ''.join([format(v, '0x') for v in hexs.flatten()])
 
     def registerkey(key, value, trimmed, side=''):
-        tablekey = generatekey(trimmed)
+        tablekey = generatekey(trimmed[:, :trimmed.shape[1]//16*16])
         if not tablekey in result[value]:
             result[value].append(tablekey)
             report.saveimage_value(trimmed, f'{value}_{key}_{side}.png')
@@ -227,42 +233,43 @@ def larning_option(details):
         if not 'graphtype' in target.label.keys() or target.label['graphtype'] != 'gauge':
             continue
 
-        trimmed = target.np_value[details_define['option']['trim']]
+        playside = define.details_get_playside(target.np_value)
+        trimmed = target.np_value[details_define['option']['trim'][playside]]
 
         if target.label['option_battle']:
             value = 'BATTLE'
-            trimmed_once = trimmed[:, :details_define['option']['width'][value]//8*8:2]
+            trimmed_once = trimmed[:, :details_define['option']['width'][value]]
             registerkey(key, value, trimmed_once)
             trimmed = trimmed[:, details_define['option']['width'][value] + details_define['option']['width'][',']:]
         
         if target.label['option_arrange'] != '':
             value = target.label['option_arrange']
-            trimmed_once = trimmed[:, :details_define['option']['width'][value]//8*8:2]
+            trimmed_once = trimmed[:, :details_define['option']['width'][value]]
             registerkey(key, value, trimmed_once)
             trimmed = trimmed[:, details_define['option']['width'][value] + details_define['option']['width'][',']:]
 
         if target.label['option_arrange_dp'] != '/':
             left, right = target.label['option_arrange_dp'].split('/')
             for side, value, delimiter in [['left', left, '/'], ['right', right, ',']]:
-                trimmed_once = trimmed[:, :details_define['option']['width'][value]//8*8:2]
+                trimmed_once = trimmed[:, :details_define['option']['width'][value]]
                 registerkey(key, value, trimmed_once, side)
                 trimmed = trimmed[:, details_define['option']['width'][value] + details_define['option']['width'][delimiter]:]
 
         if target.label['option_arrange_sync'] != '':
             value = target.label['option_arrange_sync']
-            trimmed_once = trimmed[:, :details_define['option']['width'][value]//8*8:2]
+            trimmed_once = trimmed[:, :details_define['option']['width'][value]]
             registerkey(key, value, trimmed_once)
             trimmed = trimmed[:, details_define['option']['width'][value] + details_define['option']['width'][',']:]
 
         if target.label['option_flip'] != '':
             value = target.label['option_flip']
-            trimmed_once = trimmed[:, :details_define['option']['width'][value]//8*8:2]
+            trimmed_once = trimmed[:, :details_define['option']['width'][value]]
             registerkey(key, value, trimmed_once)
             trimmed = trimmed[:, details_define['option']['width'][value] + details_define['option']['width'][',']:]
 
         if target.label['option_assist'] != '':
             value = target.label['option_assist']
-            trimmed_once = trimmed[:, :details_define['option']['width'][value]//8*8:2]
+            trimmed_once = trimmed[:, :details_define['option']['width'][value]]
             registerkey(key, value, trimmed_once)
             trimmed = trimmed[:, details_define['option']['width'][value] + details_define['option']['width'][',']:]
 
@@ -275,14 +282,16 @@ def larning_option(details):
     report.append_log(f'Key count: {len(table)}')
 
     for key, target in evaluate_targets.items():
-        trimmed = target.np_value[details_define['option']['trim']]
+        playside = define.details_get_playside(target.np_value)
+        trimmed = target.np_value[details_define['option']['trim'][playside]]
         res = {'arrange': '', 'arrange_dp': '/', 'arrange_sync': '', 'flip': '', 'assist': '', 'battle': False}
         while True:
-            tablekey = generatekey(trimmed[:, :max_length*8:2])
+            tablekey = generatekey(trimmed[:, :max_length*2])
             value = None
             for length in sorted_lengths:
-                if tablekey[:length] in table.keys():
-                    value = table[tablekey[:length]]
+                trimkey = tablekey[:length]
+                if trimkey in table.keys():
+                    value = table[trimkey]
                     break
             
             if value is None:
@@ -476,6 +485,7 @@ def larning_numberbest(details):
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
+                report.saveimage_value(trimmed_once, f'{value}-{key}-score.png')
                 table[tablekey] = value
 
             evaluate_targets[f'score_{key}'] = target
@@ -489,6 +499,7 @@ def larning_numberbest(details):
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
+                report.saveimage_value(trimmed_once, f'{value}-{key}-misscount.png')
                 table[tablekey] = value
         
             evaluate_targets[f'miss_count_{key}'] = target
@@ -565,6 +576,7 @@ def larning_numbercurrent(details):
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
+                report.saveimage_value(trimmed_once, f'{value}-{key}-score.png')
                 table[tablekey] = value
 
             evaluate_targets[f'score_{key}'] = target
@@ -578,6 +590,7 @@ def larning_numbercurrent(details):
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
+                report.saveimage_value(trimmed_once, f'{value}-{key}-misscount.png')
                 table[tablekey] = value
         
             evaluate_targets[f'miss_count_{key}'] = target
@@ -685,6 +698,7 @@ def larning_graphtarget(details):
 
     table = {}
     evaluate_targets = {}
+    result = {}
     for key, target in details.items():
         if not 'graphtarget' in target.label.keys() or target.label['graphtarget'] == '':
             continue
@@ -704,13 +718,10 @@ def larning_graphtarget(details):
         if not tablekey in table[mode].keys():
             table[mode][tablekey] = value
             report.saveimage_value(trimmed, f'{value}.png')
+            result[value] = f'({key}){mode} {tablekey}'
 
         evaluate_targets[key] = target
     
-    for k1, v1 in table.items():
-        for k2, v2 in v1.items():
-            report.append_log(f'{k1} {k2}: {v2}')
-
     for key, target in evaluate_targets.items():
         value = target.label['graphtarget']
 
@@ -732,6 +743,13 @@ def larning_graphtarget(details):
         else:
             report.saveimage_errorvalue(np_value, f'{key}.png')
             report.error(f'Mismatch {recoged} {value} {key}')
+
+    for value in define.value_list['graphtargets']:
+        if value in result.keys():
+            report.append_log(f'{value}: {result[value]}')
+        else:
+            report.append_log(f'{value}: Not define.')
+            report.error(f'Not define {value}')
 
     report.report()
 
