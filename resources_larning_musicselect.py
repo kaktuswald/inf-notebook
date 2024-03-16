@@ -19,6 +19,8 @@ recognition_define_filepath = join(registries_dirname, recognition_define_filena
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
 report_basedir_musictable = join(report_dirname, 'musictable')
 
+musicname_output_dirpath = join(report_dirname, 'musicselect_musicname')
+
 class ImageValues():
     def __init__(self, np_value, label):
         self.np_value = np_value
@@ -166,8 +168,6 @@ def larning_levels():
             bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
-            if not tablekey in table.keys():
-                report.append_log(f'select {difficulty} {value} {tablekey} {key}')
             if tablekey in table.keys() and value != table[tablekey]:
                 report.error(f'Duplicate select {difficulty} {tablekey} {value} {table[tablekey]}')
             table[tablekey] = value
@@ -203,8 +203,6 @@ def larning_levels():
             bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
-            if not tablekey in table.keys():
-                report.append_log(f'noselect {difficulty} {value} {tablekey} {key}')
             if tablekey in table.keys() and value != table[tablekey]:
                 report.error(f'Duplicate noselect {difficulty} {tablekey} {value} {table[tablekey]}')
             table[tablekey] = value
@@ -402,6 +400,7 @@ def larning_number():
 
     table = {}
     evaluate_targets = {}
+    targetkeys = {}
     for key, target in imagevalues.items():
         if 'score' in target.label.keys() and target.label['score'] != "":
             value = int(target.label['score']) % 10
@@ -413,6 +412,7 @@ def larning_number():
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
                 table[tablekey] = value
+                targetkeys[value] = key
 
             evaluate_targets[f'score_{key}'] = target
 
@@ -426,6 +426,7 @@ def larning_number():
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
                 table[tablekey] = value
+                targetkeys[value] = key
         
             evaluate_targets[f'miss_count_{key}'] = target
     
@@ -434,7 +435,7 @@ def larning_number():
         if not len(keys):
             report.append_log(f'Not found key {value}')
         else:
-            report.append_log(f'{value}: {keys}')
+            report.append_log(f'{value}: {keys} ({targetkeys[value]})')
 
     for key, target in evaluate_targets.items():
         if 'score' in target.label.keys() and target.label['score'] != "":
@@ -458,7 +459,6 @@ def larning_number():
             else:
                 report.saveimage_errorvalue(trimmed, f'{key}.png')
                 report.error(f"Mismatch score {result} {target.label['score']} {key}")
-                report.error(f'{keys}')
 
         if 'misscount' in target.label.keys() and target.label['misscount'] != "":
             trimmed = target.np_value[trim_misscount]
@@ -536,6 +536,8 @@ def larning_musicname_arcade(targets, report):
 
     table = resource_target['table'] = {}
 
+    output = []
+
     evaluate = {}
     minimum_valid_count = (
         None,
@@ -560,7 +562,7 @@ def larning_musicname_arcade(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: arcade ({valid_count}) {musicname} {recogkeys}')
+            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
@@ -580,12 +582,18 @@ def larning_musicname_arcade(targets, report):
         count = len(set(evaluate[musicname]))
         if(count != 1):
             report.error(f'duplicate key arcade {musicname}: {count}')
+    
+    output_path = join(musicname_output_dirpath, 'arcade.txt')
+    with open(output_path, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
 def larning_musicname_infinitas(targets, report):
     resource_target = resource['musicname']['infinitas']
     key_valid_count_minimum = musicselect_define['musicname']['infinitas']['key_valid_count_minimum']
 
     table = resource_target['table'] = {}
+
+    output = []
 
     evaluate = {}
     minimum_valid_count = (
@@ -615,7 +623,7 @@ def larning_musicname_infinitas(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: infinitas ({valid_count}) {musicname} {recogkeys}')
+            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
@@ -631,12 +639,18 @@ def larning_musicname_infinitas(targets, report):
         count = len(set(evaluate[musicname]))
         if(count != 1):
             report.error(f'duplicate key infinitas {musicname}: {count}')
+    
+    output_path = join(musicname_output_dirpath, 'infinitas.txt')
+    with open(output_path, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
 def larning_musicname_leggendaria(targets, report):
     resource_target = resource['musicname']['leggendaria']
     key_valid_count_minimum = musicselect_define['musicname']['leggendaria']['key_valid_count_minimum']
 
     table = resource_target['table'] = {}
+
+    output = []
 
     evaluate = {}
     minimum_valid_count = (
@@ -666,7 +680,7 @@ def larning_musicname_leggendaria(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: leggendaria ({valid_count}) {musicname} {recogkeys}')
+            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
@@ -686,6 +700,10 @@ def larning_musicname_leggendaria(targets, report):
         count = len(set(evaluate[musicname]))
         if(count != 1):
             report.error(f'duplicate key leggendaria {musicname}: {count}')
+    
+    output_path = join(musicname_output_dirpath, 'leggendaria.txt')
+    with open(output_path, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
 def larning_musicname():
     report = Report('musicselect_musicname')

@@ -32,7 +32,7 @@ class Define():
     }
 
     result_check = {
-        'background_count': 2,
+        'background_count': 11,
         'background_key_position': (961, 615, 1),
         'areas': {
             "horizontalline": (60, slice(156, 390), 1),
@@ -62,8 +62,8 @@ class Define():
             '2P': (slice(26, 30), slice(1860, 1864), 0)
         },
         'dead': {
-            '1P': (slice(298, 302), slice(580, 584), 0),
-            '2P': (slice(298, 302), slice(1152, 1156), 0)
+            '1P': (slice(300, 304), slice(573, 576), 0),
+            '2P': (slice(300, 304), slice(1145, 1148), 0)
         },
         'informations': (slice(900, 1066), slice(560, 1360)),
         'details': {

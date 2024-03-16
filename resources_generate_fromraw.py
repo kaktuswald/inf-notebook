@@ -104,6 +104,8 @@ def generate_is_savable(raws):
         report.append_log(f'background count: {len(raw_targets)}')
         sorted_keys = sorted([*raw_targets.keys()])
         for background_key in sorted_keys:
+            report.append_log(f'"{background_key}" example: {[*raw_targets[background_key].keys()][0]}')
+        for background_key in sorted_keys:
             report.append_log(f'"{background_key}" raw count: {len(raw_targets[background_key])}')
     else:
         report.append_log(f'Wrong background count: {len(raw_targets)}')

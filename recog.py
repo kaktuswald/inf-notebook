@@ -57,6 +57,7 @@ class Recognition():
             
             trimmed = np_value_informations[resource.informations['difficulty']['trim']]
             converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
+
             uniques, counts = np.unique(converted, return_counts=True)
             difficultykey = uniques[np.argmax(counts)]
             if not difficultykey in resource.informations['difficulty']['table']['difficulty'].keys():
@@ -64,7 +65,7 @@ class Recognition():
             
             difficulty = resource.informations['difficulty']['table']['difficulty'][difficultykey]
 
-            leveltrimmed = trimmed[resource.informations['difficulty']['trimlevel']].flatten()
+            leveltrimmed = converted[resource.informations['difficulty']['trimlevel']].flatten()
             bins = np.where(leveltrimmed==difficultykey, 1, 0)
             hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
             levelkey = ''.join([format(v, '0x') for v in hexs])
@@ -182,7 +183,7 @@ class Recognition():
             trimmed = np_value[resource.details['define']['option']['trim'][playside]]
 
             def generatekey(np_value):
-                bins = np.where(np_value==resource.details['define']['option']['maskvalue'], 1, 0)
+                bins = np.where(np_value[:, ::4]==resource.details['define']['option']['maskvalue'], 1, 0).T
                 hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
                 return ''.join([format(v, '0x') for v in hexs.flatten()])
 

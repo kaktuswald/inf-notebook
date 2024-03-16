@@ -480,8 +480,8 @@ def larning_difficulty(informations):
             report.error(f'Mismatch difficulty {difficulty} {key}')
             continue
 
-        leveltrimmed = converted[informations_define['difficulty']['trimlevel']]
-        bins = np.where(leveltrimmed.flatten()==difficultykey, 1, 0)
+        leveltrimmed = converted[informations_define['difficulty']['trimlevel']].flatten()
+        bins = np.where(leveltrimmed==difficultykey, 1, 0)
         hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
         levelkey = ''.join([format(v, '0x') for v in hexs])
 
