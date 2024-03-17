@@ -185,8 +185,9 @@ class ThreadMain(Thread):
 
             if not shotted:
                 screenshot.shot()
-            if recog.MusicSelect.get_version(screenshot.np_value) is not None:
-                self.queues['musicselect_screen'].put(screenshot.np_value)
+            trimmed = screenshot.np_value[define.musicselect_trimarea_np]
+            if recog.MusicSelect.get_version(trimmed) is not None:
+                self.queues['musicselect_screen'].put(trimmed)
             return
 
         if screen != 'result':
@@ -983,10 +984,19 @@ def get_notebook_targetmusic(musicname):
 
     return notebook
 
+def start_hotkeys():
+    if setting.hotkeys is None:
+        return
+    
+    if 'display_summaryimage' in setting.hotkeys.keys() and setting.hotkeys['display_summaryimage'] != '':
+        keyboard.add_hotkey(setting.hotkeys['display_summaryimage'], display_summaryimage)
+    if 'active_screenshot' in setting.hotkeys.keys() and setting.hotkeys['active_screenshot'] != '':
+        keyboard.add_hotkey(setting.hotkeys['active_screenshot'], active_screenshot)
+    if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
+        keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
+
 if __name__ == '__main__':
-    keyboard.add_hotkey('alt+F10', active_screenshot)
-    keyboard.add_hotkey('alt+F9', display_summaryimage)
-    keyboard.add_hotkey('alt+F8', upload_musicselect)
+    start_hotkeys()
 
     window = gui.generate_window(setting, version)
 
@@ -1072,8 +1082,10 @@ if __name__ == '__main__':
                     if recog.get_is_savable(screen.np_value):
                         result_process(screen)
             if event == 'button_setting':
+                keyboard.clear_all_hotkeys()
                 open_setting(setting)
                 window['button_upload'].update(visible=setting.data_collection)
+                start_hotkeys()
             if event == 'button_save':
                 save()
             if event == 'button_filter':

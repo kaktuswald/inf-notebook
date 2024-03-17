@@ -153,7 +153,10 @@ def output(notebook):
 
     for musicname, music_item in musictable['musics'].items():
         version = music_item['version']
-        notebook_target = notebook.json['musics'][musicname] if musicname in notebook.json['musics'].keys() else None
+        if 'musics' in notebook.json.keys() and musicname in notebook.json['musics'].keys():
+            notebook_target = notebook.json['musics'][musicname]
+        else:
+            notebook_target = None
         for play_mode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
                 if not difficulty in music_item[play_mode].keys() or music_item[play_mode][difficulty] is None:

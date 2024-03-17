@@ -147,7 +147,7 @@ def layout_main(setting):
     pane_left = [
         [
             sg.Text('画像表示スケール', background_color=background_color),
-            sg.Combo(scales, key='scale', default_value='1/3', readonly=True),
+            sg.Combo(scales, key='scale', default_value='1/2', readonly=True),
             sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False),
             sg.Text('スクショ可能', key='captureenable', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
         ],
@@ -172,8 +172,6 @@ def layout_main(setting):
             sg.Button('誤認識を通報', key='button_upload', visible=setting.data_collection, disabled=True, size=(24, 1))
         ],
         [
-            sg.Text('Alt+F9で統計データ表示', background_color=background_color),
-            sg.Text('Alt+F10でスクリーンショットを保存', background_color=background_color),
             sg.Checkbox('常時キャプチャー表示', key='check_display_screenshot', visible=setting.manage,  enable_events=True, background_color=background_color),
             sg.Text('', key='screenshot_filepath', font=('Arial', 8, 'bold'), text_color='#f0fc80', background_color=background_color)
         ],

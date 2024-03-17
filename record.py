@@ -128,6 +128,8 @@ class NotebookSummary(Notebook):
             musicname (str): 曲名
             notebook (NotebookMusic): 対象曲の記録
         """
+        if not 'musics' in self.json.keys():
+            self.json['musics'] = {}
         self.json['musics'][musicname] = {'SP': {}, 'DP': {}}
         music_item = resource.musictable['musics'][musicname]
         for playmode in define.value_list['play_modes']:

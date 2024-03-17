@@ -32,7 +32,7 @@ class Define():
     }
 
     result_check = {
-        'background_count': 11,
+        'background_count': 13,
         'background_key_position': (961, 615, 1),
         'areas': {
             "horizontalline": (60, slice(156, 390), 1),
@@ -65,7 +65,7 @@ class Define():
             '1P': (slice(300, 304), slice(573, 576), 0),
             '2P': (slice(300, 304), slice(1145, 1148), 0)
         },
-        'informations': (slice(900, 1066), slice(560, 1360)),
+        'informations': (slice(960, 1066), slice(560, 1360)),
         'details': {
             '1P': (slice(64, 1016), slice(10, 564)),
             '2P': (slice(64, 1016), slice(1360, 1914))
@@ -105,6 +105,10 @@ class Define():
     
     musicselect_recognition_version = '2.0'
     musicselect_trimarea = (48, 135, 1188, 952)
+    musicselect_trimarea_np = (
+        (slice(musicselect_trimarea[1], musicselect_trimarea[3])),
+        (slice(musicselect_trimarea[0], musicselect_trimarea[2])),
+    )
 
     musicselect_rivals_name_area = (760, 634, 856, 808)
 
