@@ -223,7 +223,7 @@ def load_image(music, timestamp, destination_dirpath, target_dirname, scoretype)
     
     return None
 
-def generateimage_summary(setting):
+def generateimage_summary(setting, countmethod_only):
     draw.rectangle((0, 0, 1280, 720), fill=background)
     draw.multiline_text((20, 20), 'Number of goals achieved.', fill=textcolor, font=font_title)
 
@@ -254,8 +254,11 @@ def generateimage_summary(setting):
                 summaryvalues[playmode][summarytype_a][level] = {}
                 count = 0
                 for columnindex in range(len(columnkeys)):
-                    count += int(line[-(columnindex+3)])
-                    summaryvalues[playmode][summarytype_a][level][columnkeys[-(columnindex+1)]] = str(count)
+                    if not countmethod_only:
+                        count += int(line[-(columnindex+3)])
+                        summaryvalues[playmode][summarytype_a][level][columnkeys[-(columnindex+1)]] = str(count)
+                    else:
+                        summaryvalues[playmode][summarytype_a][level][columnkeys[-(columnindex+1)]] = line[-(columnindex+3)]
 
     table = {}
     for playmode in setting.keys():

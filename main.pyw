@@ -962,7 +962,7 @@ def create_graph(selection, targetrecord):
     selection.selection_graph(image)
 
 def display_summaryimage():
-    gui.display_image(get_imagevalue(generateimage_summary(setting.summaries)))
+    gui.display_image(get_imagevalue(generateimage_summary(setting.summaries, setting.summary_countmethod_only)))
 
 def get_notebook_targetmusic(musicname):
     """目的の曲の記録を取得する

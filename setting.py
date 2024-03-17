@@ -32,7 +32,8 @@ default = {
         'active_screenshot': 'alt+F10',
         'display_summaryimage': 'alt+F9',
         'upload_musicselect': 'alt+F8'
-    }
+    },
+    'summary_countmethod_only': False
 }
 
 class Setting():
@@ -165,6 +166,14 @@ class Setting():
     @hotkeys.setter
     def hotkeys(self, value):
         self.set_value('hotkeys', value)
+    
+    @property
+    def summary_countmethod_only(self):
+        return self.get_value('summary_countmethod_only')
+
+    @summary_countmethod_only.setter
+    def summary_countmethod_only(self, value):
+        self.set_value('summary_countmethod_only', value)
     
     @property
     def ignore_download(self):
