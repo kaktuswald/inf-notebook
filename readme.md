@@ -204,7 +204,8 @@ originalscoredata_sp,originalscoredata_dpフォルダにダウンロードした
 trim_scoredata_csv.pyを実行すると、曲名・バージョン・各難易度を切り出した
 trimmed_difficulties_sp.csv,trimmed_difficulties_dp.csvが作成される。
 ```shell
-python registries/trim_scoredata_csv.py
+cd registries
+python trim_scoredata_csv.py
 ```
 
 #### GUI上で画像にラベル付けする

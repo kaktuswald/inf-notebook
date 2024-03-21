@@ -101,9 +101,9 @@ class Define():
     }
     details_graphtarget_name_area = (210, 622, 300, 644)
 
-    musictable_version = '1.0'
+    musictable_version = '1.1'
     
-    musicselect_recognition_version = '2.0'
+    musicselect_recognition_version = '2.1'
     musicselect_trimarea = (48, 135, 1188, 952)
     musicselect_trimarea_np = (
         (slice(musicselect_trimarea[1], musicselect_trimarea[3])),

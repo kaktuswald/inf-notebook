@@ -1085,6 +1085,7 @@ if __name__ == '__main__':
                 keyboard.clear_all_hotkeys()
                 open_setting(setting)
                 window['button_upload'].update(visible=setting.data_collection)
+                keyboard.unhook_all_hotkeys()
                 start_hotkeys()
             if event == 'button_save':
                 save()

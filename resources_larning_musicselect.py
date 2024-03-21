@@ -508,7 +508,7 @@ def larning_musicname_convertdefine():
     resource_target['arcade'] = {
         'trim': (
             slice(arcade['trim'][0][0], arcade['trim'][0][1]),
-            slice(arcade['trim'][1][0], arcade['trim'][1][1], arcade['trim'][1][2])
+            slice(arcade['trim'][1][0], arcade['trim'][1][1])
         ),
         'thresholds': arcade['thresholds']
     }
@@ -550,10 +550,11 @@ def larning_musicname_arcade(targets, report):
         cropped = target.np_value[resource_target['trim']]
         masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
         bins = [np.where((th[i][0]<=masked[i])&(masked[i]<=th[i][1]), 1, 0) for i in range(masked.shape[0])]
-        valid_count = np.count_nonzero(bins)
+        shrunk = [line[::2]&line[1::2] for line in bins]
+        valid_count = np.count_nonzero(shrunk)
         if valid_count < minimum_valid_count[2]:
             minimum_valid_count = (musicname, key, valid_count)
-        hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
+        hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in shrunk]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
         for recogkey in recogkeys[:-1]:
@@ -781,7 +782,8 @@ def larning_musicname():
             cropped = target.np_value[resource_target['trim']]
             masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
             bins = [np.where((thresholds[i][0]<=masked[i])&(masked[i]<=thresholds[i][1]), 1, 0) for i in range(masked.shape[0])]
-            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
+            shrunk = [line[::2]&line[1::2] for line in bins]
+            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in shrunk]
             recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
             tabletarget = resource_target['table']
             for recogkey in recogkeys:

@@ -224,6 +224,9 @@ def load_image(music, timestamp, destination_dirpath, target_dirname, scoretype)
     return None
 
 def generateimage_summary(setting, countmethod_only):
+    if resource.musictable is None:
+        return
+    
     draw.rectangle((0, 0, 1280, 720), fill=background)
     draw.multiline_text((20, 20), 'Number of goals achieved.', fill=textcolor, font=font_title)
 

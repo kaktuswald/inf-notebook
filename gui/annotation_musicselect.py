@@ -172,7 +172,14 @@ def layout_manage(keys):
         [sg.Checkbox('未アノテーションのみ', key='only_not_annotation', enable_events=True, background_color=in_area_background_color)],
         [sg.Checkbox('曲名なしのみ', key='only_undefined_musicname', enable_events=True, background_color=in_area_background_color)],
         [sg.Checkbox('バージョンなしのみ', key='only_undefined_version', enable_events=True, background_color=in_area_background_color)],
-        [sg.Input(key='keyfilter', enable_events=True)]
+        [
+            sg.Text('曲名', size=(5, 1)),
+            sg.Input(key='musicnamefilter', enable_events=True)
+        ],
+        [
+            sg.Text('キー', size=(5, 1)),
+            sg.Input(key='keyfilter', enable_events=True)
+        ]
     ]
 
     return [
@@ -273,6 +280,10 @@ def reflect_recognized():
     window['playmode'].update(window['result_playmode'].get())
     window['version'].update(window['result_version'].get())
     window['musictype'].update('ARCADE')
+    if window['result_version'].get() == 'INFINITAS':
+        window['musictype'].update('INFINITAS')
+    if window['result_difficulty'].get() == 'LEGGENDARIA':
+        window['musictype'].update('LEGGENDARIA')
     window['musicname'].update(window['result_musicname'].get())
     window['difficulty'].update(window['result_difficulty'].get())
     window['cleartype'].update(window['result_cleartype'].get())
@@ -321,6 +332,8 @@ def change_search_condition(keys, labels):
         keys = [key for key in keys if key in labels.keys() and (not 'musicname' in labels[key].keys() or labels[key]['musicname'] == '')]
     if window['only_undefined_version'].get():
         keys = [key for key in keys if key in labels.keys() and (not 'version' in labels[key].keys() or labels[key]['version'] == '')]
+    if len(window['musicnamefilter'].get()) > 0:
+        keys = [key for key in keys if key in labels.keys() and ('musicname' in labels[key].keys() and window['musicnamefilter'].get() in labels[key]['musicname'])]
     if len(window['keyfilter'].get()) > 0:
         keys = [key for key in keys if window['keyfilter'].get() in key]
     window['list_keys'].update(keys)

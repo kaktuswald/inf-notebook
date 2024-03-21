@@ -94,7 +94,7 @@ if __name__ == '__main__':
                 json.dump(labels, f, indent=2)
         if event == 'button_recog' and not target_key is None:
             gui.reflect_recognized()
-        if event in ['only_not_annotation', 'only_undefined_musicname', 'only_undefined_version', 'keyfilter']:
+        if event in ['only_not_annotation', 'only_undefined_musicname', 'only_undefined_version', 'musicnamefilter', 'keyfilter']:
             gui.change_search_condition(filenames, labels)
 
     window.close()
