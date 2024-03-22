@@ -56,10 +56,8 @@ def generate_filename(music, timestamp, scoretype=None, musicname_right=False):
     Returns:
         str: ファイル名
     """
-    if scoretype is not None:
-        playmode = scoretype['playmode'] if scoretype['playmode'] is not None else '??'
-        difficulty = scoretype['difficulty'][0] if scoretype['difficulty'] is not None else '?'
-        st = f'[{playmode}{difficulty}]'
+    if scoretype is not None and scoretype['playmode'] is not None and scoretype['difficulty'] is not None:
+        st = f"[{scoretype['playmode']}{scoretype['difficulty'][0]}]"
     else:
         st = ''
 
@@ -225,7 +223,10 @@ def load_image(music, timestamp, destination_dirpath, target_dirname, scoretype)
     
     return None
 
-def generateimage_summary(setting):
+def generateimage_summary(setting, countmethod_only):
+    if resource.musictable is None:
+        return
+    
     draw.rectangle((0, 0, 1280, 720), fill=background)
     draw.multiline_text((20, 20), 'Number of goals achieved.', fill=textcolor, font=font_title)
 
@@ -256,8 +257,11 @@ def generateimage_summary(setting):
                 summaryvalues[playmode][summarytype_a][level] = {}
                 count = 0
                 for columnindex in range(len(columnkeys)):
-                    count += int(line[-(columnindex+3)])
-                    summaryvalues[playmode][summarytype_a][level][columnkeys[-(columnindex+1)]] = str(count)
+                    if not countmethod_only:
+                        count += int(line[-(columnindex+3)])
+                        summaryvalues[playmode][summarytype_a][level][columnkeys[-(columnindex+1)]] = str(count)
+                    else:
+                        summaryvalues[playmode][summarytype_a][level][columnkeys[-(columnindex+1)]] = line[-(columnindex+3)]
 
     table = {}
     for playmode in setting.keys():

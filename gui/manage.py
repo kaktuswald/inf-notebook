@@ -5,7 +5,7 @@ from PIL import Image
 from define import define
 from .static import title,icon_path,background_color,in_area_background_color
 
-default_box = (0, 0, 1280, 720)
+default_box = (0, 0, 1920, 1080)
 scales = ['1/1', '1/2', '1/4']
 
 def layout_manage(filenames):
@@ -34,13 +34,8 @@ def layout_manage(filenames):
 
     manage_label = [
         [
-            sg.Text('リザルト判定', size=(16, 1)),
-            sg.Checkbox('認識可能', key='trigger', default=True, background_color=in_area_background_color)
-        ],
-        [
-            sg.Text('カットイン', size=(16, 1)),
-            sg.Checkbox('ミッション', key='cutin_mission', background_color=in_area_background_color),
-            sg.Checkbox('ビット獲得', key='cutin_bit', background_color=in_area_background_color)
+            sg.Text('リザルト限定', size=(16, 1)),
+            sg.Checkbox('保存可能', key='is_savable', default=True, background_color=in_area_background_color)
         ],
         [
             sg.Text('ライバル挑戦状', size=(16, 1)),
@@ -74,7 +69,7 @@ def layout_manage(filenames):
                     sg.Column([
                         [
                             sg.Text('画像表示スケール', background_color=background_color),
-                            sg.Combo(scales, default_value='1/2', readonly=True, key='scale')
+                            sg.Combo(scales, default_value='1/3', readonly=True, key='scale')
                         ],
                         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)]
                     ], pad=0, background_color=background_color),
@@ -84,13 +79,12 @@ def layout_manage(filenames):
                         [sg.Radio('選曲のみ', key='search_only_music_select', group_id='search', enable_events=True, background_color=background_color)],
                         [sg.Radio('プレイ中のみ', key='search_only_playing', group_id='search', enable_events=True, background_color=background_color)],
                         [sg.Radio('リザルトのみ', key='search_only_result', group_id='search', enable_events=True, background_color=background_color)],
-                        [sg.Radio('カットインなし', key='search_only_not_cutin', group_id='search', enable_events=True, background_color=background_color)],
                         [sg.Radio('アノテーションなし', key='search_only_no_annotation', group_id='search', enable_events=True, background_color=background_color)]
                     ], pad=0, background_color=background_color)
                 ],
                 [
-                    sg.Column(manage_screen, size=(190, 210), background_color=in_area_background_color),
-                    sg.Column(manage_label, size=(400, 210), background_color=in_area_background_color),
+                    sg.Column(manage_screen, size=(190, 180), background_color=in_area_background_color),
+                    sg.Column(manage_label, size=(400, 180), background_color=in_area_background_color),
                 ],
             ], pad=0, background_color=background_color)
         ],
@@ -117,8 +111,10 @@ def display_image(image):
     scale = window['scale'].get()
     if scale == '1/2':
         image = image.resize((image.width // 2, image.height // 2))
-    if scale == '1/4':
+    if scale == '1/3':
         image = image.resize((image.width // 3, image.height // 3))
+    if scale == '1/4':
+        image = image.resize((image.width // 4, image.height // 4))
     
     bytes = io.BytesIO()
     image.save(bytes, format='PNG')
@@ -127,9 +123,7 @@ def display_image(image):
 
 def set_labels(label):
     window['screen_none'].update(True)
-    window['trigger'].update(True)
-    window['cutin_mission'].update(False)
-    window['cutin_bit'].update(False)
+    window['is_savable'].update(False)
     window['rival'].update(False)
     window['play_side'].update('')
     window['play_mode'].update('')
@@ -140,12 +134,8 @@ def set_labels(label):
     if not label is None:
         if 'screen' in label.keys():
             window[f"screen_{label['screen']}"].update(True)
-        if 'trigger' in label.keys():
-            window['trigger'].update(label['trigger'])
-        if 'cutin_mission' in label.keys():
-            window['cutin_mission'].update(label['cutin_mission'])
-        if 'cutin_bit' in label.keys():
-            window['cutin_bit'].update(label['cutin_bit'])
+        if 'is_savable' in label.keys():
+            window['is_savable'].update(label['is_savable'])
         if 'rival' in label.keys():
             window['rival'].update(label['rival'])
         if 'graphtype' in label.keys() and label['graphtype'] is not None:

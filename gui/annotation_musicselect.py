@@ -7,7 +7,7 @@ from recog import Recognition as recog
 from .static import title,icon_path,background_color
 
 imagescale = 1 / 2
-imagesize = list((np.array([1280, 720],dtype=np.int32) * imagescale).astype(np.int32))
+imagesize = list((np.array([696, 546],dtype=np.int32) * imagescale).astype(np.int32))
 in_area_background_color='#5779dd'
 
 def layout_manage(keys):
@@ -172,7 +172,14 @@ def layout_manage(keys):
         [sg.Checkbox('未アノテーションのみ', key='only_not_annotation', enable_events=True, background_color=in_area_background_color)],
         [sg.Checkbox('曲名なしのみ', key='only_undefined_musicname', enable_events=True, background_color=in_area_background_color)],
         [sg.Checkbox('バージョンなしのみ', key='only_undefined_version', enable_events=True, background_color=in_area_background_color)],
-        [sg.Input(key='keyfilter', enable_events=True)]
+        [
+            sg.Text('曲名', size=(5, 1)),
+            sg.Input(key='musicnamefilter', enable_events=True)
+        ],
+        [
+            sg.Text('キー', size=(5, 1)),
+            sg.Input(key='keyfilter', enable_events=True)
+        ]
     ]
 
     return [
@@ -180,15 +187,15 @@ def layout_manage(keys):
             sg.Column([
                 [
                     sg.Image(key='image', size=imagesize, background_color=background_color),
-                    sg.Listbox(keys, key='list_keys', size=(24, 22), enable_events=True),
+                    sg.Listbox(keys, key='list_keys', size=(24, 19), enable_events=True),
                 ],
                 [
-                    sg.Column(results1, size=(300, 190), background_color=in_area_background_color),
-                    sg.Column(results2, size=(500, 190), background_color=in_area_background_color),
+                    sg.Column(results1, size=(200, 215), background_color=in_area_background_color),
+                    sg.Column(results2, size=(340, 215), background_color=in_area_background_color),
                 ],
             ], pad=0, background_color=background_color),
             sg.Column([
-                [sg.Column(manage_label_define, size=(385,580), background_color=in_area_background_color)],
+                [sg.Column(manage_label_define, size=(385,540), background_color=in_area_background_color)],
             ], pad=0, background_color=background_color)
         ]
     ]
@@ -233,7 +240,12 @@ def clear_results():
     window['result_level_another'].update('')
     window['result_level_leggendaria'].update('')
 
+from resources import resource
+
 def recognize(image):
+    if resource.musicselect is None:
+        return
+    
     playmode = recog.MusicSelect.get_playmode(image)
     version = recog.MusicSelect.get_version(image)
     musicname = recog.MusicSelect.get_musicname(image)
@@ -268,6 +280,10 @@ def reflect_recognized():
     window['playmode'].update(window['result_playmode'].get())
     window['version'].update(window['result_version'].get())
     window['musictype'].update('ARCADE')
+    if window['result_version'].get() == 'INFINITAS':
+        window['musictype'].update('INFINITAS')
+    if window['result_difficulty'].get() == 'LEGGENDARIA':
+        window['musictype'].update('LEGGENDARIA')
     window['musicname'].update(window['result_musicname'].get())
     window['difficulty'].update(window['result_difficulty'].get())
     window['cleartype'].update(window['result_cleartype'].get())
@@ -316,6 +332,8 @@ def change_search_condition(keys, labels):
         keys = [key for key in keys if key in labels.keys() and (not 'musicname' in labels[key].keys() or labels[key]['musicname'] == '')]
     if window['only_undefined_version'].get():
         keys = [key for key in keys if key in labels.keys() and (not 'version' in labels[key].keys() or labels[key]['version'] == '')]
+    if len(window['musicnamefilter'].get()) > 0:
+        keys = [key for key in keys if key in labels.keys() and ('musicname' in labels[key].keys() and window['musicnamefilter'].get() in labels[key]['musicname'])]
     if len(window['keyfilter'].get()) > 0:
         keys = [key for key in keys if window['keyfilter'].get() in key]
     window['list_keys'].update(keys)

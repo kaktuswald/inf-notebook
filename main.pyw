@@ -185,8 +185,9 @@ class ThreadMain(Thread):
 
             if not shotted:
                 screenshot.shot()
-            if recog.MusicSelect.get_version(screenshot.np_value) is not None:
-                self.queues['musicselect_screen'].put(screenshot.np_value)
+            trimmed = screenshot.np_value[define.musicselect_trimarea_np]
+            if recog.MusicSelect.get_version(trimmed) is not None:
+                self.queues['musicselect_screen'].put(trimmed)
             return
 
         if screen != 'result':
@@ -306,7 +307,7 @@ def result_process(screen):
 
     resultimage = screen.original
     if setting.data_collection or window['force_upload'].get():
-        if storage.upload_collection(result, resultimage, window['force_upload'].get()):
+        if storage.start_uploadcollection(result, resultimage, window['force_upload'].get()):
             timestamps_uploaded.append(result.timestamp)
     
     if setting.newrecord_only and not result.has_new_record():
@@ -527,6 +528,19 @@ def active_screenshot():
         log_debug(f'save screen: {filepath}')
         gui.display_image(get_imagevalue(image))
         window['screenshot_filepath'].update(join(pardir, filepath))
+
+def upload_musicselect():
+    """
+    選曲画面の一部を学習用にアップロードする
+    """
+    if not screenshot.shot():
+        return
+    
+    image = screenshot.get_image()
+    if image is not None:
+        storage.start_uploadmusicselect(image)
+        log_debug(f'upload screen')
+        gui.display_image(get_imagevalue(image))
 
 def log_debug(message):
     logger.debug(message)
@@ -950,7 +964,7 @@ def create_graph(selection, targetrecord):
     selection.selection_graph(image)
 
 def display_summaryimage():
-    gui.display_image(get_imagevalue(generateimage_summary(setting.summaries)))
+    gui.display_image(get_imagevalue(generateimage_summary(setting.summaries, setting.summary_countmethod_only)))
 
 def get_notebook_targetmusic(musicname):
     """目的の曲の記録を取得する
@@ -972,9 +986,19 @@ def get_notebook_targetmusic(musicname):
 
     return notebook
 
+def start_hotkeys():
+    if setting.hotkeys is None:
+        return
+    
+    if 'display_summaryimage' in setting.hotkeys.keys() and setting.hotkeys['display_summaryimage'] != '':
+        keyboard.add_hotkey(setting.hotkeys['display_summaryimage'], display_summaryimage)
+    if 'active_screenshot' in setting.hotkeys.keys() and setting.hotkeys['active_screenshot'] != '':
+        keyboard.add_hotkey(setting.hotkeys['active_screenshot'], active_screenshot)
+    if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
+        keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
+
 if __name__ == '__main__':
-    keyboard.add_hotkey('alt+F10', active_screenshot)
-    keyboard.add_hotkey('alt+F9', display_summaryimage)
+    start_hotkeys()
 
     window = gui.generate_window(setting, version)
 
@@ -1060,8 +1084,11 @@ if __name__ == '__main__':
                     if recog.get_is_savable(screen.np_value):
                         result_process(screen)
             if event == 'button_setting':
+                keyboard.clear_all_hotkeys()
                 open_setting(setting)
                 window['button_upload'].update(visible=setting.data_collection)
+                keyboard.unhook_all_hotkeys()
+                start_hotkeys()
             if event == 'button_save':
                 save()
             if event == 'button_filter':

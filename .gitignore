@@ -152,3 +152,4 @@ export/*.csv
 export/*.png
 
 _*.py
+_*.csv

@@ -18,7 +18,7 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.annotation_musicselect as gui
-from resources_larning_musicselect import raws_musicselect_basepath,label_filepath
+from resources_larning_musicselect import images_musicselect_basepath,label_filepath
 
 images = {}
 np_values = {}
@@ -29,7 +29,7 @@ def update_annotation():
     global labels
 
 def load_image(filename):
-    filepath = join(raws_musicselect_basepath, filename)
+    filepath = join(images_musicselect_basepath, filename)
 
     if not exists(filepath):
         return None
@@ -37,7 +37,7 @@ def load_image(filename):
     return Image.open(filepath)
 
 if __name__ == '__main__':
-    files = glob(join(raws_musicselect_basepath, '*.png'))
+    files = glob(join(images_musicselect_basepath, '*.png'))
     filenames = [*map(basename, files)]
 
     try:
@@ -94,7 +94,7 @@ if __name__ == '__main__':
                 json.dump(labels, f, indent=2)
         if event == 'button_recog' and not target_key is None:
             gui.reflect_recognized()
-        if event in ['only_not_annotation', 'only_undefined_musicname', 'only_undefined_version', 'keyfilter']:
+        if event in ['only_not_annotation', 'only_undefined_musicname', 'only_undefined_version', 'musicnamefilter', 'keyfilter']:
             gui.change_search_condition(filenames, labels)
 
     window.close()

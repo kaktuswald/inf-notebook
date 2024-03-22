@@ -51,6 +51,28 @@ def open_setting(setting):
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Checkbox('ファイル名の後尾に曲名をつける', key='check_savefilemusicname_right', default=setting.savefilemusicname_right, background_color=background_dark)
             ],
+            [sg.Text('ショートカットキー', background_color=background_color_label)],
+            [
+                sg.Text('', size=(2, 1), background_color=background_dark),
+                sg.Text('統計データ表示', size=(20, 1), background_color=background_dark),
+                sg.Input(setting.hotkeys['display_summaryimage'], size=(12, 1), key='hotkey_display_summaryimage')
+            ],
+            [
+                sg.Text('', size=(2, 1), background_color=background_dark),
+                sg.Text('スクリーンショット', size=(20, 1), background_color=background_dark),
+                sg.Input(setting.hotkeys['active_screenshot'], size=(12, 1), key='hotkey_active_screenshot'),
+            ],
+            [
+                sg.Text('', size=(2, 1), background_color=background_dark),
+                sg.Text('選曲画面のアップロード', size=(20, 1), background_color=background_dark),
+                sg.Input(setting.hotkeys['upload_musicselect'], size=(12, 1), key='hotkey_upload_musicselect')
+            ],
+            [sg.Text('統計データの曲数', background_color=background_color_label)],
+            [
+                sg.Text('', size=(2, 1), background_color=background_dark),
+                sg.Radio('達成している曲数をカウントする', group_id='summary_countmethod', key='summary_countmethod_sum', background_color=background_dark, enable_events=True, default=not setting.summary_countmethod_only),
+                sg.Radio('対象の曲数のみをカウントする', group_id='summary_countmethod', key='summary_countmethod_only', background_color=background_dark, enable_events=True, default=setting.summary_countmethod_only)
+            ],
             [sg.Text('リザルト画像の表示', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
@@ -136,7 +158,7 @@ def open_setting(setting):
             path = result.replace('/', '\\')
             if exists(path):
                 window['imagesave_path'].update(path)
-        if 'check_summary' in event:
+        if 'check_summary' in event or 'summary_countmethod' in event:
             changed_summaries = True
         if event == 'button_save':
             setting.display_result = values['check_display_result']
@@ -149,6 +171,12 @@ def open_setting(setting):
             setting.imagesave_path = values['imagesave_path']
             setting.data_collection = values['check_data_collection']
             setting.summaries = set_summarysetting(window)
+            setting.hotkeys = {
+                'display_summaryimage': values['hotkey_display_summaryimage'],
+                'active_screenshot': values['hotkey_active_screenshot'],
+                'upload_musicselect': values['hotkey_upload_musicselect'],
+            }
+            setting.summary_countmethod_only = values['summary_countmethod_only']
             setting.save()
             gui.switch_table(setting.display_music)
             if changed_summaries:
@@ -158,7 +186,7 @@ def open_setting(setting):
 
     if saved_summaries:
         if question('統計設定変更', '統計データを更新しますか？'):
-            display_image(get_imagevalue(generateimage_summary(setting.summaries)))
+            display_image(get_imagevalue(generateimage_summary(setting.summaries, setting.summary_countmethod_only)))
 
 def set_summarysetting(window):
     summaries = {}

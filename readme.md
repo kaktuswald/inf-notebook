@@ -175,6 +175,12 @@ python download_collections.py
 ## 学習する
 
 ### リザルトの詳細と曲リスト
+曲リスト
+- 全曲の曲名ソート順の曲リスト
+- バージョンごとの曲リスト
+- レベルごとの曲リスト
+- ビギナーとレジェンダリアの曲リスト
+
 リザルトの詳細
 - プレイモード(SP or DP)
 - 譜面難易度と☆とノーツ数
@@ -184,38 +190,45 @@ python download_collections.py
 - クリアランプ・DJレベル・スコア・ミスカウント
 - クリアランプ・DJレベル・スコア・ミスカウントのNEW RECORD
 
-曲リスト
-- 全曲の曲名ソート順の曲リスト
-- バージョンごとの曲リスト
-- レベルごとの曲リスト
+選曲
+- プレイモード(SP or DP)
+- バージョン
+- 曲名
+- 各譜面のレベル
+- 自己ベストのクリアランプ・DJレベル・スコア・ミスカウント
 
 以上の画像認識の学習と全収録曲のリストの作成を目的とする。
 
 #### 収録曲情報
-registriesフォルダに各種ファイルを作っておく
+registriesフォルダに各種ファイルを作っておく。
 - versions.txt バージョンのリスト
 - musics.csv 全曲のリスト
 - categorycount_versions.csv バージョンカテゴリの各曲数
 - categorycount_difficulties.csv 難易度カテゴリの各曲数(BEGINNER,LEGGENDARIA)
 - categorycount_levels.csv レベルカテゴリの各曲数
 
-##### アーケードのCSVファイルからの難易度抽出
-originalscoredata_sp,originalscoredata_dpフォルダにダウンロードしたファイルを置いて(複数可)
-trim_scoredata_csv.pyを実行すると、曲名・バージョン・各難易度を切り出した
-trimmed_difficulties_sp.csv,trimmed_difficulties_dp.csvが作成される。
-```shell
-python registries/trim_scoredata_csv.py
-```
-
 #### GUI上で画像にラベル付けする
 ```shell
+python annotation_musicselect.pyw
 python annotation_result.pyw
+```
+
+##### 曲リストの作成
+musics.csvから曲リストを作成して、収集した選曲画面のラベルから各譜面のレベルを取り込む。
+アーケードのCSVデータファイルをダウンロードして、
+originalscoredata_sp,originalscoredata_dpフォルダにおいておく。
+アーケードデータとの収録曲やレベルの比較を行う。
+各カテゴリの曲数を照合する。
+
+```shell
+python resources_generate_musictable.py
 ```
 
 #### 学習する
 ```shell
 python resources_larning_informations.py
 python resources_larning_details.py
+python resources_larning_musicselect.py
 ```
 
 #### 誤った曲名の修正
@@ -231,9 +244,10 @@ python resources_larning_details.py
 ```
 
 resourcesフォルダに以下ファイルが作成される。
+- musictable(バージョン).res
 - informations(バージョン).res
 - detailss(バージョン).res
-- musictable(バージョン).res
+- musicselect(バージョン).res
 
 #### 学習した曲名認識データをアップロードする
 すべての場合
@@ -243,9 +257,9 @@ python resources_upload.py -all
 
 指定したリソースファイルのみアップロードする場合
 ```shell
+python resources_upload.py -musictable
 python resources_upload.py -informations
 python resources_upload.py -details
-python resources_upload.py -musictable
 python resources_upload.py -musicselect
 python resources_upload.py -musicnamechanges
 ```

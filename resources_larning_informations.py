@@ -10,7 +10,6 @@ from image import generate_filename
 import data_collection as dc
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 from resources_larning import larning_multivalue
-from resources_generate_musictable import generate as generate_musictable
 
 recognition_define_filename = 'define_recognition_informations.json'
 
@@ -26,7 +25,6 @@ arcadeallmusics_filepath = join(registries_dirname, arcadeallmusics_filename)
 infinitasonlymusics_filepath = join(registries_dirname, infinitasonlymusics_filename)
 
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
-report_basedir_musictable = join(report_dirname, 'musictable')
 
 musicfilenametest_basedir = join(report_dirname, 'music_filename')
 
@@ -44,9 +42,6 @@ def load_informations(labels):
         filepath = join(dc.informations_basepath, filename)
         if isfile(filepath):
             image = Image.open(filepath)
-            if image.height != 78:
-                continue
-
             np_value = np.array(image)
             informations[key] = Informations(np_value, labels[key]['informations'])
     
@@ -68,8 +63,7 @@ def load_define():
 
     ret['difficulty']['trim'] = (
         slice(ret['difficulty']['trim'][0][0], ret['difficulty']['trim'][0][1]),
-        slice(ret['difficulty']['trim'][1][0], ret['difficulty']['trim'][1][1]),
-        ret['difficulty']['trim'][2]
+        slice(ret['difficulty']['trim'][1][0], ret['difficulty']['trim'][1][1])
     )
     ret['difficulty']['trimlevel'] = (
         slice(ret['difficulty']['trimlevel'][0][0], ret['difficulty']['trimlevel'][0][1]),
@@ -436,15 +430,16 @@ def larning_difficulty(informations):
         level = target.label['level']
         
         trimmed = target.np_value[informations_define['difficulty']['trim']]
+        converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
 
-        uniques, counts = np.unique(trimmed, return_counts=True)
+        uniques, counts = np.unique(converted, return_counts=True)
         difficultykey = uniques[np.argmax(counts)]
         
         if not difficultykey in table['difficulty'].keys():
             table['difficulty'][difficultykey] = difficulty
             result[difficulty] = {'log': f'difficulty {difficulty}: {difficultykey}({key})', 'levels': {}}
         
-        leveltrimmed = trimmed[informations_define['difficulty']['trimlevel']].flatten()
+        leveltrimmed = converted[informations_define['difficulty']['trimlevel']].flatten()
         bins = np.where(leveltrimmed==difficultykey, 1, 0)
         hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
         levelkey = ''.join([format(v, '0x') for v in hexs])
@@ -456,6 +451,11 @@ def larning_difficulty(informations):
             result[difficulty]['levels'][level] = f'level {difficulty} {level}: {levelkey}({key})'
 
         evaluate_targets[key] = target
+    
+    if len(table['difficulty']) != len(define.value_list['difficulties']):
+        report.error(f'Duplicate difficulty key')
+        for key, difficulty in table['difficulty'].items():
+            report.error(f'{key}: {difficulty}')
 
     for difficulty in define.value_list['difficulties']:
         if difficulty in result.keys():
@@ -469,8 +469,9 @@ def larning_difficulty(informations):
 
     for key, target in evaluate_targets.items():
         trimmed = target.np_value[informations_define['difficulty']['trim']]
+        converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
 
-        uniques, counts = np.unique(trimmed, return_counts=True)
+        uniques, counts = np.unique(converted, return_counts=True)
         difficultykey = uniques[np.argmax(counts)]
 
         difficulty = None
@@ -478,12 +479,12 @@ def larning_difficulty(informations):
             difficulty = table['difficulty'][difficultykey]
 
         if difficulty != target.label['difficulty']:
-            report.saveimage_errorvalue(trimmed, f'{key}.png')
+            report.saveimage_errorvalue(converted, f'{key}.png')
             report.error(f'Mismatch difficulty {difficulty} {key}')
             continue
 
-        leveltrimmed = trimmed[informations_define['difficulty']['trimlevel']]
-        bins = np.where(leveltrimmed.flatten()==difficultykey, 1, 0)
+        leveltrimmed = converted[informations_define['difficulty']['trimlevel']].flatten()
+        bins = np.where(leveltrimmed==difficultykey, 1, 0)
         hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
         levelkey = ''.join([format(v, '0x') for v in hexs])
 
@@ -713,72 +714,6 @@ def larning_musics(informations):
         'factors': factors
     }
 
-def analyze(informations):
-    resourcename = 'analyze'
-
-    report = Report(resourcename)
-
-    report.append_log(f'Source count: {len(informations)}')
-
-    table = {}
-    for key, target in informations.items():
-        if not 'play_mode' in target.label.keys() or target.label['play_mode'] is None:
-            continue
-        if not 'difficulty' in target.label.keys() or target.label['difficulty'] is None:
-            continue
-        if not 'level' in target.label.keys() or target.label['level'] is None:
-            continue
-        if not 'music' in target.label.keys() or target.label['music'] is None:
-            continue
-        if not 'notes' in target.label.keys() or target.label['notes'] is None:
-            continue
-        
-        play_mode = target.label['play_mode']
-        difficulty = target.label['difficulty']
-        level = target.label['level']
-        music = target.label['music']
-
-        if not music in table.keys():
-            table[music] = {}
-            for pm in define.value_list['play_modes']:
-                table[music][pm] = {}
-                for df in define.value_list['difficulties']:
-                    table[music][pm][df] = {}
-        
-        if not level in table[music][play_mode][difficulty].values():
-            table[music][play_mode][difficulty][key] = level
-    
-    result = {}
-    output = []
-    for music in table.keys():
-        result[music] = {}
-        for play_mode in define.value_list['play_modes']:
-            result[music][play_mode] = {}
-        values = [music]
-        for play_mode in define.value_list['play_modes']:
-            for difficulty in define.value_list['difficulties']:
-                if len(table[music][play_mode][difficulty]) > 1 and play_mode == 'DP':
-                    if len(table[music]['SP'][difficulty]) == 1:
-                        for key, value in table[music][play_mode][difficulty].items():
-                            if value == table[music]['SP'][difficulty].values()[0]:
-                                del table[music][play_mode][difficulty][key]
-                if len(table[music][play_mode][difficulty]) == 1:
-                    result[music][play_mode][difficulty] = [*table[music][play_mode][difficulty].values()][0]
-                values.append([*table[music][play_mode][difficulty].values()][0] if len(table[music][play_mode][difficulty]) == 1 else '-')
-                if len(table[music][play_mode][difficulty]) > 1:
-                    report.error(f'{music} {play_mode} {difficulty}:')
-                    for key, value in table[music][play_mode][difficulty].items():
-                        report.error(f'  level {value}({key})')
-        output.append(','.join(values))
-
-    musics_analyzed_filepath = join(report_basedir_musictable, 'musics_analyzed.csv')
-    with open(musics_analyzed_filepath, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(output))
-    
-    report.report()
-
-    return result
-
 if __name__ == '__main__':
     try:
         with open(dc.label_filepath) as f:
@@ -815,17 +750,3 @@ if __name__ == '__main__':
         'notes': notes,
         'music': music
     })
-
-    if not exists(report_basedir_musictable):
-        mkdir(report_basedir_musictable)
-    
-    analyzed_musics = analyze(informations)
-    musictable = generate_musictable(analyzed_musics, report_basedir_musictable)
-
-    filename = f'musictable{define.musictable_version}.res'
-    save_resource_serialized(filename, musictable)
-
-    if len(music['musics']) != len(musictable['musics']):
-        print(f"Mismatch music count")
-        print(f"recog music count: {len(music['musics'])}")
-        print(f"musictable music count: {len(musictable['musics'])}")

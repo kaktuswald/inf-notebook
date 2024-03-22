@@ -5,14 +5,13 @@ from os.path import join,isfile
 import numpy as np
 
 from define import define
-from raw_image import raws_basepath
+from data_collection import collection_basepath
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 from resources_larning import larning_multivalue
 
-raws_musicselect_basepath = join(raws_basepath, 'musicselect')
-
-label_filepath = join(raws_basepath, 'label_musicselect.json')
+images_musicselect_basepath = join(collection_basepath, 'musicselect')
+label_filepath = join(collection_basepath, 'label_musicselect.json')
 
 recognition_define_filename = 'define_recognition_musicselect.json'
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
@@ -20,7 +19,7 @@ recognition_define_filepath = join(registries_dirname, recognition_define_filena
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
 report_basedir_musictable = join(report_dirname, 'musictable')
 
-key_valid_count_minimum = 16
+musicname_output_dirpath = join(report_dirname, 'musicselect_musicname')
 
 class ImageValues():
     def __init__(self, np_value, label):
@@ -32,7 +31,7 @@ def load_images(labels):
 
     imagevaleus = {}
     for filename in keys:
-        filepath = join(raws_musicselect_basepath, filename)
+        filepath = join(images_musicselect_basepath, filename)
         if isfile(filepath):
             np_value = np.array(Image.open(filepath))
             imagevaleus[filename] = ImageValues(np_value, labels[filename])
@@ -169,8 +168,6 @@ def larning_levels():
             bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
-            if not tablekey in table.keys():
-                report.append_log(f'select {difficulty} {value} {tablekey} {key}')
             if tablekey in table.keys() and value != table[tablekey]:
                 report.error(f'Duplicate select {difficulty} {tablekey} {value} {table[tablekey]}')
             table[tablekey] = value
@@ -206,8 +203,6 @@ def larning_levels():
             bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
-            if not tablekey in table.keys():
-                report.append_log(f'noselect {difficulty} {value} {tablekey} {key}')
             if tablekey in table.keys() and value != table[tablekey]:
                 report.error(f'Duplicate noselect {difficulty} {tablekey} {value} {table[tablekey]}')
             table[tablekey] = value
@@ -405,6 +400,7 @@ def larning_number():
 
     table = {}
     evaluate_targets = {}
+    targetkeys = {}
     for key, target in imagevalues.items():
         if 'score' in target.label.keys() and target.label['score'] != "":
             value = int(target.label['score']) % 10
@@ -416,6 +412,7 @@ def larning_number():
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
                 table[tablekey] = value
+                targetkeys[value] = key
 
             evaluate_targets[f'score_{key}'] = target
 
@@ -429,6 +426,7 @@ def larning_number():
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
                 table[tablekey] = value
+                targetkeys[value] = key
         
             evaluate_targets[f'miss_count_{key}'] = target
     
@@ -437,7 +435,7 @@ def larning_number():
         if not len(keys):
             report.append_log(f'Not found key {value}')
         else:
-            report.append_log(f'{value}: {keys}')
+            report.append_log(f'{value}: {keys} ({targetkeys[value]})')
 
     for key, target in evaluate_targets.items():
         if 'score' in target.label.keys() and target.label['score'] != "":
@@ -461,7 +459,6 @@ def larning_number():
             else:
                 report.saveimage_errorvalue(trimmed, f'{key}.png')
                 report.error(f"Mismatch score {result} {target.label['score']} {key}")
-                report.error(f'{keys}')
 
         if 'misscount' in target.label.keys() and target.label['misscount'] != "":
             trimmed = target.np_value[trim_misscount]
@@ -511,7 +508,7 @@ def larning_musicname_convertdefine():
     resource_target['arcade'] = {
         'trim': (
             slice(arcade['trim'][0][0], arcade['trim'][0][1]),
-            slice(arcade['trim'][1][0], arcade['trim'][1][1], arcade['trim'][1][2])
+            slice(arcade['trim'][1][0], arcade['trim'][1][1])
         ),
         'thresholds': arcade['thresholds']
     }
@@ -535,8 +532,11 @@ def larning_musicname_convertdefine():
 def larning_musicname_arcade(targets, report):
     resource_target = resource['musicname']['arcade']
     th = resource_target['thresholds']
+    key_valid_count_minimum = musicselect_define['musicname']['arcade']['key_valid_count_minimum']
 
     table = resource_target['table'] = {}
+
+    output = []
 
     evaluate = {}
     minimum_valid_count = (
@@ -550,10 +550,11 @@ def larning_musicname_arcade(targets, report):
         cropped = target.np_value[resource_target['trim']]
         masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
         bins = [np.where((th[i][0]<=masked[i])&(masked[i]<=th[i][1]), 1, 0) for i in range(masked.shape[0])]
-        valid_count = np.count_nonzero(bins)
+        shrunk = [line[::2]&line[1::2] for line in bins]
+        valid_count = np.count_nonzero(shrunk)
         if valid_count < minimum_valid_count[2]:
             minimum_valid_count = (musicname, key, valid_count)
-        hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
+        hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in shrunk]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
         for recogkey in recogkeys[:-1]:
@@ -562,7 +563,7 @@ def larning_musicname_arcade(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: arcade ({valid_count}) {musicname} {recogkeys}')
+            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
@@ -582,11 +583,18 @@ def larning_musicname_arcade(targets, report):
         count = len(set(evaluate[musicname]))
         if(count != 1):
             report.error(f'duplicate key arcade {musicname}: {count}')
+    
+    output_path = join(musicname_output_dirpath, 'arcade.txt')
+    with open(output_path, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
 def larning_musicname_infinitas(targets, report):
     resource_target = resource['musicname']['infinitas']
+    key_valid_count_minimum = musicselect_define['musicname']['infinitas']['key_valid_count_minimum']
 
     table = resource_target['table'] = {}
+
+    output = []
 
     evaluate = {}
     minimum_valid_count = (
@@ -616,7 +624,7 @@ def larning_musicname_infinitas(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: infinitas ({valid_count}) {musicname} {recogkeys}')
+            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
@@ -632,11 +640,18 @@ def larning_musicname_infinitas(targets, report):
         count = len(set(evaluate[musicname]))
         if(count != 1):
             report.error(f'duplicate key infinitas {musicname}: {count}')
+    
+    output_path = join(musicname_output_dirpath, 'infinitas.txt')
+    with open(output_path, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
 def larning_musicname_leggendaria(targets, report):
     resource_target = resource['musicname']['leggendaria']
+    key_valid_count_minimum = musicselect_define['musicname']['leggendaria']['key_valid_count_minimum']
 
     table = resource_target['table'] = {}
+
+    output = []
 
     evaluate = {}
     minimum_valid_count = (
@@ -666,7 +681,7 @@ def larning_musicname_leggendaria(targets, report):
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
             target[recogkeys[-1]] = musicname
-            report.append_log(f'{key}: leggendaria ({valid_count}) {musicname} {recogkeys}')
+            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
             if not musicname in evaluate.keys():
                 evaluate[musicname] = []
             evaluate[musicname].append(''.join(recogkeys))
@@ -686,6 +701,10 @@ def larning_musicname_leggendaria(targets, report):
         count = len(set(evaluate[musicname]))
         if(count != 1):
             report.error(f'duplicate key leggendaria {musicname}: {count}')
+    
+    output_path = join(musicname_output_dirpath, 'leggendaria.txt')
+    with open(output_path, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
 def larning_musicname():
     report = Report('musicselect_musicname')
@@ -763,7 +782,8 @@ def larning_musicname():
             cropped = target.np_value[resource_target['trim']]
             masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
             bins = [np.where((thresholds[i][0]<=masked[i])&(masked[i]<=thresholds[i][1]), 1, 0) for i in range(masked.shape[0])]
-            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
+            shrunk = [line[::2]&line[1::2] for line in bins]
+            hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in shrunk]
             recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
             tabletarget = resource_target['table']
             for recogkey in recogkeys:
