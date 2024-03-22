@@ -1,6 +1,7 @@
 import json
 from sys import exit
-from os.path import join
+from os.path import join,basename
+from glob import glob
 
 from define import define
 from data_collection import collection_basepath
@@ -25,6 +26,62 @@ musiclist_filepath = join(registries_dirname, musiclist_filename)
 categorycount_versions_filepath = join(registries_dirname, categorycount_versions_filename)
 categorycount_levels_filepath = join(registries_dirname, categorycount_levels_filename)
 categorycount_difficulties_filepath = join(registries_dirname, categorycount_difficulties_filename)
+
+arcade_scorefile_dirpaths = {
+    'SP': join(registries_dirname, 'originalscoredata_sp'),
+    'DP': join(registries_dirname, 'originalscoredata_dp')
+}
+
+def load_arcade_scorefiles(report):
+    check_values = {
+        'BEGINNER': 5,
+        'NORMAL': 12,
+        'HYPER': 19,
+        'ANOTHER': 26,
+        'LEGGENDARIA': 33
+    }
+
+    report.append_log(f'load arcade scorefiles')
+
+    arcadedata = {}
+
+    for playmode, dirpath in arcade_scorefile_dirpaths.items():
+        for filepath in glob(join(dirpath, "*.csv")):
+            report.append_log(f'load {playmode}: {filepath}')
+            with open(filepath, 'r', encoding='utf-8') as f:
+                lines = f.read().split('\n')
+            
+            for line in lines[1:]:
+                splitted = line.split(',')
+                if len(splitted) == 1 and len(splitted[0]) == 0:
+                    continue
+                if len(splitted) != 41:
+                    report.append_log(f'error line: {line}')
+                    break
+
+                version = splitted[0]
+                musicname = splitted[1]
+
+                if not musicname in arcadedata.keys():
+                    arcadedata[musicname] = {'version': []}
+                    for pm in define.value_list['play_modes']:
+                        arcadedata[musicname][pm] = {}
+                        for key in check_values.keys():
+                            arcadedata[musicname][pm][key] = []
+                
+                arcadedata[musicname]['version'].append({
+                    'filename': basename(filepath),
+                    'value': version,
+                })
+
+                for key, index in check_values.items():
+                    if splitted[index] != '0':
+                        arcadedata[musicname][playmode][key].append({
+                            'filename': basename(filepath),
+                            'value': splitted[index],
+                        })
+    
+    return arcadedata
 
 def load_versions():
     with open(versions_filepath, 'r', encoding='utf-8') as f:
@@ -157,68 +214,72 @@ def reflect_collections(report, table):
                 if difficulty == 'LEGGENDARIA':
                     table['leggendarias'][playmode].append(musicname)
 
-def evaluate_scoredata(report, table):
-    arcade_only_music = []  # INFINITAS未収録のARCADE曲
-    arcade_only_difficulty = {}  # INFINITAS未収録の難易度
-    reimportation_from_infinitas = []  # INFINITASからARCADEに逆輸入
-    mismatch_level = []    # ARCADEとレベルが違う
-    for playmode in define.value_list['play_modes']:
-        filename = f'trimmed_difficulties_{str.lower(playmode)}.csv'
-        filepath = join(registries_dirname, filename)
-        with open(filepath, 'r', encoding='utf-8') as f:
-            scoredata = f.read().split('\n')
+def evaluate_scoredata(report, table, arcadedata):
+    infinitas_only_music = []           # INFINITAS専用の曲
+    arcade_only_music = []              # INFINITAS未収録のARCADE曲
+    arcade_only_difficulty = []         # INFINITAS未収録の難易度
+    infinitas_only_difficulty = []      # INFINITASのみの難易度
+    reimportation_from_infinitas = []   # INFINITASからARCADEに逆輸入
+    mismatch_level = []                 # ARCADEとレベルが違う
 
-        for line in scoredata:
-            musicname, version, beginner, normal, hyper, another, leggendaria = line.split(',')
+    for musicname in arcadedata.keys():
+        if not musicname in table['musics'].keys():
+            values = ','.join(set([v['value'] for v in arcadedata[musicname]['version']]))
+            arcade_only_music.append(f'- {musicname}({values})')
 
-            if not musicname in table['musics'].keys():
-                arcade_only_music.append(f'- {musicname}({version})')
+    for musicname in table['musics'].keys():
+        if not musicname in arcadedata.keys():
+            infinitas_only_music.append(f"- {musicname} ({table['musics'][musicname]['version']})")
+            continue
+
+        versions = [*set([v['value'] for v in arcadedata[musicname]['version']])]
+        if len(versions) != 1:
+            report.error(f'Duplicate arcade version {musicname}')
+            for v in arcadedata[musicname]['version']:
+                report.error(f"{v['filename']: v['value']}")
+            continue
+
+        version = versions[0]
+        if not version in table['versions'].keys():
+            report.error(f'Not defined {musicname}: {version}')
+            continue
+
+        target = table['musics'][musicname]
+
+        if version != target['version']:
+            if target['version'] == 'INFINITAS':
+                reimportation_from_infinitas.append(f'- {musicname}({version})')
                 continue
 
-            if not version in table['versions'].keys():
-                report.error(f'Not defined {musicname}: {version}')
-                continue
+            report.error(f"Wrong version {musicname}: {target['version']}")
+            continue
 
-            if version != table['musics'][musicname]['version']:
-                if table['musics'][musicname]['version'] == 'INFINITAS':
-                    reimportation_from_infinitas.append(f'- {musicname}({version})')
-                    continue
-
-                report.error(f"Wrong version {musicname}: {table['musics'][musicname]['version']}")
-                continue
-
-            target = table['musics'][musicname][playmode]
-            levels = {
-                'BEGINNER': beginner,
-                'NORMAL': normal,
-                'HYPER': hyper,
-                'ANOTHER': another,
-                'LEGGENDARIA': leggendaria,
-            }
-            for key, level in levels.items():
-                if level != '0':
-                    if not key in target.keys():
-                        if not playmode in arcade_only_difficulty.keys():
-                            arcade_only_difficulty[playmode] = {}
-                        if not key in arcade_only_difficulty[playmode].keys():
-                            arcade_only_difficulty[playmode][key] = []
-                        arcade_only_difficulty[playmode][key].append(f"- - {musicname}({table['musics'][musicname]['version']})")
-                        continue
-                    if target[key] != level:
-                        mismatch_level.append(f'- {musicname}[{playmode}{key[0]}]: {target[key]} (ARCADE {level} )')
-                        continue
-    
-    output = []
-    if len(arcade_only_music) > 0:
-        output.extend([f'arcade only music({len(arcade_only_music)})', *arcade_only_music, ''])
-    if len(arcade_only_difficulty) > 0:
-        output.append('arcade only difficulty:')
         for playmode in define.value_list['play_modes']:
             for difficulty in define.value_list['difficulties']:
-                if playmode in arcade_only_difficulty.keys() and difficulty in arcade_only_difficulty[playmode].keys():
-                    output.extend([f'- {playmode} {difficulty}({len(arcade_only_difficulty[playmode][difficulty])})', *arcade_only_difficulty[playmode][difficulty], ''])
+                if difficulty in target[playmode].keys():
+                    if len(arcadedata[musicname][playmode][difficulty]) > 0:
+                        uniques = [*set([v['value'] for v in arcadedata[musicname][playmode][difficulty]])]
+                        if len(uniques) != 1 or uniques[0] != table['musics'][musicname][playmode][difficulty]:
+                            levels = ','.join(uniques)
+                            mismatch_level.append(f'- {musicname}[{playmode}{difficulty[0]}]: {target[playmode][difficulty]} (ARCADE {levels} )')
+                    else:
+                        infinitas_only_difficulty.append(f"- {musicname}[{playmode}{difficulty[0]}]")
+                else:
+                    if len(arcadedata[musicname][playmode][difficulty]) > 0:
+                        levels = ','.join(set([v['value'] for v in arcadedata[musicname][playmode][difficulty]]))
+                        arcade_only_difficulty.append(f'- {musicname}[{playmode}{difficulty[0]}]: ARCADE {levels}')
+                        
+    output = []
+    if len(infinitas_only_music) > 0:
+        output.extend([f'only infinitas({len(infinitas_only_music)})', *infinitas_only_music, ''])
+    if len(infinitas_only_difficulty) > 0:
+        output.extend([f'only infinitas difficulty({len(infinitas_only_difficulty)})', *infinitas_only_difficulty, ''])
     if len(reimportation_from_infinitas) > 0:
         output.extend([f'reimported from infinitas({len(reimportation_from_infinitas)})', *reimportation_from_infinitas, ''])
+    if len(arcade_only_music) > 0:
+        output.extend([f'only arcade({len(arcade_only_music)})', *arcade_only_music, ''])
+    if len(arcade_only_difficulty) > 0:
+        output.extend([f'only arcade difficulty({len(arcade_only_difficulty)})', *arcade_only_difficulty, ''])
     if len(mismatch_level) > 0:
         output.extend([f'mismatch level({len(mismatch_level)})', *mismatch_level, ''])
     
@@ -303,11 +364,13 @@ def generate_musictable():
 
     table = {}
 
+    arcadedata = load_arcade_scorefiles(report)
+
     load_musiclist(table, table, versions.keys())
 
     reflect_collections(report, table)
 
-    evaluate_scoredata(report, table)
+    evaluate_scoredata(report, table, arcadedata)
 
     report.append_log(f"music count: {len(table['musics'])}")
 
