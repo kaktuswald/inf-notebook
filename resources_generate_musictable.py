@@ -1,9 +1,11 @@
 import json
 from sys import exit
-from os.path import join,basename
+from os import mkdir
+from os.path import join,basename,exists
 from glob import glob
 
 from define import define
+from image import generate_filename
 from data_collection import collection_basepath
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 
@@ -15,6 +17,7 @@ version_unknown = 'Unknown'
 
 versions_filename = 'versions.txt'
 musiclist_filename = 'musics.csv'
+infinitas_only_musics_filename = 'infinitas_only_musics.txt'
 
 categorycount_versions_filename = 'categorycount_versions.csv'
 categorycount_levels_filename = 'categorycount_levels.csv'
@@ -22,6 +25,9 @@ categorycount_difficulties_filename = 'categorycount_difficulties.csv'
 
 versions_filepath = join(registries_dirname, versions_filename)
 musiclist_filepath = join(registries_dirname, musiclist_filename)
+infinitasonlymusics_filepath = join(registries_dirname, infinitas_only_musics_filename)
+
+musicfilenametest_basedir = join(report_dirname, 'music_filename')
 
 categorycount_versions_filepath = join(registries_dirname, categorycount_versions_filename)
 categorycount_levels_filepath = join(registries_dirname, categorycount_levels_filename)
@@ -215,21 +221,37 @@ def reflect_collections(report, table):
                     table['leggendarias'][playmode].append(musicname)
 
 def evaluate_scoredata(report, table, arcadedata):
-    infinitas_only_music = []           # INFINITAS専用の曲
-    arcade_only_music = []              # INFINITAS未収録のARCADE曲
-    arcade_only_difficulty = []         # INFINITAS未収録の難易度
-    infinitas_only_difficulty = []      # INFINITASのみの難易度
-    reimportation_from_infinitas = []   # INFINITASからARCADEに逆輸入
-    mismatch_level = []                 # ARCADEとレベルが違う
+    infinitas_only_music = []               # INFINITAS専用の曲
+    arcade_only_music = []                  # INFINITAS未収録のARCADE曲
+    arcade_only_difficulty = []             # INFINITAS未収録の難易度
+    infinitas_only_difficulty = []          # INFINITASのみの難易度
+    reimportation_from_infinitas = []       # INFINITASからARCADEに逆輸入
+    mismatch_level = []                     # ARCADEとレベルが違う
+
+    if exists(infinitasonlymusics_filepath):
+        with open(infinitasonlymusics_filepath, 'r', encoding='utf-8') as f:
+            listed_infinitas_only_musics = f.read().split('\n')
+            listed_infinitas_only_musics = [v for v in listed_infinitas_only_musics if v != '']
+    else:
+        report.error(f'Not exists infinitas only musics file: {infinitas_only_musics_filename}')
+        listed_infinitas_only_musics = []
+        
+    for musicname in listed_infinitas_only_musics:
+        if not musicname in table['musics'].keys():
+            report.error(f'Infinitas only list error: {musicname}(Existing infinitas.)')
 
     for musicname in arcadedata.keys():
         if not musicname in table['musics'].keys():
             values = ','.join(set([v['value'] for v in arcadedata[musicname]['version']]))
             arcade_only_music.append(f'- {musicname}({values})')
-
+        if musicname in listed_infinitas_only_musics:
+            report.error(f"Infinitas only list error: {musicname}(Existing arcade.)")
+    
     for musicname in table['musics'].keys():
         if not musicname in arcadedata.keys():
             infinitas_only_music.append(f"- {musicname} ({table['musics'][musicname]['version']})")
+            if not musicname in listed_infinitas_only_musics:
+                report.error(f'Infinitas only list error: {musicname}(Not included.)')
             continue
 
         versions = [*set([v['value'] for v in arcadedata[musicname]['version']])]
@@ -357,6 +379,20 @@ def evaluate_categories(report, table):
         with open(filepath, 'w', encoding='UTF-8') as f:
             f.write('\n'.join(leggendarias[playmode]))
 
+def filenametest(table):
+    musics = table['musics']
+
+    if not exists(musicfilenametest_basedir):
+        mkdir(musicfilenametest_basedir)
+
+    for music in musics:
+        filename = generate_filename(music, '').replace('jpg', 'txt')
+        filepath = join(musicfilenametest_basedir, filename)
+        if not exists(filepath):
+            with open(filepath, 'w', encoding='UTF-8') as f:
+                f.write(f'{music}\n')
+                f.write(f'{music.encode("UTF-8").hex()}\n')
+
 def generate_musictable():
     versions = load_versions()
 
@@ -367,6 +403,8 @@ def generate_musictable():
     arcadedata = load_arcade_scorefiles(report)
 
     load_musiclist(table, table, versions.keys())
+
+    filenametest(table)
 
     reflect_collections(report, table)
 

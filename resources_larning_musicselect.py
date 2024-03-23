@@ -17,7 +17,6 @@ recognition_define_filename = 'define_recognition_musicselect.json'
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
 
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
-report_basedir_musictable = join(report_dirname, 'musictable')
 
 musicname_output_dirpath = join(report_dirname, 'musicselect_musicname')
 
@@ -994,8 +993,8 @@ if __name__ == '__main__':
     larning_cleartype()
     larning_djlevel()
     larning_number()
-    larning_musicname()
     larning_version()
+    larning_musicname()
 
     evaluate()
 

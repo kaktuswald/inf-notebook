@@ -6,27 +6,19 @@ from os.path import join,isfile,exists
 import numpy as np
 
 from define import define
-from image import generate_filename
 import data_collection as dc
+from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 from resources_larning import larning_multivalue
 
 recognition_define_filename = 'define_recognition_informations.json'
 
-arcadeallmusics_filename = 'musics_arcade_all.txt'
-infinitasonlymusics_filename = 'musics_infinitas_only.txt'
-
 report_organize_filename = 'organize.txt'
-report_registered_musics_filename = 'musics_registered.txt'
 report_missing_musics_filename = 'musics_missing_in_arcade.txt'
 
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
-arcadeallmusics_filepath = join(registries_dirname, arcadeallmusics_filename)
-infinitasonlymusics_filepath = join(registries_dirname, infinitasonlymusics_filename)
 
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
-
-musicfilenametest_basedir = join(report_dirname, 'music_filename')
 
 class Informations():
     def __init__(self, np_value, label):
@@ -340,30 +332,6 @@ def outputtable(table):
     with open(report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
 
-def check_musics(musics, report):
-    with open(arcadeallmusics_filepath, 'r', encoding='utf-8') as f:
-        arcade_all_musics = f.read().split('\n')
-
-    with open(infinitasonlymusics_filepath, 'r', encoding='utf-8') as f:
-        infinitas_only_musics = f.read().split('\n')
-
-    report.append_log(f'Arcade all music count: {len(arcade_all_musics)}')
-    report.append_log(f'Infinitas only music count: {len(infinitas_only_musics)}')
-
-    duplicates = list(set(arcade_all_musics) & set(infinitas_only_musics))
-    if len(duplicates) > 0:
-        report.error(f"Duplicates: {','.join(duplicates)}")
-
-    missings_alllist = sorted([music for music in musics if not music in arcade_all_musics and not music in infinitas_only_musics])
-    if len(missings_alllist) > 0:
-        report.error(f"Missings: {','.join(missings_alllist)}")
-
-    missings_arcade = sorted([music for music in arcade_all_musics if not music in musics])
-
-    missing_musics_filepath = join(report_basedir_musicrecog, report_missing_musics_filename)
-    with open(missing_musics_filepath, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(missings_arcade))
-
 def larning_playmode(informations):
     resourcename = 'playmode'
 
@@ -619,20 +587,6 @@ def larning_musics(informations):
     table_red = larning_music(filtered_reds, report, 'red')
 
     musics = sorted([*targets.keys()])
-    registered_musics_filepath = join(report_basedir_musicrecog, report_registered_musics_filename)
-    with open(registered_musics_filepath, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(musics))
-    if not exists(musicfilenametest_basedir):
-        mkdir(musicfilenametest_basedir)
-    for music in musics:
-        filename = generate_filename(music, '').replace('jpg', 'txt')
-        filepath = join(musicfilenametest_basedir, filename)
-        if not exists(filepath):
-            with open(filepath, 'w', encoding='UTF-8') as f:
-                f.write(f'{music}\n')
-                f.write(f'{music.encode("UTF-8").hex()}\n')
-
-    check_musics(musics, report)
 
     outputtable({'gray': table_gray, 'blue': table_blue, 'red': table_red})
 
@@ -646,6 +600,7 @@ def larning_musics(informations):
     for key, target in informations.items():
         if not 'music' in target.label.keys() or target.label['music'] is None:
             continue
+        music = target.label['music']
 
         trimmed = target.np_value[informations_define['music']['trim']]
 
@@ -698,11 +653,11 @@ def larning_musics(informations):
 
             tabletarget = tabletarget[tablekey]
 
-        if resultmusic == target.label['music']:
+        if resultmusic == music:
             report.through()
             break
         else:
-            report.error(f"Mismatch {key}: {resultmusic} {target.label['music']}")
+            report.error(f'Mismatch {key}: {resultmusic} {music}')
 
     report.report()
 
@@ -713,6 +668,24 @@ def larning_musics(informations):
         'musics': musics,
         'factors': factors
     }
+
+def evaluate_musics(musics):
+    report = Report('resultmusic_evaluate')
+
+    musictable = load_resource_serialized(f'musictable{define.musictable_version}')['musics']
+
+    report.append_log(f'registered count: {len(musics)}')
+
+    for musicname in musictable.keys():
+        escaped = musicname.encode('unicode-escape').decode('utf-8')
+        if not musicname in musics:
+            report.error(f'Not registered {musicname}({escaped})')
+    
+    for musicname in musics:
+        if not musicname in musictable.keys():
+            report.error(f'Not exist {musicname}')    
+
+    report.report()
 
 if __name__ == '__main__':
     try:
@@ -742,6 +715,8 @@ if __name__ == '__main__':
     difficulty = larning_difficulty(informations)
     notes = larning_notes(informations)
     music = larning_musics(informations)
+
+    evaluate_musics(music['musics'])
 
     filename = f'informations{define.informations_recognition_version}.res'
     save_resource_serialized(filename, {
