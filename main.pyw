@@ -576,25 +576,35 @@ def check_resource():
         resource.load_resource_musicselect()
 
     check_latest(storage, musicnamechanges_filename)
-    rename_changemusicname()
+    changed = rename_changemusicname()
 
     logger.info('complete check resources')
 
-    queue_functions.put(notebooksummary_startimport)
+    queue_functions.put((notebooksummary_startimport, changed))
 
-def notebooksummary_startimport():
+def notebooksummary_startimport(changed):
     """全曲記録データを各曲記録ファイルから作成する
 
     Note:
         バージョン0.14.2.1以前からjson構造変更
+        バージョン0.15.2.0以降の初回起動で必ず実行する
     """
 
-    if not 'musics' in notebook_summary.json.keys():
-        notebook_summary.json = {'musics': notebook_summary.json}
-        
+    if not 'last_allimported' in notebook_summary.json.keys():
+        notebook_summary.json = {}
         counter = notebook_summary.start_import()
         progress("お待ちください", notebooksummary_confirm_message, counter)
+
+        notebook_summary.json['last_allimported'] = version
         notebook_summary.save()
+    else:
+        for musicname, renamed in changed:
+            del notebook_summary.json['musics'][musicname]
+            notebook = get_notebook_targetmusic(renamed)
+            notebook_summary.import_targetmusic(renamed, notebook)
+
+        if len(changed) > 0:
+            notebook_summary.save()
 
 def select_result_recent():
     if len(table_selected_rows) == 0:
@@ -1058,6 +1068,9 @@ if __name__ == '__main__':
 
     if not setting.ignore_download:
         Thread(target=check_resource).start()
+    else:
+        changed = rename_changemusicname()
+        queue_functions.put((notebooksummary_startimport, changed))
     
     if resource.musictable is not None:
         rename_allfiles(resource.musictable['musics'].keys())
@@ -1171,7 +1184,8 @@ if __name__ == '__main__':
                 if not queue_musicselect_screen.empty():
                     musicselect_process(queue_musicselect_screen.get_nowait())
                 if not queue_functions.empty():
-                    queue_functions.get_nowait()()
+                    func, args = queue_functions.get_nowait()
+                    func(args)
 
         except Exception as ex:
             log_debug(ex)
