@@ -49,6 +49,10 @@ def open_setting(setting):
             ],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
+                sg.Checkbox('ライバルのフィルターを最小限にする', key='check_filter_compact', default=setting.filter_compact, background_color=background_dark)
+            ],
+            [
+                sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Checkbox('ファイル名の後尾に曲名をつける', key='check_savefilemusicname_right', default=setting.savefilemusicname_right, background_color=background_dark)
             ],
             [sg.Text('ショートカットキー', background_color=background_color_label)],
@@ -177,6 +181,7 @@ def open_setting(setting):
                 'upload_musicselect': values['hotkey_upload_musicselect'],
             }
             setting.summary_countmethod_only = values['summary_countmethod_only']
+            setting.filter_compact = values['check_filter_compact']
             setting.save()
             gui.switch_table(setting.display_music)
             if changed_summaries:

@@ -176,5 +176,13 @@ class Setting():
         self.set_value('summary_countmethod_only', value)
     
     @property
+    def filter_compact(self):
+        return self.get_value('filter_compact')
+
+    @filter_compact.setter
+    def filter_compact(self, value):
+        self.set_value('filter_compact', value)
+    
+    @property
     def ignore_download(self):
         return self.get_value('ignore_download')

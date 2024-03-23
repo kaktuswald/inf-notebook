@@ -68,7 +68,6 @@ notebooksummary_confirm_message = [
     '時間がかかる場合がありますが次回からは実行されません。'
 ]
 
-
 latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
 tweet_url = 'https://twitter.com/intent/tweet'
 
@@ -443,7 +442,7 @@ def save_filtered(resultimage, timestamp, music, play_mode, difficulty, play_sid
     Returns:
         Image: ぼかしを入れた画像
     """
-    filteredimage = filter_result(resultimage, play_side, loveletter, rivalname)
+    filteredimage = filter_result(resultimage, play_side, loveletter, rivalname, setting.filter_compact)
 
     ret = None
     try:
