@@ -213,6 +213,10 @@ def larning_music(targets, report, name):
                 hexs = bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
                 mapkeys.append(f"{height:02d}{''.join([format(v, '0x') for v in hexs])}")
             
+            if len(mapkeys) == 0:
+                report.error(f'Not created mapkey {name} {music}: {key}')
+                continue
+
             maptarget = map
             for mapkey in mapkeys[:-1]:
                 if not mapkey in maptarget:
@@ -274,13 +278,13 @@ def organize(informations):
     for key, information in informations.items():
         label = information.label
 
-        if not 'difficulty' in label.keys() or label['difficulty'] is None:
+        if not 'difficulty' in label.keys() or label['difficulty'] != '':
             continue
-        if not 'level' in label.keys() or label['level'] is None:
+        if not 'level' in label.keys() or label['level'] != '':
             continue
-        if not 'music' in label.keys() or label['music'] is None:
+        if not 'music' in label.keys() or label['music'] != '':
             continue
-        if not 'notes' in label.keys() or label['notes'] is None:
+        if not 'notes' in label.keys() or label['notes'] != '':
             continue
 
         difficulty = label['difficulty']
@@ -340,7 +344,7 @@ def larning_playmode(informations):
     larning_targets = {}
     evaluate_targets = {}
     for key, target in informations.items():
-        if not 'play_mode' in target.label.keys():
+        if not 'play_mode' in target.label.keys() or target.label['play_mode'] == '':
             continue
         
         value = target.label['play_mode']
@@ -391,7 +395,9 @@ def larning_difficulty(informations):
     table = {'difficulty': {}, 'level': {}}
     result = {}
     for key, target in informations.items():
-        if not 'difficulty' in target.label.keys() or not 'level' in target.label.keys():
+        if not 'difficulty' in target.label.keys() or target.label['difficulty'] == '':
+            continue
+        if not 'level' in target.label.keys() or target.label['level'] == '':
             continue
         
         difficulty = target.label['difficulty']
@@ -484,7 +490,7 @@ def larning_notes(informations):
     table = {}
     result = {}
     for key, target in informations.items():
-        if not 'notes' in target.label.keys():
+        if not 'notes' in target.label.keys() or target.label['notes'] == '':
             continue
         
         value = int(target.label['notes'])
