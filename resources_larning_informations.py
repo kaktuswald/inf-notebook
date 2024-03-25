@@ -675,21 +675,95 @@ def larning_musics(informations):
         'factors': factors
     }
 
-def evaluate_musics(musics):
+def evaluate_musics(music):
     report = Report('resultmusic_evaluate')
 
-    musictable = load_resource_serialized(f'musictable{define.musictable_version}')['musics']
+    musictable = load_resource_serialized(f'musictable{define.musictable_version}')
 
-    report.append_log(f'registered count: {len(musics)}')
+    report.append_log(f"Registered count of arcade(gray color): {len(music['tables']['gray'])}")
+    report.append_log(f"Registered count of infinitas(blue color): {len(music['tables']['blue'])}")
+    report.append_log(f"Registered count of leggendaria(red color): {len(music['tables']['red'])}")
 
-    for musicname in musictable.keys():
-        escaped = musicname.encode('unicode-escape').decode('utf-8')
-        if not musicname in musics:
-            report.error(f'Not registered {musicname}({escaped})')
+    def listup(list, target):
+        if type(target) is str:
+            list.append(target)
+        else:
+            for key in target.keys():
+                listup(list, target[key])
+    arcade_musics = []
+    listup(arcade_musics, music['tables']['gray'])
+    infinitas_musics = []
+    listup(infinitas_musics, music['tables']['blue'])
+    leggendaria_musics = []
+    listup(leggendaria_musics, music['tables']['red'])
+
+    not_exists = []
+    for musicname in arcade_musics:
+        if not musicname in musictable['musics'].keys():
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            not_exists.append(f'- {musicname}({escaped})')
+    for musicname in infinitas_musics:
+        if not musicname in musictable['musics'].keys():
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            not_exists.append(f'- {musicname}({escaped})')
+    for musicname in leggendaria_musics:
+        if not musicname in musictable['musics'].keys():
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            not_exists.append(f'- {musicname}({escaped})')
+
+    not_registereds = []
+    for musicname in musictable['musics'].keys():
+        if not musicname in arcade_musics and not musicname in infinitas_musics:
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            not_registereds.append(f'- {musicname}({escaped})')
+
+    musictable_leggendarias = []
+    for playmode in musictable['leggendarias'].keys():
+        for musicname in musictable['leggendarias'][playmode]:
+            if not musicname in musictable_leggendarias:
+                musictable_leggendarias.append(musicname)
+    not_registereds_leggendaria = []
+    for musicname in musictable_leggendarias:
+        if not musicname in leggendaria_musics:
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            not_registereds_leggendaria.append(f'- {musicname}({escaped})')
     
-    for musicname in musics:
-        if not musicname in musictable.keys():
-            report.error(f'Not exist {musicname}')    
+    output = []
+    output.append(f"Registered count of arcade(gray color): {len(music['tables']['gray'])}")
+    output.append('')
+    output.append(f"Registered count of infinitas(blue color): {len(music['tables']['blue'])}")
+    output.append('')
+    output.append(f"Registered count of leggendaria(red color): {len(music['tables']['red'])}")
+    output.append('')
+
+
+    if len(not_exists) > 0:
+        report.error(f'No exists: {len(not_exists)}')
+        output.append(f'No exists: {len(not_exists)}')
+        output.append('')
+        for line in not_exists:
+            output.append(line)
+        output.append(f'')
+    
+    if len(not_registereds) > 0:
+        report.error(f'Not registered: {len(not_registereds)}')
+        output.append(f'Not registered: {len(not_registereds)}')
+        output.append('')
+        for line in not_registereds:
+            output.append(line)
+        output.append(f'')
+    
+    if len(not_registereds_leggendaria) > 0:
+        report.error(f'Not registered leggendaria: {len(not_registereds_leggendaria)}')
+        output.append(f'Not registered leggendaria: {len(not_registereds_leggendaria)}')
+        output.append('')
+        for line in not_registereds_leggendaria:
+            output.append(line)
+        output.append(f'')
+    
+    output_filepath = join(report_basedir_musicrecog, f'register result.txt')
+    with open(output_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
     report.report()
 
@@ -722,7 +796,7 @@ if __name__ == '__main__':
     notes = larning_notes(informations)
     music = larning_musics(informations)
 
-    evaluate_musics(music['musics'])
+    evaluate_musics(music)
 
     filename = f'informations{define.informations_recognition_version}.res'
     save_resource_serialized(filename, {
