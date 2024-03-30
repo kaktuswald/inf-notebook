@@ -10,6 +10,9 @@ icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
 
 def get_imagevalue(image):
+    if image is None:
+        return None
+    
     if image.height == 1080:
         image = image.resize((1280, 720))
     bytes = io.BytesIO()

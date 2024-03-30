@@ -973,7 +973,11 @@ def create_graph(selection, targetrecord):
     selection.selection_graph(image)
 
 def display_summaryimage():
-    gui.display_image(get_imagevalue(generateimage_summary(setting.summaries, setting.summary_countmethod_only)))
+    gui.display_image(get_imagevalue(generateimage_summary(
+        notebook_summary.count(),
+        setting.summaries,
+        setting.summary_countmethod_only
+    )))
 
 def get_notebook_targetmusic(musicname):
     """目的の曲の記録を取得する
@@ -1097,7 +1101,7 @@ if __name__ == '__main__':
                         result_process(screen)
             if event == 'button_setting':
                 keyboard.clear_all_hotkeys()
-                open_setting(setting)
+                open_setting(notebook_summary, setting)
                 window['button_upload'].update(visible=setting.data_collection)
                 keyboard.unhook_all_hotkeys()
                 start_hotkeys()

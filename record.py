@@ -178,6 +178,52 @@ class NotebookSummary(Notebook):
                     target['djlevel'] = None
                     target['score'] = None
                     target['misscount'] = None
+    
+    def count(self):
+        if not 'musics' in self.json.keys():
+            return
+
+        result = {}
+        for playmode in define.value_list['play_modes']:
+            result[playmode] = {}
+            for difficulty in define.value_list['difficulties']:
+                result[playmode][difficulty] = {'total': 0}
+                for cleartype in define.value_list['clear_types']:
+                    result[playmode][difficulty][cleartype] = 0
+                for djlevel in define.value_list['dj_levels']:
+                    result[playmode][difficulty][djlevel] = 0
+            for level in define.value_list['levels']:
+                result[playmode][level] = {'total': 0}
+                for cleartype in define.value_list['clear_types']:
+                    result[playmode][level][cleartype] = 0
+                for djlevel in define.value_list['dj_levels']:
+                    result[playmode][level][djlevel] = 0
+            
+        for musicname in resource.musictable['musics'].keys():
+            for playmode in define.value_list['play_modes']:
+                for difficulty, level in resource.musictable['musics'][musicname][playmode].items():
+                    result[playmode][difficulty]['total'] += 1
+                    result[playmode][level]['total'] += 1
+
+                    if not musicname in self.json['musics'].keys():
+                        continue
+                    if not playmode in self.json['musics'][musicname].keys():
+                        continue
+                    if not difficulty in self.json['musics'][musicname][playmode].keys():
+                        continue
+
+                    if 'cleartype' in self.json['musics'][musicname][playmode][difficulty].keys():
+                        cleartype = self.json['musics'][musicname][playmode][difficulty]['cleartype']
+                        if cleartype is not None:
+                            result[playmode][difficulty][cleartype] += 1
+                            result[playmode][level][cleartype] += 1
+                    if 'djlevel' in self.json['musics'][musicname][playmode][difficulty].keys():
+                        djlevel = self.json['musics'][musicname][playmode][difficulty]['djlevel']
+                        if djlevel is not None:
+                            result[playmode][difficulty][djlevel] += 1
+                            result[playmode][level][djlevel] += 1
+        
+        return result
 
 class NotebookMusic(Notebook):
     achievement_default = {

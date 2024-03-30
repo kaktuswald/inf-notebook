@@ -223,8 +223,20 @@ def load_image(music, timestamp, destination_dirpath, target_dirname, scoretype)
     
     return None
 
-def generateimage_summary(setting, countmethod_only):
+def generateimage_summary(counts, setting, countmethod_only):
+    """
+    統計データ画像を作る
+
+    Args:
+        counts (dict): カウントデータ
+        setting (dict): 出力対象の設定
+        countmethod_only (bool): カウント方式
+            Falseの場合は達成している曲数をすべて計上する
+            Trueの場合は一致する曲数のみ計上する
+    """
     if resource.musictable is None:
+        return
+    if counts is None:
         return
     
     draw.rectangle((0, 0, 1280, 720), fill=background)
@@ -239,52 +251,29 @@ def generateimage_summary(setting, countmethod_only):
     bbox = draw.multiline_textbbox((0, 0), 'TOTAL', font=font)
     draw.multiline_text((total_exposition - bbox[2], 150), 'TOTAL', fill=textcolor, font=font)
 
-    summaryvalues = {}
-    for playmode in define.value_list['play_modes']:
-        summaryvalues[playmode] = {}
-        for summarytype_a, summarytype_b in summarytypes.items():
-            filename = f'{playmode}-レベル-{summarytype_b}.csv'
-            filepath = join('export', filename)
-            if not exists(filepath):
-                continue
-
-            with open(filepath) as f:
-                values = [*reader(f)]
-            summaryvalues[playmode][summarytype_a] = {}
-            columnkeys = values[0][1:-2]
-            for line in values[1:]:
-                level = line[0]
-                summaryvalues[playmode][summarytype_a][level] = {}
-                count = 0
-                for columnindex in range(len(columnkeys)):
-                    if not countmethod_only:
-                        count += int(line[-(columnindex+3)])
-                        summaryvalues[playmode][summarytype_a][level][columnkeys[-(columnindex+1)]] = str(count)
-                    else:
-                        summaryvalues[playmode][summarytype_a][level][columnkeys[-(columnindex+1)]] = line[-(columnindex+3)]
-
-    table = {}
+    result = {}
     for playmode in setting.keys():
+        result[playmode] = {}
         for level in setting[playmode].keys():
-            for summarytype in setting[playmode][level].keys():
-                targetkeys = setting[playmode][level][summarytype]
-                if summarytype in summaryvalues[playmode].keys() and len(targetkeys) >= 1:
-                    if not playmode in table.keys():
-                        table[playmode] = {}
-                    if not level in table[playmode].keys():
-                        table[playmode][level] = {'TOTAL': len(resource.musictable['levels'][playmode][level])}
-                    if not summarytype in table[playmode][level].keys():
-                        table[playmode][level][summarytype] = {}
-                    for targetkey in targetkeys:
-                        table[playmode][level][summarytype][targetkey] = summaryvalues[playmode][summarytype][level][targetkey]
+            result[playmode][level] = {'TOTAL': counts[playmode][level]['total']}
+            values = counts[playmode][level]
+            for summarykey, targetkey in [('cleartypes', 'clear_types'), ('djlevels', 'dj_levels')]:
+                result[playmode][level][summarykey] = {}
+                for key in setting[playmode][level][summarykey]:
+                    value = values[key]
+                    if not countmethod_only:
+                        index = define.value_list[targetkey].index(key)
+                        result[playmode][level][summarykey][key] = sum([values[k] for k in define.value_list[targetkey][index:]])
+                    else:
+                        result[playmode][level][summarykey][key] = counts[playmode][level][key]
 
     line = 0
-    for playmode in table.keys():
-        for level in table[playmode].keys():
-            levelcount = max([len(v) for k, v in table[playmode][level].items() if k != 'TOTAL'])
+    for playmode in result.keys():
+        for level in result[playmode].keys():
+            levelcount = max([len(v) for k, v in result[playmode][level].items() if k != 'TOTAL'])
             items = {}
             for summarytype in summarytypes.keys():
-                items[summarytype] = [*table[playmode][level][summarytype].items()] if summarytype in table[playmode][level].keys() else []
+                items[summarytype] = [*result[playmode][level][summarytype].items()] if summarytype in result[playmode][level].keys() else []
             total = str(len(resource.musictable['levels'][playmode][level]))
 
             for index in range(levelcount):
@@ -294,14 +283,14 @@ def generateimage_summary(setting, countmethod_only):
                 draw.multiline_text((level_xposition-bbox[2], line*50+200), level, fill=textcolor, font=font)
 
                 for summarytype in summarytypes.keys():
-                    if index >= len(items[summarytype]) or not summarytype in table[playmode][level].keys():
+                    if index >= len(items[summarytype]) or not summarytype in result[playmode][level].keys():
                         continue
 
                     key, value = items[summarytype][index]
 
                     draw.multiline_text((summarytypes_xpositions[summarytype][0], line*50+200), key, fill=textcolor, font=font)
-                    bbox = draw.multiline_textbbox((0, 0), value, font=font)
-                    draw.multiline_text((summarytypes_xpositions[summarytype][1]-bbox[2], line*50+200), value, fill=textcolor, font=font)
+                    bbox = draw.multiline_textbbox((0, 0), str(value), font=font)
+                    draw.multiline_text((summarytypes_xpositions[summarytype][1]-bbox[2], line*50+200), str(value), fill=textcolor, font=font)
 
                 bbox = draw.multiline_textbbox((0, 0), total, font=font)
                 draw.multiline_text((total_exposition-bbox[2], line*50+200), total, fill=textcolor, font=font)
