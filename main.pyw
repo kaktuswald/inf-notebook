@@ -8,6 +8,7 @@ import webbrowser
 import logging
 from urllib import request
 from urllib.parse import quote
+from PIL import Image
 
 from setting import Setting
 
@@ -36,7 +37,7 @@ from gui.setting import open_setting
 from gui.export import open_export
 from gui.general import get_imagevalue,progress,question
 from define import define
-from resources import resource,play_sound_result,check_latest
+from resources import resource,play_sound_result,check_latest,images_resourcecheck_filepath
 from screenshot import Screenshot,open_screenimage
 from recog import Recognition as recog
 from raw_image import save_raw
@@ -75,6 +76,8 @@ tweet_template_music = '&&music&&[&&play_mode&&&&D&&]&&update&&&&option&&'
 tweet_template_hashtag = '#IIDX #infinitas573 #infnotebook'
 
 musicselect_targetrecord = None
+
+image_summary = None
 
 class ThreadMain(Thread):
     handle = 0
@@ -346,6 +349,7 @@ def result_process(screen):
         notebook.insert(result)
         notebook_summary.import_targetmusic(music, notebook)
         notebook_summary.save()
+        summaryimage_generate()
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -399,6 +403,7 @@ def musicselect_process(np_value):
         notebook.save()
         notebook_summary.import_targetmusic(musicname, notebook)
         notebook_summary.save()
+        summaryimage_generate()
     
     musicselect_targetrecord = notebook.get_recordlist(playmode, difficulty)
 
@@ -575,10 +580,10 @@ def check_resource():
         resource.load_resource_musicselect()
 
     check_latest(storage, musicnamechanges_filename)
-    changed = rename_changemusicname()
 
     logger.info('complete check resources')
 
+    changed = rename_changemusicname()
     queue_functions.put((notebooksummary_startimport, changed))
 
 def notebooksummary_startimport(changed):
@@ -604,6 +609,9 @@ def notebooksummary_startimport(changed):
 
         if len(changed) > 0:
             notebook_summary.save()
+    
+    summaryimage_generate()
+    summaryimage_display()
 
 def select_result_recent():
     if len(table_selected_rows) == 0:
@@ -972,12 +980,17 @@ def create_graph(selection, targetrecord):
     
     selection.selection_graph(image)
 
-def display_summaryimage():
-    gui.display_image(get_imagevalue(generateimage_summary(
+def summaryimage_generate():
+    global image_summary
+
+    image_summary = get_imagevalue(generateimage_summary(
         notebook_summary.count(),
         setting.summaries,
         setting.summary_countmethod_only
-    )))
+    ))
+
+def summaryimage_display():
+    gui.display_image(image_summary)
 
 def get_notebook_targetmusic(musicname):
     """目的の曲の記録を取得する
@@ -1004,7 +1017,7 @@ def start_hotkeys():
         return
     
     if 'display_summaryimage' in setting.hotkeys.keys() and setting.hotkeys['display_summaryimage'] != '':
-        keyboard.add_hotkey(setting.hotkeys['display_summaryimage'], display_summaryimage)
+        keyboard.add_hotkey(setting.hotkeys['display_summaryimage'], summaryimage_display)
     if 'active_screenshot' in setting.hotkeys.keys() and setting.hotkeys['active_screenshot'] != '':
         keyboard.add_hotkey(setting.hotkeys['active_screenshot'], active_screenshot)
     if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
@@ -1070,6 +1083,8 @@ if __name__ == '__main__':
         gui.find_latest_version(latest_url)
 
     if not setting.ignore_download:
+        image = Image.open(images_resourcecheck_filepath)
+        gui.display_image(get_imagevalue(image))
         Thread(target=check_resource).start()
     else:
         changed = rename_changemusicname()
@@ -1079,7 +1094,6 @@ if __name__ == '__main__':
         rename_allfiles(resource.musictable['musics'].keys())
 
     insert_recentnotebook_results()
-    display_summaryimage()
 
     while True:
         event, values = window.read(timeout=50, timeout_key='timeout')
@@ -1101,7 +1115,9 @@ if __name__ == '__main__':
                         result_process(screen)
             if event == 'button_setting':
                 keyboard.clear_all_hotkeys()
-                open_setting(notebook_summary, setting)
+                if open_setting(setting) and question('統計設定変更', '統計データを更新しますか？'):
+                    summaryimage_generate()
+                    summaryimage_display()
                 window['button_upload'].update(visible=setting.data_collection)
                 keyboard.unhook_all_hotkeys()
                 start_hotkeys()

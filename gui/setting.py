@@ -22,7 +22,7 @@ summarytargetlevels = ['8', '9', '10', '11', '12']
 summarytargetcleartypes = ['CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO']
 summarytargetdjlevels = ['A', 'AA', 'AAA']
 
-def open_setting(notebook, setting):
+def open_setting(setting):
     tab_general = [[
         sg.Column([
             [sg.Text('リザルト記録', background_color=background_color_label)],
@@ -189,13 +189,7 @@ def open_setting(notebook, setting):
 
     window.close()
 
-    if saved_summaries:
-        if question('統計設定変更', '統計データを更新しますか？'):
-            display_image(get_imagevalue(generateimage_summary(
-                notebook.count(),
-                setting.summaries,
-                setting.summary_countmethod_only
-            )))
+    return saved_summaries
 
 def set_summarysetting(window):
     summaries = {}

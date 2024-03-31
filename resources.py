@@ -15,10 +15,14 @@ from define import define
 resources_dirname = 'resources'
 
 sounds_dirname = 'sounds'
+images_dirname = 'images'
 
 sounds_dirpath = os.path.join(resources_dirname, sounds_dirname)
+images_dirpath = os.path.join(resources_dirname, images_dirname)
 
 sound_result_filepath = os.path.join(sounds_dirpath, 'result.wav')
+
+images_resourcecheck_filepath = os.path.join(images_dirpath, 'resourcecheck.png')
 
 class Resource():
     def __init__(self):

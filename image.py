@@ -1,12 +1,11 @@
 from os import mkdir
 from os.path import join,exists,isfile
 from PIL import Image,ImageFont,ImageDraw
-from csv import reader
 from datetime import datetime
 import re
 
 from define import define
-from resources import resource
+from resources import resource,images_resourcecheck_filepath
 from export import export_dirname
 
 dirname_results = 'results'
@@ -44,6 +43,8 @@ summarytypes_xpositions = {'cleartypes': (250, 700), 'djlevels': (750, 1050)}
 playmode_xposition = 50
 level_xposition = 200
 total_exposition = 1250
+
+resourcecheck_text = '最新データチェック中'
 
 def generate_filename(music, timestamp, scoretype=None, musicname_right=False):
     """保存ファイル名を作る
@@ -367,6 +368,16 @@ def generateimage_musicinformation(playmode, difficulty, musicname, record):
 
     return image
 
+def generateimage_resourcecheck():
+    font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 160)
+
+    draw.rectangle((0, 0, 1280, 720), fill=background)
+
+    bbox = draw.multiline_textbbox((0, 0), resourcecheck_text, font=font)
+    draw.multiline_text((640-bbox[2]/2, 360-bbox[3]/2), resourcecheck_text, fill=textcolor, font=font)
+
+    image.save(images_resourcecheck_filepath)
+
 def save_exportimage(image, filename):
     """エクスポートフォルダに画像ファイルを保存する
 
@@ -375,3 +386,6 @@ def save_exportimage(image, filename):
         filename (str): ファイル名
     """
     image.save(join(export_dirname, filename))
+
+if __name__ == '__main__':
+    generateimage_resourcecheck()
