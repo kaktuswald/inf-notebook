@@ -5,10 +5,7 @@ import gui.main as gui
 from os.path import exists
 
 from .static import title,icon_path,background_color,background_color_label,selected_background_color
-from .general import get_imagevalue,question
-from .main import display_image
 from define import define
-from image import generateimage_summary
 
 icon_image = Image.open(icon_path)
 resized_icon = icon_image.resize((32, 32))
@@ -22,7 +19,7 @@ summarytargetlevels = ['8', '9', '10', '11', '12']
 summarytargetcleartypes = ['CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO']
 summarytargetdjlevels = ['A', 'AA', 'AAA']
 
-def open_setting(setting):
+def open_setting(setting, location):
     tab_general = [[
         sg.Column([
             [sg.Text('リザルト記録', background_color=background_color_label)],
@@ -118,7 +115,7 @@ def open_setting(setting):
     tab_summary = [[
         sg.Column([
             [sg.Text('エクスポートされたCSVファイルから、チェックした成績を達成している曲の数を表示します。', background_color=background_dark)],
-            [sg.Text('リザルト手帳の起動時に表示するほか、Alt+F9で再表示します。', background_color=background_dark)],
+            [sg.Text('リザルト手帳の起動時に表示するほか、ホットキーで再表示します。', background_color=background_dark)],
             [sg.Text('表示したデータはexportフォルダに画像保存します。', background_color=background_dark)],
             *controls
         ], pad=0, size=(640, 300), background_color=background_dark, scrollable=True, vertical_scroll_only=True)
@@ -148,7 +145,8 @@ def open_setting(setting):
         finalize=True,
         enable_close_attempted_event=True,
         background_color=background_color,
-        modal=True
+        modal=True,
+        relative_location=location,
     )
 
     while True:

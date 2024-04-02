@@ -96,7 +96,7 @@ csssetting = {
     }
 }
 
-def open_export(recent, notebook_summary):
+def open_export(recent, notebook_summary, location):
     global csssetting
 
     try:
@@ -409,7 +409,8 @@ def open_export(recent, notebook_summary):
         finalize=True,
         enable_close_attempted_event=True,
         background_color=background_color,
-        modal=True
+        modal=True,
+        relative_location=location
     )
 
     generate_recent_css(window)
@@ -431,7 +432,7 @@ def open_export(recent, notebook_summary):
             generate_summary_css(window)
         if event == 'button_output_csv':
             output(notebook_summary)
-            message('完了', '出力が完了しました。')
+            message('完了', '出力が完了しました。', window.current_location())
         if event == 'button_clear_recent':
             recent.clear()
         if event == 'button_copy_css':

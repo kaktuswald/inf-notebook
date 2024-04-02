@@ -597,7 +597,7 @@ def notebooksummary_startimport(changed):
     if not 'last_allimported' in notebook_summary.json.keys():
         notebook_summary.json = {}
         counter = notebook_summary.start_import()
-        progress("お待ちください", notebooksummary_confirm_message, counter)
+        progress("お待ちください", notebooksummary_confirm_message, counter, window.current_location())
 
         notebook_summary.json['last_allimported'] = version
         notebook_summary.save()
@@ -839,7 +839,7 @@ def upload():
     if not selection.recent:
         return
     
-    if not question('確認', upload_confirm_message):
+    if not question('確認', upload_confirm_message, window.current_location()):
         return
     
     for row_index in table_selected_rows:
@@ -1115,7 +1115,7 @@ if __name__ == '__main__':
                         result_process(screen)
             if event == 'button_setting':
                 keyboard.clear_all_hotkeys()
-                if open_setting(setting) and question('統計設定変更', '統計データを更新しますか？'):
+                if open_setting(setting, window.current_location()):
                     summaryimage_generate()
                     summaryimage_display()
                 window['button_upload'].update(visible=setting.data_collection)
@@ -1139,7 +1139,7 @@ if __name__ == '__main__':
             if event == 'button_tweet':
                 tweet()
             if event == 'button_export':
-                open_export(recent, notebook_summary)
+                open_export(recent, notebook_summary, window.current_location())
             if event == 'button_upload':
                 upload()
             if event == 'table_results':

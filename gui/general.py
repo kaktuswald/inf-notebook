@@ -19,17 +19,18 @@ def get_imagevalue(image):
     image.save(bytes, format='PNG')
     return bytes.getvalue()
 
-def message(title, message):
+def message(title, message, location):
     sg.popup(
         '\n'.join([
             message,
         ]),
         title=title,
         icon=icon_path,
-        background_color=background_color
+        background_color=background_color,
+        relative_location=location
     )
 
-def question(title, message):
+def question(title, message, location):
     if type(message) is list:
         message = '\n'.join(message)
 
@@ -37,12 +38,13 @@ def question(title, message):
         message,
         title=title,
         icon=icon_path,
-        background_color=background_color
+        background_color=background_color,
+        relative_location=location
     )
 
     return result == 'Yes'
 
-def progress(title, message, counter):
+def progress(title, message, counter, location):
     if type(message) is list:
         message = '\n'.join(message)
 
@@ -61,6 +63,7 @@ def progress(title, message, counter):
         enable_close_attempted_event=True,
         background_color=background_color,
         keep_on_top=True,
+        relative_location=location
     )
 
     while True:
