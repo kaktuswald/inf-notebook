@@ -124,12 +124,15 @@ class ThreadMain(Thread):
             self.handle = 0
             self.active = False
             screenshot.xy = None
+            self.queues['hotkeys'].put('stop')
+
             return
             
         if width != define.width or height != define.height:
             if self.active:
                 self.sleep_time = thread_time_wait_nonactive
                 self.queues['log'].put(f'infinitas deactivate: {self.sleep_time}')
+                self.queues['hotkeys'].put('stop')
 
             self.active = False
             screenshot.xy = None
@@ -142,6 +145,7 @@ class ThreadMain(Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'infinitas activate: {self.sleep_time}')
             screenshot.xy = (rect.left, rect.top)
+            self.queues['hotkeys'].put('start')
 
         screen = screenshot.get_screen()
 
@@ -1024,8 +1028,6 @@ def start_hotkeys():
         keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
 
 if __name__ == '__main__':
-    start_hotkeys()
-
     window = gui.generate_window(setting, version)
 
     display_screenshot_enable = False
@@ -1057,6 +1059,7 @@ if __name__ == '__main__':
     queue_result_screen = Queue()
     queue_musicselect_screen = Queue()
     queue_functions = Queue()
+    queue_hotkeys = Queue()
 
     storage = StorageAccessor()
 
@@ -1067,7 +1070,8 @@ if __name__ == '__main__':
             'log': queue_log,
             'display_image': queue_display_image,
             'result_screen': queue_result_screen,
-            'musicselect_screen': queue_musicselect_screen
+            'musicselect_screen': queue_musicselect_screen,
+            'hotkeys': queue_hotkeys
         }
     )
 
@@ -1114,13 +1118,10 @@ if __name__ == '__main__':
                     if recog.get_is_savable(screen.np_value):
                         result_process(screen)
             if event == 'button_setting':
-                keyboard.clear_all_hotkeys()
                 if open_setting(setting, window.current_location()):
                     summaryimage_generate()
                     summaryimage_display()
                 window['button_upload'].update(visible=setting.data_collection)
-                keyboard.unhook_all_hotkeys()
-                start_hotkeys()
             if event == 'button_save':
                 save()
             if event == 'button_filter':
@@ -1205,6 +1206,12 @@ if __name__ == '__main__':
                 if not queue_functions.empty():
                     func, args = queue_functions.get_nowait()
                     func(args)
+                if not queue_hotkeys.empty():
+                    message = queue_hotkeys.get_nowait()
+                    if message == 'start':
+                        start_hotkeys()
+                    if message == 'stop':
+                        keyboard.clear_all_hotkeys()
 
         except Exception as ex:
             log_debug(ex)
