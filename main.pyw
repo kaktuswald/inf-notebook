@@ -79,6 +79,12 @@ musicselect_targetrecord = None
 
 image_summary = None
 
+waitloading_title = 'インフィニタス ローディング'
+waitloading_message = '\n'.join([
+    "しばらくお待ちください。",
+    "30秒ごとにローディングの状況をチェックします。"
+])
+
 class ThreadMain(Thread):
     handle = 0
     active = False
@@ -160,6 +166,7 @@ class ThreadMain(Thread):
                 self.musicselect = False
                 self.sleep_time = thread_time_wait_loading
                 self.queues['log'].put(f'find loading: start waiting: {self.sleep_time}')
+                self.queues['messages'].put('detect_loading')
             return
             
         if self.waiting:
@@ -1026,6 +1033,15 @@ def start_hotkeys():
     if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
         keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
 
+def loading_counter():
+    counter = [0, 30]
+    def counting(counter):
+        while counter[0] < counter[1]:
+            time.sleep(3)
+            counter[0] += 3
+    Thread(target=counting, args=(counter,)).start()
+    return counter
+
 if __name__ == '__main__':
     window = gui.generate_window(setting, version)
 
@@ -1211,6 +1227,10 @@ if __name__ == '__main__':
                         start_hotkeys()
                     if message == 'hotkey_stop':
                         keyboard.clear_all_hotkeys()
+                    if message == 'detect_loading':
+                        counter = loading_counter()
+                        progress(waitloading_title, waitloading_message, counter, window.current_location())
+
 
         except Exception as ex:
             log_debug(ex)
