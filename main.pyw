@@ -150,8 +150,9 @@ class ThreadMain(Thread):
             self.musicselect = False
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'infinitas activate: {self.sleep_time}')
-            screenshot.xy = (rect.left, rect.top)
             self.queues['messages'].put('hotkey_start')
+        
+        screenshot.xy = (rect.left, rect.top)
         screen = screenshot.get_screen()
 
         if screen != self.screen_latest:
