@@ -124,7 +124,7 @@ class ThreadMain(Thread):
             self.handle = 0
             self.active = False
             screenshot.xy = None
-            self.queues['hotkeys'].put('stop')
+            self.queues['messages'].put('hotkey_stop')
 
             return
             
@@ -132,7 +132,7 @@ class ThreadMain(Thread):
             if self.active:
                 self.sleep_time = thread_time_wait_nonactive
                 self.queues['log'].put(f'infinitas deactivate: {self.sleep_time}')
-                self.queues['hotkeys'].put('stop')
+                self.queues['messages'].put('hotkey_stop')
 
             self.active = False
             screenshot.xy = None
@@ -145,8 +145,7 @@ class ThreadMain(Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'infinitas activate: {self.sleep_time}')
             screenshot.xy = (rect.left, rect.top)
-            self.queues['hotkeys'].put('start')
-
+            self.queues['messages'].put('hotkey_start')
         screen = screenshot.get_screen()
 
         if screen != self.screen_latest:
@@ -1059,7 +1058,7 @@ if __name__ == '__main__':
     queue_result_screen = Queue()
     queue_musicselect_screen = Queue()
     queue_functions = Queue()
-    queue_hotkeys = Queue()
+    queue_messages = Queue()
 
     storage = StorageAccessor()
 
@@ -1071,7 +1070,7 @@ if __name__ == '__main__':
             'display_image': queue_display_image,
             'result_screen': queue_result_screen,
             'musicselect_screen': queue_musicselect_screen,
-            'hotkeys': queue_hotkeys
+            'messages': queue_messages
         }
     )
 
@@ -1206,11 +1205,11 @@ if __name__ == '__main__':
                 if not queue_functions.empty():
                     func, args = queue_functions.get_nowait()
                     func(args)
-                if not queue_hotkeys.empty():
-                    message = queue_hotkeys.get_nowait()
-                    if message == 'start':
+                if not queue_messages.empty():
+                    message = queue_messages.get_nowait()
+                    if message == 'hotkey_start':
                         start_hotkeys()
-                    if message == 'stop':
+                    if message == 'hotkey_stop':
                         keyboard.clear_all_hotkeys()
 
         except Exception as ex:
