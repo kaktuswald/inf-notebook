@@ -470,6 +470,9 @@ def save_filtered(resultimage, timestamp, music, play_mode, difficulty, play_sid
 def insert_recentnotebook_results():
     for timestamp in notebook_recent.timestamps:
         target = notebook_recent.get_result(timestamp)
+        if target is None:
+            continue
+        
         playmode = target['play_mode']
         difficulty = target['difficulty']
         list_results.insert(0, [
