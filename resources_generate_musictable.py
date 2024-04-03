@@ -402,7 +402,7 @@ def generate_musictable():
 
     arcadedata = load_arcade_scorefiles(report)
 
-    load_musiclist(table, table, versions.keys())
+    load_musiclist(report, table, versions.keys())
 
     filenametest(table)
 
