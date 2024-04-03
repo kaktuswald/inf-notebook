@@ -4,6 +4,7 @@ from winsound import SND_FILENAME,PlaySound
 from logging import getLogger
 import pickle
 from os.path import isfile
+from PIL import Image
 
 logger_child_name = 'resources'
 
@@ -11,6 +12,7 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug(f'loaded resources.py')
 
 from define import define
+from gui.general import get_imagevalue
 
 resources_dirname = 'resources'
 
@@ -23,6 +25,8 @@ images_dirpath = os.path.join(resources_dirname, images_dirname)
 sound_result_filepath = os.path.join(sounds_dirpath, 'result.wav')
 
 images_resourcecheck_filepath = os.path.join(images_dirpath, 'resourcecheck.png')
+images_imagenothing_filepath = os.path.join(images_dirpath, 'imagenothing.png')
+images_loading_filepath = os.path.join(images_dirpath, 'loading.png')
 
 class Resource():
     def __init__(self):
@@ -55,6 +59,11 @@ class Resource():
         resourcename = f'musicselect{define.musicselect_recognition_version}'
         
         self.musicselect = load_resource_serialized(resourcename)
+    
+    def load_images(self):
+        self.image_resourcecheck = get_imagevalue(Image.open(images_resourcecheck_filepath))
+        self.image_imagenothing = get_imagevalue(Image.open(images_imagenothing_filepath))
+        self.image_loading = get_imagevalue(Image.open(images_loading_filepath))
 
 class ResourceTimestamp():
     def __init__(self, resourcename):

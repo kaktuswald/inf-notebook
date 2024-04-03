@@ -5,7 +5,7 @@ from datetime import datetime
 import re
 
 from define import define
-from resources import resource,images_resourcecheck_filepath
+from resources import resource,images_resourcecheck_filepath,images_imagenothing_filepath,images_loading_filepath
 from export import export_dirname
 
 dirname_results = 'results'
@@ -44,7 +44,10 @@ playmode_xposition = 50
 level_xposition = 200
 total_exposition = 1250
 
-resourcecheck_text = '最新データチェック中'
+text_resourcecheck = '最新データチェック中'
+text_imagenothing = '画像なし'
+text_loading_title = 'インフィニタス ローディング'
+text_loading_message = '30秒ごとにローディングの状況をチェックします'
 
 def generate_filename(music, timestamp, scoretype=None, musicname_right=False):
     """保存ファイル名を作る
@@ -368,15 +371,29 @@ def generateimage_musicinformation(playmode, difficulty, musicname, record):
 
     return image
 
-def generateimage_resourcecheck():
+def generateimage_simple(message, filepath):
     font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 160)
 
     draw.rectangle((0, 0, 1280, 720), fill=background)
 
-    bbox = draw.multiline_textbbox((0, 0), resourcecheck_text, font=font)
-    draw.multiline_text((640-bbox[2]/2, 360-bbox[3]/2), resourcecheck_text, fill=textcolor, font=font)
+    bbox = draw.multiline_textbbox((0, 0), message, font=font)
+    draw.multiline_text((640-bbox[2]/2, 360-bbox[3]/2), message, fill=textcolor, font=font)
 
-    image.save(images_resourcecheck_filepath)
+    image.save(filepath)
+
+def generateimage_multiline(title, message, filepath):
+    font_title = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 120)
+    font_message = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 60)
+
+    draw.rectangle((0, 0, 1280, 720), fill=background)
+
+    bbox = draw.multiline_textbbox((0, 0), title, font=font_title)
+    draw.multiline_text((640-bbox[2]/2, 260-bbox[3]/2), title, fill=textcolor, font=font_title)
+
+    bbox = draw.multiline_textbbox((0, 0), message, font=font_message)
+    draw.multiline_text((640-bbox[2]/2, 460-bbox[3]/2), message, fill=textcolor, font=font_message)
+
+    image.save(filepath)
 
 def save_exportimage(image, filename):
     """エクスポートフォルダに画像ファイルを保存する
@@ -388,4 +405,6 @@ def save_exportimage(image, filename):
     image.save(join(export_dirname, filename))
 
 if __name__ == '__main__':
-    generateimage_resourcecheck()
+    generateimage_simple(text_resourcecheck, images_resourcecheck_filepath)
+    generateimage_simple(text_imagenothing, images_imagenothing_filepath)
+    generateimage_multiline(text_loading_title, text_loading_message, images_loading_filepath)

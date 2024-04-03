@@ -301,7 +301,7 @@ def display_image(value, result=False, others=False):
     if value is not None:
         window['screenshot'].update(data=value, subsample=subsample, visible=True)
     else:
-        window['screenshot'].update(visible=False)
+        window['screenshot'].update(data=resource.image_imagenothing, subsample=subsample)
 
     window['button_save'].update(disabled=not (result or others))
     window['button_filter'].update(disabled=not result)
