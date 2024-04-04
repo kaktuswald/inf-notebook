@@ -1120,8 +1120,13 @@ if __name__ == '__main__':
                 if exists(values['text_file_path']):
                     screen = open_screenimage(values['text_file_path'])
                     gui.display_image(get_imagevalue(screen.original))
+
                     if recog.get_is_savable(screen.np_value):
                         result_process(screen)
+                    trimmed = screen.np_value[define.musicselect_trimarea_np]
+                    if recog.MusicSelect.get_version(trimmed) is not None:
+                        musicselect_process(trimmed)
+
             if event == 'button_setting':
                 if open_setting(setting, window.current_location()):
                     summaryimage_generate()
