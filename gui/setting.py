@@ -6,6 +6,7 @@ from os.path import exists
 
 from .static import title,icon_path,background_color,background_color_label,selected_background_color
 from define import define
+from setting import Setting
 
 icon_image = Image.open(icon_path)
 resized_icon = icon_image.resize((32, 32))
@@ -19,7 +20,7 @@ summarytargetlevels = ['8', '9', '10', '11', '12']
 summarytargetcleartypes = ['CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO']
 summarytargetdjlevels = ['A', 'AA', 'AAA']
 
-def open_setting(setting, location):
+def open_setting(setting: Setting, location: tuple[int, int]):
     tab_general = [[
         sg.Column([
             [sg.Text('リザルト記録', background_color=background_color_label)],

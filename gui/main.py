@@ -3,6 +3,7 @@ import PySimpleGUI as sg
 from define import define
 from resources import resource
 from .static import title,icon_path,background_color,background_color_label,background_color2_label,selected_background_color
+from setting import Setting
 
 scales = ('1/1', '1/2', '1/4', )
 
@@ -10,7 +11,19 @@ best_display_modes = ('option', 'timestamp', )
 
 best_display_mode = best_display_modes[0]
 
-def layout_main(setting):
+discod_webhook_displayvalues_mode = {
+    'battle': 'B',
+    'score': 'SC',
+    'misscount': 'MC'
+}
+
+discod_webhook_displayvalues_state = {
+    'active': '*',
+    'nonactive': '',
+    'error': '--'
+}
+
+def layout_main(setting: Setting):
     column_headers = ['S', 'F', '日時', '曲名', 'MODE', 'CT', 'DL', 'SC', 'MC']
     column_widths = [3, 3, 16, 16, 5, 3, 3, 3, 3]
 
@@ -18,12 +31,13 @@ def layout_main(setting):
         column_visibles = [True, True, False, True, True, True, True, True, True]
     else:
         column_visibles = [True, True, True, False, True, True, True, True, True]
-    
+
     if not resource.musictable is None:
         versions = ['ALL', *resource.musictable['versions']]
     else:
         versions = ['ALL']
-    
+
+    djname = setting.discord_webhook['djname'] if 'djname' in setting.discord_webhook.keys() else ''
     tabs_main = [[
         sg.Tab('最近のリザルト', [
             [sg.Table(
@@ -82,6 +96,44 @@ def layout_main(setting):
                         )
                     ]
                 ], pad=0, background_color=background_color)
+            ]
+        ], pad=0, background_color=background_color),
+        sg.Tab('連携投稿', [
+            [
+                sg.Text('名前', size=(12, 1), background_color=background_color_label),
+                sg.Input(djname, key='discord_webhook_djname', size=(10,1)),
+                sg.Button('保存', key='discord_webhook_savedjname')
+            ],
+            [
+                sg.Table(
+                    [],
+                    header_font=('Arial', 8),
+                    font=('Arial', 9),
+                    key='discord_webhooks_list',
+                    headings=['Name', 'M', 'State', 'Best'],
+                    auto_size_columns=False,
+                    vertical_scroll_only=True,
+                    col_widths=[24, 4, 5, 5],
+                    num_rows=4,
+                    justification='center',
+                    enable_events=True,
+                    background_color=background_color
+                )
+            ],
+            [
+                sg.Button('追加', key='discord_webhook_add'),
+                sg.Button('更新', key='discord_webhook_update'),
+                sg.Button('有効化', key='discord_webhook_activate'),
+                sg.Button('無効化', key='discord_webhook_deactivate'),
+                sg.Button('削除', key='discord_webhook_delete')
+            ],
+            [
+                sg.Listbox(
+                    [],
+                    key='discord_webhooks_log',
+                    size=(38, 6),
+                    horizontal_scroll=True
+                )
             ]
         ], pad=0, background_color=background_color)
     ]]
@@ -229,6 +281,28 @@ def layout_main(setting):
         ]
     ]
 
+def set_discord_servers(servers):
+    """設定をテーブルにセットする
+    """
+    values = []
+    names = []
+    for name, value in servers.items():
+        if value['mode'] == 'battle':
+            mybest = '---'
+        else:
+            mybest = value['mybest'] if value['mybest'] is not None else ''
+        values.append([
+            name,
+            discod_webhook_displayvalues_mode[value['mode']],
+            discod_webhook_displayvalues_state[value['state']],
+            mybest
+        ])
+        names.append(name)
+
+    window['discord_webhooks_list'].update(values)
+
+    return names
+
 def generate_window(setting, version):
     global window
 
@@ -337,7 +411,7 @@ def display_record(record):
             window[f'best_{key}_timestamp'].update('')
             window[f'history_{key}'].update('')
         return
-    
+
     if 'timestamps' in record.keys():
         window['history'].update([*reversed(record['timestamps'])])
         window['played_count'].update(len(record['timestamps']))
@@ -373,7 +447,7 @@ def display_record(record):
             window[f'best_{key}'].update('')
             window[f'best_{key}_option'].update('')
             window[f'best_{key}_timestamp'].update('')
-    
+
     window['history_timestamp'].update('')
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'history_{key}'].update('')
@@ -382,10 +456,10 @@ def display_record(record):
 def display_historyresult(record, timestamp):
     if record is None:
         return
-    
+
     if not 'history' in record.keys() or not timestamp in record['history']:
         return
-    
+
     formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日 {timestamp[9:11]}:{timestamp[11:13]}:{timestamp[13:15]}'
     window['history_timestamp'].update(formatted_timestamp)
 
@@ -401,13 +475,13 @@ def display_historyresult(record, timestamp):
             target['options']['assist'] if target['options']['assist'] is not None else '',
             'BATTLE' if target['options']['battle'] else ''
         ]))
-    
+
 def switch_best_display():
     global best_display_mode
 
     index = (best_display_modes.index(best_display_mode) + 1) % len(best_display_modes)
     best_display_mode = best_display_modes[index]
-    
+
     if best_display_mode == 'option':
         window['button_best_switch'].update('使用オプション >> 更新日')
 

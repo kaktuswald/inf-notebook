@@ -33,7 +33,11 @@ default = {
         'display_summaryimage': 'alt+F9',
         'upload_musicselect': 'alt+F8'
     },
-    'summary_countmethod_only': False
+    'summary_countmethod_only': False,
+    'discord_webhook': {
+        'djname': 'NO NAME',
+        'servers': {}
+    }
 }
 
 class Setting():
@@ -60,8 +64,11 @@ class Setting():
         self.save()
 
     def save(self):
-        with open(setting_filepath, 'w') as f:
-            json.dump(self.json, f, indent=2)
+        try:
+            with open(setting_filepath, 'w') as f:
+                json.dump(self.json, f, indent=2)
+        except Exception as ex:
+            print(f'setting json dump error: {ex}')
     
     def has_key(self, key):
         return key in self.json.keys()
@@ -183,6 +190,14 @@ class Setting():
     def filter_compact(self, value):
         self.set_value('filter_compact', value)
     
+    @property
+    def discord_webhook(self):
+        return self.get_value('discord_webhook')
+
+    @discord_webhook.setter
+    def discord_webhook(self, value):
+        self.set_value('discord_webhook', value)
+
     @property
     def ignore_download(self):
         return self.get_value('ignore_download')

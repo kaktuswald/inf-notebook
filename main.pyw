@@ -8,6 +8,7 @@ import webbrowser
 import logging
 from urllib import request
 from urllib.parse import quote
+from datetime import datetime
 from PIL import Image
 
 from setting import Setting
@@ -35,9 +36,10 @@ from version import version
 import gui.main as gui
 from gui.setting import open_setting
 from gui.export import open_export
-from gui.general import get_imagevalue,progress,question
+from gui.general import get_imagevalue,message,progress,question
+from gui.discord_webhook_setting import open_setting as discord_webhook_setting_open_setting
 from define import define
-from resources import resource,play_sound_result,check_latest,images_resourcecheck_filepath
+from resources import resource,play_sound_result,check_latest
 from screenshot import Screenshot,open_screenimage
 from recog import Recognition as recog
 from raw_image import save_raw
@@ -48,6 +50,8 @@ from filter import filter as filter_result
 from export import Recent,output
 from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs,openfolder_scoreinformations
 from image import save_resultimage,save_resultimage_filtered,save_scoreinformationimage,save_graphimage,get_resultimage,get_resultimage_filtered,generateimage_summary,generateimage_musicinformation
+from discord_webhook import post_result,deactivate_allbattles
+from result import Result
 
 recent_maxcount = 100
 
@@ -78,6 +82,9 @@ tweet_template_hashtag = '#IIDX #infinitas573 #infnotebook'
 musicselect_targetrecord = None
 
 image_summary = None
+
+discord_server_names = []
+discord_webhooks_log = []
 
 class ThreadMain(Thread):
     handle = 0
@@ -361,6 +368,87 @@ def result_process(screen):
         recent.insert(result)
 
     insert_results(result)
+
+    if 'djname' in setting.discord_webhook.keys() and setting.discord_webhook['djname'] is not None and len(setting.discord_webhook['djname']) > 0:
+        if 'servers' in setting.discord_webhook.keys() and len(setting.discord_webhook['servers']) > 0:
+            Thread(target=post_discord_webhooks, args=(result, resultimage, queue_multimessages)).start()
+
+def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
+    imagevalue = None
+    imagevalue_filtered_whole = None
+    imagevalue_filtered_compact = None
+    setting_updated = False
+    logs = []
+    for settingname, webhooksetting in setting.discord_webhook['servers'].items():
+        if webhooksetting['state'] != 'active':
+            continue
+
+        if webhooksetting['filter'] == 'none':
+            if imagevalue is None:
+                if not result.timestamp in imagevalues_result.keys():
+                    imagevalues_result[result.timestamp] = get_imagevalue(resultimage)
+
+                imagevalue = imagevalues_result[result.timestamp]
+            targetimagevalue = imagevalue
+        else:
+            if webhooksetting['filter'] == 'whole':
+                if imagevalue_filtered_whole is None:
+                    imagevalue_filtered_whole = get_imagevalue(filter_result(
+                        resultimage,
+                        result.play_side,
+                        result.rival,
+                        result.details.graphtarget == 'rival',
+                        False
+                    ))
+                targetimagevalue = imagevalue_filtered_whole
+            if webhooksetting['filter'] == 'compact':
+                if imagevalue_filtered_compact is None:
+                    imagevalue_filtered_compact = get_imagevalue(filter_result(
+                        resultimage,
+                        result.play_side,
+                        result.rival,
+                        result.details.graphtarget == 'rival',
+                        True
+                    ))
+                targetimagevalue = imagevalue_filtered_compact
+
+        postresult, resultmessages = post_result(setting.discord_webhook['djname'], webhooksetting, result, targetimagevalue)
+        if postresult is None:
+            continue
+        
+        dt = datetime.now().strftime('%H:%M')
+        if postresult:
+            if result.informations.music is not None:
+                logs.append(f'{dt} {settingname}: {resultmessages}({result.informations.music})')
+            else:
+                logs.append(f'{dt} {settingname}: {resultmessages}')
+
+            if webhooksetting['mode'] != 'battle':
+                if webhooksetting['mode'] == 'score':
+                    webhooksetting['mybest'] = result.details.score.current
+                if webhooksetting['mode'] == 'misscount':
+                    webhooksetting['mybest'] = result.details.miss_count.current
+                setting_updated = True
+        else:
+            webhooksetting['state'] = 'error'
+            setting_updated = True
+            if resultmessages is str:
+                logs.append(f'{dt} {settingname}: {resultmessages}')
+            else:
+                logs.append(f'{dt} {settingname}: {resultmessages[0]}')
+                for line in resultmessages[1:]:
+                    logs.append(line)
+
+    if setting_updated:
+        setting.save()
+        set_discord_servers()
+    
+    queue.put(('discord_webhooks_log', (logs,)))
+
+def set_discord_servers():
+    global discord_server_names
+    if 'servers' in setting.discord_webhook.keys():
+        discord_server_names = gui.set_discord_servers(setting.discord_webhook['servers'])
 
 def musicselect_process(np_value):
     global musicselect_targetrecord
@@ -1031,8 +1119,78 @@ def start_hotkeys():
     if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
         keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
 
+def event_discord_webhook(event: str, values: dict[str, object]) -> bool:
+    if not 'servers' in setting.discord_webhook.keys():
+        setting.discord_webhook['servers'] = {}
+    
+    selected_setting = None
+    if len(values['discord_webhooks_list']) > 0:
+        selected_settingname = discord_server_names[values['discord_webhooks_list'][0]]
+        selected_setting = setting.discord_webhook['servers'][selected_settingname]
+
+    if event == 'discord_webhook_savedjname':
+        setting.discord_webhook['djname'] = values['discord_webhook_djname']
+        setting.save()
+    
+    if event == 'discord_webhook_add':
+        settingname, values = discord_webhook_setting_open_setting(window.current_location())
+        if settingname is not None:
+            if not settingname in setting.discord_webhook['servers'].keys():
+                setting.discord_webhook['servers'][settingname] = values
+                setting.save()
+                return True
+            else:
+                message('追加の失敗', '設定名が重複しているため追加できません。', window.current_location())
+
+    if event == 'discord_webhook_update':
+        if selected_setting is None:
+            return False
+        
+        settingname, values = discord_webhook_setting_open_setting(
+            window.current_location(),
+            selected_settingname,
+            selected_setting
+        )
+        if settingname is not None:
+            del setting.discord_webhook['servers'][selected_settingname]
+            setting.discord_webhook['servers'][settingname] = values
+            setting.save()
+            return True
+        
+    if event == 'discord_webhook_activate':
+        if selected_setting is None:
+            return False
+        
+        selected_setting['state'] = 'active'
+        setting.save()
+        return True
+
+    if event == 'discord_webhook_deactivate':
+        if selected_setting is None:
+            return False
+        
+        selected_setting['state'] = 'nonactive'
+        setting.save()
+        return True
+
+
+    if event == 'discord_webhook_delete':
+        if selected_setting is None:
+            return
+
+        del setting.discord_webhook['servers'][selected_settingname]
+        setting.save()
+        return True
+
+    return False
+
 if __name__ == '__main__':
+    if 'servers' in setting.discord_webhook.keys():
+        deactivate_allbattles(setting.discord_webhook['servers'])
+
     window = gui.generate_window(setting, version)
+
+    set_discord_servers()
 
     display_screenshot_enable = False
 
@@ -1064,6 +1222,7 @@ if __name__ == '__main__':
     queue_musicselect_screen = Queue()
     queue_functions = Queue()
     queue_messages = Queue()
+    queue_multimessages = Queue()
 
     storage = StorageAccessor()
 
@@ -1075,7 +1234,8 @@ if __name__ == '__main__':
             'display_image': queue_display_image,
             'result_screen': queue_result_screen,
             'musicselect_screen': queue_musicselect_screen,
-            'messages': queue_messages
+            'messages': queue_messages,
+            'multimessages': queue_multimessages
         }
     )
 
@@ -1189,6 +1349,9 @@ if __name__ == '__main__':
                 delete_targetrecord()
             if event == 'button_best_switch':
                 gui.switch_best_display()
+            if 'discord_webhook' in event:
+                if event_discord_webhook(event, values):
+                    set_discord_servers()
             if event == 'timeout':
                 if not window['positioned'].visible and thread.handle:
                     window['positioned'].update(visible=True)
@@ -1217,15 +1380,21 @@ if __name__ == '__main__':
                     func, args = queue_functions.get_nowait()
                     func(args)
                 if not queue_messages.empty():
-                    message = queue_messages.get_nowait()
-                    if message == 'hotkey_start':
+                    queuemessage = queue_messages.get_nowait()
+                    if queuemessage == 'hotkey_start':
                         start_hotkeys()
-                    if message == 'hotkey_stop':
+                    if queuemessage == 'hotkey_stop':
                         keyboard.clear_all_hotkeys()
-                    if message == 'detect_loading':
+                    if queuemessage == 'detect_loading':
                         gui.display_image(resource.image_loading)
-                    if message == 'escape_loading':
+                    if queuemessage == 'escape_loading':
                         summaryimage_display()
+                if not queue_multimessages.empty():
+                    queuemessage, args = queue_multimessages.get_nowait()
+                    if queuemessage == 'discord_webhooks_log':
+                        discord_webhooks_log.extend(args[0])
+                        del discord_webhooks_log[:-6]
+                        window['discord_webhooks_log'].update(values=discord_webhooks_log)
 
         except Exception as ex:
             log_debug(ex)
