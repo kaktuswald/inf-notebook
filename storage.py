@@ -19,8 +19,6 @@ bucket_name_details = 'bucket-inf-notebook-details'
 bucket_name_musicselect = 'bucket-inf-notebook-musicselect'
 bucket_name_resources = 'bucket-inf-notebook-resources'
 
-service_account_info = service_account_info
-
 informations_dirname = 'informations'
 details_dirname = 'details'
 musicselect_dirname = 'musicselect'
