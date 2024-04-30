@@ -941,8 +941,8 @@ def upload():
     for row_index in table_selected_rows:
         timestamp = list_results[row_index][2]
         if timestamp in results_today.keys() and not timestamp in timestamps_uploaded:
-            storage.upload_collection(results_today[timestamp], images_result[timestamp], True)
-            timestamps_uploaded.append(timestamp)
+            if storage.start_uploadcollection(results_today[timestamp], images_result[timestamp], True):
+                timestamps_uploaded.append(timestamp)
 
 def open_folder_results():
     ret = openfolder_results(setting.imagesave_path)
