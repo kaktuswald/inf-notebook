@@ -324,6 +324,10 @@ def result_process(screen):
     if setting.data_collection or window['force_upload'].get():
         if storage.start_uploadcollection(result, resultimage, window['force_upload'].get()):
             timestamps_uploaded.append(result.timestamp)
+
+    if 'djname' in setting.discord_webhook.keys() and setting.discord_webhook['djname'] is not None and len(setting.discord_webhook['djname']) > 0:
+        if 'servers' in setting.discord_webhook.keys() and len(setting.discord_webhook['servers']) > 0:
+            Thread(target=post_discord_webhooks, args=(result, resultimage, queue_multimessages)).start()
     
     if setting.newrecord_only and not result.has_new_record():
         return
@@ -368,10 +372,6 @@ def result_process(screen):
         recent.insert(result)
 
     insert_results(result)
-
-    if 'djname' in setting.discord_webhook.keys() and setting.discord_webhook['djname'] is not None and len(setting.discord_webhook['djname']) > 0:
-        if 'servers' in setting.discord_webhook.keys() and len(setting.discord_webhook['servers']) > 0:
-            Thread(target=post_discord_webhooks, args=(result, resultimage, queue_multimessages)).start()
 
 def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
     imagevalue = None
