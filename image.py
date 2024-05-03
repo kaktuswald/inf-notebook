@@ -35,14 +35,16 @@ font_title = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 80
 font_musicname = ImageFont.truetype('Resources/Fonts/hanazomefont.ttf', 80)
 font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 48)
 font_small = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 36)
+font_moresmall = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 22)
 
 musicinformation_keys = ['score', 'miss_count']
 
 summarytypes = {'cleartypes': 'クリアタイプ', 'djlevels': 'DJレベル'}
-summarytypes_xpositions = {'cleartypes': (250, 700), 'djlevels': (750, 1050)}
+summarytypes_xpositions = {'cleartypes': (250, 650), 'djlevels': (740, 950)}
 playmode_xposition = 50
 level_xposition = 200
-total_exposition = 1250
+total_xposition = 1150
+nodata_xposition = 1230
 
 text_resourcecheck = '最新データチェック中'
 text_imagenothing = '画像なし'
@@ -253,7 +255,12 @@ def generateimage_summary(counts, setting, countmethod_only):
     draw.multiline_text((summarytypes_xpositions['djlevels'][1] - bbox[2], 150), 'DJ LEVEL', fill=textcolor, font=font)
 
     bbox = draw.multiline_textbbox((0, 0), 'TOTAL', font=font)
-    draw.multiline_text((total_exposition - bbox[2], 150), 'TOTAL', fill=textcolor, font=font)
+    draw.multiline_text((total_xposition - bbox[2], 150), 'TOTAL', fill=textcolor, font=font)
+
+    bbox = draw.multiline_textbbox((0, 0), 'NO', font=font_moresmall)
+    draw.multiline_text((nodata_xposition - bbox[2], 150), 'NO', fill=textcolor, font=font_moresmall)
+    bbox = draw.multiline_textbbox((0, 0), 'DATA', font=font_moresmall)
+    draw.multiline_text((nodata_xposition - bbox[2], 150+25), 'DATA', fill=textcolor, font=font_moresmall)
 
     result = {}
     for playmode in setting.keys():
@@ -278,7 +285,10 @@ def generateimage_summary(counts, setting, countmethod_only):
             items = {}
             for summarytype in summarytypes.keys():
                 items[summarytype] = [*result[playmode][level][summarytype].items()] if summarytype in result[playmode][level].keys() else []
-            total = str(len(resource.musictable['levels'][playmode][level]))
+            total = len(resource.musictable['levels'][playmode][level])
+            total_str = str(total)
+            nodatacount = total - counts[playmode][level]['datacount']
+            nodatacount_str = f'({nodatacount})' if nodatacount > 0 else ''
 
             for index in range(levelcount):
                 draw.multiline_text((playmode_xposition, line*50+200), playmode, fill=textcolor, font=font)
@@ -296,8 +306,11 @@ def generateimage_summary(counts, setting, countmethod_only):
                     bbox = draw.multiline_textbbox((0, 0), str(value), font=font)
                     draw.multiline_text((summarytypes_xpositions[summarytype][1]-bbox[2], line*50+200), str(value), fill=textcolor, font=font)
 
-                bbox = draw.multiline_textbbox((0, 0), total, font=font)
-                draw.multiline_text((total_exposition-bbox[2], line*50+200), total, fill=textcolor, font=font)
+                bbox = draw.multiline_textbbox((0, 0), total_str, font=font)
+                draw.multiline_text((total_xposition-bbox[2], line*50+200), total_str, fill=textcolor, font=font)
+
+                bbox = draw.multiline_textbbox((0, 0), nodatacount_str, font=font_moresmall)
+                draw.multiline_text((nodata_xposition-bbox[2], line*50+220), nodatacount_str, fill=textcolor, font=font_moresmall)
 
                 line += 1
 

@@ -187,13 +187,13 @@ class NotebookSummary(Notebook):
         for playmode in define.value_list['play_modes']:
             result[playmode] = {}
             for difficulty in define.value_list['difficulties']:
-                result[playmode][difficulty] = {'total': 0}
+                result[playmode][difficulty] = {'total': 0, 'datacount': 0}
                 for cleartype in define.value_list['clear_types']:
                     result[playmode][difficulty][cleartype] = 0
                 for djlevel in define.value_list['dj_levels']:
                     result[playmode][difficulty][djlevel] = 0
             for level in define.value_list['levels']:
-                result[playmode][level] = {'total': 0}
+                result[playmode][level] = {'total': 0, 'datacount': 0}
                 for cleartype in define.value_list['clear_types']:
                     result[playmode][level][cleartype] = 0
                 for djlevel in define.value_list['dj_levels']:
@@ -216,7 +216,9 @@ class NotebookSummary(Notebook):
                         cleartype = self.json['musics'][musicname][playmode][difficulty]['cleartype']
                         if cleartype is not None:
                             result[playmode][difficulty][cleartype] += 1
+                            result[playmode][difficulty]['datacount'] += 1
                             result[playmode][level][cleartype] += 1
+                            result[playmode][level]['datacount'] += 1
                     if 'djlevel' in self.json['musics'][musicname][playmode][difficulty].keys():
                         djlevel = self.json['musics'][musicname][playmode][difficulty]['djlevel']
                         if djlevel is not None:
