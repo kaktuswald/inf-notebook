@@ -12,8 +12,8 @@ class Define():
 
     screens = {
         'loading': {
-            'left': 898,
-            'top': 482,
+            'left': 940,
+            'top': 378,
             'width': 4,
             'height': 2
         },
