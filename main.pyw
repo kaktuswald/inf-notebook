@@ -122,7 +122,7 @@ class ThreadMain(Thread):
         
         rect = get_rect(self.handle)
 
-        if rect is None or rect.left == 0 or rect.top == 0:
+        if rect is None or rect.right - rect.left == 0 or rect.bottom - rect.top == 0:
             self.queues['log'].put(f'infinitas lost')
             self.sleep_time = thread_time_wait_nonactive
 
