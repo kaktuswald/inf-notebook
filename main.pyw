@@ -621,6 +621,9 @@ def active_screenshot():
     if not screenshot.shot():
         return
     
+    if setting.play_sound:
+        play_sound_result()
+
     image = screenshot.get_image()
     if image is not None:
         filepath = save_raw(image)
@@ -635,6 +638,9 @@ def upload_musicselect():
     if not screenshot.shot():
         return
     
+    if setting.play_sound:
+        play_sound_result()
+
     image = screenshot.get_image()
     if image is not None:
         storage.start_uploadmusicselect(image)

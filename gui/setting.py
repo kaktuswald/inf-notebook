@@ -30,7 +30,7 @@ def open_setting(setting: Setting, location: tuple[int, int]):
             ],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
-                sg.Checkbox('記録したときに音を出す', key='check_play_sound', default=setting.play_sound, background_color=background_dark)
+                sg.Checkbox('記録したときなどに音を出す', key='check_play_sound', default=setting.play_sound, background_color=background_dark)
             ],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
