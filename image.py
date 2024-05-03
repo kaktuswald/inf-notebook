@@ -39,6 +39,11 @@ font_moresmall = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf'
 
 musicinformation_keys = ['score', 'miss_count']
 
+titles = {
+    False: 'Number achieved.',
+    True: 'Number recorded.'
+}
+
 summarytypes = {'cleartypes': 'クリアタイプ', 'djlevels': 'DJレベル'}
 summarytypes_xpositions = {'cleartypes': (250, 650), 'djlevels': (740, 950)}
 playmode_xposition = 50
@@ -246,7 +251,7 @@ def generateimage_summary(counts, setting, countmethod_only):
         return
     
     draw.rectangle((0, 0, 1280, 720), fill=background)
-    draw.multiline_text((20, 20), 'Number of goals achieved.', fill=textcolor, font=font_title)
+    draw.multiline_text((20, 20), titles[countmethod_only], fill=textcolor, font=font_title)
 
     bbox = draw.multiline_textbbox((0, 0), 'CLEAR TYPE', font=font)
     draw.multiline_text((summarytypes_xpositions['cleartypes'][1] - bbox[2], 150), 'CLEAR TYPE', fill=textcolor, font=font)
