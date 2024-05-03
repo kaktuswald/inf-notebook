@@ -48,7 +48,7 @@ from record import NotebookRecent,NotebookSummary,NotebookMusic,rename_allfiles,
 from graph import create_graphimage
 from filter import filter as filter_result
 from export import Recent,output
-from windows import find_window,get_rect,openfolder_results,openfolder_filtereds,openfolder_graphs,openfolder_scoreinformations
+from windows import find_window,get_rect,check_rectsize,openfolder_results,openfolder_filtereds,openfolder_graphs,openfolder_scoreinformations
 from image import save_resultimage,save_resultimage_filtered,save_scoreinformationimage,save_graphimage,get_resultimage,get_resultimage_filtered,generateimage_summary,generateimage_musicinformation
 from discord_webhook import post_result,deactivate_allbattles
 from result import Result
@@ -121,10 +121,8 @@ class ThreadMain(Thread):
             screenshot.xy = None
         
         rect = get_rect(self.handle)
-        width = rect.right - rect.left
-        height = rect.bottom - rect.top
 
-        if rect is None or not width or not height:
+        if rect is None or rect.left == 0 or rect.top == 0:
             self.queues['log'].put(f'infinitas lost')
             self.sleep_time = thread_time_wait_nonactive
 
@@ -134,8 +132,8 @@ class ThreadMain(Thread):
             self.queues['messages'].put('hotkey_stop')
 
             return
-            
-        if width != define.width or height != define.height:
+
+        if not check_rectsize(rect):
             if self.active:
                 self.sleep_time = thread_time_wait_nonactive
                 self.queues['log'].put(f'infinitas deactivate: {self.sleep_time}')

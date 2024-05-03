@@ -6,6 +6,18 @@ from os.path import basename,join
 
 from image import dirname_results,dirname_filtereds,dirname_scoreinformations,dirname_graphs
 
+rectsizes = (
+    (1920, 1080),
+    (1536, 864),
+    (1280, 720),
+    (1097, 617)
+)
+"""INFINITASの画面サイズの候補
+
+ディスプレイの拡大/縮小設定によって取得できるINFINITASの画面サイズが変化するため、
+いずれかに一致していたらOKとする
+"""
+
 def get_filename(wHnd):
     pId = ctypes.c_ulong()
     windll.user32.GetWindowThreadProcessId(wHnd, ctypes.pointer(pId))
@@ -49,6 +61,12 @@ def get_rect(handle):
     rect = RECT()
     windll.user32.GetWindowRect(handle, pointer(rect))
     return rect
+
+def check_rectsize(rect):
+    width = rect.right - rect.left
+    height = rect.bottom - rect.top
+
+    return (width, height) in rectsizes
 
 def openfolder_results(destination_dirpath):
     dirpath = join(destination_dirpath, dirname_results)
