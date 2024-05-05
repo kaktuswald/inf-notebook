@@ -615,12 +615,13 @@ class Recognition():
     def get_is_savable(np_value):
         define_result_check = define.result_check
 
-        background_key = np_value[define_result_check['background_key_position']]
-        if not background_key in resource.is_savable.keys():
+        pixel = np_value[resource.is_savable['keyposition']]
+        background_key = ''.join([format(v, '02x') for v in pixel])
+        if not background_key in resource.is_savable['areas'].keys():
             return False
 
-        for area_key, area in define_result_check['areas'].items():
-            if not np.array_equal(np_value[area], resource.is_savable[background_key][area_key]):
+        for area_key, area in define_result_check.items():
+            if not np.array_equal(np_value[area], resource.is_savable['areas'][background_key][area_key]):
                 return False
         
         return True

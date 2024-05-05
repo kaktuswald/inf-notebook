@@ -1,5 +1,6 @@
 import numpy as np
 from sys import argv
+from random import shuffle
 
 from define import define
 from resources_generate import Report,load_raws,save_resource_serialized
@@ -88,44 +89,58 @@ def generate_is_savable(raws):
 
     report = Report(resourcename)
 
-    raw_targets = {}
+    patternarea = (slice(60, 690), slice(810, 1110))
+
+    targets1 = {}
     for filename, raw in raws.items():
         if not 'screen' in raw.label.keys() or raw.label['screen'] != 'result':
             continue
         if not 'is_savable' in raw.label.keys() or not raw.label['is_savable']:
             continue
 
-        background_key = raw.np_value[define.result_check['background_key_position']]
-        if not background_key in raw_targets.keys():
-            raw_targets[background_key] = {}
-        raw_targets[background_key][filename] = raw
+        trimmed = raw.np_value[patternarea]
+        decoded = trimmed.tobytes()
+        if not decoded in targets1.keys():
+            targets1[decoded] = {}
+        targets1[decoded][filename] = raw
     
-    if len(raw_targets) == define.result_check['background_count']:
-        report.append_log(f'background count: {len(raw_targets)}')
-        sorted_keys = sorted([*raw_targets.keys()])
-        for background_key in sorted_keys:
-            report.append_log(f'"{background_key}" example: {[*raw_targets[background_key].keys()][0]}')
-        for background_key in sorted_keys:
-            report.append_log(f'"{background_key}" raw count: {len(raw_targets[background_key])}')
-    else:
-        report.append_log(f'Wrong background count: {len(raw_targets)}')
+    report.append_log(f'count patterns: {len(targets1)}')
 
-        report.report()
-        return
+    ylist = [*range(patternarea[0].start, patternarea[0].stop)]
+    xlist = [*range(patternarea[1].start, patternarea[1].stop)]
+    randoms = [(y, x) for y in ylist for x in xlist]
+    shuffle(randoms)
+    trycount = 0
+    for background_key_position in randoms:
+        trycount += 1
+        targets2 = {}
+        for target in targets1.values():
+            pixel = [*target.values()][0].np_value[background_key_position]
+            key = ''.join([format(v, '02x') for v in pixel])
+            targets2[key] = target
+        if len(targets1) == len(set(targets2.keys())):
+            break
+
+    report.append_log(f'key search try count: {trycount}')
+
+    sorted_keys = sorted([*targets2.keys()])
+    for background_key in sorted_keys:
+        report.append_log(f'"{background_key}" {len(targets2[background_key])}({[*targets2[background_key].keys()][0]})')
     
-    table = {}
-    for background_key, targets in raw_targets.items():
-        table[background_key] = {}
-        for area_key, area in define.result_check['areas'].items():
-            filename, raw = [*targets.items()][0]
+    table = {'keyposition': background_key_position, 'areas': {}}
+    for background_key, targets in targets2.items():
+        table['areas'][background_key] = {}
+        filename, raw = [*targets.items()][0]
+        report.saveimage_value(raw.np_value[patternarea], filename)
+        for area_key, area in define.result_check.items():
             value = raw.np_value[area]
-            table[background_key][area_key] = value
+            table['areas'][background_key][area_key] = value
             report.saveimage_value(value, f'{background_key}-{area_key}-{filename}')
 
         for filename, raw in targets.items():
-            for area_key, area in define.result_check['areas'].items():
+            for area_key, area in define.result_check.items():
                 value = raw.np_value[area]
-                if np.array_equal(value, table[background_key][area_key]):
+                if np.array_equal(value, table['areas'][background_key][area_key]):
                     report.through()
                 else:
                     report.saveimage_errorvalue(value, filename)

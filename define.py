@@ -32,12 +32,8 @@ class Define():
     }
 
     result_check = {
-        'background_count': 13,
-        'background_key_position': (961, 615, 1),
-        'areas': {
-            "horizontalline": (60, slice(156, 390), 1),
-            "verticalline": (slice(550, 760), 788, 1)
-        }
+        "horizontalline": (60, slice(156, 390), 1),
+        "verticalline": (slice(550, 760), 788, 1)
     }
 
     value_list = {
