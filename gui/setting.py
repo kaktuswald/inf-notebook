@@ -86,6 +86,11 @@ def open_setting(setting: Setting, location: tuple[int, int]):
                 sg.Input(setting.imagesave_path, key='imagesave_path', size=(50, 1)),
                 sg.Button('...', key='button_browse'),
             ],
+            [sg.Text('最新バージョンのダウンロード', background_color=background_color_label)],
+            [
+                sg.Text('', size=(2, 1), background_color=background_dark),
+                sg.Checkbox('リザルト手帳のホームページを開かない', key='check_ignore_open_wiki', default=setting.ignore_open_wiki, background_color=background_dark)
+            ],
             [sg.Text('リザルト画像の収集', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
@@ -181,6 +186,7 @@ def open_setting(setting: Setting, location: tuple[int, int]):
             }
             setting.summary_countmethod_only = values['summary_countmethod_only']
             setting.filter_compact = values['check_filter_compact']
+            setting.ignore_open_wiki = values['check_ignore_open_wiki']
             setting.save()
             gui.switch_table(setting.display_music)
             if changed_summaries:

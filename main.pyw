@@ -674,9 +674,10 @@ def check_latest_version():
     donloads_url = urljoin(releases_url, 'download/')
     version_url = urljoin(donloads_url, f'v{latest_version}/')
     download_url = urljoin(version_url, f'inf-notebook-v{latest_version}.zip')
-
     webbrowser.open(download_url)
-    webbrowser.open(wiki_url)
+
+    if not setting.ignore_open_wiki:
+        webbrowser.open(wiki_url)
 
 def get_latest_version():
     with request.urlopen(latest_url) as response:
