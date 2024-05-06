@@ -10,6 +10,7 @@ from urllib import request
 from urllib.parse import quote
 from datetime import datetime
 from PIL import Image
+from urllib.parse import urljoin
 
 from setting import Setting
 
@@ -61,19 +62,29 @@ thread_time_normal = 0.3        # 通常のスレッド周期
 thread_time_result = 0.12       # リザルトのときのスレッド周期
 thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
 
-upload_confirm_message = [
-    '曲名の誤認識を通報しますか？',
-    'リザルトから曲名を切り取った画像をクラウドにアップロードします。'
-]
-
 windowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
-notebooksummary_confirm_message = [
-    '各曲の記録ファイルから１つのまとめ記録ファイルを作成しています。',
-    '時間がかかる場合がありますが次回からは実行されません。'
+
+upload_confirm_message = [
+    u'曲名の誤認識を通報しますか？',
+    u'リザルトから曲名を切り取った画像をクラウドにアップロードします。'
 ]
 
-latest_url = 'https://github.com/kaktuswald/inf-notebook/releases/latest'
+notebooksummary_confirm_message = [
+    u'各曲の記録ファイルから１つのまとめ記録ファイルを作成しています。',
+    u'時間がかかる場合がありますが次回からは実行されません。'
+]
+
+find_latest_version_message = [
+    u'最新バージョンが見つかりました。',
+    u'最新バージョンをダウンロードしますか？'
+]
+
+base_url = 'https://github.com/kaktuswald/inf-notebook/'
+releases_url = urljoin(base_url, 'releases/')
+latest_url = urljoin(releases_url, 'latest')
+wiki_url = urljoin(base_url, 'wiki/')
+
 tweet_url = 'https://twitter.com/intent/tweet'
 
 tweet_template_music = '&&music&&[&&play_mode&&&&D&&]&&update&&&&option&&'
@@ -651,6 +662,21 @@ def log_debug(message):
     logger.debug(message)
     if setting.manage:
         print(message)
+
+def check_latest_version():
+    latest_version = get_latest_version()
+    if version == '0.0.0.0' or latest_version == version:
+        return
+    
+    if not question('最新バージョン', find_latest_version_message, window.current_location()):
+        return
+    
+    donloads_url = urljoin(releases_url, 'download/')
+    version_url = urljoin(donloads_url, f'v{latest_version}/')
+    download_url = urljoin(version_url, f'inf-notebook-v{latest_version}.zip')
+
+    webbrowser.open(download_url)
+    webbrowser.open(wiki_url)
 
 def get_latest_version():
     with request.urlopen(latest_url) as response:
@@ -1251,8 +1277,7 @@ if __name__ == '__main__':
         if setting.data_collection:
             window['button_upload'].update(visible=True)
 
-    if version != '0.0.0.0' and get_latest_version() != version:
-        gui.find_latest_version(latest_url)
+    check_latest_version()
 
     resource.load_images()
 
