@@ -4,6 +4,7 @@ from define import define
 from resources import resource
 from .static import title,icon_path,background_color,background_color_label,background_color2_label,selected_background_color
 from setting import Setting
+import notesradar
 
 scales = ('1/1', '1/2', '1/4', )
 
@@ -133,6 +134,37 @@ def layout_main(setting: Setting):
                     key='discord_webhooks_log',
                     size=(38, 6),
                     horizontal_scroll=True
+                )
+            ]
+        ], pad=0, background_color=background_color),
+        sg.Tab('レーダー', [
+            [
+                sg.Text('プレイモード', size=(12, 1), background_color=background_color2_label),
+                sg.Radio('SP', group_id='notesradar_playmode', key='notesradar_playmode_sp', enable_events=True, background_color=background_color),
+                sg.Radio('DP', group_id='notesradar_playmode', key='notesradar_playmode_dp', enable_events=True, background_color=background_color)
+            ],
+            [
+                sg.Text('TOTAL', size=(12, 1), background_color=background_color2_label),
+                sg.Text('', key='notesradar_total', background_color=background_color)
+            ],
+            [
+                sg.Combo(['', *define.value_list['notesradar_attributes']], size=(12, 1), key='notesradar_attribute', readonly=True, enable_events=True),
+                sg.Text('', key='notesradar_value', background_color=background_color)
+            ],
+            [
+                sg.Table(
+                    [],
+                    header_font=('Arial', 8),
+                    font=('Arial', 9),
+                    key='notesradar_ranking',
+                    headings=['No.', 'Music', 'D', 'Point'],
+                    auto_size_columns=False,
+                    vertical_scroll_only=True,
+                    col_widths=[3, 25, 3, 7],
+                    num_rows=10,
+                    justification='center',
+                    enable_events=True,
+                    background_color=background_color
                 )
             ]
         ], pad=0, background_color=background_color)

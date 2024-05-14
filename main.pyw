@@ -46,13 +46,14 @@ from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
 from record import NotebookRecent,NotebookSummary,NotebookMusic,rename_allfiles,rename_changemusicname,musicnamechanges_filename
-from graph import create_graphimage
+from graph import create_graphimage,create_radarchart
 from filter import filter as filter_result
-from export import Recent,output
+from export import Recent,output,output_notesradarimage,output_notesradarcsv
 from windows import find_window,get_rect,check_rectsize,openfolder_results,openfolder_filtereds,openfolder_graphs,openfolder_scoreinformations
 from image import save_resultimage,save_resultimage_filtered,save_scoreinformationimage,save_graphimage,get_resultimage,get_resultimage_filtered,generateimage_summary,generateimage_musicinformation
 from discord_webhook import post_result,deactivate_allbattles
 from result import Result
+from notesradar import NotesRadar
 
 recent_maxcount = 100
 
@@ -93,6 +94,7 @@ tweet_template_hashtag = '#IIDX #infinitas573 #infnotebook'
 musicselect_targetrecord = None
 
 image_summary = None
+image_notesradar = None
 
 discord_server_names = []
 discord_webhooks_log = []
@@ -338,6 +340,8 @@ def result_process(screen):
         if 'servers' in setting.discord_webhook.keys() and len(setting.discord_webhook['servers']) > 0:
             Thread(target=post_discord_webhooks, args=(result, resultimage, queue_multimessages)).start()
     
+    musicname = result.informations.music
+
     if setting.newrecord_only and not result.has_new_record():
         return
     
@@ -368,14 +372,22 @@ def result_process(screen):
     notebook_recent.append(result, saved, filtered)
     notebook_recent.save()
 
-    music = result.informations.music
-    if music is not None:
-        notebook = get_notebook_targetmusic(music)
+    if musicname is not None:
+        notebook = get_notebook_targetmusic(musicname)
 
         notebook.insert(result)
-        notebook_summary.import_targetmusic(music, notebook)
+        notebook_summary.import_targetmusic(musicname, notebook)
         notebook_summary.save()
-        summaryimage_generate()
+
+        if result.has_new_record():
+            summaryimage_generate()
+
+            if notesradar.insert(
+                result.informations.play_mode,
+                musicname,
+                notebook_summary.json['musics']
+            ):
+                update_notesradar()
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -507,6 +519,13 @@ def musicselect_process(np_value):
         notebook_summary.import_targetmusic(musicname, notebook)
         notebook_summary.save()
         summaryimage_generate()
+
+        if notesradar.insert(
+                playmode,
+                musicname,
+                notebook_summary.json['musics']
+            ):
+            update_notesradar()
     
     musicselect_targetrecord = notebook.get_recordlist(playmode, difficulty)
 
@@ -707,6 +726,10 @@ def check_resource():
     if check_latest(storage, musicselect_filename):
         resource.load_resource_musicselect()
 
+    notesradar_filename = f'{define.notesradar_resourcename}.res'
+    if check_latest(storage, notesradar_filename):
+        resource.load_resource_notesradar()
+
     check_latest(storage, musicnamechanges_filename)
 
     logger.info('complete check resources')
@@ -738,8 +761,15 @@ def notebooksummary_startimport(changed):
         if len(changed) > 0:
             notebook_summary.save()
     
+    notesradar.generate(notebook_summary.json['musics'])
+
     summaryimage_generate()
-    summaryimage_display()
+    notesradarimage_generate()
+
+    if setting.startup_image == 'notesradar':
+        notesradarimage_display()
+    if setting.startup_image == 'summary':
+        summaryimage_display()
 
 def select_result_recent():
     if len(table_selected_rows) == 0:
@@ -1116,8 +1146,19 @@ def summaryimage_generate():
         setting.summary_countmethod_only
     ))
 
+def notesradarimage_generate():
+    global image_notesradar
+
+    image = create_radarchart(notesradar)
+    output_notesradarimage(image)
+
+    image_notesradar = get_imagevalue(image)
+
 def summaryimage_display():
     gui.display_image(image_summary)
+
+def notesradarimage_display():
+    gui.display_image(image_notesradar)
 
 def get_notebook_targetmusic(musicname):
     """目的の曲の記録を取得する
@@ -1215,6 +1256,43 @@ def event_discord_webhook(event: str, values: dict[str, object]) -> bool:
 
     return False
 
+def update_notesradar():
+    playmodes = {
+        'notesradar_playmode_sp': 'SP',
+        'notesradar_playmode_dp': 'DP'
+    }
+
+    targetitem = None
+    for playmode in playmodes.keys():
+        if window[playmode].get():
+            targetitem = notesradar.items[playmodes[playmode]]
+
+    if targetitem is None:
+        return
+    
+    window['notesradar_total'].update(targetitem.total)
+
+    if not window['notesradar_attribute'].get() in targetitem.attributes.keys():
+        return
+    
+    targetattribute = targetitem.attributes[window['notesradar_attribute'].get()]
+
+    window['notesradar_value'].update(targetattribute.average)
+
+    rankingdata = []
+    for i in range(len(targetattribute.ranking)):
+        targetvalue = targetattribute.ranking[i]
+        rankingdata.append([
+            i + 1,
+            targetvalue.musicname,
+            targetvalue.difficulty[0],
+            targetvalue.value
+        ])
+
+    window['notesradar_ranking'].update(values=rankingdata)
+
+    notesradarimage_generate()
+
 if __name__ == '__main__':
     if 'servers' in setting.discord_webhook.keys():
         deactivate_allbattles(setting.discord_webhook['servers'])
@@ -1230,6 +1308,8 @@ if __name__ == '__main__':
     notebook_recent = NotebookRecent(recent_maxcount)
     notebook_summary = NotebookSummary()
     notebooks_music = {}
+
+    notesradar = NotesRadar()
 
     results_today = {}
     timestamps_saved = []
@@ -1382,6 +1462,8 @@ if __name__ == '__main__':
             if 'discord_webhook' in event:
                 if event_discord_webhook(event, values):
                     set_discord_servers()
+            if 'notesradar' in event:
+                update_notesradar()
             if event == 'timeout':
                 if not window['positioned'].visible and thread.handle:
                     window['positioned'].update(visible=True)
@@ -1430,6 +1512,7 @@ if __name__ == '__main__':
             log_debug(ex)
     
     output(notebook_summary)
+    output_notesradarcsv(notesradar)
 
     window.close()
 

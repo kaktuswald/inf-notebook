@@ -56,7 +56,7 @@ text_imagenothing = '画像なし'
 text_loading_title = 'インフィニタス ローディング'
 text_loading_message = '30秒ごとにローディングの状況をチェックします'
 
-def generate_filename(music, timestamp, scoretype=None, musicname_right=False):
+def generate_filename(music, timestamp, scoretype=None, musicname_right=False, imgtype='jpg'):
     """保存ファイル名を作る
 
     Args:
@@ -73,14 +73,14 @@ def generate_filename(music, timestamp, scoretype=None, musicname_right=False):
         st = ''
 
     if music is None:
-        return f'{timestamp}{st}.jpg'
+        return f'{timestamp}{st}.{imgtype}'
 
     music_convert=re.sub(r'[\\|/|:|*|?|.|"|<|>|/|]', '', music)
     adjustmented = music_convert if len(music_convert) < adjust_length else f'{music_convert[:adjust_length]}..'
     if not musicname_right:
-        return f'{adjustmented}{st}_{timestamp}.jpg'
+        return f'{adjustmented}{st}_{timestamp}.{imgtype}'
     else:
-        return f'{timestamp}_{adjustmented}{st}.jpg'
+        return f'{timestamp}_{adjustmented}{st}.{imgtype}'
 
 def save_resultimage(image, music, timestamp, destination_dirpath, scoretype, musicname_right=False):
     """リザルト画像をファイル保存する
@@ -140,9 +140,9 @@ def save_graphimage(image, music, destination_dirpath, scoretype, musicname_righ
     now = datetime.now()
     timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
 
-    return save_image(image.convert('RGB'), music, timestamp, destination_dirpath, dirname_graphs, scoretype, musicname_right)
+    return save_image(image.convert('RGBA'), music, timestamp, destination_dirpath, dirname_graphs, scoretype, musicname_right, imgtype='png')
 
-def save_image(image, music, timestamp, destination_dirpath, target_dirname, scoretype, musicname_right=False):
+def save_image(image, music, timestamp, destination_dirpath, target_dirname, scoretype, musicname_right=False, imgtype='jpg'):
     """画像をファイル保存する
 
     Args:
@@ -164,7 +164,7 @@ def save_image(image, music, timestamp, destination_dirpath, target_dirname, sco
     if not exists(dirpath):
         mkdir(dirpath)
 
-    filename = generate_filename(music, timestamp, scoretype, musicname_right)
+    filename = generate_filename(music, timestamp, scoretype, musicname_right, imgtype)
     filepath = join(dirpath, filename)
     if exists(filepath):
         return None

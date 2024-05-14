@@ -3,15 +3,17 @@ from os.path import exists,join
 from datetime import datetime
 from csv import writer
 from logging import getLogger
+from PIL import Image
 
-logger_child_name = 'resources'
+logger_child_name = 'export'
 
 logger = getLogger().getChild(logger_child_name)
-logger.debug(f'loaded resources.py')
+logger.debug(f'loaded export.py')
 
 from define import define
 from resources import resource
 from record import NotebookSummary
+from notesradar import NotesRadar
 from version import version
 
 export_dirname = 'export'
@@ -23,6 +25,13 @@ summary_timestamp_filepath = join(export_dirname, 'summary_timestamp.txt')
 
 recent_htmlpath = join(export_dirname, 'recent.html')
 summary_htmlpath = join(export_dirname, 'summary.html')
+
+notesradar_image_filepath = join(export_dirname, 'notesradar.png')
+notesradar_csv_filepath = join(export_dirname, 'notesradar.csv')
+notesradar_csv_rankings_filepaths = {
+    'SP': join(export_dirname, 'notesradar_rankings_sp.csv'),
+    'DP': join(export_dirname, 'notesradar_rankings_dp.csv')
+}
 
 class Recent():
     delete_delta_seconds = 60 * 60 * 12
@@ -219,6 +228,32 @@ def output(notebook):
     
     with open(summary_timestamp_filepath, 'w') as f:
         f.write(str(datetime.now()))
+
+def output_notesradarimage(image: Image):
+    image.save(notesradar_image_filepath)
+
+def output_notesradarcsv(notesradar: NotesRadar):
+    output: list[str] = []
+    output_rankings: dict[str, list[str]] = {}
+    for playmode, targetitem in notesradar.items.items():
+        output.append(playmode)
+        output_rankings[playmode] = []
+        for attribute, targetattribute in targetitem.attributes.items():
+            output.append(f'{attribute}, {targetattribute.average}')
+
+            output_rankings[playmode].append(f'順位,曲名,譜面,{attribute}')
+            for i in range(len(targetattribute.ranking)):
+                t = targetattribute.ranking[i]
+                output_rankings[playmode].append(f'{i+1},{t.musicname},{t.difficulty},{t.value}')
+            output_rankings[playmode].append('')
+        output.append('')
+    
+    with open(notesradar_csv_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
+
+    for playmode, item in output_rankings.items():
+        with open(notesradar_csv_rankings_filepaths[playmode], 'w', encoding='UTF-8') as f:
+            f.write('\n'.join(item))
 
 if __name__ == '__main__':
     notebook = NotebookSummary()

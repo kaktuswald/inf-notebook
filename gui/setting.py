@@ -36,6 +36,7 @@ def open_setting(setting: Setting, location: tuple[int, int]):
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Checkbox('最近のリザルトに曲名を表示する', key='check_display_music', default=setting.display_music, background_color=background_dark),
             ],
+
             [sg.Text('リザルト画像の保存', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
@@ -53,6 +54,7 @@ def open_setting(setting: Setting, location: tuple[int, int]):
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Checkbox('ファイル名の後尾に曲名をつける', key='check_savefilemusicname_right', default=setting.savefilemusicname_right, background_color=background_dark)
             ],
+
             [sg.Text('ショートカットキー', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
@@ -69,28 +71,40 @@ def open_setting(setting: Setting, location: tuple[int, int]):
                 sg.Text('選曲画面のアップロード', size=(20, 1), background_color=background_dark),
                 sg.Input(setting.hotkeys['upload_musicselect'], size=(12, 1), key='hotkey_upload_musicselect')
             ],
+
             [sg.Text('統計データの曲数', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Radio('達成している曲数をカウントする', group_id='summary_countmethod', key='summary_countmethod_sum', background_color=background_dark, enable_events=True, default=not setting.summary_countmethod_only),
                 sg.Radio('対象の曲数のみをカウントする', group_id='summary_countmethod', key='summary_countmethod_only', background_color=background_dark, enable_events=True, default=setting.summary_countmethod_only)
             ],
+
             [sg.Text('リザルト画像の表示', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Checkbox('最新の記録したリザルト画像を表示する', key='check_display_result', default=setting.display_result, background_color=background_dark)
             ],
+
             [sg.Text('画像の保存先のパス', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Input(setting.imagesave_path, key='imagesave_path', size=(50, 1)),
                 sg.Button('...', key='button_browse'),
             ],
+
             [sg.Text('最新バージョンのダウンロード', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Checkbox('リザルト手帳のホームページを開かない', key='check_ignore_open_wiki', default=setting.ignore_open_wiki, background_color=background_dark)
             ],
+
+            [sg.Text('起動時の表示画像', background_color=background_color_label)],
+            [
+                sg.Text('', size=(2, 1), background_color=background_dark),
+                sg.Radio('ノーツレーダー', group_id='startup_image', key='startup_image_notesradar', default=setting.startup_image == 'notesradar', background_color=background_dark),
+                sg.Radio('統計', group_id='startup_image', key='startup_image_summary', default=setting.startup_image == 'summary', background_color=background_dark)
+            ],
+
             [sg.Text('リザルト画像の収集', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
@@ -187,7 +201,12 @@ def open_setting(setting: Setting, location: tuple[int, int]):
             setting.summary_countmethod_only = values['summary_countmethod_only']
             setting.filter_compact = values['check_filter_compact']
             setting.ignore_open_wiki = values['check_ignore_open_wiki']
+            for key in ['notesradar', 'summary']:
+                if values[f'startup_image_{key}']:
+                    setting.startup_image = key
+
             setting.save()
+
             gui.switch_table(setting.display_music)
             if changed_summaries:
                 saved_summaries = True

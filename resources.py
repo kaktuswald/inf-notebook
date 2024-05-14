@@ -39,6 +39,7 @@ class Resource():
         self.load_resource_details()
         self.load_resource_musictable()
         self.load_resource_musicselect()
+        self.load_resource_notesradar()
     
     def load_resource_informations(self):
         resourcename = f'informations{define.informations_recognition_version}'
@@ -59,6 +60,11 @@ class Resource():
         resourcename = f'musicselect{define.musicselect_recognition_version}'
         
         self.musicselect = load_resource_serialized(resourcename)
+    
+    def load_resource_notesradar(self):
+        resourcename = f'notesradar{define.notesradar_version}'
+        
+        self.notesradar: dict[str, dict[str, dict[str, int | dict[str, float]]]] = load_resource_serialized(resourcename)
     
     def load_images(self):
         self.image_resourcecheck = get_imagevalue(Image.open(images_resourcecheck_filepath))

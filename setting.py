@@ -37,7 +37,8 @@ default = {
     'discord_webhook': {
         'djname': 'NO NAME',
         'servers': {}
-    }
+    },
+    'startup_image': 'notesradar'
 }
 
 class Setting():
@@ -198,6 +199,14 @@ class Setting():
     def discord_webhook(self, value):
         self.set_value('discord_webhook', value)
 
+    @property
+    def startup_image(self):
+        return self.get_value('startup_image')
+    
+    @startup_image.setter
+    def startup_image(self, value):
+        self.set_value('startup_image', value)
+    
     @property
     def ignore_open_wiki(self):
         return self.get_value('ignore_open_wiki')
