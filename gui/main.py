@@ -152,6 +152,10 @@ def layout_main(setting: Setting):
                 sg.Text('', key='notesradar_value', background_color=background_color)
             ],
             [
+                sg.Radio('対象10位', group_id='notesradar_tablemode', key='notesradar_tablemode_averagetarget', enable_events=True, background_color=background_color, default=True),
+                sg.Radio('上位50曲', group_id='notesradar_tablemode', key='notesradar_tablemode_top30', enable_events=True, background_color=background_color)
+            ],
+            [
                 sg.Table(
                     [],
                     header_font=('Arial', 8),

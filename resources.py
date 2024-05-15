@@ -64,7 +64,7 @@ class Resource():
     def load_resource_notesradar(self):
         resourcename = f'notesradar{define.notesradar_version}'
         
-        self.notesradar: dict[str, dict[str, dict[str, int | dict[str, float]]]] = load_resource_serialized(resourcename)
+        self.notesradar: dict[str, dict[str, list[dict[str, str | int]]]] = load_resource_serialized(resourcename)
     
     def load_images(self):
         self.image_resourcecheck = get_imagevalue(Image.open(images_resourcecheck_filepath))

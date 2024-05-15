@@ -327,7 +327,7 @@ def result_process(screen):
     Args:
         screen (Screen): screen.py
     """
-    result = recog.get_result(screen)
+    result: Result = recog.get_result(screen)
     if result is None:
         return
 
@@ -382,12 +382,16 @@ def result_process(screen):
         if result.has_new_record():
             summaryimage_generate()
 
-            if notesradar.insert(
-                result.informations.play_mode,
-                musicname,
-                notebook_summary.json['musics']
-            ):
-                update_notesradar()
+            if result.details.score.new:
+                if notesradar.insert(
+                    result.informations.play_mode,
+                    musicname,
+                    result.informations.difficulty,
+                    result.details.score.current,
+                    notebook_summary.json['musics']
+                ):
+                    update_notesradar()
+                    notesradarimage_generate()
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -506,12 +510,13 @@ def musicselect_process(np_value):
     if targetrecord is not None and targetrecord is musicselect_targetrecord:
         return
 
+    score = recog.MusicSelect.get_score(np_value)
     if notebook.update_best_musicselect({
         'playmode': playmode,
         'difficulty': difficulty,
         'cleartype': recog.MusicSelect.get_cleartype(np_value),
         'djlevel': recog.MusicSelect.get_djlevel(np_value),
-        'score': recog.MusicSelect.get_score(np_value),
+        'score': score,
         'misscount': recog.MusicSelect.get_misscount(np_value),
         'levels': recog.MusicSelect.get_levels(np_value)
     }):
@@ -523,9 +528,12 @@ def musicselect_process(np_value):
         if notesradar.insert(
                 playmode,
                 musicname,
+                difficulty,
+                score,
                 notebook_summary.json['musics']
             ):
             update_notesradar()
+            notesradarimage_generate()
     
     musicselect_targetrecord = notebook.get_recordlist(playmode, difficulty)
 
@@ -1279,19 +1287,23 @@ def update_notesradar():
 
     window['notesradar_value'].update(targetattribute.average)
 
-    rankingdata = []
-    for i in range(len(targetattribute.ranking)):
-        targetvalue = targetattribute.ranking[i]
-        rankingdata.append([
-            i + 1,
-            targetvalue.musicname,
-            targetvalue.difficulty[0],
-            targetvalue.value
-        ])
+    rankingtargets = None
+    if window['notesradar_tablemode_averagetarget'].get():
+        rankingtargets = targetattribute.targets
+    if window['notesradar_tablemode_top30'].get():
+        rankingtargets = targetattribute.ranking
 
-    window['notesradar_ranking'].update(values=rankingdata)
-
-    notesradarimage_generate()
+    if rankingtargets is not None:
+        rankingdata = []
+        for i in range(len(rankingtargets)):
+            targetvalue = rankingtargets[i]
+            rankingdata.append([
+                i + 1,
+                targetvalue.musicname,
+                targetvalue.difficulty[0],
+                targetvalue.value
+            ])
+        window['notesradar_ranking'].update(values=rankingdata)
 
 if __name__ == '__main__':
     if 'servers' in setting.discord_webhook.keys():

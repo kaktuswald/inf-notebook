@@ -63,14 +63,23 @@ def generate(musics, csv):
     else:
         ignore = {}
     
-    resource = {}
-    duplicate_difficulty = []
+    resource: dict[str, dict[str, dict[str, dict[str, int | dict[str, float]]]| dict[str, list[dict[str, str | int]]]]] = {}
     for playmode in define.value_list['play_modes']:
+        resource[playmode] = {'musics': {}, 'attributes': {}}
+
+    duplicate_difficulty = []
+    added = {}
+    for playmode in define.value_list['play_modes']:
+        attribute_list = {}
+        for attribute in define.value_list['notesradar_attributes']:
+            attribute_list[attribute] = []
+
         for line in csv[playmode]:
             musicname = line[1]
             difficulty = line[2]
             notes = line[4]
             radars = line[5]
+            
             if not musicname in musics.keys():
                 continue
 
@@ -81,35 +90,37 @@ def generate(musics, csv):
                 report.append_log(f'Ignore {playmode} {musicname} {difficulty}')
                 continue
             
-            if not musicname in resource.keys():
-                resource[musicname] = {'SP': {}, 'DP': {}}
-            
-            if difficulty in resource[musicname][playmode].keys():
+            if musicname in added.keys() and playmode in added[musicname].keys() and difficulty in added[musicname][playmode]:
                 duplicate_difficulty.append(f'{playmode} {musicname} {difficulty}')
                 continue
+            
+            if not musicname in resource[playmode]['musics'].keys():
+                resource[playmode]['musics'][musicname] = {}
+            if not difficulty in resource[playmode]['musics'][musicname].keys():
+                resource[playmode]['musics'][musicname][difficulty] = {
+                    'notes': notes,
+                    'radars': radars
+                }
 
-            resource[musicname][playmode][difficulty] = (notes, radars)
+            for attribute, value in radars.items():
+                if value != 0:
+                    if musicname == 'Verflucht':
+                        pass
+                    attribute_list[attribute].append({
+                        'musicname': musicname,
+                        'difficulty': difficulty,
+                        'max': radars[attribute]
+                    })
+
+            if not musicname in added.keys():
+                added[musicname] = {}
+            if not playmode in added[musicname].keys():
+                added[musicname][playmode] = []
+            added[musicname][playmode].append(difficulty)
     
-    not_in_notesradar_music = []
-    not_in_notesradar_difficulty = {}
-    for playmode in define.value_list['play_modes']:
-        not_in_notesradar_difficulty[playmode] = {}
-    for musicname in musics.keys():
-        if not musicname in resource.keys():
-            not_in_notesradar_music.append(musicname)
-            continue
-        for playmode in define.value_list['play_modes']:
-            for difficulty in musics[musicname][playmode].keys():
-                if not difficulty in resource[musicname][playmode].keys():
-                    if not musicname in not_in_notesradar_difficulty[playmode].keys():
-                        not_in_notesradar_difficulty[playmode][musicname] = []
-                    if not difficulty in resource[musicname][playmode].keys():
-                        not_in_notesradar_difficulty[playmode][musicname].append(difficulty)
-
-    report.append_log(f'no data music count: {len(not_in_notesradar_music)}')
-    for playmode in not_in_notesradar_difficulty.keys():
-        counts = [len(values) for values in not_in_notesradar_difficulty[playmode].values()]
-        report.append_log(f'no data difficulty count {playmode}: {sum(counts)}')
+        for attribute in attribute_list.keys():
+            attribute_list[attribute].sort(key=lambda t: t['max'], reverse=True)
+            resource[playmode]['attributes'][attribute] = [{'musicname': t['musicname'], 'difficulty': t['difficulty']} for t in attribute_list[attribute]]
 
     if len(duplicate_difficulty) > 0:
         report.error(f'Find duplicate difficulty: {len(duplicate_difficulty)}')
@@ -121,14 +132,15 @@ def generate(musics, csv):
     not_in_notesradar_music_filepath = join(report_basedir, 'not_in_notesradar.csv')
     output = []
     output.append('Music')
-    for musicname in not_in_notesradar_music:
-        output.append(f'- {musicname}')
+    output.append('\n'.join([f'- {musicname}' for musicname in musics.keys() if not musicname in added.keys()]))
     output.append('')
-    for playmode in not_in_notesradar_difficulty.keys():
+    for playmode in define.value_list['play_modes']:
         output.append(f'Difficulty {playmode}')
-        for musicname in not_in_notesradar_difficulty[playmode].keys():
-            for difficulty in not_in_notesradar_difficulty[playmode][musicname]:
-                output.append(f'- {musicname} {difficulty}')
+        for musicname in musics.keys():
+            if musicname in added.keys() and playmode in added[musicname].keys():
+                for difficulty in musics[musicname][playmode].keys():
+                    if not difficulty in added[musicname][playmode]:
+                        output.append(f'- {musicname} {difficulty}')
         output.append('')
 
     with open(not_in_notesradar_music_filepath, 'w', encoding='UTF-8') as f:

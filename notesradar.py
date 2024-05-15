@@ -1,7 +1,7 @@
-from os.path import join
-
 from define import define
 from resources import resource
+
+ranking_count = 50
 
 playmodes = define.value_list['play_modes']
 difficulties = define.value_list['difficulties']
@@ -20,6 +20,15 @@ class NotesRadarValue():
 
         self.value: float = value
         """レーダー値"""
+    
+    def __lt__(self, other: float):
+        return self.value < other
+
+    def __gt__(self, other: float):
+        return self.value > other
+
+    def __eq__(self, item):
+        return self.musicname == item.musicname
 
 class NotesRadarAttribute():
     """ノーツレーダーの属性
@@ -31,6 +40,25 @@ class NotesRadarAttribute():
 
         self.ranking: list[NotesRadarValue] = []
         """上位曲データ"""
+
+        self.targets: list[NotesRadarValue] = []
+        """平均対象のデータ"""
+    
+    def calculate_average(self):
+        self.ranking.sort(reverse=True)
+
+        self.targets.clear()
+        for t in self.ranking:
+            if not t in self.targets:
+                self.targets.append(t)
+                if len(self.targets) == 10:
+                    break
+
+        if len(self.ranking) > ranking_count:
+            del self.ranking[ranking_count:]
+
+        if len(self.targets) > 0:
+            self.average = sum([t.value * 100 for t in self.targets]) // 10 / 100
 
 class NotesRadarItem():
     """プレイモードごとのアイテム
@@ -46,6 +74,9 @@ class NotesRadarItem():
         for attribute in attributes:
             self.attributes[attribute] = NotesRadarAttribute()
     
+    def calculate_total(self):
+        self.total = sum([t.average for t in self.attributes.values()]) * 100 // 1 / 100
+    
 class NotesRadar():
     """ノーツレーダー
     """
@@ -58,112 +89,93 @@ class NotesRadar():
             self.items[playmode] = NotesRadarItem()
     
     def generate(self, summary: dict[str, dict[str, dict[str, dict[str, str | int]]]]):
-        for musicname, item1 in resource.notesradar.items():
-            if not musicname in summary.keys():
-                continue
-            for playmode, item2 in item1.items():
-                if not playmode in summary[musicname].keys():
-                    continue
+        for playmode, item1 in resource.notesradar.items():
+            targetitem = self.items[playmode]
+            attributes = targetitem.attributes
 
-                values: dict[str, NotesRadarValue] = self.calculate_values(
-                    musicname,
-                    item2,
-                    summary[musicname][playmode]
-                )
+            for attribute, item2 in item1['attributes'].items():
+                targetattribute = attributes[attribute]
+                ranking = targetattribute.ranking
+
+                for item3 in item2:
+                    musicname = item3['musicname']
+                    difficulty = item3['difficulty']
+
+                    if not musicname in summary.keys():
+                        continue
+                    if not difficulty in summary[musicname][playmode].keys():
+                        continue
+                    if not 'score' in summary[musicname][playmode][difficulty].keys():
+                        continue
+                    if summary[musicname][playmode][difficulty]['score'] is None:
+                        continue
+                    
+                    target = resource.notesradar[playmode]['musics'][musicname][difficulty]
+                    notes = target['notes']
+                    max = target['radars'][attribute]
+
+                    if len(ranking) == ranking_count and min(ranking).value > max:
+                        break
+
+                    score = summary[musicname][playmode][difficulty]['score']
+                    
+                    rate = score * 100 // (notes * 2) / 100
+                    calculated = rate * 100 * max // 1 / 100
+
+                    if len(ranking) == ranking_count and min(ranking).value > calculated:
+                        continue
+
+                    ranking.append(NotesRadarValue(musicname, difficulty, calculated))
+                    ranking.sort(reverse=True)
+                    del ranking[ranking_count:]
                 
-                targetitem = self.items[playmode]
+                targetattribute.calculate_average()
+            
+            targetitem.calculate_total()
 
-                for attribute in values.keys():
-                    targetattribute = targetitem.attributes[attribute]
-                    if len(targetattribute.ranking) == 0:
-                        targetattribute.ranking.append(values[attribute])
-                    else:
-                        inserted = False
-                        for i in reversed(range(len(targetattribute.ranking))):
-                            if targetattribute.ranking[i].value > values[attribute].value:
-                                targetattribute.ranking.insert(i + 1, values[attribute])
-                                inserted = True
-                                break
-                        if not inserted:
-                            targetattribute.ranking.insert(0, values[attribute])
-                        del targetattribute.ranking[10:]
-
-        self.calculate_total()
-
-    def insert(self, playmode: str, musicname: str, summary: dict[str, dict[str, dict[str, dict[str, str | int]]]]):
-        if not musicname in resource.notesradar.keys():
+    def insert(self, playmode: str, musicname: str, difficulty: str, score: int, summary: dict[str, dict[str, dict[str, dict[str, str | int]]]]):
+        if not musicname in resource.notesradar[playmode]['musics'].keys():
             return False
-        if not musicname in summary.keys():
+        if not difficulty in resource.notesradar[playmode]['musics'][musicname].keys():
             return False
-        if not playmode in resource.notesradar[musicname].keys():
-            return False
-        if not playmode in summary[musicname].keys():
-            return False
-        
-        values: dict[str, NotesRadarValue] = self.calculate_values(
-            musicname,
-            resource.notesradar[musicname][playmode],
-            summary[musicname][playmode]
-        )
 
         targetitem = self.items[playmode]
 
-        for attribute in values.keys():
-            targetattribute = targetitem.attributes[attribute]
-            if len(targetattribute.ranking) == 0:
-                targetattribute.ranking.append(values[attribute])
-            else:
-                if musicname in [v.musicname for v in targetattribute.ranking]:
-                    for i in range(len(targetattribute.ranking)):
-                        if musicname == targetattribute.ranking[i].musicname:
-                            targetattribute.ranking[i] = values[attribute]
-                            break
-                else:
-                    inserted = False
-                    for i in reversed(range(len(targetattribute.ranking))):
-                        if targetattribute.ranking[i].value > values[attribute].value:
-                            targetattribute.ranking.insert(i + 1, values[attribute])
-                            inserted = True
-                            break
-                    if not inserted:
-                        targetattribute.ranking.insert(0, values[attribute])
-                    del targetattribute.ranking[10:]
+        updated = False
+        for attribute, targetattribute in targetitem.attributes.items():
+            score = summary[musicname][playmode][difficulty]['score']
+            
+            notes = resource.notesradar[playmode]['musics'][musicname][difficulty]['notes']
+            max = resource.notesradar[playmode]['musics'][musicname][difficulty]['radars'][attribute]
 
-        self.calculate_total()
+            rate = score * 100 // (notes * 2) / 100
+            calculated = rate * 100 * max // 1 / 100
 
-        return True
+            ranking = targetattribute.ranking
 
-    def calculate_values(self, musicname: str, notesradaritem: dict, summaryitem: dict[str, dict[str, dict[str, str | int]]]):
-        values: dict[str, NotesRadarValue] = {}
-        for difficulty in difficulties:
-            if not difficulty in notesradaritem.keys():
+            if len(ranking) > 0 and ranking[-1].value > calculated:
                 continue
-            if not difficulty in summaryitem.keys():
-                continue
-            if not 'score' in summaryitem[difficulty].keys():
-                continue
-            score = summaryitem[difficulty]['score']
-            if score is None or score == 0:
-                continue
-            notes, radars = notesradaritem[difficulty]
-            for attribute in attributes:
-                if radars[attribute] == 0:
-                    continue
-                rate = score * 100 // (notes * 2) / 100
-                v = rate * 100 * radars[attribute] // 1 / 100
-                if not attribute in values.keys() or values[attribute].value < v:
-                    values[attribute] = NotesRadarValue(musicname, difficulty, v)
 
-        return values
-        
-    def calculate_total(self):
-        for item in self.items.values():
-            for attribute in item.attributes.values():
-                if len(attribute.ranking) > 0:
-                    attribute.average = sum([t.value for t in attribute.ranking]) * 100 // len(attribute.ranking) / 100
-                else:
-                    attribute.average = 0
-            item.total = sum([t.average for t in item.attributes.values()]) * 100 // 1 / 100
+            for value in ranking:
+                if value.musicname == musicname and value.difficulty == difficulty:
+                    value.value = calculated
+                    updated = True
+                    break
+            
+            if not updated:
+                ranking.append(NotesRadarValue(musicname, difficulty, calculated))
+                updated = True
+            
+            if updated:
+                ranking.sort(reverse=True)
+                if len(ranking) > ranking_count:
+                    del ranking[ranking_count:]
+                targetattribute.calculate_average()
+
+        if updated:
+            targetitem.calculate_total()
+
+        return updated
     
 if __name__ == '__main__':
     from record import NotebookSummary
