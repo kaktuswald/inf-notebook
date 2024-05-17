@@ -31,7 +31,7 @@ csssetting = {
         'HYPER': '#eaea15',
         'ANOTHER': '#ea1515',
         'BEGINNER': '#15ea25',
-        'LEGGENDARIA': '#9f2020',
+        'LEGGENDARIA': '#af20b0',
         'overviews': {
             'played_count': {
                 'display': True,
