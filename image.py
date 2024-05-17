@@ -1,6 +1,7 @@
 from os import mkdir
 from os.path import join,exists,isfile
 from PIL import Image,ImageFont,ImageDraw
+from PIL.ImageFont import FreeTypeFont
 from datetime import datetime
 import re
 
@@ -18,8 +19,9 @@ export_filename_musicinformation = 'musicinformation.png'
 
 adjust_length = 94
 
-background = (0, 0, 0, 128)
+background = (0, 0, 0, 0)
 textcolor = (255, 255, 255, 255)
+strokecolor = (0, 0, 0, 255)
 colors_difficulty = {
     'BEGINNER': (0, 255, 0, 255),
     'NORMAL': (0, 0, 255, 255),
@@ -251,21 +253,13 @@ def generateimage_summary(counts, setting, countmethod_only):
         return
     
     draw.rectangle((0, 0, 1280, 720), fill=background)
-    draw.multiline_text((20, 20), titles[countmethod_only], fill=textcolor, font=font_title)
+    drawtext((20, 20), titles[countmethod_only], font_title, textcolor)
 
-    bbox = draw.multiline_textbbox((0, 0), 'CLEAR TYPE', font=font)
-    draw.multiline_text((summarytypes_xpositions['cleartypes'][1] - bbox[2], 150), 'CLEAR TYPE', fill=textcolor, font=font)
-
-    bbox = draw.multiline_textbbox((0, 0), 'DJ LEVEL', font=font)
-    draw.multiline_text((summarytypes_xpositions['djlevels'][1] - bbox[2], 150), 'DJ LEVEL', fill=textcolor, font=font)
-
-    bbox = draw.multiline_textbbox((0, 0), 'TOTAL', font=font)
-    draw.multiline_text((total_xposition - bbox[2], 150), 'TOTAL', fill=textcolor, font=font)
-
-    bbox = draw.multiline_textbbox((0, 0), 'NO', font=font_moresmall)
-    draw.multiline_text((nodata_xposition - bbox[2], 150), 'NO', fill=textcolor, font=font_moresmall)
-    bbox = draw.multiline_textbbox((0, 0), 'DATA', font=font_moresmall)
-    draw.multiline_text((nodata_xposition - bbox[2], 150+25), 'DATA', fill=textcolor, font=font_moresmall)
+    drawtext((summarytypes_xpositions['cleartypes'][1], 150), 'CLEAR TYPE', font, textcolor, 'ra')
+    drawtext((summarytypes_xpositions['djlevels'][1], 150), 'DJ LEVEL', font, textcolor, 'ra')
+    drawtext((total_xposition, 150), 'TOTAL', font, textcolor, 'ra')
+    drawtext((nodata_xposition, 150), 'NO', font_moresmall, textcolor, 'ra')
+    drawtext((nodata_xposition, 150+25), 'DATA', font_moresmall, textcolor, 'ra')
 
     result = {}
     for playmode in setting.keys():
@@ -296,10 +290,8 @@ def generateimage_summary(counts, setting, countmethod_only):
             nodatacount_str = f'({nodatacount})' if nodatacount > 0 else ''
 
             for index in range(levelcount):
-                draw.multiline_text((playmode_xposition, line*50+200), playmode, fill=textcolor, font=font)
-                
-                bbox = draw.multiline_textbbox((0, 0), level, font=font)
-                draw.multiline_text((level_xposition-bbox[2], line*50+200), level, fill=textcolor, font=font)
+                drawtext((playmode_xposition, line*50+200), playmode, font, textcolor)
+                drawtext((level_xposition, line*50+200), level, font, textcolor, 'ra')
 
                 for summarytype in summarytypes.keys():
                     if index >= len(items[summarytype]) or not summarytype in result[playmode][level].keys():
@@ -307,15 +299,11 @@ def generateimage_summary(counts, setting, countmethod_only):
 
                     key, value = items[summarytype][index]
 
-                    draw.multiline_text((summarytypes_xpositions[summarytype][0], line*50+200), key, fill=textcolor, font=font)
-                    bbox = draw.multiline_textbbox((0, 0), str(value), font=font)
-                    draw.multiline_text((summarytypes_xpositions[summarytype][1]-bbox[2], line*50+200), str(value), fill=textcolor, font=font)
+                    drawtext((summarytypes_xpositions[summarytype][0], line*50+200), key, font, textcolor)
+                    drawtext((summarytypes_xpositions[summarytype][1], line*50+200), str(value), font, textcolor, 'ra')
 
-                bbox = draw.multiline_textbbox((0, 0), total_str, font=font)
-                draw.multiline_text((total_xposition-bbox[2], line*50+200), total_str, fill=textcolor, font=font)
-
-                bbox = draw.multiline_textbbox((0, 0), nodatacount_str, font=font_moresmall)
-                draw.multiline_text((nodata_xposition-bbox[2], line*50+220), nodatacount_str, fill=textcolor, font=font_moresmall)
+                drawtext((total_xposition, line*50+200), total_str, font, textcolor, 'ra')
+                drawtext((nodata_xposition, line*50+220), nodatacount_str, font_moresmall, textcolor, 'ra')
 
                 line += 1
 
@@ -326,62 +314,51 @@ def generateimage_summary(counts, setting, countmethod_only):
 def generateimage_musicinformation(playmode, difficulty, musicname, record):
     draw.rectangle((0, 0, 1280, 720), fill=background)
 
-    bbox = draw.multiline_textbbox((0, 0), musicname, font=font_musicname)
-    if bbox[2] >= 1240:
-        musicnameimage = Image.new("RGBA", (bbox[2], 100), background)
-        musicnamedraw = ImageDraw.Draw(musicnameimage)
-        musicnamedraw.multiline_text((0, 0), musicname, font=font_musicname)
-        resized = musicnameimage.resize((1240, 100))
-        image.paste(resized, (20, 10))
-    else:
-        draw.multiline_text((20, 10), musicname, fill=textcolor, font=font_musicname)
-    draw.multiline_text((50, 100), f'{playmode} {difficulty}', fill=colors_difficulty[difficulty], font=font)
+    drawtext_width_adjustment((20, 10), musicname, 1240, font_musicname, textcolor)
+    drawtext((50, 100), f'{playmode} {difficulty}', font, colors_difficulty[difficulty])
 
     if 'timestamps' in record.keys():
         count = str(len(record['timestamps']))
-        draw.multiline_text((20, 170), 'Played count.', fill=textcolor, font=font)
-        bbox = draw.multiline_textbbox((0, 0), count, font=font_title)
-        draw.multiline_text((680-bbox[2], 140), count, fill=textcolor, font=font_title)
+        drawtext((20, 170), 'Played count.', font, textcolor)
+        drawtext((680, 140), count, font_title, textcolor)
 
     if 'latest' in record.keys():
-        draw.multiline_text((20, 260), 'Last time played.', fill=textcolor, font=font)
-        draw.multiline_text((500, 230), record['latest']['timestamp'], fill=textcolor, font=font_title)
+        drawtext((20, 260), 'Last time played.', font, textcolor)
+        drawtext((500, 230), record['latest']['timestamp'], font_title, textcolor)
 
     if 'best' in record.keys():
-        draw.multiline_text((20, 330), 'Options when update a new record.', fill=textcolor, font=font)
+        drawtext((20, 330), 'Options when update a new record.', font, textcolor)
         for keyindex in range(len(musicinformation_keys)):
             key = musicinformation_keys[keyindex]
-            draw.multiline_text((50, keyindex*90+390), str.upper(key.replace('_', ' ')), fill=textcolor, font=font_title)
+            drawtext((50, keyindex*90+390), str.upper(key.replace('_', ' ')), font_title, textcolor)
 
             if not key in record['best'].keys() or record['best'][key] is None:
                 break
 
             value = str(record['best'][key]['value'])
-            bbox = draw.multiline_textbbox((0, 0), value, font=font_title)
-            draw.multiline_text((750-bbox[2], keyindex*90+390), value, fill=textcolor, font=font_title)
+            drawtext((750, keyindex*90+390), value, font_title, textcolor, 'ra')
 
             has_options = 'options' in record['best'][key].keys() and record['best'][key]['options'] is not None
             if has_options and 'arrange' in record['best'][key]['options'].keys():
                 arrange = record['best'][key]['options']['arrange']
-                draw.multiline_text((800, keyindex*90+390), arrange if arrange is not None else '-----', fill=textcolor, font=font_title)
+                drawtext((800, keyindex*90+390), arrange if arrange is not None else '-----', font_title, textcolor)
             else:
-                draw.multiline_text((800, keyindex*90+390), '?????', fill=textcolor, font=font_title)
+                drawtext((800, keyindex*90+390), '?????', font_title, textcolor)
 
     keys1 = {'fixed': 'FIXED', 'S-RANDOM': 'S-RANDOM', 'DBM': 'DBM'}
     if 'achievement' in record.keys():
-        draw.multiline_text((20, 570), 'Achievement status for each options.', fill=textcolor, font=font)
+        drawtext((20, 570), 'Achievement status for each options.', font, textcolor)
         index1 = 0
         for key1 in keys1.keys():
             index2 = 0
             if playmode == 'SP' and key1 == 'DBM':
                 continue
-            bbox = draw.multiline_textbbox((0, 0), keys1[key1], font=font_small)
-            draw.multiline_text(((index1+0.5)*380-bbox[2]/2+50, 630), keys1[key1], fill=textcolor, font=font_small)
+            drawtext(((index1+0.5)*380+50, 630), keys1[key1], font_small, textcolor, 'ma')
             for key2 in ['clear_type', 'dj_level']:
                 value = record['achievement'][key1][key2]
                 if value is None:
                     continue
-                draw.multiline_text((index1*380+index2*240+100, 670), value, fill=textcolor, font=font_small)
+                drawtext((index1*380+index2*240+100, 670), value, font_small, textcolor)
                 index2 += 1
             index1 += 1
         
@@ -393,9 +370,7 @@ def generateimage_simple(message, filepath):
     font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 160)
 
     draw.rectangle((0, 0, 1280, 720), fill=background)
-
-    bbox = draw.multiline_textbbox((0, 0), message, font=font)
-    draw.multiline_text((640-bbox[2]/2, 360-bbox[3]/2), message, fill=textcolor, font=font)
+    drawtext((640, 360), message, font, textcolor, 'mm')
 
     image.save(filepath)
 
@@ -404,14 +379,48 @@ def generateimage_multiline(title, message, filepath):
     font_message = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 60)
 
     draw.rectangle((0, 0, 1280, 720), fill=background)
-
-    bbox = draw.multiline_textbbox((0, 0), title, font=font_title)
-    draw.multiline_text((640-bbox[2]/2, 260-bbox[3]/2), title, fill=textcolor, font=font_title)
-
-    bbox = draw.multiline_textbbox((0, 0), message, font=font_message)
-    draw.multiline_text((640-bbox[2]/2, 460-bbox[3]/2), message, fill=textcolor, font=font_message)
+    drawtext((640, 260), title, font_title, textcolor, 'mm')
+    drawtext((640, 460), message, font_message, textcolor, 'mm')
 
     image.save(filepath)
+
+def drawtext(position: tuple[int, int], text: str, font: FreeTypeFont, color: str, anchor: str=None):
+    draw.multiline_text(
+        position,
+        text,
+        fill=color,
+        stroke_width=font.size // 10,
+        stroke_fill=strokecolor,
+        font=font,
+        anchor=anchor
+    )
+
+def drawtext_width_adjustment(position: tuple[int, int], text: str, maxwidth: int, font: FreeTypeFont, color: str):
+    bbox = draw.multiline_textbbox(
+        (0, 0),
+        text,
+        stroke_width=font.size // 10,
+        font=font
+    )
+
+    width = bbox[2] - bbox[0]
+    height = bbox[3] - bbox[1]
+
+    textimage = Image.new("RGBA", (width, height), background)
+    textdraw = ImageDraw.Draw(textimage)
+    textdraw.multiline_text(
+        (0, 0),
+        text,
+        fill=color,
+        stroke_width=font.size // 10,
+        stroke_fill=strokecolor,
+        font=font
+    )
+    if width < maxwidth:
+        image.paste(textimage, position)
+    else:
+        resized = textimage.resize((maxwidth, height))
+        image.paste(resized, (position[0]+bbox[0], position[1]+bbox[1]))
 
 def save_exportimage(image, filename):
     """エクスポートフォルダに画像ファイルを保存する
