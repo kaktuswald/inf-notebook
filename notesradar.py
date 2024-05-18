@@ -141,11 +141,11 @@ class NotesRadar():
 
         targetitem = self.items[playmode]
 
+        score = summary[musicname][playmode][difficulty]['score']
+        notes = resource.notesradar[playmode]['musics'][musicname][difficulty]['notes']
+
         updated = False
         for attribute, targetattribute in targetitem.attributes.items():
-            score = summary[musicname][playmode][difficulty]['score']
-            
-            notes = resource.notesradar[playmode]['musics'][musicname][difficulty]['notes']
             max = resource.notesradar[playmode]['musics'][musicname][difficulty]['radars'][attribute]
 
             rate = score * 100 // (notes * 2) / 100
@@ -156,21 +156,24 @@ class NotesRadar():
             if len(ranking) > 0 and ranking[-1].value > calculated:
                 continue
 
+            attribute_updated = False
+            
             for value in ranking:
                 if value.musicname == musicname and value.difficulty == difficulty:
                     value.value = calculated
-                    updated = True
+                    attribute_updated = True
                     break
             
-            if not updated:
+            if not attribute_updated:
                 ranking.append(NotesRadarValue(musicname, difficulty, calculated))
-                updated = True
+                attribute_updated = True
             
-            if updated:
+            if attribute_updated:
                 ranking.sort(reverse=True)
                 if len(ranking) > ranking_count:
                     del ranking[ranking_count:]
                 targetattribute.calculate_average()
+                updated = True
 
         if updated:
             targetitem.calculate_total()
