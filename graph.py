@@ -12,7 +12,7 @@ from notesradar import NotesRadar
 
 radarchart_define = {
     'PEAK': {
-        'yposition': -0.2,
+        'yposition': -0.4,
         'color': '#FD6B00'
     },
     'NOTES': {
@@ -20,11 +20,11 @@ radarchart_define = {
         'color': '#ED3CBD'
     },
     'CHORD': {
-        'yposition': -0.2,
+        'yposition': -0.4,
         'color': '#84E000'
     },
     'CHARGE': {
-        'yposition': -0.2,
+        'yposition': -0.4,
         'color': '#8856DB'
     },
     'SOF-LAN': {
@@ -32,7 +32,7 @@ radarchart_define = {
         'color': '#ED3CBD'
     },
     'SCRATCH': {
-        'yposition': -0.2,
+        'yposition': -0.4,
         'color': '#017DD5'
     }
 }
@@ -43,11 +43,12 @@ plt.rcParams['text.color'] = 'white'
 
 args_figure = {'figsize': np.array((16, 9)) / 2, 'dpi': 160}
 
-pathEffects = [withStroke(linewidth=3, foreground='black', capstyle='round')]
+pathEffects = [withStroke(linewidth=4, foreground='black', capstyle='round')]
 args_scoretitle = {'fontsize':18, 'path_effects':pathEffects}
-args_radartitle = {'fontsize':22, 'path_effects':pathEffects}
-args_radarvalues = {'fontsize':12, 'path_effects':pathEffects}
-args_radartotal = {'fontsize':14, 'path_effects':pathEffects}
+args_radartitle = {'fontsize':28, 'path_effects':pathEffects}
+args_radarlabel = {'fontsize':10, 'path_effects':pathEffects}
+args_radarvalues = {'fontsize':22, 'path_effects':pathEffects}
+args_radartotal = {'fontsize':26, 'path_effects':pathEffects}
 
 djlevelline_colors = ['#a04444', '#904444', '#804444']
 args_djlevellines = {'color': djlevelline_colors, 'linestyles': 'dashed'}
@@ -122,7 +123,7 @@ def create_radarchart(notesradar: NotesRadar):
     angle_list_closed = (*angle_list, angle_list[0])
 
     figure = plt.figure(**args_figure)
-    figure.subplots_adjust(left=0.1, right=0.9, top=0.8, bottom=0.4)
+    figure.subplots_adjust(left=0, right=1, top=0.8, bottom=0.45, wspace=0)
     figure.patch.set_alpha(0)
 
     for i in range(len(playmodes)):
@@ -152,6 +153,7 @@ def create_radarchart(notesradar: NotesRadar):
             key = ticklabel.get_text()
             ticklabel.set_y(radarchart_define[key]['yposition'])
             ticklabel.set_color(radarchart_define[key]['color'])
+            ticklabel.set_fontsize(16)
             ticklabel.set_path_effects(pathEffects)
         ax.set_yticks([100, 200], [])
 
@@ -159,13 +161,13 @@ def create_radarchart(notesradar: NotesRadar):
         for j in range(length):
             attribute = attributes[j]
             targetattribute = notesradaritem.attributes[attributes[j]]
-            xs = [*map(lambda v: center + (j % 2 - 0.5) * 0.2 + v, (-0.08, 0.02))]
-            y = (length / 2 - int(j / 2)) * 0.055 + 0.05
-            figure.text(xs[0], y, attribute, color=radarchart_define[attribute]['color'], **args_radarvalues)
-            figure.text(xs[1], y, f'{targetattribute.average:.2f}', **args_radarvalues)
-        xs = [*map(lambda v: center + v, (-0.075, 0.025))]
-        figure.text(xs[0], 0.03, 'TOTAL', **args_radartotal)
-        figure.text(xs[1], 0.03, f'{notesradaritem.total:.2f}', **args_radartotal)
+            xs = [*map(lambda v: center + (j % 2 - 0.5) * 0.24 + v, (-0.11, -0.025))]
+            ys = [*map(lambda v: (length / 2 - int(j / 2)) * 0.075 + 0.055 + v, (0.012, 0))]
+            figure.text(xs[0], ys[0], attribute, color=radarchart_define[attribute]['color'], **args_radarlabel)
+            figure.text(xs[1], ys[1], f'{targetattribute.average:.2f}', **args_radarvalues)
+        xs = [*map(lambda v: center + v, (-0.15, 0.02))]
+        figure.text(xs[0], 0.025, 'TOTAL', **args_radartotal)
+        figure.text(xs[1], 0.025, f'{notesradaritem.total:.2f}', **args_radartotal)
 
     return create_image(figure)
 
