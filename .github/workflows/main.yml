@@ -11,15 +11,15 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@master
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.12
         uses: actions/setup-python@master
-        with: { python-version: 3.11 }
+        with: { python-version: 3.12 }
 
       - name: Upgrade pip
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install cx_Freeze==6.15.16
+          pip install cx_Freeze==7.0.0
 
       - name: build
         run: |
@@ -31,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: inf-notebook
-          path: build/exe.win-amd64-3.11/
+          path: build/exe.win-amd64-3.12/
 
   release:
     needs: [windows-build]
