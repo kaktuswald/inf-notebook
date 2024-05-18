@@ -409,7 +409,7 @@ def drawtext_width_adjustment(position: tuple[int, int], text: str, maxwidth: in
     textimage = Image.new("RGBA", (width, height), background)
     textdraw = ImageDraw.Draw(textimage)
     textdraw.multiline_text(
-        (0, 0),
+        (-bbox[0], -bbox[1]),
         text,
         fill=color,
         stroke_width=font.size // 10,
