@@ -1,6 +1,7 @@
 import sys
 
-generate_filename = 'version.py'
+generate_python_filename = 'version.py'
+generate_text_filename = 'version.txt'
 
 if len(sys.argv) != 2:
     sys.exit()
@@ -8,6 +9,8 @@ if len(sys.argv) != 2:
 tag = sys.argv[1]
 version = tag.removeprefix('v')
 
-f = open(generate_filename, 'w')
-f.write(f"version = '{version}'")
-f.close()
+with open(generate_python_filename, 'w') as f:
+    f.write(f"version = '{version}'")
+
+with open(generate_text_filename, 'w') as f:
+    f.write(version)

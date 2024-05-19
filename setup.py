@@ -20,6 +20,7 @@ build_exe_options = {
         'resources/',
         'export/',
         'readme.txt',
+        'version.txt',
         'icon.ico'
     ]
 }
