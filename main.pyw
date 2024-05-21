@@ -691,10 +691,28 @@ def log_debug(message):
         print(message)
 
 def check_latest_version():
-    latest_version = get_latest_version()
-    if version == '0.0.0.0' or latest_version == version:
+    if version == '0.0.0.0':
         return
     
+    latest_version = get_latest_version()
+
+    if latest_version == version:
+        return
+    
+    dev = 'dev' in version
+    if dev:
+        v = version.split('dev')[0]
+    else:
+        v = version
+
+    splitted_version = [*map(int, v.split('.'))]
+    splitted_latest_version = [*map(int, latest_version.split('.'))]
+    for i in range(len(splitted_latest_version)):
+        if splitted_version[i] > splitted_latest_version[i]:
+            return
+        if splitted_version[i] < splitted_latest_version[i]:
+            break
+        
     if not question('最新バージョン', find_latest_version_message, window.current_location()):
         return
     
