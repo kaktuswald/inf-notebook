@@ -1,3 +1,4 @@
+from sys import exit
 import keyboard
 import time
 import PySimpleGUI as sg
@@ -11,6 +12,8 @@ from urllib.parse import quote
 from datetime import datetime
 from PIL import Image
 from urllib.parse import urljoin
+from subprocess import Popen
+from http.client import HTTPResponse
 
 from setting import Setting
 
@@ -33,6 +36,7 @@ logger = logging.getLogger()
 logger.debug('loaded main.py')
 logger.debug('mode: manage')
 
+from infnotebook import installer_filename
 from version import version
 import gui.main as gui
 from gui.setting import open_setting
@@ -49,11 +53,25 @@ from record import NotebookRecent,NotebookSummary,NotebookMusic,rename_allfiles,
 from graph import create_graphimage,create_radarchart
 from filter import filter as filter_result
 from export import Recent,output,output_notesradarimage,output_notesradarcsv
-from windows import find_window,get_rect,check_rectsize,openfolder_results,openfolder_filtereds,openfolder_graphs,openfolder_scoreinformations
-from image import save_resultimage,save_resultimage_filtered,save_scoreinformationimage,save_graphimage,get_resultimage,get_resultimage_filtered,generateimage_summary,generateimage_musicinformation
+from windows import find_window,get_rect,check_rectsize
+from image import (
+    save_resultimage,
+    save_resultimage_filtered,
+    save_scoreinformationimage,
+    save_graphimage,
+    get_resultimage,
+    get_resultimage_filtered,
+    generateimage_summary,
+    generateimage_musicinformation,
+    openfolder_results,
+    openfolder_filtereds,
+    openfolder_scoreinformations,
+    openfolder_graphs
+)
 from discord_webhook import post_result,deactivate_allbattles
 from result import Result
 from notesradar import NotesRadar
+from appdata import LocalConfig
 
 recent_maxcount = 100
 
@@ -76,9 +94,14 @@ notebooksummary_confirm_message = [
     u'時間がかかる場合がありますが次回からは実行されません。'
 ]
 
-find_latest_version_message = [
+find_latest_version_message_has_installer = [
     u'最新バージョンが見つかりました。',
-    u'最新バージョンをダウンロードしますか？'
+    u'インストーラを起動しますか？'
+]
+
+find_latest_version_message_not_has_installer = [
+    u'最新バージョンが見つかりました。',
+    u'リザルト手帳のページを開きますか？'
 ]
 
 base_url = 'https://github.com/kaktuswald/inf-notebook/'
@@ -691,23 +714,48 @@ def log_debug(message):
         print(message)
 
 def check_latest_version():
+    if version == '0.0.0.0':
+        return
+    
     latest_version = get_latest_version()
-    if version == '0.0.0.0' or latest_version == version:
-        return
-    
-    if not question('最新バージョン', find_latest_version_message, window.current_location()):
-        return
-    
-    donloads_url = urljoin(releases_url, 'download/')
-    version_url = urljoin(donloads_url, f'v{latest_version}/')
-    download_url = urljoin(version_url, f'inf-notebook-v{latest_version}.zip')
-    webbrowser.open(download_url)
 
-    if not setting.ignore_open_wiki:
-        webbrowser.open(wiki_url)
+    if latest_version == version:
+        return
+    
+    dev = 'dev' in version
+    if dev:
+        v = version.split('dev')[0]
+    else:
+        v = version
+
+    splitted_version = [*map(int, v.split('.'))]
+    splitted_latest_version = [*map(int, latest_version.split('.'))]
+    for i in range(len(splitted_latest_version)):
+        if splitted_version[i] > splitted_latest_version[i]:
+            return
+        if splitted_version[i] < splitted_latest_version[i]:
+            break
+
+    action = None
+    config = LocalConfig()
+    if config.installer_filepath is not None:
+        if config.installer_filepath.exists():
+            def action():
+                Popen(config.installer_filepath)
+                exit()
+            message = find_latest_version_message_has_installer
+    
+    if action is None:
+        def action():
+            webbrowser.open(wiki_url)
+        message = find_latest_version_message_not_has_installer
+    
+    if question('最新バージョン', message, window.current_location()):
+        action()
 
 def get_latest_version():
     with request.urlopen(latest_url) as response:
+        response: HTTPResponse
         url = response.geturl()
         version = url.split('/')[-1]
         print(f'released latest version: {version}')
@@ -1349,6 +1397,8 @@ if __name__ == '__main__':
 
     storage = StorageAccessor()
 
+    check_latest_version()
+
     event_close = Event()
     thread = ThreadMain(
         event_close,
@@ -1369,8 +1419,6 @@ if __name__ == '__main__':
         setting.save()
         if setting.data_collection:
             window['button_upload'].update(visible=True)
-
-    check_latest_version()
 
     resource.load_images()
 

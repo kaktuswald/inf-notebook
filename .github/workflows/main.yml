@@ -5,6 +5,40 @@ on:
       - "v*"
 
 jobs:
+  windows-build-installer:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@master
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@master
+        with: { python-version: 3.12 }
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+      
+      - name: Install modules
+        working-directory: installer
+        run: pip install -r installer_requirements.txt
+
+      - name: Install cx_Freeze
+        run: pip install cx_Freeze==7.0.0
+    
+      - name: Build
+        working-directory: installer
+        run: python installer_setup.py build
+      
+      - name: Rename
+        working-directory: installer/build
+        run: mv exe.win-amd64-3.12 inf-notebook-installer
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer
+          path: installer/build/inf-notebook-installer
+
   windows-build:
     runs-on: windows-latest
     steps:
@@ -18,25 +52,11 @@ jobs:
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       
-      - name: Install cx_Freeze
-        run: pip install cx_Freeze==7.0.0
-
-      - name: Build installer
-        working-directory: installer
-        run: python setup.py build
-      
-      - name: Rename installer
-        working-directory: installer/build
-        run: mv exe.win-amd64-3.12 inf-notebook
-
-      - name: Upload installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: installer
-          path: installer/build/*
-  
       - name: Install modules
         run: pip install -r requirements.txt
+    
+      - name: Install cx_Freeze
+        run: pip install cx_Freeze==7.0.0
     
       - name: Build
         run: |
@@ -44,42 +64,47 @@ jobs:
           python generate_version.py ${{ github.ref_name }}
           python setup.py build
   
+      - name: Rename
+        working-directory: build/
+        run: mv exe.win-amd64-3.12 inf-notebook
+  
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: inf-notebook
-          path: build/exe.win-amd64-3.12/*
+          path: build/inf-notebook
 
   release:
-    needs: [windows-build]
+    needs: [windows-build, windows-build-installer]
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout commit
         uses: actions/checkout@master
 
-      - name: Download exe
+      - name: Download
         uses: actions/download-artifact@v4
         with:
           name: inf-notebook
-          path: build_inf-notebook
 
       - name: Zip
-        working-directory: build_inf-notebook
-        run: zip -r inf-notebook.zip ./*
+        run: zip -r inf-notebook-${{ github.ref_name }}.zip inf-notebook
   
       - name: Download installer
         uses: actions/download-artifact@v4
         with:
           name: installer
-          path: build_installer
       
-      - name: Move zip
-        run: mv build_inf-notebook/inf-notebook.zip build_installer/inf-notebook/
-
-      - name: Zip all
-        working-directory: build_installer
-        run: zip -r inf-notebook-${{ github.ref_name }}.zip ./inf-notebook
+      - name: Set environpment
+        working-directory: installer
+        run: |
+          grep -E "version_installer(\s*)=" installer.py
+          grep -E "version_installer(\s*)=" installer.py | awk -F'=' '{print $2}'
+          grep -E "version_installer(\s*)=" installer.py | awk -F'=' '{print $2}' | sed 's/[ '\'']//g'
+          echo "installer_version=$(grep -E "version_installer(\s*)=" installer.py | awk -F'=' '{print $2}' | sed 's/[ '\'']//g')" >> "$GITHUB_ENV"
+      
+      - name: Zip installer
+        run: zip -r inf-notebook-installer-${{ env.installer_version }}.zip ./inf-notebook-installer
 
       - name: Create Release
         id: create_release
@@ -98,6 +123,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build_installer/inf-notebook-${{ github.ref_name }}.zip
+          asset_path: ./inf-notebook-${{ github.ref_name }}.zip
           asset_name: inf-notebook-${{ github.ref_name }}.zip
+          asset_content_type: application/zip
+
+      - name: Append Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./inf-notebook-installer-${{ env.installer_version }}.zip
+          asset_name: inf-notebook-installer-${{ env.installer_version }}.zip
           asset_content_type: application/zip
