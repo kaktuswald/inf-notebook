@@ -5,6 +5,16 @@ on:
       - "v*"
 
 jobs:
+  delete-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Delete artifacts
+        uses: c-hive/gha-remove-artifacts@v1
+        with:
+          age: '7 day'
+
   windows-build-installer:
     runs-on: windows-latest
     steps:
@@ -19,25 +29,24 @@ jobs:
         run: python -m pip install --upgrade pip
       
       - name: Install modules
-        working-directory: installer
         run: pip install -r installer_requirements.txt
 
       - name: Install cx_Freeze
         run: pip install cx_Freeze==7.0.0
     
       - name: Build
-        working-directory: installer
         run: python installer_setup.py build
       
       - name: Rename
-        working-directory: installer/build
+        working-directory: build
         run: mv exe.win-amd64-3.12 inf-notebook-installer
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: installer
-          path: installer/build/inf-notebook-installer
+          name: inf-notebook-installer
+          path: build
+          retention-days: 1
 
   windows-build:
     runs-on: windows-latest
@@ -72,7 +81,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: inf-notebook
-          path: build/inf-notebook
+          path: build
+          retention-days: 1
 
   release:
     needs: [windows-build, windows-build-installer]
@@ -82,29 +92,34 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@master
 
+      - name: Set Environpment Installer Version
+        run: echo "installer_version=$(grep -E "(.*)version_installer(.*)=" installer.py | awk -F'=' '{print $2}' | sed 's/[ '\'']//g')" >> "$GITHUB_ENV"
+
+      - name: Set Environpment Zip File Name
+        run: |
+          echo "zipfilename=inf-notebook${{ github.ref_name }}.zip" >> "$GITHUB_ENV"
+          echo "zipfilename_installer=inf-notebook-installer${{ env.installer_version }}.zip" >> "$GITHUB_ENV"
+
       - name: Download
         uses: actions/download-artifact@v4
         with:
           name: inf-notebook
 
       - name: Zip
-        run: zip -r inf-notebook-${{ github.ref_name }}.zip inf-notebook
-  
+        run: zip -r ${{ env.zipfilename }} inf-notebook
+
       - name: Download installer
         uses: actions/download-artifact@v4
         with:
-          name: installer
-      
-      - name: Set environpment
-        working-directory: installer
+          name: inf-notebook-installer
+
+      - name: Zip Installer
+        run: zip -r ${{ env.zipfilename_installer }} inf-notebook-installer
+
+      - name: Edit Release Description
         run: |
-          grep -E "version_installer(\s*)=" installer.py
-          grep -E "version_installer(\s*)=" installer.py | awk -F'=' '{print $2}'
-          grep -E "version_installer(\s*)=" installer.py | awk -F'=' '{print $2}' | sed 's/[ '\'']//g'
-          echo "installer_version=$(grep -E "version_installer(\s*)=" installer.py | awk -F'=' '{print $2}' | sed 's/[ '\'']//g')" >> "$GITHUB_ENV"
-      
-      - name: Zip installer
-        run: zip -r inf-notebook-installer-${{ env.installer_version }}.zip ./inf-notebook-installer
+          sed -i -e "s/&&zipfilename&&/${{ env.zipfilename }}/" RELEASE_DESCRIPTION
+          sed -i -e "s/&&zipfilename_installer&&/${{ env.zipfilename_installer }}/" RELEASE_DESCRIPTION
 
       - name: Create Release
         id: create_release
@@ -114,6 +129,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
+          body_path: RELEASE_DESCRIPTION
           draft: true
           prerelease: false
 
@@ -123,16 +139,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./inf-notebook-${{ github.ref_name }}.zip
-          asset_name: inf-notebook-${{ github.ref_name }}.zip
+          asset_path: ./${{ env.zipfilename }}
+          asset_name: ${{ env.zipfilename }}
           asset_content_type: application/zip
 
-      - name: Append Binary
+      - name: Append Binary Installer
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./inf-notebook-installer-${{ env.installer_version }}.zip
-          asset_name: inf-notebook-installer-${{ env.installer_version }}.zip
+          asset_path: ./${{ env.zipfilename_installer }}
+          asset_name: ${{ env.zipfilename_installer }}
           asset_content_type: application/zip
