@@ -717,12 +717,7 @@ def check_latest_version():
     if version == '0.0.0.0':
         return
     
-    if version == '0.0.0.0':
-        return
-    
     latest_version = get_latest_version()
-
-    if latest_version == version:
 
     if latest_version == version:
         return
