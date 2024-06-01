@@ -8,6 +8,7 @@ import re
 from define import define
 from resources import resource,images_resourcecheck_filepath,images_imagenothing_filepath,images_loading_filepath
 from export import export_dirname
+from windows import openfolder
 
 dirname_results = 'results'
 dirname_filtereds = 'filtered'
@@ -430,6 +431,22 @@ def save_exportimage(image, filename):
         filename (str): ファイル名
     """
     image.save(join(export_dirname, filename))
+
+def openfolder_results(destination_dirpath):
+    dirpath = join(destination_dirpath, dirname_results)
+    return openfolder(dirpath)
+
+def openfolder_filtereds(destination_dirpath):
+    dirpath = join(destination_dirpath, dirname_filtereds)
+    return openfolder(dirpath)
+
+def openfolder_scoreinformations(destination_dirpath):
+    dirpath = join(destination_dirpath, dirname_scoreinformations)
+    return openfolder(dirpath)
+
+def openfolder_graphs(destination_dirpath):
+    dirpath = join(destination_dirpath, dirname_graphs)
+    return openfolder(dirpath)
 
 if __name__ == '__main__':
     generateimage_simple(text_resourcecheck, images_resourcecheck_filepath)

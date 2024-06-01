@@ -208,13 +208,5 @@ class Setting():
         self.set_value('startup_image', value)
     
     @property
-    def ignore_open_wiki(self):
-        return self.get_value('ignore_open_wiki')
-
-    @ignore_open_wiki.setter
-    def ignore_open_wiki(self, value):
-        self.set_value('ignore_open_wiki', value)
-
-    @property
     def ignore_download(self):
         return self.get_value('ignore_download')

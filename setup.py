@@ -2,6 +2,7 @@ import sys
 from cx_Freeze import setup, Executable
 
 from version import version
+from infnotebook import icon_filename
 
 # Dependencies are automatically detected, but it might need fine tuning.
 # 'packages': ['os'] is used as example only
@@ -21,7 +22,7 @@ build_exe_options = {
         'export/',
         'readme.txt',
         'version.txt',
-        'icon.ico'
+        icon_filename
     ]
 }
 
@@ -38,7 +39,7 @@ executables = (
             base=base,
             shortcut_name=u'ビートマニアリザルト手帳',
             shortcut_dir=u'ビートマニアリザルト手帳',
-            icon='icon.ico',
+            icon=icon_filename,
             target_name='infnotebook'
         )
     ]

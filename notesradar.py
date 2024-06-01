@@ -119,8 +119,8 @@ class NotesRadar():
 
                     score = summary[musicname][playmode][difficulty]['score']
                     
-                    rate = score * 100 // (notes * 2) / 100
-                    calculated = rate * 100 * max // 1 / 100
+                    rate = score * 10000 / (notes * 2) // 1
+                    calculated = rate * max // 1 / 10000
 
                     if len(ranking) == ranking_count and min(ranking).value > calculated:
                         continue
