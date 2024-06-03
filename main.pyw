@@ -36,7 +36,6 @@ logger = logging.getLogger()
 logger.debug('loaded main.py')
 logger.debug('mode: manage')
 
-from infnotebook import installer_filename
 from version import version
 import gui.main as gui
 from gui.setting import open_setting
