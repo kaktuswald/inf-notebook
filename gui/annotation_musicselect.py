@@ -47,6 +47,7 @@ def layout_manage(keys):
         'BISTROVER',
         'CastHour',
         'RESIDENT',
+        'EPOLIS',
         'INFINITAS'
     ]
     selectable_value_list['musictypes'] = ['', 'ARCADE', 'INFINITAS', 'LEGGENDARIA']
