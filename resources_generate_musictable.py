@@ -115,8 +115,8 @@ def load_musiclist(report, table, versions):
             continue
         
         values = line.split(',')
-        values = [','.join(values[:-11]), *values[-11:]]
-        if len(values) != 12:
+        values = [','.join(values[:-2]), *values[-2:]]
+        if len(values) != 3:
             report.error(f'line error: {values}')
             continue
 
@@ -150,6 +150,8 @@ def reflect_collections(report, table):
         if not 'version' in item.keys() or item['version'] == '':
             continue
         if not 'musicname' in item.keys() or item['musicname'] == '':
+            continue
+        if 'nohasscoredata' in item.keys() and item['nohasscoredata']:
             continue
         
         playmode = item['playmode']

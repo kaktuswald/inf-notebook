@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import json
+from os import remove
 from os.path import exists,join,basename
 from PIL import Image
 import logging
@@ -85,6 +86,7 @@ if __name__ == '__main__':
                 'musictype': values['musictype'],
                 'musicname': values['musicname'],
                 'cleartype': values['cleartype'],
+                'nohasscoredata': values['nohasscoredata'],
                 'djlevel': values['djlevel'],
                 'score': values['score'],
                 'misscount': values['misscount'],
@@ -94,6 +96,16 @@ if __name__ == '__main__':
                 json.dump(labels, f, indent=2)
         if event == 'button_recog' and not target_key is None:
             gui.reflect_recognized()
+        if event == 'button_delete' and not target_key is None:
+            target_filepath = join(images_musicselect_basepath, target_key)
+            if exists(target_filepath):
+                remove(target_filepath)
+            if target_key in labels.keys():
+                del labels[target_key]
+                with open(label_filepath, 'w') as f:
+                    json.dump(labels, f, indent=2)
+            filenames.remove(target_key)
+            gui.change_search_condition(filenames, labels)
         if event in ['only_not_annotation', 'only_undefined_musicname', 'only_undefined_version', 'musicnamefilter', 'keyfilter']:
             gui.change_search_condition(filenames, labels)
 

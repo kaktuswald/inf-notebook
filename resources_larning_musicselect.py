@@ -123,6 +123,9 @@ def larning_levels():
     for key, target in imagevalues.items():
         if not 'difficulty' in target.label.keys() or target.label['difficulty'] == '':
             continue
+        if 'nohasscoredata' in target.label.keys() and target.label['nohasscoredata']:
+            continue
+
         evaluate_targets[key] = target
 
         musicname = target.label['musicname']
@@ -146,6 +149,9 @@ def larning_levels():
             evaluate_musictable[musicname][playmode][str.upper(difficulty)] = level
 
     for difficulty in difficulties:
+        if 'nohasscoredata' in target.label.keys() and target.label['nohasscoredata']:
+            continue
+
         define_target = musicselect_define['levels']['select'][difficulty]
 
         trim = (
@@ -838,7 +844,8 @@ def larning_version():
         'BISTROVER',
         'CastHour',
         'RESIDENT',
-        'INFINITAS'
+        'EPOLIS',
+        'INFINITAS',
     ]
 
     tables = []
@@ -940,9 +947,7 @@ def evaluate():
     for musicname in table.keys():
         escaped = musicname.encode('unicode-escape').decode('utf-8')
         if musicname in evaluate_musictable.keys():
-            if 'version' in evaluate_musictable[musicname].keys():
-                pass
-            else:
+            if not 'version' in evaluate_musictable[musicname].keys():
                 report.error(f'Not registered version {musicname}')
             
             for playmode in define.value_list['play_modes']:

@@ -92,6 +92,10 @@ def layout_manage(keys):
             sg.Text(key='result_difficulty', background_color=in_area_background_color),
         ],
         [
+            sg.Text('スコアデータ', size=(15, 1)),
+            sg.Text(key='result_hasscoredata', background_color=in_area_background_color),
+        ],
+        [
             sg.Text('クリアタイプ', size=(15, 1)),
             sg.Text(key='result_cleartype', size=(10, 1), background_color=in_area_background_color),
         ],
@@ -131,6 +135,10 @@ def layout_manage(keys):
             sg.Combo(selectable_value_list['difficulties'], key='difficulty', size=(14, 1), readonly=True)
         ],
         [
+            sg.Text('スコアデータ', size=(18, 1)),
+            sg.Checkbox('表示なし', key='nohasscoredata', default=False, background_color=in_area_background_color)
+        ],
+        [
             sg.Text('クリアタイプ', size=(18, 1)),
             sg.Combo(selectable_value_list['clear_types'], key='cleartype', size=(11, 1), readonly=True),
         ],
@@ -168,7 +176,8 @@ def layout_manage(keys):
         ],
         [
             sg.Button('アノテーション保存', key='button_label_overwrite'),
-            sg.Button('認識結果から引用', key='button_recog')
+            sg.Button('認識結果から引用', key='button_recog'),
+            sg.Button('削除', key='button_delete'),
         ],
         [sg.Checkbox('未アノテーションのみ', key='only_not_annotation', enable_events=True, background_color=in_area_background_color)],
         [sg.Checkbox('曲名なしのみ', key='only_undefined_musicname', enable_events=True, background_color=in_area_background_color)],
@@ -191,12 +200,12 @@ def layout_manage(keys):
                     sg.Listbox(keys, key='list_keys', size=(24, 19), enable_events=True),
                 ],
                 [
-                    sg.Column(results1, size=(200, 215), background_color=in_area_background_color),
-                    sg.Column(results2, size=(340, 215), background_color=in_area_background_color),
+                    sg.Column(results1, size=(200, 250), background_color=in_area_background_color),
+                    sg.Column(results2, size=(340, 250), background_color=in_area_background_color),
                 ],
             ], pad=0, background_color=background_color),
             sg.Column([
-                [sg.Column(manage_label_define, size=(385,540), background_color=in_area_background_color)],
+                [sg.Column(manage_label_define, size=(385,575), background_color=in_area_background_color)],
             ], pad=0, background_color=background_color)
         ]
     ]
@@ -231,6 +240,7 @@ def clear_results():
     window['result_version'].update('')
     window['result_musicname'].update('')
     window['result_difficulty'].update('')
+    window['result_hasscoredata'].update('')
     window['result_cleartype'].update('')
     window['result_djlevel'].update('')
     window['result_score'].update('')
@@ -261,6 +271,7 @@ def recognize(image):
     window['result_version'].update(version if version is not None else '')
     window['result_musicname'].update(musicname if musicname is not None else '')
     window['result_difficulty'].update(difficulty if difficulty is not None else '')
+    window['result_hasscoredata'].update('あり')
     window['result_cleartype'].update(cleartype if cleartype is not None else '')
     window['result_djlevel'].update(djlevel if djlevel is not None else '')
     window['result_score'].update(score if score is not None else '')
@@ -287,6 +298,7 @@ def reflect_recognized():
         window['musictype'].update('LEGGENDARIA')
     window['musicname'].update(window['result_musicname'].get())
     window['difficulty'].update(window['result_difficulty'].get())
+    window['nohasscoredata'].update(True if window['result_hasscoredata'].get() == 'なし' else False)
     window['cleartype'].update(window['result_cleartype'].get())
     window['djlevel'].update(window['result_djlevel'].get())
     window['score'].update(window['result_score'].get())
@@ -300,6 +312,7 @@ def clear_labels():
     window['musictype'].update('')
     window['musicname'].update('')
     window['difficulty'].update('')
+    window['nohasscoredata'].update(False)
     window['cleartype'].update('')
     window['djlevel'].update('')
     window['score'].update('')
@@ -316,6 +329,7 @@ def set_labels(label):
     window['musictype'].update(label['musictype'] if 'musictype' in label.keys() else '')
     window['musicname'].update(label['musicname'])
     window['difficulty'].update(label['difficulty'])
+    window['nohasscoredata'].update(label['nohasscoredata'] if 'nohasscoredata' in label.keys() else False)
     window['cleartype'].update(label['cleartype'])
     window['djlevel'].update(label['djlevel'])
     window['score'].update(label['score'])
