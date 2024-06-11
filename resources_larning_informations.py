@@ -224,7 +224,7 @@ def larning_music(targets, report, name):
                 maptarget = maptarget[mapkey]
             maptarget[mapkeys[-1]] = music
             
-            concatenatekey = ''.join(mapkeys)
+            concatenatekey = '+'.join(mapkeys)
 
             if not concatenatekey in inspect.keys():
                 inspect[concatenatekey] = {}
@@ -242,7 +242,9 @@ def larning_music(targets, report, name):
         for music, item in values.items():
             report_inspect.append(f"  {music}: {item['key']}")
         if count >= 2:
-            report.error(f'key: {tablekey})')
+            report.error(f'duplicate key: {tablekey})')
+            for k, v in values.items():
+                report.error(f"{v['key']}: {k})")
             for music, item in values.items():
                 report.saveimage_errorvalue(item['value'], f"_{item['key']}.png")
 
