@@ -153,7 +153,6 @@ def open_setting(setting: Setting, location: tuple[int, int]):
         f'{title} (設定)',
         layout,
         icon=icon_path,
-        grab_anywhere=True,
         return_keyboard_events=True,
         resizable=False,
         finalize=True,

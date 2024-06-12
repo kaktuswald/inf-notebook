@@ -403,7 +403,6 @@ def open_export(recent, notebook_summary, location):
         f'{title} (エクスポート)',
         layout,
         icon=icon_path,
-        grab_anywhere=True,
         return_keyboard_events=True,
         resizable=False,
         finalize=True,

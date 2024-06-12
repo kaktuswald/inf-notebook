@@ -56,7 +56,6 @@ def progress(title, message, counter, location):
         title,
         layout,
         icon=icon_path,
-        grab_anywhere=True,
         return_keyboard_events=True,
         resizable=False,
         finalize=True,

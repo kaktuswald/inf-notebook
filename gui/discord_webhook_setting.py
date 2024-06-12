@@ -101,7 +101,6 @@ def open_setting(location: tuple[int, int], name: str = None, setting: dict = se
         f'{title} ({version})',
         layout,
         icon=icon_path,
-        grab_anywhere=True,
         return_keyboard_events=True,
         resizable=False,
         finalize=True,

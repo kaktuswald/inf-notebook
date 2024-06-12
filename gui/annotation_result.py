@@ -231,7 +231,6 @@ def generate_window(keys):
         title,
         layout_manage(keys),
         icon=icon_path,
-        grab_anywhere=True,
         return_keyboard_events=True,
         resizable=False,
         finalize=True,

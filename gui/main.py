@@ -345,7 +345,6 @@ def generate_window(setting, version):
         f'{title} ({version})',
         layout_main(setting),
         icon=icon_path,
-        grab_anywhere=True,
         return_keyboard_events=True,
         resizable=False,
         finalize=True,
