@@ -62,6 +62,7 @@ from image import (
     get_resultimage_filtered,
     generateimage_summary,
     generateimage_musicinformation,
+    generateimage_musictableinformation,
     openfolder_results,
     openfolder_filtereds,
     openfolder_graphs,
@@ -782,6 +783,53 @@ def get_latest_version():
         else:
             return None
 
+def initialize():
+    """初期処理
+
+    別スレッドで実行する
+
+    - リソース画像のロード
+    - 曲名の変更に伴う記録ファイルのファイル名変更
+    - 必要であれば全曲の記録ファイルを読み出して一つのサマリーファイルを作成する
+    - 
+    """
+    resource.load_images()
+
+    if not setting.ignore_download:
+        queue_multimessages.put(('imageinformation_change', (resource.image_resourcecheck,)))
+
+        check_resource()
+
+    queue_multimessages.put(('imageinformation_change', (resource.image_summaryprocessing,)))
+
+    if resource.musictable is not None:
+        rename_allfiles(resource.musictable['musics'].keys())
+
+    changed = rename_changemusicname()
+
+    if not 'last_allimported' in notebook_summary.json.keys():
+        notebook_summary.import_allmusics(version)
+        notebook_summary.save()
+    else:
+        if len(changed) > 0:
+            for musicname, renamed in changed:
+                del notebook_summary.json['musics'][musicname]
+                notebook = get_notebook_targetmusic(renamed)
+                notebook_summary.import_targetmusic(renamed, notebook)
+
+            notebook_summary.save()
+
+    notesradar.generate(notebook_summary.json['musics'])
+
+    image = generateimage_musictableinformation()
+    queue_multimessages.put(('imageinformation_change', (get_imagevalue(image),)))
+
+    queue_messages.put('complete_initialize')
+
+def complete_initialize():
+    summaryimage_generate()
+    notesradarimage_generate()
+
 def check_resource():
     informations_filename = f'{define.informations_resourcename}.res'
     if check_latest(storage, informations_filename):
@@ -807,43 +855,6 @@ def check_resource():
     check_latest(storage, musicnamechanges_filename)
 
     logger.info('complete check resources')
-
-    changed = rename_changemusicname()
-    queue_functions.put((notebooksummary_startimport, changed))
-
-def notebooksummary_startimport(changed):
-    """全曲記録データを各曲記録ファイルから作成する
-
-    Note:
-        バージョン0.14.2.1以前からjson構造変更
-        バージョン0.15.2.0以降の初回起動で必ず実行する
-    """
-
-    if not 'last_allimported' in notebook_summary.json.keys():
-        notebook_summary.json = {}
-        counter = notebook_summary.start_import()
-        progress("お待ちください", notebooksummary_confirm_message, counter, window.current_location())
-
-        notebook_summary.json['last_allimported'] = version
-        notebook_summary.save()
-    else:
-        for musicname, renamed in changed:
-            del notebook_summary.json['musics'][musicname]
-            notebook = get_notebook_targetmusic(renamed)
-            notebook_summary.import_targetmusic(renamed, notebook)
-
-        if len(changed) > 0:
-            notebook_summary.save()
-    
-    notesradar.generate(notebook_summary.json['musics'])
-
-    summaryimage_generate()
-    notesradarimage_generate()
-
-    if setting.startup_image == 'notesradar':
-        notesradarimage_display()
-    if setting.startup_image == 'summary':
-        summaryimage_display()
 
 def select_result_recent():
     if len(table_selected_rows) == 0:
@@ -1454,19 +1465,10 @@ if __name__ == '__main__':
         if setting.data_collection:
             window['button_upload'].update(visible=True)
 
-    resource.load_images()
-
-    if not setting.ignore_download:
-        gui.display_image(resource.image_resourcecheck)
-        Thread(target=check_resource).start()
-    else:
-        changed = rename_changemusicname()
-        queue_functions.put((notebooksummary_startimport, changed))
-    
-    if resource.musictable is not None:
-        rename_allfiles(resource.musictable['musics'].keys())
-
     insert_recentnotebook_results()
+
+    Thread(target=initialize, daemon=True).start()
+    initializing = True
 
     while True:
         w, event, values = sg.read_all_windows(timeout=50, timeout_key='timeout')
@@ -1596,6 +1598,9 @@ if __name__ == '__main__':
                     func(args)
                 if not queue_messages.empty():
                     queuemessage = queue_messages.get_nowait()
+                    if queuemessage == 'complete_initialize':
+                        complete_initialize()
+                        initializing = False
                     if queuemessage == 'hotkey_start':
                         start_hotkeys()
                     if queuemessage == 'hotkey_stop':
@@ -1606,6 +1611,8 @@ if __name__ == '__main__':
                         summaryimage_display()
                 if not queue_multimessages.empty():
                     queuemessage, args = queue_multimessages.get_nowait()
+                    if queuemessage == 'imageinformation_change':
+                        gui.display_image(args[0])
                     if queuemessage == 'discord_webhooks_log':
                         discord_webhooks_log.extend(args[0])
                         del discord_webhooks_log[:-6]

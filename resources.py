@@ -25,6 +25,7 @@ images_dirpath = os.path.join(resources_dirname, images_dirname)
 sound_result_filepath = os.path.join(sounds_dirpath, 'result.wav')
 
 images_resourcecheck_filepath = os.path.join(images_dirpath, 'resourcecheck.png')
+images_summaryprocessing_filepath = os.path.join(images_dirpath, 'summaryprocessing.png')
 images_imagenothing_filepath = os.path.join(images_dirpath, 'imagenothing.png')
 images_loading_filepath = os.path.join(images_dirpath, 'loading.png')
 
@@ -68,6 +69,7 @@ class Resource():
     
     def load_images(self):
         self.image_resourcecheck = get_imagevalue(Image.open(images_resourcecheck_filepath))
+        self.image_summaryprocessing = get_imagevalue(Image.open(images_summaryprocessing_filepath))
         self.image_imagenothing = get_imagevalue(Image.open(images_imagenothing_filepath))
         self.image_loading = get_imagevalue(Image.open(images_loading_filepath))
 

@@ -367,6 +367,34 @@ def generateimage_musicinformation(playmode, difficulty, musicname, record):
 
     return image
 
+def generateimage_musictableinformation():
+    draw.rectangle((0, 0, 1280, 720), fill=background)
+
+    xpositions = {'SP': 950, 'DP': 1200}
+    musiccount = len(resource.musictable['musics'])
+
+    drawtext((380, 100), '全曲数', font_title, textcolor)
+    drawtext((900, 100), f'{musiccount}', font_title, textcolor, 'ra')
+
+    drawtext((80, 350), '全譜面数', font_title, textcolor)
+    drawtext((80, 450), 'ビギナー譜面数', font_title, textcolor)
+    drawtext((80, 550), 'レジェンダリア譜面数', font_title, textcolor)
+
+    for playmode in define.value_list['play_modes']:
+        drawtext((xpositions[playmode], 250), playmode, font_title, textcolor, 'ra')
+
+        scorecount = sum([len(music[playmode]) for music in resource.musictable['musics'].values()])
+        drawtext((xpositions[playmode], 350), f'{scorecount}', font_title, textcolor, 'ra')
+
+        if playmode == 'SP':
+            beginnercount = len(resource.musictable['beginners'])
+            drawtext((xpositions[playmode], 450), f'{beginnercount}', font_title, textcolor, 'ra')
+
+        leggendariacount = len(resource.musictable['leggendarias'][playmode])
+        drawtext((xpositions[playmode], 550), f'{leggendariacount}', font_title, textcolor, 'ra')
+
+    return image
+
 def generateimage_simple(message, filepath):
     font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 160)
 
