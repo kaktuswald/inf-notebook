@@ -440,13 +440,16 @@ def openfolder_filtereds(destination_dirpath):
     dirpath = join(destination_dirpath, dirname_filtereds)
     return openfolder(dirpath)
 
+def openfolder_graphs(destination_dirpath):
+    dirpath = join(destination_dirpath, dirname_graphs)
+    return openfolder(dirpath)
+
 def openfolder_scoreinformations(destination_dirpath):
     dirpath = join(destination_dirpath, dirname_scoreinformations)
     return openfolder(dirpath)
 
-def openfolder_graphs(destination_dirpath):
-    dirpath = join(destination_dirpath, dirname_graphs)
-    return openfolder(dirpath)
+def openfolder_export():
+    return openfolder(export_dirname)
 
 if __name__ == '__main__':
     generateimage_simple(text_resourcecheck, images_resourcecheck_filepath)

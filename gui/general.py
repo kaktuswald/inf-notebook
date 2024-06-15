@@ -9,7 +9,7 @@ resized_icon = icon_image.resize((32, 32))
 icon_bytes = io.BytesIO()
 resized_icon.save(icon_bytes, format='PNG')
 
-def get_imagevalue(image):
+def get_imagevalue(image: Image.Image):
     if image is None:
         return None
     
@@ -19,7 +19,7 @@ def get_imagevalue(image):
     image.save(bytes, format='PNG')
     return bytes.getvalue()
 
-def message(title, message, location):
+def message(title: str, message: str | list, location: tuple[int, int]):
     sg.popup(
         '\n'.join([
             message,
@@ -30,7 +30,7 @@ def message(title, message, location):
         relative_location=location
     )
 
-def question(title, message, location):
+def question(title: str, message: str | list, location: tuple[int, int]):
     if type(message) is list:
         message = '\n'.join(message)
 

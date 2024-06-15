@@ -64,8 +64,9 @@ from image import (
     generateimage_musicinformation,
     openfolder_results,
     openfolder_filtereds,
+    openfolder_graphs,
     openfolder_scoreinformations,
-    openfolder_graphs
+    openfolder_export,
 )
 from discord_webhook import post_result,deactivate_allbattles
 from result import Result
@@ -101,6 +102,10 @@ find_latest_version_message_has_installer = [
 find_latest_version_message_not_has_installer = [
     u'最新バージョンが見つかりました。',
     u'リザルト手帳のページを開きますか？'
+]
+
+clearrecent_confirm_message = [
+    u'exportフォルダのrecent.htmlの内容をリセットしますか？',
 ]
 
 base_url = 'https://github.com/kaktuswald/inf-notebook/'
@@ -933,7 +938,6 @@ def select_history():
 
     timestamp = values['history'][0]
     selection.selection_timestamp(timestamp)
-    gui.switch_openfolder_others()
 
     gui.display_historyresult(selection.get_targetrecordlist(), timestamp)
 
@@ -1085,13 +1089,25 @@ def open_folder_filtereds():
     if ret is not None:
         logger.exception(ret)
         gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
-    
+
 def open_folder_graphs():
     ret = openfolder_graphs(setting.imagesave_path)
     if ret is not None:
         logger.exception(ret)
         gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
 
+def open_folder_scoreinformations():
+    ret = openfolder_scoreinformations(setting.imagesave_path)
+    if ret is not None:
+        logger.exception(ret)
+        gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
+
+def open_folder_export():
+    ret = openfolder_export()
+    if ret is not None:
+        logger.exception(ret)
+        gui.error_message(u'失敗', u'フォルダを開くのに失敗しました。', ret)
+    
 def open_folder_scoreinformations():
     ret = openfolder_scoreinformations(setting.imagesave_path)
     if ret is not None:
@@ -1474,46 +1490,54 @@ if __name__ == '__main__':
                 
                 continue
             
-            if w == window and event in (sg.WIN_CLOSED, sg.WINDOW_CLOSE_ATTEMPTED_EVENT):
+            if w == window and event in (sg.WIN_CLOSED, sg.WINDOW_CLOSE_ATTEMPTED_EVENT, '終了(X)'):
                 if not thread is None:
                     event_close.set()
                     thread.join()
                     log_debug(f'end')
                 break
 
-            if event == 'button_setting':
+            if event in ['button_open_folder_results', 'リザルト画像フォルダを開く(R)']:
+                open_folder_results()
+            if event in ['button_open_folder_filtereds', 'ライバル隠し画像フォルダを開く(F)']:
+                open_folder_filtereds()
+            if event == '譜面記録画像フォルダを開く(I)':
+                open_folder_scoreinformations()
+            if event == 'グラフ画像フォルダを開く(G)':
+                open_folder_graphs()
+            if event == 'エクスポートフォルダを開く(E)':
+                open_folder_export()
+            
+            if event in ['button_save', '画像保存(S)']:
+                save()
+            if event in ['button_filter', 'ライバルを隠す(F)']:
+                filter()
+            if event in ['button_tweet', 'Xにポスト(P)']:
+                tweet()
+            if event in ['button_upload', '誤認識の通報(U)']:
+                upload()
+
+            if event in ['button_setting', '設定を開く(S)']:
                 if open_setting(setting, window.current_location()):
                     summaryimage_generate()
                     summaryimage_display()
                 window['button_upload'].update(visible=setting.data_collection)
-            if event == 'button_save':
-                save()
-            if event == 'button_filter':
-                filter()
-            if event == 'button_open_folder_results':
-                open_folder_results()
-            if event == 'button_open_folder_filtereds':
-                open_folder_filtereds()
-            if event == 'button_open_folder_scoreinformations':
-                open_folder_scoreinformations()
-            if event == 'button_open_folder_others':
-                if selection.scoreinformation:
-                    open_folder_scoreinformations()
-                if selection.graph:
-                    open_folder_graphs()
-            if event == 'button_tweet':
-                tweet()
-            if event == 'button_export':
+            if event in ['button_export', 'エクスポートを開く(E)']:
                 open_export(recent, notebook_summary, window.current_location())
-            if event == 'button_upload':
-                upload()
+            if event == 'CSV出力(P)':
+                output(notebook_summary)
+                output_notesradarcsv(notesradar)
+                message('完了', '出力が完了しました。', window.current_location())
+            if event == '最近のデータのリセット(R)':
+                if question('確認', clearrecent_confirm_message, window.current_location()):
+                    recent.clear()
+            
             if event == 'table_results':
                 if values['table_results'] != table_selected_rows:
                     table_selected_rows = values['table_results']
                     selection_result = select_result_recent()
                     if selection_result is not None:
                         selection = selection_result
-                        gui.switch_openfolder_others()
                         if selection.music is not None:
                             window['music_candidates'].update([selection.music], set_to_index=[0])
                         else:
@@ -1521,22 +1545,18 @@ if __name__ == '__main__':
             if event == 'button_scoreinfotmation':
                 if selection is not None and selection.music is not None:
                     view_scoreinformation(selection)
-                    gui.switch_openfolder_others('譜面記録')
             if event == 'button_graph':
                 if selection is not None and selection.music is not None:
                     create_graph(selection, selection.get_targetrecordlist())
-                    gui.switch_openfolder_others('グラフ')
             if event == 'category_versions':
                 gui.search_music_candidates()
             if event == 'search_music':
                 music_search_time = time.time() + 1
             if event in ['play_mode_sp', 'play_mode_dp', 'difficulty', 'music_candidates']:
                 selection = select_music_search()
-                gui.switch_openfolder_others('譜面記録')
             if event == '選択した曲の記録を削除する':
                 delete_record()
                 selection = None
-                gui.switch_openfolder_others()
             if event == 'history':
                 select_history()
             if event == '選択したリザルトの記録を削除する':
@@ -1566,7 +1586,6 @@ if __name__ == '__main__':
                     clear_tableselection()
                     window['music_candidates'].update(set_to_index=[])
                     selection = None
-                    gui.switch_openfolder_others()
                     gui.display_image(get_imagevalue(queue_display_image.get_nowait()))
                 if not queue_result_screen.empty():
                     result_process(queue_result_screen.get_nowait())

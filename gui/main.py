@@ -2,7 +2,15 @@ import PySimpleGUI as sg
 
 from define import define
 from resources import resource
-from .static import title,icon_path,background_color,background_color_label,background_color2_label,selected_background_color
+from .static import (
+    title,
+    icon_path,
+    background_color,
+    background_color_label,
+    background_color2_label,
+    selected_background_color,
+)
+from .menubar import MenuBar
 from setting import Setting
 
 scales = ('1/1', '1/2', '1/4', )
@@ -22,6 +30,34 @@ discod_webhook_displayvalues_state = {
     'nonactive': '',
     'error': '--'
 }
+
+menubar: list = [
+    [MenuBar.Text('ファイル', key='F'), [
+        MenuBar.Text('リザルト画像フォルダを開く', key='R'),
+        MenuBar.Text('ライバル隠し画像フォルダを開く', key='F'),
+        MenuBar.Text('譜面記録画像フォルダを開く', key='I'),
+        MenuBar.Text('グラフ画像フォルダを開く', key='G'),
+        MenuBar.Line(),
+        MenuBar.Text('エクスポートフォルダを開く', key='E'),
+        MenuBar.Line(),
+        MenuBar.Text('終了', key='X'),
+    ]],
+    [MenuBar.Text('リザルト', key='R'), [
+        MenuBar.Text('画像保存', key='S'),
+        MenuBar.Text('ライバルを隠す', key='F'),
+        MenuBar.Text('Xにポスト', key='P'),
+        MenuBar.Line(),
+        MenuBar.Text('誤認識の通報', key='U'),
+    ]],
+    [MenuBar.Text('設定', key='S'), [
+        MenuBar.Text('設定を開く', key='S'),
+        MenuBar.Text('エクスポートを開く', key='E'),
+        MenuBar.Line(),
+        MenuBar.Text('CSV出力', key='P'),
+        MenuBar.Line(),
+        MenuBar.Text('最近のデータのリセット', key='R'),
+    ]],
+]
 
 def layout_main(setting: Setting):
     column_headers = ['S', 'F', '日時', '曲名', 'MODE', 'CT', 'DL', 'SC', 'MC']
@@ -247,7 +283,6 @@ def layout_main(setting: Setting):
         [
             sg.Button('フォルダを開く(リザルト)', key='button_open_folder_results', size=(24, 1)),
             sg.Button('フォルダを開く(ぼかし)', key='button_open_folder_filtereds', size=(24, 1)),
-            sg.Button('フォルダを開く', key='button_open_folder_others', size=(24, 1), disabled=True),
         ],
         [
             sg.Button('設定', key='button_setting', size=(24, 1)),
@@ -288,6 +323,7 @@ def layout_main(setting: Setting):
 
     return [
         [
+            sg.Menu(MenuBar.Compile(menubar), key='menu'),
             sg.Column([
                 [
                     sg.Column(
@@ -518,9 +554,3 @@ def switch_best_display():
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'best_{key}_option'].update(visible=best_display_mode == 'option')
         window[f'best_{key}_timestamp'].update(visible=best_display_mode == 'timestamp')
-
-def switch_openfolder_others(label=None):
-    if label is not None:
-        window['button_open_folder_others'].update(f'フォルダを開く({label})', disabled=False)
-    else:
-        window['button_open_folder_others'].update(f'フォルダを開く', disabled=True)
