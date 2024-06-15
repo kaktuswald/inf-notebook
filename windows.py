@@ -1,11 +1,24 @@
-import ctypes
-from ctypes import windll,c_bool,c_int,pointer,POINTER,WINFUNCTYPE,create_unicode_buffer
+from ctypes import (
+    windll,
+    c_bool,
+    c_int,
+    c_ulong,
+    pointer,
+    POINTER,
+    WINFUNCTYPE,
+    create_unicode_buffer,
+)
 from ctypes.wintypes import RECT,DWORD,MAX_PATH
 from os import system,environ
 from os.path import basename,exists
 from pathlib import WindowsPath
 
 from infnotebook import productname
+
+class PROCESS_DPI_AWARENESS:
+    PROCESS_DPI_UNAWARE = 0
+    PROCESS_SYSTEM_DPI_AWARE = 1
+    PROCESS_PER_MONITOR_DPI_AWARE = 2
 
 rectsizes = (
     (1920, 1080),
@@ -19,9 +32,11 @@ rectsizes = (
 いずれかに一致していたらOKとする
 """
 
+windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS.PROCESS_DPI_UNAWARE)
+
 def get_filename(wHnd):
-    pId = ctypes.c_ulong()
-    windll.user32.GetWindowThreadProcessId(wHnd, ctypes.pointer(pId))
+    pId = c_ulong()
+    windll.user32.GetWindowThreadProcessId(wHnd, pointer(pId))
     if not pId:
         return 0
 
@@ -29,9 +44,9 @@ def get_filename(wHnd):
     if not pHnd:
         return 0
 
-    filepath = ctypes.create_unicode_buffer(MAX_PATH)
+    filepath = create_unicode_buffer(MAX_PATH)
     length = DWORD(MAX_PATH)
-    windll.kernel32.QueryFullProcessImageNameW(pHnd, 0, ctypes.pointer(filepath), ctypes.pointer(length))
+    windll.kernel32.QueryFullProcessImageNameW(pHnd, 0, pointer(filepath), pointer(length))
     filename = basename(filepath.value)
 
     return filename
@@ -63,13 +78,13 @@ def get_rect(handle):
     windll.user32.GetWindowRect(handle, pointer(rect))
     return rect
 
-def check_rectsize(rect):
+def check_rectsize(rect: RECT) -> bool:
     width = rect.right - rect.left
     height = rect.bottom - rect.top
 
     return (width, height) in rectsizes
 
-def openfolder(dirpath):
+def openfolder(dirpath: str):
     try:
         system(f'explorer.exe {dirpath}')
     except Exception as ex:
