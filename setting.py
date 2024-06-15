@@ -61,6 +61,9 @@ class Setting():
             del self.json['save_newrecord_only']
         if 'autoexport' in self.json.keys():
             del self.json['autoexport']
+        if 'manage' in self.json.keys():
+            self.json['debug'] = self.json['manage']
+            del self.json['manage']
         
         self.save()
 
@@ -82,10 +85,6 @@ class Setting():
 
     def set_value(self, key, value):
         self.json[key] = value
-
-    @property
-    def manage(self):
-        return self.get_value('manage')
 
     @property
     def display_result(self):
@@ -210,3 +209,7 @@ class Setting():
     @property
     def ignore_download(self):
         return self.get_value('ignore_download')
+
+    @property
+    def debug(self):
+        return self.get_value('debug')

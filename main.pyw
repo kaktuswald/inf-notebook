@@ -19,7 +19,7 @@ from setting import Setting
 
 setting = Setting()
 
-if setting.manage:
+if setting.debug:
     logging_level = logging.DEBUG
 else:
     logging_level = logging.WARNING
@@ -354,8 +354,8 @@ def result_process(screen):
         return
 
     resultimage = screen.original
-    if setting.data_collection or window['force_upload'].get():
-        if storage.start_uploadcollection(result, resultimage, window['force_upload'].get()):
+    if setting.data_collection or force_upload_enable:
+        if storage.start_uploadcollection(result, resultimage, force_upload_enable):
             timestamps_uploaded.append(result.timestamp)
 
     if 'djname' in setting.discord_webhook.keys() and setting.discord_webhook['djname'] is not None and len(setting.discord_webhook['djname']) > 0:
@@ -709,7 +709,7 @@ def upload_musicselect():
 
 def log_debug(message):
     logger.debug(message)
-    if setting.manage:
+    if setting.debug:
         print(message)
 
 def check_latest_version():
@@ -1372,9 +1372,14 @@ if __name__ == '__main__':
 
     window = gui.generate_window(setting, version)
 
+    window_debug = None
+    if setting.debug:
+        window_debug = gui.generate_window_debug()
+    
     set_discord_servers()
 
-    display_screenshot_enable = False
+    display_screenshot_enable: bool = False
+    force_upload_enable: bool = False
 
     screenshot = Screenshot()
 
@@ -1448,27 +1453,33 @@ if __name__ == '__main__':
     insert_recentnotebook_results()
 
     while True:
-        event, values = window.read(timeout=50, timeout_key='timeout')
+        w, event, values = sg.read_all_windows(timeout=50, timeout_key='timeout')
 
         try:
-            if event in (sg.WIN_CLOSED, sg.WINDOW_CLOSE_ATTEMPTED_EVENT):
+            if w is not None and w == window_debug:
+                if event == 'text_file_path':
+                    if exists(values['text_file_path']):
+                        screen = open_screenimage(values['text_file_path'])
+                        gui.display_image(get_imagevalue(screen.original))
+
+                        if recog.get_is_savable(screen.np_value):
+                            result_process(screen)
+                        trimmed = screen.np_value[define.musicselect_trimarea_np]
+                        if recog.MusicSelect.get_version(trimmed) is not None:
+                            musicselect_process(trimmed)
+                if event == 'check_display_screenshot':
+                    display_screenshot_enable = values['check_display_screenshot']
+                if event == 'force_upload':
+                    force_upload_enable = values['force_upload']
+                
+                continue
+            
+            if w == window and event in (sg.WIN_CLOSED, sg.WINDOW_CLOSE_ATTEMPTED_EVENT):
                 if not thread is None:
                     event_close.set()
                     thread.join()
                     log_debug(f'end')
                 break
-            if event == 'check_display_screenshot':
-                display_screenshot_enable = values['check_display_screenshot']
-            if event == 'text_file_path':
-                if exists(values['text_file_path']):
-                    screen = open_screenimage(values['text_file_path'])
-                    gui.display_image(get_imagevalue(screen.original))
-
-                    if recog.get_is_savable(screen.np_value):
-                        result_process(screen)
-                    trimmed = screen.np_value[define.musicselect_trimarea_np]
-                    if recog.MusicSelect.get_version(trimmed) is not None:
-                        musicselect_process(trimmed)
 
             if event == 'button_setting':
                 if open_setting(setting, window.current_location()):

@@ -238,10 +238,6 @@ def layout_main(setting: Setting):
             sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False),
             sg.Text('スクショ可能', key='captureenable', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
         ],
-        [
-            sg.InputText(key='text_file_path', visible=setting.manage, size=(70, 1), enable_events=True),
-            sg.FileBrowse("ファイルを開く", target="text_file_path", visible=setting.manage)
-        ],
         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
         [
             sg.Button('ファイルに保存', key='button_save', disabled=True, size=(24, 1)),
@@ -259,12 +255,8 @@ def layout_main(setting: Setting):
             sg.Button('誤認識を通報', key='button_upload', visible=setting.data_collection, disabled=True, size=(24, 1))
         ],
         [
-            sg.Checkbox('常時キャプチャー表示', key='check_display_screenshot', visible=setting.manage,  enable_events=True, background_color=background_color),
             sg.Text('', key='screenshot_filepath', font=('Arial', 8, 'bold'), text_color='#f0fc80', background_color=background_color)
         ],
-        [
-            sg.Checkbox('収集データを必ずアップロードする', key='force_upload', visible=setting.manage, background_color=background_color)
-        ]
     ]
 
     pane_right = [
@@ -312,7 +304,6 @@ def layout_main(setting: Setting):
                     )
                 ]
             ], pad=0, background_color=background_color),
-            sg.Output(key='output', size=(30, 34), visible=setting.manage)
         ]
     ]
 
@@ -353,6 +344,22 @@ def generate_window(setting, version):
     )
 
     return window
+
+def generate_window_debug():
+    return sg.Window(
+        'デバッグコンソール', 
+        [
+            [sg.Output(key='output', size=(90, 30))],
+            [
+                sg.InputText(key='text_file_path', size=(70, 1), enable_events=True),
+                sg.FileBrowse("ファイルを開く", target="text_file_path")
+            ],
+            [sg.Checkbox('常時キャプチャー表示', key='check_display_screenshot', enable_events=True)],
+            [sg.Checkbox('収集データを必ずアップロードする', key='force_upload', enable_events=True)],
+        ],
+        finalize=True,
+        enable_close_attempted_event=True,
+    )
 
 def update_musictable():
     window['category_versions'].update(
