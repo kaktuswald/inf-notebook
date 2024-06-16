@@ -9,11 +9,11 @@ from .static import (
     background_color_label,
     background_color2_label,
     selected_background_color,
+    textcolor_shadow,
+    textcolor_highlight,
 )
 from .menubar import MenuBar
 from setting import Setting
-
-scales = ('1/1', '1/2', '1/4', )
 
 best_display_modes = ('option', 'timestamp', )
 
@@ -269,10 +269,8 @@ def layout_main(setting: Setting):
 
     pane_left = [
         [
-            sg.Text('画像表示スケール', background_color=background_color),
-            sg.Combo(scales, key='scale', default_value='1/2', readonly=True),
-            sg.Text('INFINITASを見つけました', key='positioned', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False),
-            sg.Text('スクショ可能', key='captureenable', background_color=background_color, font=('Arial', 10, 'bold'), text_color='#f0fc80', visible=False)
+            sg.Text('INFINITASを見つけました', key='detect_infinitas', background_color=background_color, font=('Arial', 10, 'bold'), text_color=textcolor_shadow),
+            sg.Text('スクショ可能', key='capture_enable', background_color=background_color, font=('Arial', 10, 'bold'), text_color=textcolor_shadow)
         ],
         [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
         [
@@ -290,7 +288,7 @@ def layout_main(setting: Setting):
             sg.Button('誤認識を通報', key='button_upload', visible=setting.data_collection, disabled=True, size=(24, 1))
         ],
         [
-            sg.Text('', key='screenshot_filepath', font=('Arial', 8, 'bold'), text_color='#f0fc80', background_color=background_color)
+            sg.Text('', key='screenshot_filepath', font=('Arial', 8, 'bold'), text_color=textcolor_highlight, background_color=background_color)
         ],
     ]
 
@@ -433,12 +431,10 @@ def error_message(title, message, exception):
     )
 
 def display_image(value, result=False, others=False):
-    subsample = int(window['scale'].get().split('/')[1])
-
     if value is not None:
-        window['screenshot'].update(data=value, subsample=subsample, visible=True)
+        window['screenshot'].update(data=value, subsample=2, visible=True)
     else:
-        window['screenshot'].update(data=resource.image_imagenothing, subsample=subsample)
+        window['screenshot'].update(data=resource.image_imagenothing, subsample=2)
 
     window['button_save'].update(disabled=not (result or others))
     window['button_filter'].update(disabled=not result)
@@ -554,3 +550,9 @@ def switch_best_display():
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'best_{key}_option'].update(visible=best_display_mode == 'option')
         window[f'best_{key}_timestamp'].update(visible=best_display_mode == 'timestamp')
+
+def switch_textcolor(target: sg.Text, highlight: bool=False):
+    if highlight:
+        target.update(text_color=textcolor_highlight)
+    else:
+        target.update(text_color=textcolor_shadow)

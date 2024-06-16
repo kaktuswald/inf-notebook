@@ -1405,6 +1405,9 @@ if __name__ == '__main__':
     
     set_discord_servers()
 
+    detect_infinitas: bool = False
+    capture_enable: bool = False
+
     display_screenshot_enable: bool = False
     force_upload_enable: bool = False
 
@@ -1571,17 +1574,23 @@ if __name__ == '__main__':
             if 'notesradar' in event:
                 update_notesradar()
             if event == 'timeout':
-                if not window['positioned'].visible and thread.handle:
-                    window['positioned'].update(visible=True)
-                if window['positioned'].visible and not thread.handle:
-                    window['positioned'].update(visible=False)
-                if not window['captureenable'].visible and screenshot.xy:
-                    window['captureenable'].update(visible=True)
-                if window['captureenable'].visible and not screenshot.xy:
-                    window['captureenable'].update(visible=False)
+                if not detect_infinitas and thread.handle:
+                    detect_infinitas = True
+                    gui.switch_textcolor(window['detect_infinitas'], True)
+                if detect_infinitas and not thread.handle:
+                    detect_infinitas = False
+                    gui.switch_textcolor(window['detect_infinitas'], False)
+                if not capture_enable and screenshot.xy:
+                    capture_enable = True
+                    gui.switch_textcolor(window['capture_enable'], True)
+                if capture_enable and not screenshot.xy:
+                    capture_enable = False
+                    gui.switch_textcolor(window['capture_enable'], False)
+                
                 if music_search_time is not None and time.time() > music_search_time:
                     music_search_time = None
                     gui.search_music_candidates()
+                
                 if not queue_log.empty():
                     log_debug(queue_log.get_nowait())
                 if not queue_display_image.empty():
