@@ -27,6 +27,7 @@ sound_result_filepath = os.path.join(sounds_dirpath, 'result.wav')
 images_resourcecheck_filepath = os.path.join(images_dirpath, 'resourcecheck.png')
 images_summaryprocessing_filepath = os.path.join(images_dirpath, 'summaryprocessing.png')
 images_imagenothing_filepath = os.path.join(images_dirpath, 'imagenothing.png')
+images_graphnogenerate_filepath = os.path.join(images_dirpath, 'graphnogenerate.png')
 images_loading_filepath = os.path.join(images_dirpath, 'loading.png')
 
 class Resource():
@@ -41,6 +42,8 @@ class Resource():
         self.load_resource_musictable()
         self.load_resource_musicselect()
         self.load_resource_notesradar()
+
+        self.imagevalue_musictableinformation = None
     
     def load_resource_informations(self):
         resourcename = f'informations{define.informations_recognition_version}'
@@ -68,10 +71,11 @@ class Resource():
         self.notesradar: dict[str, dict[str, list[dict[str, str | int]]]] = load_resource_serialized(resourcename)
     
     def load_images(self):
-        self.image_resourcecheck = get_imagevalue(Image.open(images_resourcecheck_filepath))
-        self.image_summaryprocessing = get_imagevalue(Image.open(images_summaryprocessing_filepath))
-        self.image_imagenothing = get_imagevalue(Image.open(images_imagenothing_filepath))
-        self.image_loading = get_imagevalue(Image.open(images_loading_filepath))
+        self.imagevalue_resourcecheck = get_imagevalue(Image.open(images_resourcecheck_filepath))
+        self.imagevalue_summaryprocessing = get_imagevalue(Image.open(images_summaryprocessing_filepath))
+        self.imagevalue_imagenothing = get_imagevalue(Image.open(images_imagenothing_filepath))
+        self.imagevalue_graphnogenerate = get_imagevalue(Image.open(images_graphnogenerate_filepath))
+        self.imagevalue_loading = get_imagevalue(Image.open(images_loading_filepath))
 
 class ResourceTimestamp():
     def __init__(self, resourcename):

@@ -11,11 +11,6 @@ from discord_webhook import serversetting_default
 from resources import resource
 from define import define
 
-icon_image = Image.open(icon_path)
-resized_icon = icon_image.resize((32, 32))
-icon_bytes = io.BytesIO()
-resized_icon.save(icon_bytes, format='PNG')
-
 def generate_randamsettingname(length: int = 4):
     characters =  [random.choice(string.ascii_uppercase) for i in range(length)]
     return ''.join(['Server', '-', *characters])

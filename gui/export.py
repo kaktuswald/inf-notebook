@@ -12,11 +12,6 @@ from .static import title,icon_path,background_color,background_color_label,sele
 from .general import message
 from export import output,export_dirname,csssetting_filepath
 
-icon_image = Image.open(icon_path)
-resized_icon = icon_image.resize((32, 32))
-icon_bytes = io.BytesIO()
-resized_icon.save(icon_bytes, format='PNG')
-
 pattern_color = compile('#[0-9a-fA-F]{6}')
 
 graph_color_size=(15, 15)

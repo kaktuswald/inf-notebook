@@ -15,6 +15,8 @@ from .static import (
 from .menubar import MenuBar
 from setting import Setting
 
+font_smallbutton = ('Arial', 9)
+
 best_display_modes = ('option', 'timestamp', )
 
 best_display_mode = best_display_modes[0]
@@ -42,12 +44,18 @@ menubar: list = [
         MenuBar.Line(),
         MenuBar.Text('終了', key='X'),
     ]],
+    [MenuBar.Text('譜面', key='S'), [
+        MenuBar.Text('グラフ画像の作成', key='C'),
+        MenuBar.Line(),
+        MenuBar.Text('譜面記録画像の保存', key='I'),
+        MenuBar.Text('グラフ画像の保存', key='G'),
+        MenuBar.Line(),
+        MenuBar.Text('譜面記録のポスト', key='P'),
+    ]],
     [MenuBar.Text('リザルト', key='R'), [
         MenuBar.Text('画像保存', key='S'),
         MenuBar.Text('ライバルを隠す', key='F'),
         MenuBar.Text('Xにポスト', key='P'),
-        MenuBar.Line(),
-        MenuBar.Text('誤認識の通報', key='U'),
     ]],
     [MenuBar.Text('設定', key='S'), [
         MenuBar.Text('設定を開く', key='S'),
@@ -86,11 +94,17 @@ def layout_main(setting: Setting):
                 vertical_scroll_only=True,
                 col_widths=column_widths,
                 visible_column_map=column_visibles,
-                num_rows=18,
+                num_rows=16,
                 justification='center',
                 enable_events=True,
                 background_color=background_color
-            )]
+            )],
+            [
+                sg.Button('画像保存', key='button_save_results', disabled=True, font=font_smallbutton, pad=1),
+                sg.Button('ライバル隠して保存', key='button_filter_results', disabled=True, font=font_smallbutton, pad=1),
+                sg.Button('ポスト', key='button_post_results', disabled=True, font=font_smallbutton, pad=1),
+                sg.Button('誤認識の通報', key='button_upload_results', disabled=True, font=font_smallbutton, pad=1, visible=setting.data_collection),
+            ],
         ], pad=0, background_color=background_color),
         sg.Tab('曲検索', [
             [
@@ -272,23 +286,54 @@ def layout_main(setting: Setting):
             sg.Text('INFINITASを見つけました', key='detect_infinitas', background_color=background_color, font=('Arial', 10, 'bold'), text_color=textcolor_shadow),
             sg.Text('スクショ可能', key='capture_enable', background_color=background_color, font=('Arial', 10, 'bold'), text_color=textcolor_shadow)
         ],
-        [sg.Image(key='screenshot', size=(640, 360), background_color=background_color)],
         [
-            sg.Button('ファイルに保存', key='button_save', disabled=True, size=(24, 1)),
-            sg.Button('ライバルを隠す(+保存)', key='button_filter', disabled=True, size=(24, 1)),
-            sg.Button('ポスト', key='button_tweet', size=(24, 1)),
+            sg.TabGroup([[
+                    sg.Tab('インフォメーション', [
+                        [sg.Image(key='image_information', size=(640, 360), background_color=background_color)],
+                    ], key='tab_main_information', pad=0, background_color=background_color),
+                    sg.Tab('統計', [
+                        [sg.Image(key='image_summary', size=(640, 360), background_color=background_color)],
+                        [
+                            sg.Button('カウント方式 切替', key='button_summary_switch'),
+                            sg.Button('表示内容 設定', key='button_summary_setting')
+                        ],
+                    ], key='tab_main_summary', pad=0, background_color=background_color),
+                    sg.Tab('ノーツレーダー', [
+                        [sg.Image(key='image_notesradar', size=(640, 360), background_color=background_color)],
+                    ], key='tab_main_notesradar', pad=0, background_color=background_color),
+                    sg.Tab('スクリーンショット', [
+                        [sg.Image(key='image_screenshot', size=(640, 360), background_color=background_color)],
+                        [
+                            sg.Button('リザルトフォルダを開く', key='button_openfolder_results'),
+                            sg.Button('ライバル隠しフォルダを開く', key='button_openfolder_filtereds'),
+                            sg.Text('', key='screenshot_filepath', font=('Arial', 9, 'bold'), text_color=textcolor_highlight, background_color=background_color)
+                        ],
+                    ], key='tab_main_screenshot', pad=0, background_color=background_color),
+                    sg.Tab('譜面記録', [
+                        [sg.Image(key='image_scoreinformation', size=(640, 360), background_color=background_color)],
+                        [
+                            sg.Button('画像保存', key='button_save_scoreinformation', disabled=True),
+                            sg.Button('譜面記録のポスト', key='button_post_scoreinformation', disabled=True),
+                            sg.Button('フォルダを開く', key='button_openfolder_scoreinformations'),
+                        ],
+                    ], key='tab_main_scoreinformation', pad=0, background_color=background_color),
+                    sg.Tab('グラフ', [
+                        [sg.Image(key='image_graph', size=(640, 360), background_color=background_color, enable_events=True)],
+                        [
+                            sg.Button('画像保存', key='button_save_graph', disabled=True),
+                            sg.Button('譜面記録のポスト', key='button_post_graph', disabled=True),
+                            sg.Button('フォルダを開く', key='button_openfolder_graphs'),
+                        ],
+                    ], key='tab_main_graph', pad=0, background_color=background_color),
+                ]],
+                background_color=background_color,
+                tab_background_color=background_color,
+                selected_background_color='#245d18'
+            )
         ],
         [
-            sg.Button('フォルダを開く(リザルト)', key='button_open_folder_results', size=(24, 1)),
-            sg.Button('フォルダを開く(ぼかし)', key='button_open_folder_filtereds', size=(24, 1)),
-        ],
-        [
-            sg.Button('設定', key='button_setting', size=(24, 1)),
-            sg.Button('エクスポート', key='button_export', size=(24, 1)),
-            sg.Button('誤認識を通報', key='button_upload', visible=setting.data_collection, disabled=True, size=(24, 1))
-        ],
-        [
-            sg.Text('', key='screenshot_filepath', font=('Arial', 8, 'bold'), text_color=textcolor_highlight, background_color=background_color)
+            sg.Button('設定', key='button_setting', size=(14, 1)),
+            sg.Button('エクスポート', key='button_export', size=(14, 1)),
         ],
     ]
 
@@ -305,8 +350,6 @@ def layout_main(setting: Setting):
         [
             sg.Text('プレイ回数', size=(11, 1), background_color=background_color_label),
             sg.Text(key='played_count', size=(5, 1), background_color=background_color),
-            sg.Button('譜面記録', key='button_scoreinfotmation'),
-            sg.Button('グラフ', key='button_graph')
         ],
         [
             sg.TabGroup(
@@ -430,15 +473,11 @@ def error_message(title, message, exception):
         background_color=background_color
     )
 
-def display_image(value, result=False, others=False):
+def displayimage(target: sg.Image, value: bytes):
     if value is not None:
-        window['screenshot'].update(data=value, subsample=2, visible=True)
+        target.update(data=value, subsample=2)
     else:
-        window['screenshot'].update(data=resource.image_imagenothing, subsample=2)
-
-    window['button_save'].update(disabled=not (result or others))
-    window['button_filter'].update(disabled=not result)
-    window['button_upload'].update(disabled=not result)
+        target.update(data=resource.imagevalue_imagenothing, subsample=2)
 
 def switch_table(display_music):
     if not display_music:
@@ -458,7 +497,7 @@ def search_music_candidates():
 
     window['music_candidates'].update(values=candidates)
 
-def display_record(record):
+def display_record(record: dict, timestamp: str=None):
     if record is None:
         window['history'].update([])
         window['played_count'].update('')
@@ -472,7 +511,11 @@ def display_record(record):
         return
 
     if 'timestamps' in record.keys():
-        window['history'].update([*reversed(record['timestamps'])])
+        reversedlist = [*reversed(record['timestamps'])]
+        if timestamp is not None and timestamp in reversedlist:
+            window['history'].update(reversedlist, set_to_index=[reversedlist.index(timestamp)])
+        else:
+            window['history'].update(reversedlist)
         window['played_count'].update(len(record['timestamps']))
     else:
         window['history'].update([])
@@ -556,3 +599,22 @@ def switch_textcolor(target: sg.Text, highlight: bool=False):
         target.update(text_color=textcolor_highlight)
     else:
         target.update(text_color=textcolor_shadow)
+
+def set_search_condition(playmode, difficulty, musicname):
+    window['category_versions'].update('ALL')
+    window['search_music'].update(musicname)
+
+    if playmode == 'SP':
+        window['play_mode_sp'].update(True)
+    if playmode == 'DP':
+        window['play_mode_dp'].update(True)
+    
+    window['difficulty'].update(difficulty)
+
+    window['music_candidates'].update([musicname], set_to_index=[0])
+
+def switch_resultsbuttons(enabled: bool):
+    window['button_save_results'].update(disabled=not enabled)
+    window['button_filter_results'].update(disabled=not enabled)
+    window['button_post_results'].update(disabled=not enabled)
+    window['button_upload_results'].update(disabled=not enabled)

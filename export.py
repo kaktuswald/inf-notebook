@@ -3,7 +3,6 @@ from os.path import exists,join
 from datetime import datetime
 from csv import writer
 from logging import getLogger
-from PIL import Image
 
 logger_child_name = 'export'
 
@@ -26,12 +25,16 @@ summary_timestamp_filepath = join(export_dirname, 'summary_timestamp.txt')
 recent_htmlpath = join(export_dirname, 'recent.html')
 summary_htmlpath = join(export_dirname, 'summary.html')
 
+summary_image_filepath = join(export_dirname, 'summary.png')
 notesradar_image_filepath = join(export_dirname, 'notesradar.png')
+
 notesradar_csv_filepath = join(export_dirname, 'notesradar.csv')
 notesradar_csv_rankings_filepaths = {
     'SP': join(export_dirname, 'notesradar_rankings_sp.csv'),
     'DP': join(export_dirname, 'notesradar_rankings_dp.csv')
 }
+
+exportimage_musicinformation_filepath = join(export_dirname, 'musicinformation.png')
 
 class Recent():
     delete_delta_seconds = 60 * 60 * 12
@@ -228,9 +231,6 @@ def output(notebook):
     
     with open(summary_timestamp_filepath, 'w') as f:
         f.write(str(datetime.now()))
-
-def output_notesradarimage(image: Image):
-    image.save(notesradar_image_filepath)
 
 def output_notesradarcsv(notesradar: NotesRadar):
     output: list[str] = []

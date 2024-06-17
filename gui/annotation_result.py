@@ -244,8 +244,10 @@ def display_informations(image):
     if image is not None:
         bytes = io.BytesIO()
         image.save(bytes, format='PNG')
-        image = image.resize((image.width // 2, image.height // 2))
-        window['image_informations'].update(data=bytes.getvalue(),subsample=2,visible=True,size=informations_size)
+        # image = image.resize((image.width // 2, image.height // 2))
+        imagevalue = bytes.getvalue()
+        bytes.close()
+        window['image_informations'].update(data=imagevalue,subsample=2,visible=True,size=informations_size)
     else:
         window['image_informations'].update(visible=False)
 
@@ -253,8 +255,10 @@ def display_details(image):
     if image is not None:
         bytes = io.BytesIO()
         image.save(bytes, format='PNG')
-        image = image.resize((image.width // 3, image.height // 3))
-        window['image_details'].update(data=bytes.getvalue(),subsample=3,visible=True,size=details_size)
+        # image = image.resize((image.width // 3, image.height // 3))
+        imagevalue = bytes.getvalue()
+        bytes.close()
+        window['image_details'].update(data=imagevalue,subsample=3,visible=True,size=details_size)
     else:
         window['image_details'].update(visible=False)
 

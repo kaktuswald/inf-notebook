@@ -2,8 +2,10 @@ from datetime import datetime
 import numpy as np
 from math import ceil
 from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.patheffects import withStroke
 from PIL import Image
+from PIL.PngImagePlugin import PngImageFile
 from io import BytesIO
 
 from gui.general import get_imagevalue
@@ -171,9 +173,10 @@ def create_radarchart(notesradar: NotesRadar):
 
     return create_image(figure)
 
-def create_image(figure):
+def create_image(figure: Figure) -> Image.Image:
     bytes = BytesIO()
     figure.savefig(bytes, format='png')
-    image = Image.open(bytes)
+    image = Image.open(bytes).copy()
+    bytes.close()
     
     return image

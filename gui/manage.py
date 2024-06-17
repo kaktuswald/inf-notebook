@@ -117,8 +117,10 @@ def display_image(image):
     
     bytes = io.BytesIO()
     image.save(bytes, format='PNG')
+    imagevalue = bytes.getvalue()
+    bytes.close()
 
-    window['screenshot'].update(size=image.size, data=bytes.getvalue())
+    window['screenshot'].update(size=image.size, data=imagevalue)
 
 def set_labels(label):
     window['screen_none'].update(True)

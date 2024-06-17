@@ -230,7 +230,9 @@ def display_image(image):
     if image is not None:
         bytes = io.BytesIO()
         image.save(bytes, format='PNG')
-        window['image'].update(data=bytes.getvalue(),visible=True,size=imagesize,)
+        imagevalue = bytes.getvalue()
+        bytes.close()
+        window['image'].update(data=imagevalue,visible=True,size=imagesize,)
     else:
         window['image'].update(visible=False)
 

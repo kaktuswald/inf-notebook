@@ -6,7 +6,13 @@ from datetime import datetime
 import re
 
 from define import define
-from resources import resource,images_resourcecheck_filepath,images_imagenothing_filepath,images_loading_filepath
+from resources import (
+    resource,
+    images_resourcecheck_filepath,
+    images_imagenothing_filepath,
+    images_graphnogenerate_filepath,
+    images_loading_filepath,
+)
 from export import export_dirname
 from windows import openfolder
 
@@ -40,7 +46,7 @@ font = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 48)
 font_small = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 36)
 font_moresmall = ImageFont.truetype('Resources/Fonts/gomarice_mukasi_mukasi.ttf', 22)
 
-musicinformation_keys = ['score', 'miss_count']
+scoreinformation_keys = ['score', 'miss_count']
 
 titles = {
     False: 'Number achieved.',
@@ -56,6 +62,10 @@ nodata_xposition = 1230
 
 text_resourcecheck = '最新データチェック中'
 text_imagenothing = '画像なし'
+
+text_graphnogenerate_title = '未作成'
+text_graphnogenerate_message = 'クリックでグラフを作ります'
+
 text_loading_title = 'インフィニタス ローディング'
 text_loading_message = '30秒ごとにローディングの状況をチェックします'
 
@@ -129,7 +139,7 @@ def save_scoreinformationimage(image, music, destination_dirpath, scoretype, mus
     now = datetime.now()
     timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
 
-    return save_image(image.convert('RGB'), music, timestamp, destination_dirpath, dirname_scoreinformations, scoretype, musicname_right)
+    return save_image(image.convert('RGBA'), music, timestamp, destination_dirpath, dirname_scoreinformations, scoretype, musicname_right, imgtype='png')
 
 def save_graphimage(image, music, destination_dirpath, scoretype, musicname_right=False):
     """グラフ画像をファイルに保存する
@@ -308,11 +318,9 @@ def generateimage_summary(counts, setting, countmethod_only):
 
                 line += 1
 
-    save_exportimage(image, export_filename_summary)
-
     return image
 
-def generateimage_musicinformation(playmode, difficulty, musicname, record):
+def generateimage_scoreinformation(playmode, difficulty, musicname, record):
     draw.rectangle((0, 0, 1280, 720), fill=background)
 
     drawtext_width_adjustment((20, 10), musicname, 1240, font_musicname, textcolor)
@@ -329,8 +337,8 @@ def generateimage_musicinformation(playmode, difficulty, musicname, record):
 
     if 'best' in record.keys():
         drawtext((20, 330), 'Options when update a new record.', font, textcolor)
-        for keyindex in range(len(musicinformation_keys)):
-            key = musicinformation_keys[keyindex]
+        for keyindex in range(len(scoreinformation_keys)):
+            key = scoreinformation_keys[keyindex]
             drawtext((50, keyindex*90+390), str.upper(key.replace('_', ' ')), font_title, textcolor)
 
             if not key in record['best'].keys() or record['best'][key] is None:
@@ -362,8 +370,6 @@ def generateimage_musicinformation(playmode, difficulty, musicname, record):
                 drawtext((index1*380+index2*240+100, 670), value, font_small, textcolor)
                 index2 += 1
             index1 += 1
-        
-    save_exportimage(image, export_filename_musicinformation)
 
     return image
 
@@ -451,15 +457,6 @@ def drawtext_width_adjustment(position: tuple[int, int], text: str, maxwidth: in
         resized = textimage.resize((maxwidth, height))
         image.paste(resized, (position[0]+bbox[0], position[1]+bbox[1]))
 
-def save_exportimage(image, filename):
-    """エクスポートフォルダに画像ファイルを保存する
-
-    Args:
-        image (Image): 対象の画像
-        filename (str): ファイル名
-    """
-    image.save(join(export_dirname, filename))
-
 def openfolder_results(destination_dirpath):
     dirpath = join(destination_dirpath, dirname_results)
     return openfolder(dirpath)
@@ -482,4 +479,5 @@ def openfolder_export():
 if __name__ == '__main__':
     generateimage_simple(text_resourcecheck, images_resourcecheck_filepath)
     generateimage_simple(text_imagenothing, images_imagenothing_filepath)
+    generateimage_multiline(text_graphnogenerate_title, text_graphnogenerate_message, images_graphnogenerate_filepath)
     generateimage_multiline(text_loading_title, text_loading_message, images_loading_filepath)

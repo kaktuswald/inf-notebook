@@ -4,20 +4,19 @@ from PIL import Image
 
 from .static import icon_path,background_color
 
-icon_image = Image.open(icon_path)
-resized_icon = icon_image.resize((32, 32))
-icon_bytes = io.BytesIO()
-resized_icon.save(icon_bytes, format='PNG')
-
-def get_imagevalue(image: Image.Image):
+def get_imagevalue(image: Image.Image) -> bytes:
     if image is None:
         return None
     
     if image.height == 1080:
         image = image.resize((1280, 720))
+
     bytes = io.BytesIO()
     image.save(bytes, format='PNG')
-    return bytes.getvalue()
+    ret = bytes.getvalue()
+    bytes.close()
+
+    return ret
 
 def message(title: str, message: str | list, location: tuple[int, int]):
     sg.popup(
@@ -44,7 +43,6 @@ def question(title: str, message: str | list, location: tuple[int, int]):
 
     return result == 'Yes'
 
-def progress(title, message, counter, location):
     if type(message) is list:
         message = '\n'.join(message)
 

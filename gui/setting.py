@@ -8,11 +8,6 @@ from .static import title,icon_path,background_color,background_color_label,sele
 from define import define
 from setting import Setting
 
-icon_image = Image.open(icon_path)
-resized_icon = icon_image.resize((32, 32))
-icon_bytes = io.BytesIO()
-resized_icon.save(icon_bytes, format='PNG')
-
 background_dark = '#328062'
 
 summarytypes = {'cleartypes': 'clear_types', 'djlevels': 'dj_levels'}
@@ -20,7 +15,7 @@ summarytargetlevels = ['8', '9', '10', '11', '12']
 summarytargetcleartypes = ['CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO']
 summarytargetdjlevels = ['A', 'AA', 'AAA']
 
-def open_setting(setting: Setting, location: tuple[int, int]):
+def open_setting(setting: Setting, location: tuple[int, int], summary: bool=False):
     tab_general = [[
         sg.Column([
             [sg.Text('リザルト記録', background_color=background_color_label)],
@@ -129,7 +124,6 @@ def open_setting(setting: Setting, location: tuple[int, int]):
     tab_summary = [[
         sg.Column([
             [sg.Text('エクスポートされたCSVファイルから、チェックした成績を達成している曲の数を表示します。', background_color=background_dark)],
-            [sg.Text('リザルト手帳の起動時に表示するほか、ホットキーで再表示します。', background_color=background_dark)],
             [sg.Text('表示したデータはexportフォルダに画像保存します。', background_color=background_dark)],
             *controls
         ], pad=0, size=(640, 300), background_color=background_dark, scrollable=True, vertical_scroll_only=True)
@@ -137,8 +131,8 @@ def open_setting(setting: Setting, location: tuple[int, int]):
 
     layout = [[
         sg.TabGroup([[
-            sg.Tab('一般', tab_general, pad=0, background_color=background_color),
-            sg.Tab('統計', tab_summary, pad=0, background_color=background_color)
+            sg.Tab('一般', tab_general, pad=0, background_color=background_color, key='tab_general'),
+            sg.Tab('統計', tab_summary, pad=0, background_color=background_color, key='tab_summary'),
         ]], pad=0, background_color=background_color, tab_background_color=background_color, selected_background_color=selected_background_color)
     ],
     [
@@ -162,6 +156,9 @@ def open_setting(setting: Setting, location: tuple[int, int]):
         relative_location=location,
     )
 
+    if summary:
+        window['tab_summary'].select()
+    
     while True:
         event, values = window.read()
 

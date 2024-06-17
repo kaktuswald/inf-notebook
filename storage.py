@@ -117,6 +117,7 @@ class StorageAccessor():
         bytes = io.BytesIO()
         image.save(bytes, 'PNG')
         blob.upload_from_file(bytes, True)
+        bytes.close()
 
     def upload_informations(self, object_name, image):
         if self.bucket_informations is None:
