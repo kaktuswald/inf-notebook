@@ -860,6 +860,12 @@ def initialize():
 
     queue_messages.put('complete_initialize')
 
+def summaryimage_display():
+    gui.displayimage(window['image_summary'], imagevalue_summary)
+
+def notesradarimage_display():
+    gui.displayimage(window['image_notesradar'], imagevalue_notesradar)
+
 def complete_initialize():
     summaryimage_generate()
     notesradarimage_generate()
@@ -1240,12 +1246,6 @@ def delete_targetrecord():
     gui.display_record(selection.get_targetrecordlist())
     gui.displayimage(window['image_screenshot'], None)
 
-def summaryimage_display():
-    gui.displayimage(window['image_summary'], imagevalue_summary)
-
-def notesradarimage_display():
-    gui.displayimage(window['image_notesradar'], imagevalue_notesradar)
-
 def get_notebook_targetmusic(musicname):
     """目的の曲の記録を取得する
 
@@ -1270,8 +1270,6 @@ def start_hotkeys():
     if setting.hotkeys is None:
         return
     
-    if 'display_summaryimage' in setting.hotkeys.keys() and setting.hotkeys['display_summaryimage'] != '':
-        keyboard.add_hotkey(setting.hotkeys['display_summaryimage'], summaryimage_display)
     if 'active_screenshot' in setting.hotkeys.keys() and setting.hotkeys['active_screenshot'] != '':
         keyboard.add_hotkey(setting.hotkeys['active_screenshot'], active_screenshot)
     if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
@@ -1563,13 +1561,13 @@ if __name__ == '__main__':
                 music_search_time = time.time() + 1
             if event in ['play_mode_sp', 'play_mode_dp', 'difficulty', 'music_candidates']:
                 selection = select_music_search()
-            if event == '選択した曲の記録を削除する':
+            if event == 'delete_selectmusic':
                 delete_record()
                 selection = None
                 clear_selection()
             if event == 'history':
                 select_history()
-            if event == '選択したリザルトの記録を削除する':
+            if event == 'delete_selectresult':
                 delete_targetrecord()
 
             if event == 'button_best_switch':

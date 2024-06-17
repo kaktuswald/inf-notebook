@@ -131,8 +131,7 @@ def layout_main(setting: Setting):
                             [*resource.musictable['musics'].keys()] if not resource.musictable is None else [],
                             key='music_candidates',
                             font=('Arial', 9),
-                            size=(20,10),
-                            right_click_menu=['menu', ['選択した曲の記録を削除する']],
+                            size=(20,8),
                             horizontal_scroll=True,
                             enable_events=True
                         ),
@@ -140,12 +139,15 @@ def layout_main(setting: Setting):
                             [],
                             key='history',
                             font=('Arial', 9),
-                            size=(15,11),
-                            right_click_menu=['menu', ['選択したリザルトの記録を削除する']],
+                            size=(15,9),
                             enable_events=True
                         )
                     ]
-                ], pad=0, background_color=background_color)
+                ], pad=0, background_color=background_color),
+            ],
+            [
+                sg.Button('選択曲の記録全削除', key='delete_selectmusic', font=font_smallbutton, disabled=True),
+                sg.Button('選択記録の削除', key='delete_selectresult', font=font_smallbutton, disabled=True),
             ]
         ], pad=0, background_color=background_color),
         sg.Tab('連携投稿', [
@@ -508,6 +510,10 @@ def display_record(record: dict, timestamp: str=None):
             window[f'best_{key}_option'].update('')
             window[f'best_{key}_timestamp'].update('')
             window[f'history_{key}'].update('')
+
+        window['delete_selectmusic'].update(disabled=True)
+        window['delete_selectresult'].update(disabled=True)
+
         return
 
     if 'timestamps' in record.keys():
@@ -550,16 +556,22 @@ def display_record(record: dict, timestamp: str=None):
             window[f'best_{key}_option'].update('')
             window[f'best_{key}_timestamp'].update('')
 
+    window['delete_selectmusic'].update(disabled=False)
+
     window['history_timestamp'].update('')
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         window[f'history_{key}'].update('')
     window['history_options'].update('')
 
+    window['delete_selectresult'].update(disabled=True)
+
 def display_historyresult(record, timestamp):
     if record is None:
+        window['delete_selectresult'].update(disabled=True)
         return
 
     if not 'history' in record.keys() or not timestamp in record['history']:
+        window['delete_selectresult'].update(disabled=True)
         return
 
     formatted_timestamp = f'{int(timestamp[0:4])}年{int(timestamp[4:6])}月{int(timestamp[6:8])}日 {timestamp[9:11]}:{timestamp[11:13]}:{timestamp[13:15]}'
@@ -577,6 +589,8 @@ def display_historyresult(record, timestamp):
             target['options']['assist'] if target['options']['assist'] is not None else '',
             'BATTLE' if target['options']['battle'] else ''
         ]))
+    
+    window['delete_selectresult'].update(disabled=False)
 
 def switch_best_display():
     global best_display_mode

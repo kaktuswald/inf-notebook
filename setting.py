@@ -30,7 +30,6 @@ default = {
     },
     'hotkeys': {
         'active_screenshot': 'alt+F10',
-        'display_summaryimage': 'alt+F9',
         'upload_musicselect': 'alt+F8'
     },
     'summary_countmethod_only': False,

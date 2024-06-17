@@ -53,11 +53,6 @@ def open_setting(setting: Setting, location: tuple[int, int], summary: bool=Fals
             [sg.Text('ショートカットキー', background_color=background_color_label)],
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
-                sg.Text('統計データ表示', size=(20, 1), background_color=background_dark),
-                sg.Input(setting.hotkeys['display_summaryimage'], size=(12, 1), key='hotkey_display_summaryimage')
-            ],
-            [
-                sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Text('スクリーンショット', size=(20, 1), background_color=background_dark),
                 sg.Input(setting.hotkeys['active_screenshot'], size=(12, 1), key='hotkey_active_screenshot'),
             ],
@@ -184,7 +179,6 @@ def open_setting(setting: Setting, location: tuple[int, int], summary: bool=Fals
             setting.data_collection = values['check_data_collection']
             setting.summaries = set_summarysetting(window)
             setting.hotkeys = {
-                'display_summaryimage': values['hotkey_display_summaryimage'],
                 'active_screenshot': values['hotkey_active_screenshot'],
                 'upload_musicselect': values['hotkey_upload_musicselect'],
             }
