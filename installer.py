@@ -156,6 +156,7 @@ class InstallerWindow:
             if not 'name' in target.keys():
                 continue
             if not 'draft' in target.keys() or target['draft']:
+                print('draft!!')
                 continue
             if not 'prerelease' in target.keys() or target['prerelease']:
                 continue
@@ -166,7 +167,6 @@ class InstallerWindow:
 
             for asset in target['assets']:
                 if target['tag_name'] in asset['name']:
-                    print(f"{target['name']}: {asset['browser_download_url']}")
                     self.releases[target['name']] = asset['browser_download_url']
                     break
         
