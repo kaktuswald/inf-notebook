@@ -2,6 +2,11 @@ from datetime import datetime
 from webbrowser import open
 from urllib.parse import quote
 
+from define import define
+from resources import resource
+from record import NotebookSummary
+from notesradar import NotesRadar
+
 post_url = 'https://twitter.com/intent/tweet'
 hashtag = '#IIDX #infinitas573 #infnotebook'
 
@@ -17,6 +22,52 @@ def score_format(playmode: str, difficulty: str, musicname: str):
 def timestamp_format(timestamp: str):
     dt = datetime.strptime(timestamp, '%Y%m%d-%H%M%S')
     return datetime.strftime(dt, '%Y/%m/%d %H:%M:%S')
+
+def post_summary(notebook: NotebookSummary):
+    counts = {}
+    for playmode in define.value_list['play_modes']:
+        counts[playmode] = {'TOTAL': 0, 'F-COMBO': 0, 'AAA': 0, 'NO DATA': 0}
+    
+    for musicname, value1 in resource.musictable['musics'].items():
+        for playmode in define.value_list['play_modes']:
+            for difficulty in value1[playmode].keys():
+                counts[playmode]['TOTAL'] += 1
+                if musicname in notebook.json['musics'].keys() and difficulty in notebook.json['musics'][musicname][playmode].keys():
+                    if notebook.json['musics'][musicname][playmode][difficulty]['cleartype'] == 'F-COMBO':
+                        counts[playmode]['F-COMBO'] += 1
+                    if notebook.json['musics'][musicname][playmode][difficulty]['djlevel'] == 'AAA':
+                        counts[playmode]['AAA'] += 1
+                else:
+                    counts[playmode]['NO DATA'] += 1
+
+    musics_text = []
+    for playmode, value in counts.items():
+        total = value['TOTAL']
+        fullcombo = value['F-COMBO']
+        aaa = value['AAA']
+        nodata = value['NO DATA']
+        musics_text.append(f'{playmode}(全{total}) F-COMBO: {fullcombo} AAA: {aaa}')
+
+    text = quote('\n'.join((*musics_text, hashtag)))
+    url = f'{post_url}?text={text}'
+
+    open(url)
+
+def post_notesradar(notesradar: NotesRadar):
+    musics_text = []
+    for playmode, item in notesradar.items.items():
+        musics_text.append(f'{playmode} TOTAL: {item.total}')
+    
+    for playmode, item in notesradar.items.items():
+        musics_text.append('')
+        musics_text.append(playmode)
+        for attributekey, attribute in item.attributes.items():
+            musics_text.append(f'{attributekey}: {attribute.average}')
+
+    text = quote('\n'.join((*musics_text, hashtag)))
+    url = f'{post_url}?text={text}'
+
+    open(url)
 
 def post_results(values: list[dict]):
     musics_text = []

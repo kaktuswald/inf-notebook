@@ -297,11 +297,17 @@ def layout_main(setting: Setting):
                         [sg.Image(key='image_summary', size=(640, 360), background_color=background_color)],
                         [
                             sg.Button('カウント方式 切替', key='button_summary_switch'),
-                            sg.Button('表示内容 設定', key='button_summary_setting')
+                            sg.Button('表示内容 設定', key='button_summary_setting'),
+                            sg.Button('統計のポスト', key='button_post_summary', disabled=True),
+                            sg.Button('エクスポートフォルダを開く', key='button_openfolder_export_summary'),
                         ],
                     ], key='tab_main_summary', pad=0, background_color=background_color),
                     sg.Tab('ノーツレーダー', [
                         [sg.Image(key='image_notesradar', size=(640, 360), background_color=background_color)],
+                        [
+                            sg.Button('ノーツレーダーのポスト', key='button_post_notesradar', disabled=True),
+                            sg.Button('エクスポートフォルダを開く', key='button_openfolder_export_notesradar'),
+                        ],
                     ], key='tab_main_notesradar', pad=0, background_color=background_color),
                     sg.Tab('スクリーンショット', [
                         [sg.Image(key='image_screenshot', size=(640, 360), background_color=background_color)],

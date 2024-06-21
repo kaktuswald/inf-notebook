@@ -653,6 +653,12 @@ def save_filtered(resultimage, timestamp, music, play_mode, difficulty, play_sid
     if ret:
         images_filtered[timestamp] = filteredimage
 
+def refresh_table(select_newest=False):
+    if select_newest:
+        window['table_results'].update(values=list_results, select_rows=[0])
+    else:
+        window['table_results'].update(values=list_results, select_rows=table_selected_rows)
+
 def insert_recentnotebook_results():
     for timestamp in notebook_recent.timestamps:
         target = notebook_recent.get_result(timestamp)
@@ -675,7 +681,7 @@ def insert_recentnotebook_results():
 
     refresh_table()
 
-def insert_results(result):
+def insert_results(result: Result):
     global table_selected_rows
 
     results_today[result.timestamp] = result
@@ -706,12 +712,6 @@ def update_resultflag(row_index, saved=False, filtered=False):
         list_results[row_index][0] = '☑'
     if filtered:
         list_results[row_index][1] = '☑'
-
-def refresh_table(select_newest=False):
-    if select_newest:
-        window['table_results'].update(values=list_results, select_rows=[0])
-    else:
-        window['table_results'].update(values=list_results, select_rows=table_selected_rows)
 
 def active_screenshot():
     if not screenshot.shot():
@@ -872,6 +872,9 @@ def complete_initialize():
 
     summaryimage_display()
     notesradarimage_display()
+
+    window['button_post_summary'].update(disabled=False)
+    window['button_post_notesradar'].update(disabled=False)
 
     if setting.startup_image == 'summary':
         window['tab_main_summary'].select()
@@ -1506,7 +1509,7 @@ if __name__ == '__main__':
                 open_folder_scoreinformations()
             if event in ['button_openfolder_graphs', 'グラフ画像フォルダを開く(G)']:
                 open_folder_graphs()
-            if event == 'エクスポートフォルダを開く(E)':
+            if event in ['button_openfolder_export_summary', 'button_openfolder_export_notesradar', 'エクスポートフォルダを開く(E)']:
                 open_folder_export()
             
             if event in ['button_save_results', '画像保存(S)']:
@@ -1542,6 +1545,11 @@ if __name__ == '__main__':
                 if question('確認', clearrecent_confirm_message, window.current_location()):
                     recent.clear()
             
+            if event == 'button_post_summary':
+                twitter.post_summary(notebook_summary)
+            if event == 'button_post_notesradar':
+                twitter.post_notesradar(notesradar)
+
             if event == 'button_summary_switch':
                 setting.summary_countmethod_only = not setting.summary_countmethod_only
                 setting.save()
