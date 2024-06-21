@@ -164,7 +164,11 @@ class InstallerWindow:
             if type(target['assets'][0]) is not dict or not 'browser_download_url' in target['assets'][0].keys():
                 continue
 
-            self.releases[target['name']] = target['assets'][0]['browser_download_url']
+            for asset in target['assets']:
+                if target['tag_name'] in asset['name']:
+                    print(f"{target['name']}: {asset['browser_download_url']}")
+                    self.releases[target['name']] = asset['browser_download_url']
+                    break
         
     def loop(self):
         self.root.mainloop()

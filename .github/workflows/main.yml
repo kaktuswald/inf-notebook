@@ -97,7 +97,7 @@ jobs:
 
       - name: Set Environpment Zip File Name
         run: |
-          echo "zipfilename=inf-notebook${{ github.ref_name }}.zip" >> "$GITHUB_ENV"
+          echo "zipfilename=inf-notebook-${{ github.ref_name }}.zip" >> "$GITHUB_ENV"
           echo "zipfilename_installer=inf-notebook-installer${{ env.installer_version }}.zip" >> "$GITHUB_ENV"
 
       - name: Download
