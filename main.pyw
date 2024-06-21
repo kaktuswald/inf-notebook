@@ -317,6 +317,12 @@ def notesradarimage_generate():
 
     imagevalue_notesradar = get_imagevalue(image)
 
+def summaryimage_display():
+    gui.displayimage(window['image_summary'], imagevalue_summary)
+
+def notesradarimage_display():
+    gui.displayimage(window['image_notesradar'], imagevalue_notesradar)
+
 def result_process(screen):
     """リザルトを記録するときの処理をする
 
@@ -377,6 +383,7 @@ def result_process(screen):
 
         if result.has_new_record():
             summaryimage_generate()
+            summaryimage_display()
 
             if result.details.score.new:
                 if notesradar.insert(
@@ -388,6 +395,7 @@ def result_process(screen):
                 ):
                     update_notesradar()
                     notesradarimage_generate()
+                    notesradarimage_display()
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -499,8 +507,6 @@ def display_graphimage(selection: Selection):
     window['button_save_graph'].update(disabled=False)
     window['button_post_graph'].update(disabled=False)
 
-    window['tab_main_graph'].select()
-
 def clear_scoreinformationimage(imagevalue: bytes):
     gui.displayimage(window['image_scoreinformation'], imagevalue)
 
@@ -579,6 +585,7 @@ def musicselect_process(np_value):
         notebook_summary.import_targetmusic(musicname, notebook)
         notebook_summary.save()
         summaryimage_generate()
+        summaryimage_display()
 
         if notesradar.insert(
                 playmode,
@@ -589,6 +596,7 @@ def musicselect_process(np_value):
             ):
             update_notesradar()
             notesradarimage_generate()
+            notesradarimage_display()
     
     clear_tableselection()
 
@@ -601,8 +609,6 @@ def musicselect_process(np_value):
     image.save(exportimage_musicinformation_filepath)
 
     clear_graphimage(resource.imagevalue_graphnogenerate)
-
-    window['tab_main_scoreinformation'].select()
 
     return ret
 
@@ -859,12 +865,6 @@ def initialize():
     queue_multimessages.put(('imageinformation_change', (resource.imagevalue_musictableinformation,)))
 
     queue_messages.put('complete_initialize')
-
-def summaryimage_display():
-    gui.displayimage(window['image_summary'], imagevalue_summary)
-
-def notesradarimage_display():
-    gui.displayimage(window['image_notesradar'], imagevalue_notesradar)
 
 def complete_initialize():
     summaryimage_generate()
@@ -1637,6 +1637,10 @@ if __name__ == '__main__':
                         window['tab_main_information'].select()
                     if queuemessage == 'escape_loading':
                         gui.displayimage(window['image_information'], resource.imagevalue_musictableinformation)
+                        if setting.startup_image == 'summary':
+                            window['tab_main_summary'].select()
+                        if setting.startup_image == 'notesradar':
+                            window['tab_main_notesradar'].select()
                 if not queue_multimessages.empty():
                     queuemessage, args = queue_multimessages.get_nowait()
                     if queuemessage == 'imageinformation_change':
