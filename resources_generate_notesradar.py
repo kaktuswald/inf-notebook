@@ -23,7 +23,6 @@ difficulties = {
 }
 
 report_name = 'notesradar'
-report_basedir = join(report_dirname, report_name)
 
 def load_musictable():
     resource.load_resource_musictable()
@@ -53,6 +52,42 @@ def import_csv():
                 ] for s in splitted if len(s[1]) > 0 and s[1] != 'バージョン' and s[6].isdigit()]
 
     return csv
+
+def output_attributevalues(resource: dict, output_dirpath: str):
+
+    for playmode, targets1 in resource.items():
+        for attribute, targets2 in targets1['attributes'].items():
+            output = []
+            for target in targets2:
+                musicname = target['musicname']
+                difficulty = target['difficulty']
+
+                value = resource[playmode]['musics'][musicname][difficulty]['radars'][attribute]
+                output.append(f'{value:>6.2f}: {musicname}({difficulty})')
+                
+            filename = f'{playmode}_{attribute}.txt'
+            filepath = join(output_dirpath, filename)
+
+            with open(filepath, 'w', encoding='UTF-8') as f:
+                f.write('\n'.join(output))
+
+def output_not_in_notesradar(added: dict, musics: dict, output_dirpath: str):
+    not_in_notesradar_music_filepath = join(output_dirpath, 'not_in_notesradar.csv')
+    output = []
+    output.append('Music')
+    output.append('\n'.join([f'- {musicname}' for musicname in musics.keys() if not musicname in added.keys()]))
+    output.append('')
+    for playmode in define.value_list['play_modes']:
+        output.append(f'Difficulty {playmode}')
+        for musicname in musics.keys():
+            if musicname in added.keys() and playmode in added[musicname].keys():
+                for difficulty in musics[musicname][playmode].keys():
+                    if not difficulty in added[musicname][playmode]:
+                        output.append(f'- {musicname} {difficulty}')
+        output.append('')
+
+    with open(not_in_notesradar_music_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(output))
 
 def generate(musics, csv):
     report = Report(report_name)
@@ -104,8 +139,6 @@ def generate(musics, csv):
 
             for attribute, value in radars.items():
                 if value != 0:
-                    if musicname == 'Verflucht':
-                        pass
                     attribute_list[attribute].append({
                         'musicname': musicname,
                         'difficulty': difficulty,
@@ -120,7 +153,8 @@ def generate(musics, csv):
     
         for attribute in attribute_list.keys():
             attribute_list[attribute].sort(key=lambda t: t['max'], reverse=True)
-            resource[playmode]['attributes'][attribute] = [{'musicname': t['musicname'], 'difficulty': t['difficulty']} for t in attribute_list[attribute]]
+            sorted_attributevalues = [{'musicname': t['musicname'], 'difficulty': t['difficulty']} for t in attribute_list[attribute]]
+            resource[playmode]['attributes'][attribute] = sorted_attributevalues
 
     if len(duplicate_difficulty) > 0:
         report.error(f'Find duplicate difficulty: {len(duplicate_difficulty)}')
@@ -129,22 +163,8 @@ def generate(musics, csv):
     
     report.report()
 
-    not_in_notesradar_music_filepath = join(report_basedir, 'not_in_notesradar.csv')
-    output = []
-    output.append('Music')
-    output.append('\n'.join([f'- {musicname}' for musicname in musics.keys() if not musicname in added.keys()]))
-    output.append('')
-    for playmode in define.value_list['play_modes']:
-        output.append(f'Difficulty {playmode}')
-        for musicname in musics.keys():
-            if musicname in added.keys() and playmode in added[musicname].keys():
-                for difficulty in musics[musicname][playmode].keys():
-                    if not difficulty in added[musicname][playmode]:
-                        output.append(f'- {musicname} {difficulty}')
-        output.append('')
-
-    with open(not_in_notesradar_music_filepath, 'w', encoding='UTF-8') as f:
-        f.write('\n'.join(output))
+    output_attributevalues(resource, report.report_dirpath)
+    output_not_in_notesradar(added, musics, report.report_dirpath)
 
     return resource
 
