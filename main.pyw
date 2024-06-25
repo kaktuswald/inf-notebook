@@ -1050,8 +1050,6 @@ def display_history(selection):
             imagevalues_filtered[selection.timestamp] = imagevalue_filtered
 
         gui.displayimage(window['image_screenshot'], imagevalue_filtered)
-        if imagevalue_filtered is not None:
-            selection.selection_filtered()
 
 def save_results():
     """画像を保存する
