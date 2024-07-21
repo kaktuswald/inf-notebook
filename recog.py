@@ -157,13 +157,14 @@ class Recognition():
             
             for height in range(masked.shape[0]):
                 unique, counts = np.unique(masked[height], return_counts=True)
-                if len(unique) == 1:
-                    continue
-                index = -np.argmax(np.flip(counts[1:])) - 1
-                intensity = unique[index]
-                bins = np.where(masked[height]==intensity, 1, 0)
-                hexs = bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-                tablekey = f"{height:02d}{''.join([format(v, '0x') for v in hexs])}"
+                if len(unique) > 1:
+                    index = -np.argmax(np.flip(counts[1:])) - 1
+                    intensity = unique[index]
+                    bins = np.where(masked[height]==intensity, 1, 0)
+                    hexs = bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+                    tablekey = f"{height:02d}{''.join([format(v, '0x') for v in hexs])}"
+                else:
+                    tablekey = f'{height:02d}'
                 if not tablekey in targettable.keys():
                     break
 

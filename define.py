@@ -12,8 +12,8 @@ class Define():
 
     screens = {
         'loading': {
-            'left': 940,
-            'top': 378,
+            'left': 380,
+            'top': 120,
             'width': 4,
             'height': 2
         },
@@ -72,7 +72,7 @@ class Define():
     informations_trimpos = (560, 960)
     informations_trimsize = (800, 166)
 
-    informations_recognition_version = '3.0'
+    informations_recognition_version = '3.1'
     informations_trimarea = (560, 960, 1360, 1066)
 
     informations_areas = {
