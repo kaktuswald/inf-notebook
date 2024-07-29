@@ -4,8 +4,8 @@ import json
 
 from raw_image import raws_basepath
 
-larningbase_direpath = 'larning'
-mask_images_dirpath = join(larningbase_direpath, 'mask_images')
+learningbase_direpath = 'learning'
+mask_images_dirpath = join(learningbase_direpath, 'mask_images')
 
 label_basics_filepath = join(raws_basepath, 'label.json')
 label_collections_filepath = join(raws_basepath, 'label.json')
@@ -43,7 +43,7 @@ class RawLabel:
     def update(self, filename, values):
         self.labels[filename] = values
 
-def larning(targets, report):
+def learning(targets, report):
     if len(targets) == 0:
         report.append_log('count: 0')
         return None
@@ -69,7 +69,7 @@ def larning(targets, report):
 
     return result
 
-def larning_multivalue(targets, report, maskvalue):
+def learning_multivalue(targets, report, maskvalue):
     if len(targets) == 0:
         report.append_log('count: 0')
         return None

@@ -9,7 +9,7 @@ from define import define
 import data_collection as dc
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
-from resources_larning import larning_multivalue
+from resources_learning import learning_multivalue
 
 recognition_define_filename = 'define_recognition_informations.json'
 
@@ -194,7 +194,7 @@ def filter_mask(targets, mask):
             mask_filtereds[music][key] = np.where(mask==1,value,0)
     return mask_filtereds
 
-def larning_music(targets, report, name):
+def learning_music(targets, report, name):
     map = {}
 
     inspect = {}
@@ -338,12 +338,12 @@ def outputtable(table):
     with open(report_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
 
-def larning_playmode(informations):
+def learning_playmode(informations):
     resourcename = 'playmode'
 
     report = Report(resourcename)
 
-    larning_targets = {}
+    learning_targets = {}
     evaluate_targets = {}
     for key, target in informations.items():
         if not 'play_mode' in target.label.keys() or target.label['play_mode'] == '':
@@ -351,15 +351,15 @@ def larning_playmode(informations):
         
         value = target.label['play_mode']
         trimmed = target.np_value[informations_define['play_mode']['trim']]
-        if not value in larning_targets.keys():
-            larning_targets[value] = {}
-        larning_targets[value][key] = trimmed
+        if not value in learning_targets.keys():
+            learning_targets[value] = {}
+        learning_targets[value][key] = trimmed
 
         evaluate_targets[key] = target
     
-    report.append_log(f'Source count: {len(larning_targets)}')
+    report.append_log(f'Source count: {len(learning_targets)}')
 
-    table = larning_multivalue(larning_targets, report, informations_define['play_mode']['maskvalue'])
+    table = learning_multivalue(learning_targets, report, informations_define['play_mode']['maskvalue'])
     if table is None:
         report.report()
         return
@@ -388,7 +388,7 @@ def larning_playmode(informations):
         'table': table
     }
 
-def larning_difficulty(informations):
+def learning_difficulty(informations):
     resourcename = 'difficulty'
 
     report = Report(resourcename)
@@ -483,7 +483,7 @@ def larning_difficulty(informations):
         'table': table
     }
 
-def larning_notes(informations):
+def learning_notes(informations):
     resourcename = 'notes'
 
     report = Report(resourcename)
@@ -550,7 +550,7 @@ def larning_notes(informations):
         'table': table
     }
 
-def larning_musics(informations):
+def learning_musics(informations):
     resourcename = 'musicrecog'
 
     report = Report(resourcename)
@@ -590,9 +590,9 @@ def larning_musics(informations):
     filtered_blues = filter_mask(blues, mask_blue)
     filtered_reds = filter_mask(reds, mask_red)
 
-    table_gray = larning_music(filtered_grays, report, 'gray')
-    table_blue = larning_music(filtered_blues, report, 'blue')
-    table_red = larning_music(filtered_reds, report, 'red')
+    table_gray = learning_music(filtered_grays, report, 'gray')
+    table_blue = learning_music(filtered_blues, report, 'blue')
+    table_red = learning_music(filtered_reds, report, 'red')
 
     musics = sorted([*targets.keys()])
 
@@ -793,10 +793,10 @@ if __name__ == '__main__':
     if not exists(report_basedir_musicrecog):
         mkdir(report_basedir_musicrecog)
 
-    play_mode = larning_playmode(informations)
-    difficulty = larning_difficulty(informations)
-    notes = larning_notes(informations)
-    music = larning_musics(informations)
+    play_mode = learning_playmode(informations)
+    difficulty = learning_difficulty(informations)
+    notes = learning_notes(informations)
+    music = learning_musics(informations)
 
     evaluate_musics(music)
 

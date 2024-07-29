@@ -19,7 +19,7 @@ logger = logging.getLogger()
 logger.debug('loaded manage.py')
 
 import gui.annotation_musicselect as gui
-from resources_larning_musicselect import images_musicselect_basepath,label_filepath
+from resources_learning_musicselect import images_musicselect_basepath,label_filepath
 
 images = {}
 np_values = {}

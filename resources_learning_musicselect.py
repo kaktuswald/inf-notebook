@@ -8,7 +8,7 @@ from define import define
 from data_collection import collection_basepath
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
-from resources_learning import learning_multivalue
+from resources_larning import larning_multivalue
 
 images_musicselect_basepath = join(collection_basepath, 'musicselect')
 label_filepath = join(collection_basepath, 'label_musicselect.json')
@@ -47,7 +47,7 @@ def load_define():
     
     return ret
 
-def learning_playmode():
+def larning_playmode():
     report = Report('musicselect_playmode')
 
     define_target = musicselect_define['playmode']
@@ -59,7 +59,7 @@ def learning_playmode():
     )
     maskvalue = define_target['maskvalue']
 
-    learning_targets = {}
+    larning_targets = {}
     evaluate_targets = {}
     for key, target in imagevalues.items():
         if not 'playmode' in target.label.keys() or target.label['playmode'] == '':
@@ -67,15 +67,15 @@ def learning_playmode():
         
         value = target.label['playmode']
         trimmed = target.np_value[trim]
-        if not value in learning_targets.keys():
-            learning_targets[value] = {}
-        learning_targets[value][key] = trimmed
+        if not value in larning_targets.keys():
+            larning_targets[value] = {}
+        larning_targets[value][key] = trimmed
 
         evaluate_targets[key] = target
     
-    report.append_log(f'Source count: {len(learning_targets)}')
+    report.append_log(f'Source count: {len(larning_targets)}')
 
-    table = learning_multivalue(learning_targets, report, maskvalue)
+    table = larning_multivalue(larning_targets, report, maskvalue)
     if table is None:
         report.report()
         return
@@ -104,7 +104,7 @@ def learning_playmode():
 
     report.report()
 
-def learning_levels():
+def larning_levels():
     report = Report(f'musicselect_levels')
 
     selectstatus = ['select', 'noselect']
@@ -269,7 +269,7 @@ def learning_levels():
 
     report.report()
 
-def learning_cleartype():
+def larning_cleartype():
     report = Report('musicselect_cleartype')
 
     define_target = musicselect_define['cleartype']
@@ -321,7 +321,7 @@ def learning_cleartype():
 
     report.report()
 
-def learning_djlevel():
+def larning_djlevel():
     report = Report('musicselect_djlevel')
 
     define_target = musicselect_define['djlevel']
@@ -376,7 +376,7 @@ def learning_djlevel():
 
     report.report()
 
-def learning_number():
+def larning_number():
     report = Report('musicselect_number')
 
     define_target_score = musicselect_define['score']
@@ -501,7 +501,7 @@ def learning_number():
 
     report.report()
 
-def learning_musicname_convertdefine():
+def larning_musicname_convertdefine():
     resource_target = resource['musicname']
 
     define_target = musicselect_define['musicname']
@@ -534,7 +534,7 @@ def learning_musicname_convertdefine():
         'thresholds': leggendaria['thresholds']
     }
 
-def learning_musicname_arcade(targets, report):
+def larning_musicname_arcade(targets, report):
     resource_target = resource['musicname']['arcade']
     th = resource_target['thresholds']
     key_valid_count_minimum = musicselect_define['musicname']['arcade']['key_valid_count_minimum']
@@ -593,7 +593,7 @@ def learning_musicname_arcade(targets, report):
     with open(output_path, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
 
-def learning_musicname_infinitas(targets, report):
+def larning_musicname_infinitas(targets, report):
     resource_target = resource['musicname']['infinitas']
     key_valid_count_minimum = musicselect_define['musicname']['infinitas']['key_valid_count_minimum']
 
@@ -650,7 +650,7 @@ def learning_musicname_infinitas(targets, report):
     with open(output_path, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
 
-def learning_musicname_leggendaria(targets, report):
+def larning_musicname_leggendaria(targets, report):
     resource_target = resource['musicname']['leggendaria']
     key_valid_count_minimum = musicselect_define['musicname']['leggendaria']['key_valid_count_minimum']
 
@@ -711,12 +711,12 @@ def learning_musicname_leggendaria(targets, report):
     with open(output_path, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
 
-def learning_musicname():
+def larning_musicname():
     report = Report('musicselect_musicname')
 
     resource['musicname'] = {}
 
-    learning_musicname_convertdefine()
+    larning_musicname_convertdefine()
     
     targets = {}
     evaluate_targets = {}
@@ -732,9 +732,9 @@ def learning_musicname():
         targets[target.label['musictype']][key] = target
         evaluate_targets[key] = target
 
-    learning_musicname_arcade(targets['ARCADE'], report)
-    learning_musicname_infinitas(targets['INFINITAS'], report)
-    learning_musicname_leggendaria(targets['LEGGENDARIA'], report)
+    larning_musicname_arcade(targets['ARCADE'], report)
+    larning_musicname_infinitas(targets['INFINITAS'], report)
+    larning_musicname_leggendaria(targets['LEGGENDARIA'], report)
     
     for key, target in evaluate_targets.items():
         musicname = target.label['musicname']
@@ -807,7 +807,7 @@ def learning_musicname():
 
     report.report()
 
-def learning_version():
+def larning_version():
     report = Report('musicselect_version')
 
     define_target = musicselect_define['version']
@@ -993,13 +993,13 @@ if __name__ == '__main__':
     resource = {}
     evaluate_musictable = {}
 
-    learning_playmode()
-    learning_levels()
-    learning_cleartype()
-    learning_djlevel()
-    learning_number()
-    learning_version()
-    learning_musicname()
+    larning_playmode()
+    larning_levels()
+    larning_cleartype()
+    larning_djlevel()
+    larning_number()
+    larning_version()
+    larning_musicname()
 
     evaluate()
 

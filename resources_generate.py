@@ -7,7 +7,7 @@ from glob import glob
 
 from raw_image import raws_basepath
 from resources import resources_dirname
-from resources_larning import RawLabel
+from resources_learning import RawLabel
 
 error_output_count = 3
 registries_dirname = 'registries'

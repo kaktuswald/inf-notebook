@@ -71,7 +71,7 @@ python manage.pyw
 #### いくつかのリソースを作る
 ```shell
 python resources_generate_fromraw.py -all
-python resources_larning_fromraw.py -all
+python resources_learning_fromraw.py -all
 ```
 エラーが出なければOK
 
@@ -96,7 +96,7 @@ python annotation_musicselect.pyw
 
 #### 学習する
 ```shell
-python resources_larning_musicselect.py
+python resources_learning_musicselect.py
 ```
 
 resourcesフォルダ内にリソースファイルが作成される。
@@ -226,9 +226,9 @@ python resources_generate_musictable.py
 
 #### 学習する
 ```shell
-python resources_larning_informations.py
-python resources_larning_details.py
-python resources_larning_musicselect.py
+python resources_learning_informations.py
+python resources_learning_details.py
+python resources_learning_musicselect.py
 ```
 
 #### 誤った曲名の修正
