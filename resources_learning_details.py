@@ -6,7 +6,7 @@ import numpy as np
 
 from define import define
 import data_collection as dc
-from resources_larning import larning
+from resources_learning import learning
 from resources_generate import Report,registries_dirname,save_resource_serialized
 
 recognition_define_filename = 'define_recognition_details.json'
@@ -156,7 +156,7 @@ def load_define():
 
     return ret
 
-def larning_graphtype(details):
+def learning_graphtype(details):
     resourcename = 'graphtype'
 
     report = Report(resourcename)
@@ -201,7 +201,7 @@ def larning_graphtype(details):
 
     return table
 
-def larning_option(details):
+def learning_option(details):
     report = Report('option')
 
     result ={}
@@ -337,7 +337,7 @@ def larning_option(details):
     print(table)
     return table
 
-def larning_cleartype(details):
+def learning_cleartype(details):
     resourcename = 'cleartype'
 
     report = Report(resourcename)
@@ -402,7 +402,7 @@ def larning_cleartype(details):
 
     return table
 
-def larning_djlevel(details):
+def learning_djlevel(details):
     resourcename = 'djlevel'
 
     report = Report(resourcename)
@@ -468,7 +468,7 @@ def larning_djlevel(details):
 
     return table
 
-def larning_numberbest(details):
+def learning_numberbest(details):
     resourcename = 'numberbest'
 
     report = Report(resourcename)
@@ -559,7 +559,7 @@ def larning_numberbest(details):
 
     return table
 
-def larning_numbercurrent(details):
+def learning_numbercurrent(details):
     resourcename = 'numbercurrent'
 
     report = Report(resourcename)
@@ -650,14 +650,14 @@ def larning_numbercurrent(details):
 
     return table
 
-def larning_not_new(details):
+def learning_not_new(details):
     report = Report('notnew')
 
     trimareas = {}
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
         trimareas[key] = details_define[key]['new']
 
-    larning_targets = {}
+    learning_targets = {}
     evaluate_targets = {}
     for key, target in details.items():
         for k in ['clear_type', 'dj_level', 'score', 'miss_count']:
@@ -665,13 +665,13 @@ def larning_not_new(details):
                 continue
 
             trimmed = target.np_value[trimareas[k]]
-            larning_targets[f'{key}_{k}.png'] = trimmed
+            learning_targets[f'{key}_{k}.png'] = trimmed
 
         evaluate_targets[key] = target
     
-    report.append_log(f'source count: {len(larning_targets)}')
+    report.append_log(f'source count: {len(learning_targets)}')
 
-    result = larning(larning_targets, report)
+    result = learning(learning_targets, report)
     if result is None:
         report.report()
         return
@@ -691,7 +691,7 @@ def larning_not_new(details):
 
     return result
 
-def larning_graphtarget(details):
+def learning_graphtarget(details):
     report = Report('graphtarget')
 
     trimareas = details_define['graphtarget']
@@ -769,14 +769,14 @@ if __name__ == '__main__':
 
     details = load_details(labels)
     
-    table_graphtype = larning_graphtype(details)
-    table_option = larning_option(details)
-    table_clear_type = larning_cleartype(details)
-    table_dj_level = larning_djlevel(details)
-    table_number_best = larning_numberbest(details)
-    table_number_current = larning_numbercurrent(details)
-    mask_not_new = larning_not_new(details)
-    table_graphtarget = larning_graphtarget(details)
+    table_graphtype = learning_graphtype(details)
+    table_option = learning_option(details)
+    table_clear_type = learning_cleartype(details)
+    table_dj_level = learning_djlevel(details)
+    table_number_best = learning_numberbest(details)
+    table_number_current = learning_numbercurrent(details)
+    mask_not_new = learning_not_new(details)
+    table_graphtarget = learning_graphtarget(details)
  
     filename = f'details{define.details_recognition_version}.res'
     save_resource_serialized(filename, {
