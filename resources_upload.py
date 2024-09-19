@@ -50,6 +50,13 @@ if __name__ == '__main__':
         if upload(filename_musicselect, filepath_musicselect): 
             print(f'Upload complete {filename_musicselect}')
     
+    if '-all' in argv or '-notesradar' in argv:
+        filename_notesradar = f'{define.notesradar_resourcename}.res'
+        filepath_notesradar = join(resources_dirname, filename_notesradar)
+        
+        if upload(filename_notesradar, filepath_notesradar): 
+            print(f'Upload complete {filename_notesradar}')
+    
     if '-all' in argv or '-musicnamechanges' in argv:
         filepath_musicnamechanges = join(resources_dirname, musicnamechanges_filename)
 
