@@ -37,7 +37,8 @@ default = {
         'djname': 'NO NAME',
         'servers': {}
     },
-    'startup_image': 'notesradar'
+    'startup_image': 'notesradar',
+    'hashtags': '#IIDX #infinitas573 #infnotebook',
 }
 
 class Setting():
@@ -204,6 +205,14 @@ class Setting():
     @startup_image.setter
     def startup_image(self, value):
         self.set_value('startup_image', value)
+    
+    @property
+    def hashtags(self):
+        return self.get_value('hashtags')
+    
+    @hashtags.setter
+    def hashtags(self, value):
+        self.set_value('hashtags', value)
     
     @property
     def ignore_download(self):

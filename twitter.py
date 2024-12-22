@@ -8,7 +8,6 @@ from record import NotebookSummary
 from notesradar import NotesRadar
 
 post_url = 'https://twitter.com/intent/tweet'
-hashtag = '#IIDX #infinitas573 #infnotebook'
 
 def score_format(playmode: str, difficulty: str, musicname: str):
     return ''.join((
@@ -23,7 +22,7 @@ def timestamp_format(timestamp: str):
     dt = datetime.strptime(timestamp, '%Y%m%d-%H%M%S')
     return datetime.strftime(dt, '%Y/%m/%d %H:%M:%S')
 
-def post_summary(notebook: NotebookSummary):
+def post_summary(notebook: NotebookSummary, hashtags: str):
     counts = {}
     for playmode in define.value_list['play_modes']:
         counts[playmode] = {'TOTAL': 0, 'F-COMBO': 0, 'AAA': 0, 'NO DATA': 0}
@@ -48,12 +47,12 @@ def post_summary(notebook: NotebookSummary):
         nodata = value['NO DATA']
         musics_text.append(f'{playmode}(全{total}) F-COMBO: {fullcombo} AAA: {aaa}')
 
-    text = quote('\n'.join((*musics_text, hashtag)))
+    text = quote('\n'.join((*musics_text, hashtags)))
     url = f'{post_url}?text={text}'
 
     open(url)
 
-def post_notesradar(notesradar: NotesRadar):
+def post_notesradar(notesradar: NotesRadar, hashtags: str):
     musics_text = []
     for playmode, item in notesradar.items.items():
         musics_text.append(f'{playmode} TOTAL: {item.total}')
@@ -64,12 +63,12 @@ def post_notesradar(notesradar: NotesRadar):
         for attributekey, attribute in item.attributes.items():
             musics_text.append(f'{attributekey}: {attribute.average}')
 
-    text = quote('\n'.join((*musics_text, hashtag)))
+    text = quote('\n'.join((*musics_text, hashtags)))
     url = f'{post_url}?text={text}'
 
     open(url)
 
-def post_results(values: list[dict]):
+def post_results(values: list[dict], hashtags: str):
     musics_text = []
     for result in values:
         music = result['music']
@@ -98,12 +97,12 @@ def post_results(values: list[dict]):
 
         musics_text.append(''.join(line))
 
-    text = quote('\n'.join((*musics_text, hashtag)))
+    text = quote('\n'.join((*musics_text, hashtags)))
     url = f'{post_url}?text={text}'
 
     open(url)
 
-def post_scoreinformation(playmode: str, difficulty: str, musicname: str, record: dict):
+def post_scoreinformation(playmode: str, difficulty: str, musicname: str, record: dict, hashtags: str):
     lines = [score_format(playmode, difficulty, musicname)]
 
     if 'timestamps' in record.keys():
@@ -133,7 +132,7 @@ def post_scoreinformation(playmode: str, difficulty: str, musicname: str, record
                     lines.append('')
                     lines.append(f"{label} で {' '.join(achievements)} 達成済み")
 
-    text = quote('\n'.join((*lines, hashtag)))
+    text = quote('\n'.join((*lines, hashtags)))
     url = f'{post_url}?text={text}'
 
     open(url)

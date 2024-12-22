@@ -1114,7 +1114,7 @@ def post_results():
         return
     
     results = [notebook_recent.get_result(list_results[index][2]) for index in table_selected_rows]
-    twitter.post_results(reversed(results))
+    twitter.post_results(reversed(results), setting.hashtags)
 
 def upload_results():
     if not setting.data_collection:
@@ -1214,7 +1214,7 @@ def post_scoreinformation():
     if targetrecord is None:
         return
 
-    twitter.post_scoreinformation(playmode, difficulty, musicname, targetrecord)
+    twitter.post_scoreinformation(playmode, difficulty, musicname, targetrecord, setting.hashtags)
 
 def clear_selection():
     gui.switch_resultsbuttons(False)
@@ -1544,9 +1544,9 @@ if __name__ == '__main__':
                     recent.clear()
             
             if event == 'button_post_summary':
-                twitter.post_summary(notebook_summary)
+                twitter.post_summary(notebook_summary, setting.hashtags)
             if event == 'button_post_notesradar':
-                twitter.post_notesradar(notesradar)
+                twitter.post_notesradar(notesradar, setting.hashtags)
 
             if event == 'button_summary_switch':
                 setting.summary_countmethod_only = not setting.summary_countmethod_only
