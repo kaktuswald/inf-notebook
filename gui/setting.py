@@ -59,7 +59,11 @@ def open_setting(setting: Setting, location: tuple[int, int], summary: bool=Fals
             [
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Text('選曲画面のアップロード', size=(20, 1), background_color=background_dark),
-                sg.Input(setting.hotkeys['upload_musicselect'], size=(12, 1), key='hotkey_upload_musicselect')
+                sg.Input(setting.hotkeys['upload_musicselect'], size=(12, 1), key='hotkey_upload_musicselect'),
+            ],
+            [
+                sg.Text('', size=(4, 1), background_color=background_dark),
+                sg.Text('選曲画面で記録の取り込みがされないときに実行してください。', font=('Arial', 9), background_color=background_dark),
             ],
 
             [sg.Text('統計データの曲数', background_color=background_color_label)],
@@ -87,6 +91,12 @@ def open_setting(setting: Setting, location: tuple[int, int], summary: bool=Fals
                 sg.Text('', size=(2, 1), background_color=background_dark),
                 sg.Radio('ノーツレーダー', group_id='startup_image', key='startup_image_notesradar', default=setting.startup_image == 'notesradar', background_color=background_dark),
                 sg.Radio('統計', group_id='startup_image', key='startup_image_summary', default=setting.startup_image == 'summary', background_color=background_dark)
+            ],
+            
+            [sg.Text('Xのポストに付するハッシュタグ', background_color=background_color_label)],
+            [
+                sg.Text('', size=(2, 1), background_color=background_dark),
+                sg.Input(setting.hashtags, key='hashtags'),
             ],
 
             [sg.Text('リザルト画像の収集', background_color=background_color_label)],
@@ -187,6 +197,7 @@ def open_setting(setting: Setting, location: tuple[int, int], summary: bool=Fals
             for key in ['notesradar', 'summary']:
                 if values[f'startup_image_{key}']:
                     setting.startup_image = key
+            setting.hashtags = values['hashtags']
 
             setting.save()
 
