@@ -1,7 +1,8 @@
 import numpy as np
 import pickle
 from os import mkdir,remove
-from os.path import join,exists,isfile
+from os.path import join,exists,isfile,isdir
+from shutil import rmtree
 from PIL import Image
 from glob import glob
 
@@ -33,8 +34,8 @@ class Report():
             mkdir(report_dirname)
         
         self.report_dirpath = join(report_dirname, name)
-        for filepath in glob(join(self.report_dirpath, '*')):
-            remove(filepath)
+        if exists(self.report_dirpath):
+            rmtree(self.report_dirpath)
         if not exists(self.report_dirpath):
             mkdir(self.report_dirpath)
     
