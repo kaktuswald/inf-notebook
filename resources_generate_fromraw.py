@@ -1,6 +1,9 @@
 import numpy as np
 from sys import argv
 from random import shuffle
+from os import mkdir
+from os.path import join,exists
+from PIL import Image
 
 from define import define
 from resources_generate import Report,load_raws,save_resource_serialized
@@ -89,6 +92,10 @@ def generate_is_savable(raws):
 
     report = Report(resourcename)
 
+    append_dirpath = join(report.report_dirpath, 'trimmed')
+    if not exists(append_dirpath):
+        mkdir(append_dirpath)
+
     patternarea = (slice(60, 690), slice(810, 1110))
 
     targets1 = {}
@@ -131,7 +138,10 @@ def generate_is_savable(raws):
     for background_key, targets in targets2.items():
         table['areas'][background_key] = {}
         filename, raw = [*targets.items()][0]
-        report.saveimage_value(raw.np_value[patternarea], filename)
+
+        image = Image.fromarray(raw.np_value[patternarea])
+        image.save(join(append_dirpath, filename))
+
         for area_key, area in define.result_check.items():
             value = raw.np_value[area]
             table['areas'][background_key][area_key] = value
