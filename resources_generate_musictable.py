@@ -128,6 +128,7 @@ def load_musiclist(report, table, versions):
         music = values[0]
         if music == '':
             report.error(f'Music blank error: {line}')
+            continue
         
         table['versions'][version].append(music)
         table['musics'][music] = {'version': version}
