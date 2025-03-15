@@ -1,5 +1,6 @@
 from sys import argv
 from os.path import join
+from json import load
 
 from define import define
 from resources import ResourceTimestamp,resources_dirname
@@ -60,5 +61,12 @@ if __name__ == '__main__':
     if '-all' in argv or '-musicnamechanges' in argv:
         filepath_musicnamechanges = join(resources_dirname, musicnamechanges_filename)
 
-        if upload(musicnamechanges_filename, filepath_musicnamechanges):
-            print(f'Upload complete {musicnamechanges_filename}')
+        try:
+            with open(filepath_musicnamechanges, encoding='UTF-8')as f:
+                convertlist = load(f)
+            
+            if upload(musicnamechanges_filename, filepath_musicnamechanges):
+                print(f'Upload complete {musicnamechanges_filename}')
+        except Exception as ex:
+            print(f'Upload failed {musicnamechanges_filename}')
+        
