@@ -13,6 +13,7 @@ logger.debug('loaded storage.py')
 
 from service_account_info import service_account_info
 from define import define
+from result import Result
 
 bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
@@ -158,8 +159,8 @@ class StorageAccessor():
         except Exception as ex:
             logger.exception(ex)
 
-    def start_uploadcollection(self, result, image, force):
-        """収集画像をアップロードする
+    def start_uploadcollection(self, result: Result, image: Image.Image, force: bool):
+        '''収集画像をアップロードする
 
         Args:
             result (Result): 対象のリザルト(result.py)
@@ -168,7 +169,7 @@ class StorageAccessor():
 
         Returns:
             bool: informationsとdetails両方アップロードした
-        """
+        '''
         self.connect_client()
         if self.client is None:
             return
@@ -215,11 +216,11 @@ class StorageAccessor():
         return informations_trim and details_trim
     
     def start_uploadmusicselect(self, image):
-        """選曲画面の収集画像をアップロードする
+        '''選曲画面の収集画像をアップロードする
 
         Args:
             image (Image): 対象のリザルト画像(PIL.Image)
-        """
+        '''
         self.connect_client()
         if self.client is None:
             return

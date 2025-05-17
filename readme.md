@@ -45,7 +45,7 @@ python generate_version.py v0.0.0.0
 
 ### 実行ファイル化
 ```shell
-pip install cx_Freeze==7.0.0
+pip install cx_Freeze==7.2.10
 python setup.py build
 ```
 

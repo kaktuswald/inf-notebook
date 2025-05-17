@@ -11,14 +11,14 @@ if __name__ == '__main__':
     
     if os.path.exists(sys.argv[1]):
         with open(sys.argv[1]) as f:
-            info = f.read().encode('utf-8')
+            info = f.read().encode('UTF-8')
     else:
         info = b64decode(sys.argv[1])
     
-    f = open(generate_filename, 'w', encoding='utf-8')
+    f = open(generate_filename, 'w', encoding='UTF-8')
 
     f.write("service_account_info = ")
-    f.write(info.decode('utf-8'))
+    f.write(info.decode('UTF-8'))
 
     f.close()
 

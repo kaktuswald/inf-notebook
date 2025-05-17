@@ -8,18 +8,18 @@ difficulties = define.value_list['difficulties']
 attributes = define.value_list['notesradar_attributes']
 
 class NotesRadarValue():
-    """一曲の値
-    """
+    '''一曲の値
+    '''
 
     def __init__(self, musicname: str, difficulty: str, value: float):
         self.musicname: str = musicname
-        """曲名"""
+        '''曲名'''
 
         self.difficulty: str = difficulty
-        """譜面難易度"""
+        '''譜面難易度'''
 
         self.value: float = value
-        """レーダー値"""
+        '''レーダー値'''
     
     def __lt__(self, other: float):
         return self.value < other
@@ -31,18 +31,18 @@ class NotesRadarValue():
         return self.musicname == item.musicname
 
 class NotesRadarAttribute():
-    """ノーツレーダーの属性
-    """
+    '''ノーツレーダーの属性
+    '''
 
     def __init__(self):
         self.average: float = 0
-        """平均値"""
+        '''平均値'''
 
         self.ranking: list[NotesRadarValue] = []
-        """上位曲データ"""
+        '''上位曲データ'''
 
         self.targets: list[NotesRadarValue] = []
-        """平均対象のデータ"""
+        '''平均対象のデータ'''
     
     def calculate_average(self):
         self.ranking.sort(reverse=True)
@@ -61,15 +61,15 @@ class NotesRadarAttribute():
             self.average = sum([t.value * 100 for t in self.targets]) // 10 / 100
 
 class NotesRadarItem():
-    """プレイモードごとのアイテム
-    """
+    '''プレイモードごとのアイテム
+    '''
 
     def __init__(self):
         self.total: float = 0
-        """合計値"""
+        '''合計値'''
 
         self.attributes: dict[str, NotesRadarAttribute] = {}
-        """属性ごとのデータ"""
+        '''属性ごとのデータ'''
 
         for attribute in attributes:
             self.attributes[attribute] = NotesRadarAttribute()
@@ -78,12 +78,12 @@ class NotesRadarItem():
         self.total = sum([t.average for t in self.attributes.values()]) * 100 // 1 / 100
     
 class NotesRadar():
-    """ノーツレーダー
-    """
+    '''ノーツレーダー
+    '''
 
     def __init__(self):
         self.items: dict[str, NotesRadarItem] = {}
-        """プレイモードごとのアイテム"""
+        '''プレイモードごとのアイテム'''
 
         for playmode in playmodes:
             self.items[playmode] = NotesRadarItem()
@@ -182,8 +182,7 @@ class NotesRadar():
     
 if __name__ == '__main__':
     from record import NotebookSummary
-    from graph import create_radarchart
-    from export import output_notesradarcsv,output_notesradarimage
+    from export import output_notesradarcsv
 
     resource.load_resource_notesradar()
 
@@ -194,6 +193,3 @@ if __name__ == '__main__':
     radar.generate(summary)
 
     output_notesradarcsv(radar)
-
-    image = create_radarchart(radar)
-    output_notesradarimage(image)

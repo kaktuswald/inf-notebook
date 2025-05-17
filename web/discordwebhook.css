@@ -1,0 +1,33 @@
+.unusable {
+    color: grey;
+}
+
+div {
+    align-self: center;
+}
+
+div.label {
+    margin: 1px 5px;
+    width: 80px;
+}
+
+input#text_url {
+    width :480px;
+}
+
+div.scroll_musicnames {
+    height: 165px;
+}
+
+td.musicname_cell_version {
+    display: none;
+}
+
+span#message {
+    color: darkred;
+}
+
+div.buttons {
+    display: block;
+    text-align: right;
+}

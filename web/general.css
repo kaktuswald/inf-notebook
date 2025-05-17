@@ -1,0 +1,212 @@
+body {
+    /* font-family: "Meiryo"; */
+    /* font-family: "Yu Gothic"; */
+    font-family: "Yu Mincho Demibold";
+    /* font-family: "Wingdings"; */
+    background-color: lightgoldenrodyellow;
+}
+
+.unusable {
+    pointer-events: none;
+    user-select: none;
+}
+
+div.pane {
+    margin: 1px;
+}
+
+div.width_fixed {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+div.label {
+    display: inline-block;
+    padding: 0px 3px;
+    user-select: none;
+    font-size: small;
+}
+
+div.highlight {
+    background-color: antiquewhite;
+    border-style: dashed;
+    border-width: 1px;
+    border-color: lightgray;
+}
+
+p.tabcontrol {
+    margin: 0px;
+}
+
+button {
+    height: 20px;
+    margin: 1px;
+    padding: 0px 4px;
+    font-size: x-small;
+}
+
+button.select_tabpage {
+    margin: 0px;
+    padding: 0px 4px;
+    border-width: 1px 1px 0px 1px;
+    vertical-align: bottom;
+    font-size: small;
+}
+
+button.select_tabpage_selected {
+    background-color: white;
+}
+
+/* button.selected_tabpage {
+    background-color: white;
+} */
+
+div.tabpage {
+    display: none;
+    flex-direction: column;
+    position: relative;
+    z-index: 0;
+    border: 1px solid black;
+    background-color: white;
+    padding: 0px;
+}
+
+img {
+    width: 640px;
+    height: 360px;
+}
+
+div.split_horizontal {
+    display: flex;
+    flex-direction: row;
+    overflow: overlay;
+}
+
+div.scroll {
+    overflow-y: scroll;
+    border: 1px solid black;
+    background-color: white;
+}
+
+table {
+    font-family: "Meiryo";
+}
+
+tr.tableheader {
+    position: sticky;
+    top: 0px;
+    left: 0px;
+    user-select: none;
+}
+
+tr.hidden {
+    display: none;
+}
+
+span {
+    padding: 0px 5px;
+}
+
+span.filepath {
+    font-size: small;
+    color: white;
+    text-shadow: 1px 1px 4px black;
+}
+
+span.toggle_message {
+    font-size: small;
+    color: darkgray;
+}
+
+span.toggle_on {
+    color: darkorange;
+}
+
+table {
+    border-collapse: collapse;
+    font-size: small;
+    width: 100%;
+}
+
+.tableheader {
+    font-size: x-small;
+}
+
+th {
+    padding: 0px 2px;
+}
+
+tr:first-of-type {
+    background-color: aliceblue;
+}
+
+tr.tableitem {
+    font-size: xx-small;
+    user-select: none;
+}
+
+tr.tableitem:nth-of-type(odd) {
+    background-color: lightgreen;
+}
+
+tr.tableitem:nth-of-type(even) {
+    background-color: palegreen;
+}
+
+tr.tableitem.selected {
+    background-color: lightblue;
+}
+
+tr.tableitem:hover {
+    background-color: lightpink;
+}
+
+th.hiddenheader {
+    display: none;
+}
+
+td {
+    padding: 0px 3px;
+}
+
+td.center {
+    text-align: center;
+}
+
+td.right {
+    text-align: right;
+}
+
+input[type="checkbox"] {
+    margin-right: 0px;
+}
+
+input[type="radio"] {
+    margin-right: 0px;
+}
+
+input.text_hotkey {
+    width: 50px;
+}
+
+input.text_imagesave_path {
+    width: 400px;
+}
+
+input.text_hashtags {
+    width: 400px;
+}
+
+label {
+    padding-left: 2px;
+    user-select: none;
+}
+
+div.buttons {
+    display: flex;
+}
+
+div.buttons_in_dialog {
+    text-align: right;
+}

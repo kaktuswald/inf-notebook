@@ -1,0 +1,92 @@
+body {
+    font-size: small;
+}
+
+div.tabpage {
+    height: 300px;
+    padding: 5px;
+}
+
+div.label {
+    width: 100px;
+}
+
+div.item {
+    display: flex;
+    align-items: center;
+}
+
+div.itemblock {
+    display: flex;
+    background-color: antiquewhite;
+    padding: 1px 5px;
+    margin: 2px 0px;
+    align-items: center;
+}
+
+div.obs_itemlabel {
+    width: 150px;
+    text-align: right;
+    padding: 0px 4px;
+}
+
+div.contentblock {
+    margin: 0px 5px;
+    background-color: white;
+}
+
+div.summary_itemblock {
+    display: inline-block;
+}
+
+div#exportpath {
+    width: 400px;
+    border-style: solid;
+    border-width: 1px;
+    background-color: antiquewhite;
+}
+
+div.recent_itemlabel {
+    width: 180px;
+    text-align: right;
+    padding: 0px 4px;
+}
+
+div.colorblock {
+    margin: 4px;
+    width: 14px;
+    height: 14px;
+    border-style: solid;
+    border-width: 1px;
+}
+
+div.difficultylabel {
+    width: 100px;
+    padding: 0px 10px;
+    text-align: right;
+}
+
+div.indent {
+    padding-left: 30px;
+}
+
+div.summary_playmode {
+    width: 40px;
+}
+
+input.input_size {
+    width: 20px;
+}
+
+input.input_color {
+    width: 55px;
+}
+
+textarea#css {
+    width: 560px;
+    height: 80px;
+}
+
+div.buttons {
+    display: block;
+}

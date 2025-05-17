@@ -15,11 +15,11 @@ from appdata import LocalConfig
 version_installer: str = '1.0.0.0'
 
 version_filename: str = 'version.txt'
-"""バージョンファイル
+'''バージョンファイル
 
 インストール済みのバージョンを確認するためのファイル
 0.18.0.0以降のリザルト手帳のインストールされているフォルダの中にある
-"""
+'''
 
 url_releases: str = 'https://api.github.com/repos/kaktuswald/inf-notebook/releases'
 

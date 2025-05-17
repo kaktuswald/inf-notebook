@@ -5,7 +5,7 @@ from urllib.parse import quote
 from define import define
 from resources import resource
 from record import NotebookSummary
-from notesradar import NotesRadar
+from notesradar import NotesRadar,NotesRadarAttribute
 
 post_url = 'https://twitter.com/intent/tweet'
 
@@ -54,16 +54,22 @@ def post_summary(notebook: NotebookSummary, hashtags: str):
 
 def post_notesradar(notesradar: NotesRadar, hashtags: str):
     musics_text = []
-    for playmode, item in notesradar.items.items():
-        musics_text.append(f'{playmode} TOTAL: {item.total}')
-    
-    for playmode, item in notesradar.items.items():
-        musics_text.append('')
-        musics_text.append(playmode)
-        for attributekey, attribute in item.attributes.items():
-            musics_text.append(f'{attributekey}: {attribute.average}')
+    total = 0
+    for playmode, playmodeitem in notesradar.items.items():
+        total += playmodeitem.total
 
-    text = quote('\n'.join((*musics_text, hashtags)))
+        attributename_top: str = None
+        attribute_top: NotesRadarAttribute = None
+        for attribute, attributeitem in playmodeitem.attributes.items():
+            if attribute_top is None or attribute_top.average < attributeitem.average:
+                attributename_top = attribute
+                attribute_top = attributeitem
+
+        musics_text.append(f'{playmode} TOTAL: {playmodeitem.total}(TOP {attributename_top})')
+    
+    text_total =f'TOTAL: {total}'
+    
+    text = quote('\n'.join((text_total, '', *musics_text, hashtags)))
     url = f'{post_url}?text={text}'
 
     open(url)

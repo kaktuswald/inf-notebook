@@ -1,0 +1,170 @@
+div.pane {
+    margin: 1px;
+}
+
+span#detect_infinitas {
+    user-select: none;
+}
+
+span#capturable {
+    user-select: none;
+}
+
+div#tabbody_main {
+    width: 642px;
+}
+
+div#tabbody_control {
+    width: 318px;
+}
+
+div#tabbody_detail {
+    width: 318px;
+}
+
+div.tabpage_main {
+    /* background-color: black; */
+    height: 400px;
+}
+
+div.tabpage_control {
+    height: 260px;
+}
+
+div.tabpage_detail {
+    height: 157px;
+}
+
+td.cell_hidden {
+    display: none;
+}
+
+td.recentresult_cell_scoretype {
+    width: 20px;
+}
+
+td.cell_check {
+    width: 10px;
+}
+
+td.music_cell_version {
+    display: none;
+}
+
+div.pane_musicname_search_left {
+    flex: 1;
+    padding: 2px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+div.pane_musicname_search_right {
+    flex: 1;
+    padding: 2px;
+    display: flex;
+    flex-direction: column;
+}
+
+div.label_in_musicname_search {
+    width: 100px;
+}
+
+div.label_in_notesradar {
+    width: 100px;
+}
+
+div.musicnameblock {
+    width: 300px;
+}
+
+div.label_scoreinformation {
+    width: 100px;
+}
+
+.label_best {
+    width: 90px;
+}
+
+.best_value {
+    display: inline-block;
+    width: 100px;
+}
+
+.best_useoptions {
+    display: inline-block;
+    font-size: small;
+}
+
+.best_timestamps {
+    display: none;
+    font-size: small;
+}
+
+.label_playresult {
+    display: inline-block;
+    user-select: none;
+    font-size: small;
+    width: 82px;
+}
+
+.playresult_value {
+    display: inline-block;
+}
+
+.playresult_datetime {
+    font-size: small;
+}
+
+.playresult_options {
+    font-size: x-small;
+}
+
+button#button_recents_confirm_uploadcollectionimages {
+    display: none;
+}
+
+div.label_in_discordwebhook {
+    display: inline-block;
+    width: 120px;
+}
+
+div#scroll_discordwebhook_logs {
+    height: 100px;
+}
+
+td.discordwebhook_cell_id {
+    display: none;
+}
+
+td.discordwebhook_cell_mode {
+    width: 20px;
+}
+
+td.discordwebhook_cell_state {
+    width: 20px;
+}
+
+td.discordwebhook_cell_best {
+    width: 20px;
+}
+
+ul#list_discordwebhook_logs {
+    list-style-type: none;
+    padding: 0px;
+    font-size: xx-small;
+}
+
+div#scroll_logs {
+    font-size: large;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+ul#logs {
+    list-style-type: none;
+    padding: 0px;
+    margin-left: 5px;
+    color: white;
+    text-shadow: 1px 1px 4px black;
+    font-size: small;
+}

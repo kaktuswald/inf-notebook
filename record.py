@@ -2,17 +2,17 @@ import json
 from os import remove,mkdir,rename
 from os.path import join,exists
 from logging import getLogger
-from threading import Thread
 from copy import deepcopy
 
 logger_child_name = 'record'
 
 logger = getLogger().getChild(logger_child_name)
-logger.debug(f'loaded resources.py')
+logger.debug(f'loaded record.py')
 
 from version import version
 from resources import resource,resources_dirname
 from define import define
+from result import Result
 
 records_basepath = 'records'
 
@@ -25,6 +25,8 @@ if not exists(records_basepath):
     mkdir(records_basepath)
 
 class Notebook():
+    filename: str = None
+    
     def __init__(self):
         self.filepath = join(records_basepath, self.filename)
 
@@ -43,7 +45,7 @@ class Notebook():
             json.dump(self.json, f)
 
 class NotebookRecent(Notebook):
-    def __init__(self, maxcount):
+    def __init__(self, maxcount: int):
         self.filename = recent_filename
         self.maxcount = maxcount
         super().__init__()
@@ -53,7 +55,7 @@ class NotebookRecent(Notebook):
             self.save()
             return
     
-    def append(self, result, saved, filtered):
+    def append(self, result: Result, saved, filtered):
         if not 'timestamps' in self.json.keys():
             self.json['timestamps'] = []
         self.json['timestamps'].append(result.timestamp)
@@ -75,7 +77,7 @@ class NotebookRecent(Notebook):
             'update_clear_type': result.details.clear_type.current if result.details.clear_type is not None and result.details.clear_type.new else None,
             'update_dj_level': result.details.dj_level.current if result.details.dj_level is not None and result.details.dj_level.new else None,
             'update_score': result.details.score.current - result.details.score.best if result.details.score is not None and result.details.score.new else None,
-            'update_miss_count': result.details.miss_count.current - result.details.miss_count.best if result.details.miss_count is not None and result.details.miss_count.new and result.details.miss_count.best is not None else None,
+            'update_miss_count': result.details.miss_count.current - result.details.miss_count.best if result.details.miss_count is not None and result.details.miss_count.new and result.details.miss_count.current is not None and result.details.miss_count.best is not None else None,
             'option': option,
             'play_side': result.play_side,
             'has_loveletter': result.rival,
@@ -85,7 +87,8 @@ class NotebookRecent(Notebook):
         }
 
         while len(self.json['timestamps']) > self.maxcount:
-            del self.json['results'][self.json['timestamps'][0]]
+            if self.json['timestamps'][0] in self.json['results'].keys():
+                del self.json['results'][self.json['timestamps'][0]]
             del self.json['timestamps'][0]
     
     @property
@@ -106,26 +109,27 @@ class NotebookMusic(Notebook):
         'DBM': {'clear_type': None, 'dj_level': None}
     }
 
-    def __init__(self, music):
-        """曲名をエンコード&16進数変換してファイル名にする
+    def __init__(self, musicname: str):
+        '''曲名をエンコード&16進数変換してファイル名にする
 
+        Args:
+            musicname(str): 曲名
         Note:
             ファイル名から曲名にデコードする場合は
             bytes.fromhex('ファイル名').decode('UTF-8')
-        """
-        self.filename = f"{music.encode('UTF-8').hex()}.json"
+        '''
+        self.filename = f"{musicname.encode('UTF-8').hex()}.json"
         super().__init__()
     
-    def get_recordlist(self, play_mode, difficulty):
-        """対象のプレイモード・難易度のレコードのリストを取得する
+    def get_scoreresult(self, play_mode, difficulty):
+        '''対象のプレイモード・難易度の記録を取得する
 
         Args:
             play_mode (str): SP か DP
             difficulty (str): NORMAL か HYPER か ANOTHER か BEGINNER か LEGGENDARIA
-
         Returns:
             list: レコードのリスト
-        """
+        '''
         if not play_mode in self.json.keys():
             return None
         if not difficulty in self.json[play_mode].keys():
@@ -142,7 +146,7 @@ class NotebookMusic(Notebook):
         if exists(self.filepath):
             remove(self.filepath)
     
-    def insert_latest(self, target, result, options):
+    def insert_latest(self, target: dict[int | dict[str, dict | list]], result: Result, options: dict[str, str | bool | None]):
         target['latest'] = {
             'timestamp': result.timestamp,
             'clear_type': {
@@ -164,7 +168,7 @@ class NotebookMusic(Notebook):
             'options': options
         }
 
-    def insert_history(self, target, result, options):
+    def insert_history(self, target: dict[int | dict[str, dict | list]], result: Result, options: dict[str, str | bool | None]):
         if not 'timestamps' in target.keys():
             target['timestamps'] = []
         target['timestamps'].append(result.timestamp)
@@ -191,7 +195,7 @@ class NotebookMusic(Notebook):
             'options': options
         }
 
-    def update_best_result(self, target, result, options):
+    def update_best_result(self, target: dict[int | dict[str, dict | list]], result: Result, options: dict[str, str | bool | None]):
         if not 'best' in target.keys() or not 'latest' in target['best'].keys():
             target['best'] = {}
         
@@ -224,11 +228,11 @@ class NotebookMusic(Notebook):
         return updated
 
     def generate_achievement_from_histories(self, target):
-        """達成記録を過去の記録データから作成する
+        '''達成記録を過去の記録データから作成する
 
         Args:
             target (dict): 記録の対象部分
-        """
+        '''
         target['achievement'] = deepcopy(self.achievement_default)
         achievement = target['achievement']
 
@@ -267,8 +271,8 @@ class NotebookMusic(Notebook):
                 if is_updated:
                     achievement[achievement_key][key] = value
         
-    def update_achievement(self, target, result):
-        """達成記録を更新する
+    def update_achievement(self, target: dict[int | dict[str, dict | list]], result: Result):
+        '''達成記録を更新する
 
         Args:
             target (dict): 記録の対象部分
@@ -276,7 +280,7 @@ class NotebookMusic(Notebook):
         
         Returns:
             bool: 更新があった
-        """
+        '''
         if not 'achievement' in target.keys():
             target['achievement'] = deepcopy(self.achievement_default)
         
@@ -313,12 +317,12 @@ class NotebookMusic(Notebook):
         
         return updated
 
-    def insert(self, result):
-        """対象のリザルトを記録に追加する
+    def insert(self, result: Result):
+        '''対象のリザルトを記録に追加する
 
         Args:
             result (Result): 追加対象のリザルト
-        """
+        '''
         if result.informations.play_mode is None:
             return
         if result.informations.difficulty is None:
@@ -366,12 +370,12 @@ class NotebookMusic(Notebook):
         if updated:
             self.save()
     
-    def update_best_musicselect(self, values):
-        """選曲画面から取り込んだ認識結果からベスト記録を更新する
+    def update_best_musicselect(self, values: dict):
+        '''選曲画面から取り込んだ認識結果からベスト記録を更新する
 
         Args:
             values (dict): 認識結果
-        """
+        '''
         updated = False
 
         playmode = values['playmode']
@@ -397,9 +401,25 @@ class NotebookMusic(Notebook):
                     }
                     updated = True
         return updated
+    
+    def delete_scoreresult(self, play_mode: str, difficulty: str):
+        '''指定の譜面記録を削除する
 
-    def delete_history(self, play_mode, difficulty, timestamp):
-        """指定の記録を削除する
+        Args:
+            play_mode: プレイモード(SP or DP)
+            difficulty: 難易度(NORMAL - LEGGENDARIA)
+        '''
+        if not play_mode in self.json.keys():
+            return
+        if not difficulty in self.json[play_mode].keys():
+            return
+        
+        del self.json[play_mode]
+
+        self.save()
+    
+    def delete_playresult(self, play_mode: str, difficulty: str, timestamp: str):
+        '''指定のプレイ記録を削除する
 
         対象の記録が現在のベスト記録の場合はベストから削除して
         それより古い記録に遡り、直近のベスト記録を探して
@@ -409,13 +429,13 @@ class NotebookMusic(Notebook):
             play_mode: プレイモード(SP or DP)
             difficulty: 難易度(NORMAL - LEGGENDARIA)
             timestamp: 削除対象のタイムスタンプ
-        """
+        '''
         if not play_mode in self.json.keys():
             return
         if not difficulty in self.json[play_mode].keys():
             return
         
-        target = self.json[play_mode][difficulty]
+        target: dict[str, int | str | list[str] | dict[str, str | dict]] = self.json[play_mode][difficulty]
 
         if not 'best' in target.keys():
             target['best'] = {}
@@ -460,11 +480,11 @@ class NotebookSummary(Notebook):
         super().__init__()
     
     def import_allmusics(self, version: str):
-        """全曲の記録を取り込む
+        '''全曲の記録を取り込む
 
         Args:
             version (str): 実行したバージョン
-        """
+        '''
         self.json = {}
         for musicname in resource.musictable['musics'].keys():
             notebook = NotebookMusic(musicname)
@@ -473,12 +493,12 @@ class NotebookSummary(Notebook):
         self.json['last_allimported'] = version
     
     def import_targetmusic(self, musicname: str, notebook: NotebookMusic):
-        """対象の曲の記録を取り込む
+        '''対象の曲の記録を取り込む
         
         Args:
             musicname (str): 曲名
             notebook (NotebookMusic): 対象曲の記録
-        """
+        '''
         if not 'musics' in self.json.keys():
             self.json['musics'] = {}
         self.json['musics'][musicname] = {'SP': {}, 'DP': {}}
@@ -488,7 +508,7 @@ class NotebookSummary(Notebook):
                 if not difficulty in music_item[playmode].keys() or music_item[playmode][difficulty] is None:
                     continue
 
-                r = notebook.get_recordlist(playmode, difficulty)
+                r = notebook.get_scoreresult(playmode, difficulty)
                 if r is None:
                     continue
 
@@ -578,8 +598,28 @@ class NotebookSummary(Notebook):
         
         return result
 
-def rename_allfiles(musics):
-    """短縮された記録ファイルのファイル名を修正する
+class Notebooks():
+    notebooks: dict[str, NotebookMusic] = {}
+
+    def get_notebook(self, musicname: str):
+        if not musicname in self.notebooks:
+            self.load_targetnotebook(musicname)
+
+        if musicname in self.notebooks:
+            return self.notebooks[musicname]
+        
+        return None
+    
+    def delete_notebook(self, musicname: str):
+        if musicname in self.notebooks:
+            self.notebooks[musicname].delete()
+            del self.notebooks[musicname]
+    
+    def load_targetnotebook(self, musicname):
+        self.notebooks[musicname] = NotebookMusic(musicname)
+
+def rename_allfiles(musics: list[str]):
+    '''短縮された記録ファイルのファイル名を修正する
 
     Note:
         曲名をエンコードし文字列変換したものをファイル名としている
@@ -589,7 +629,7 @@ def rename_allfiles(musics):
 
     Args:
         musics (list (string)): 曲名のリスト
-    """
+    '''
     string_max_length = 128
 
     for music in musics:
@@ -606,14 +646,14 @@ def rename_allfiles(musics):
                 logger.info(f'To(length: {len(full_filename)})\t\t{full_filename}')
 
 def rename_changemusicname():
-    """曲名の誤っていた記録ファイルのファイル名を修正する
+    '''曲名の誤っていた記録ファイルのファイル名を修正する
 
     Note:
         曲名が誤っていた場合にファイル名を変更する
         INFINITASしかなかった曲がACに収録されて
         公式サイトからダウンロードしたCSVファイルの曲名が誤っていたとき等に対応する
         万一変更後のファイル名のファイルは既に存在する場合は削除してしまう
-    """
+    '''
     filepath = join(resources_dirname, musicnamechanges_filename)
     if not exists(filepath):
         return

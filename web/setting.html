@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+  <head>
+		<meta charset='utf-8' />
+    <title>リザルト手帳 設定</title>
+    <link rel="stylesheet" href="./general.css" />
+    <link rel="stylesheet" href="./setting.css" />
+    <script src="./lib/jquery-3.7.1.slim.min.js"></script>
+    <script src="./setting.js"></script>
+  </head>
+  <body>
+    <p id="tabcontrol" class="tabcontrol">
+      <button id="display_tabpage_general" class="select_tabpage">基本</button>
+      <button id="display_tabpage_summary" class="select_tabpage">統計</button>
+    </p>
+    <div id="tabbody_main">
+      <div id="tabpage_blank" class="tabpage">
+      </div>
+      <div id="tabpage_general" class="tabpage">
+        <div id="setting_contents" class="scroll">
+          <div class="label highlight">リザルト記録</div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_newrecord_only" />
+            <label for="check_newrecord_only">更新があるときのみリザルトを記録する</label>
+          </div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_play_sound" />
+            <label for="check_play_sound">記録したときなどに音を出す</label>
+          </div>
+          <div class="label highlight">リザルト画像の保存</div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_autosave" />
+            <label for="check_autosave">自動で画像をファイルに保存する</label>
+          </div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_autosave_filtered" />
+            <label for="check_autosave_filtered">自動でライバルを隠した画像をファイルに保存する</label>
+          </div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_filter_compact" />
+            <label for="check_filter_compact">ライバルのフィルターを最小限にする</label>
+          </div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_savefilemusicname_right" />
+            <label for="check_savefilemusicname_right">ファイル名の後尾に曲名をつける</label>
+          </div>
+          <div class="label highlight">ショートカットキー</div>
+          <div class="setting_item">
+            <div class="hotkey_label">スクリーンショット</div>
+            <input type="text" id="text_hotkey_active_screenshot" class="text_hotkey" />
+          </div>
+          <div class="setting_item">
+            <div class="hotkey_label">選曲画面のアップロード</div>
+            <input type="text" id="text_hotkey_upload_musicselect" class="text_hotkey" />
+            <span class="setting_annotation">選曲画面で記録の取り込みがされないときに実行してください。</span>
+          </div>
+          <div class="label highlight">統計データの曲数</div>
+          <div class="setting_item">
+            <input type="radio" name="summary_countmethod" id="radio_summary_countmethod_sum" />
+            <label for="radio_summary_countmethod_sum">達成している曲数をカウントする</label>
+            <input type="radio" name="summary_countmethod" id="radio_summary_countmethod_only" />
+            <label for="radio_summary_countmethod_only">対象の曲数のみをカウントする</label>
+          </div>
+          <div class="label highlight">リザルト画像の表示</div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_display_result" />
+            <label for="check_display_result">最新の記録したリザルト画像を表示する</label>
+          </div>
+          <div class="label highlight">画像の保存先のパス</div>
+          <div class="setting_item">
+            <input type="text" id="text_imagesave_path" class="text_imagesave_path" />
+            <button id="button_browse_imagesave_path">...</button>
+          </div>
+          <div class="label highlight">起動時の表示画像</div>
+          <div class="setting_item">
+            <input type="radio" name="startup_image" id="radio_startup_image_notesradar" />
+            <label for="radio_startup_image_notesradar">ノーツレーダー</label>
+            <input type="radio" name="startup_image" id="radio_startup_image_summary" />
+            <label for="radio_startup_image_summary">統計</label>
+          </div>
+          <div class="label highlight">Xのポストに付するハッシュタグ</div>
+          <div class="setting_item"><input type="text" id="text_hashtags" class="text_hashtags" /></div>
+          <div class="label highlight">リザルト画像の収集</div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_data_collection" />
+            <label for="check_data_collection">画像の収集に協力する</label>
+          </div>
+          <div class="label highlight">ポート</div>
+          <div class="setting_item">
+            <div class="port_label">メインサーバ</div>
+            <input type="text" id="text_portmain" class="port_input" />
+          </div>
+          <div class="setting_item">
+            <div class="port_label">ソケットサーバ</div>
+            <input type="text" id="text_portsocket" class="port_input" />
+          </div>
+          <div class="setting_item">
+            <span class="setting_annotation">リザルト手帳の次回起動時に反映されます。</span>
+          </div>
+        </div>
+      </div>
+      <div id="tabpage_summary" class="tabpage">
+        <div class="summary_comment">
+          <span>エクスポートされたCSVファイルから、チェックした成績を達成している曲の数を表示します。</span>
+        </div>
+        <div class="summary_comment">
+          <span>表示したデータはexportフォルダに画像保存します。</span>
+        </div>
+        <div class="split_horizontal summary_group_playmode">
+          <div class="pane summary_playmode">SP</div>
+          <div class="pane summary_levelblock">
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">8</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" class="clear" id="check_summary_sp_8_clear" />
+                  <label for="check_summary_sp_8_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" class="hardclear" id="check_summary_sp_8_hardclear" />
+                  <label for="check_summary_sp_8_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" class="exhardclear" id="check_summary_sp_8_exhardclear" />
+                  <label for="check_summary_sp_8_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" class="fullcombo" id="check_summary_sp_8_fullcombo" />
+                  <label for="check_summary_sp_8_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" class="a" id="check_summary_sp_8_a" />
+                  <label for="check_summary_sp_8_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" class="aa" id="check_summary_sp_8_aa" />
+                  <label for="check_summary_sp_8_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" class="aaa" id="check_summary_sp_8_aaa" />
+                  <label for="check_summary_sp_8_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">9</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_9_clear" />
+                  <label for="check_summary_sp_9_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_9_hardclear" />
+                  <label for="check_summary_sp_9_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_9_exhardclear" />
+                  <label for="check_summary_sp_9_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_9_fullcombo" />
+                  <label for="check_summary_sp_9_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_9_a" />
+                  <label for="check_summary_sp_9_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_9_aa" />
+                  <label for="check_summary_sp_9_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_9_aaa" />
+                  <label for="check_summary_sp_9_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">10</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_10_clear" />
+                  <label for="check_summary_sp_10_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_10_hardclear" />
+                  <label for="check_summary_sp_10_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_10_exhardclear" />
+                  <label for="check_summary_sp_10_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_10_fullcombo" />
+                  <label for="check_summary_sp_10_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_10_a" />
+                  <label for="check_summary_sp_10_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_10_aa" />
+                  <label for="check_summary_sp_10_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_10_aaa" />
+                  <label for="check_summary_sp_10_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">11</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_11_clear" />
+                  <label for="check_summary_sp_11_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_11_hardclear" />
+                  <label for="check_summary_sp_11_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_11_exhardclear" />
+                  <label for="check_summary_sp_11_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_11_fullcombo" />
+                  <label for="check_summary_sp_11_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_11_a" />
+                  <label for="check_summary_sp_11_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_11_aa" />
+                  <label for="check_summary_sp_11_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_11_aaa" />
+                  <label for="check_summary_sp_11_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">12</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_12_clear" />
+                  <label for="check_summary_sp_12_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_12_hardclear" />
+                  <label for="check_summary_sp_12_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_12_exhardclear" />
+                  <label for="check_summary_sp_12_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_sp_12_fullcombo" />
+                  <label for="check_summary_sp_12_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_12_a" />
+                  <label for="check_summary_sp_12_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_12_aa" />
+                  <label for="check_summary_sp_12_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_sp_12_aaa" />
+                  <label for="check_summary_sp_12_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="split_horizontal summary_group_playmode">
+          <div class="pane summary_playmode">DP</div>
+          <div class="pane summary_levelblock">
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">8</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_8_clear" />
+                  <label for="check_summary_dp_8_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_8_hardclear" />
+                  <label for="check_summary_dp_8_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_8_exhardclear" />
+                  <label for="check_summary_dp_8_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_8_fullcombo" />
+                  <label for="check_summary_dp_8_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_8_a" />
+                  <label for="check_summary_dp_8_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_8_aa" />
+                  <label for="check_summary_dp_8_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_8_aaa" />
+                  <label for="check_summary_dp_8_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">9</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_9_clear" />
+                  <label for="check_summary_dp_9_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_9_hardclear" />
+                  <label for="check_summary_dp_9_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_9_exhardclear" />
+                  <label for="check_summary_dp_9_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_9_fullcombo" />
+                  <label for="check_summary_dp_9_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_9_a" />
+                  <label for="check_summary_dp_9_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_9_aa" />
+                  <label for="check_summary_dp_9_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_9_aaa" />
+                  <label for="check_summary_dp_9_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">10</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_10_clear" />
+                  <label for="check_summary_dp_10_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_10_hardclear" />
+                  <label for="check_summary_dp_10_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_10_exhardclear" />
+                  <label for="check_summary_dp_10_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_10_fullcombo" />
+                  <label for="check_summary_dp_10_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_10_a" />
+                  <label for="check_summary_dp_10_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_10_aa" />
+                  <label for="check_summary_dp_10_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_10_aaa" />
+                  <label for="check_summary_dp_10_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">11</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_11_clear" />
+                  <label for="check_summary_dp_11_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_11_hardclear" />
+                  <label for="check_summary_dp_11_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_11_exhardclear" />
+                  <label for="check_summary_dp_11_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_11_fullcombo" />
+                  <label for="check_summary_dp_11_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_11_a" />
+                  <label for="check_summary_dp_11_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_11_aa" />
+                  <label for="check_summary_dp_11_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_11_aaa" />
+                  <label for="check_summary_dp_11_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+            <div class="split_horizontal summary_group_level">
+              <div class="pane summary_level">12</div>
+              <div class="pane summary_itemblock">
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_12_clear" />
+                  <label for="check_summary_dp_12_clear">CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_12_hardclear" />
+                  <label for="check_summary_dp_12_hardclear">H-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_12_exhardclear" />
+                  <label for="check_summary_dp_12_exhardclear">EXH-CLEAR</label>
+                </div>
+                <div class="summary_item cleartype">
+                  <input type="checkbox" id="check_summary_dp_12_fullcombo" />
+                  <label for="check_summary_dp_12_fullcombo">F-COMBO</label>
+                </div>
+                <div class="lineblock"></div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_12_a" />
+                  <label for="check_summary_dp_12_a">A</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_12_aa" />
+                  <label for="check_summary_dp_12_aa">AA</label>
+                </div>
+                <div class="summary_item djlevel">
+                  <input type="checkbox" id="check_summary_dp_12_aaa" />
+                  <label for="check_summary_dp_12_aaa">AAA</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="buttons">
+      <button id="button_save">保存</button>
+      <button id="button_close">閉じる</button>
+    </div>
+  </body>
+</html>

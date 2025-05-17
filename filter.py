@@ -10,7 +10,7 @@ def blur(image, area):
     return image
 
 def filter(image, play_side, loveletter, rivalname, compact):
-    """適切な位置にぼかしを入れる
+    '''適切な位置にぼかしを入れる
 
     ライバル順位と、必要があれば挑戦状・グラフターゲットのライバル名にぼかしを入れる。
 
@@ -24,7 +24,7 @@ def filter(image, play_side, loveletter, rivalname, compact):
 
     Returns:
         Image: ぼかしを入れた画像
-    """
+    '''
     ret = image.copy()
 
     if play_side != '':

@@ -1,7 +1,7 @@
 numpy==1.26.4
 keyboard==0.13.5
 pillow==10.3.0
-PySimpleGUI==4.60.5
 google-cloud-storage==2.16.0
 matplotlib==3.9.0
-pyperclip==1.8.2
+pywebview==5.4
+websockets==15.0.1

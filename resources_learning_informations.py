@@ -702,21 +702,21 @@ def evaluate_musics(music):
     not_exists = []
     for musicname in arcade_musics:
         if not musicname in musictable['musics'].keys():
-            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            escaped = musicname.encode('unicode-escape').decode('UTF-8')
             not_exists.append(f'- {musicname}({escaped})')
     for musicname in infinitas_musics:
         if not musicname in musictable['musics'].keys():
-            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            escaped = musicname.encode('unicode-escape').decode('UTF-8')
             not_exists.append(f'- {musicname}({escaped})')
     for musicname in leggendaria_musics:
         if not musicname in musictable['musics'].keys():
-            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            escaped = musicname.encode('unicode-escape').decode('UTF-8')
             not_exists.append(f'- {musicname}({escaped})')
 
     not_registereds = []
     for musicname in musictable['musics'].keys():
         if not musicname in arcade_musics and not musicname in infinitas_musics:
-            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            escaped = musicname.encode('unicode-escape').decode('UTF-8')
             not_registereds.append(f'- {musicname}({escaped})')
 
     musictable_leggendarias = []
@@ -727,7 +727,7 @@ def evaluate_musics(music):
     not_registereds_leggendaria = []
     for musicname in musictable_leggendarias:
         if not musicname in leggendaria_musics:
-            escaped = musicname.encode('unicode-escape').decode('utf-8')
+            escaped = musicname.encode('unicode-escape').decode('UTF-8')
             not_registereds_leggendaria.append(f'- {musicname}({escaped})')
     
     output = []

@@ -4,7 +4,6 @@ from winsound import SND_FILENAME,PlaySound
 from logging import getLogger
 import pickle
 from os.path import isfile
-from PIL import Image
 
 logger_child_name = 'resources'
 
@@ -12,7 +11,6 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug(f'loaded resources.py')
 
 from define import define
-from gui.general import get_imagevalue
 
 resources_dirname = 'resources'
 
@@ -69,13 +67,6 @@ class Resource():
         resourcename = f'notesradar{define.notesradar_version}'
         
         self.notesradar: dict[str, dict[str, list[dict[str, str | int]]]] = load_resource_serialized(resourcename)
-    
-    def load_images(self):
-        self.imagevalue_resourcecheck = get_imagevalue(Image.open(images_resourcecheck_filepath))
-        self.imagevalue_summaryprocessing = get_imagevalue(Image.open(images_summaryprocessing_filepath))
-        self.imagevalue_imagenothing = get_imagevalue(Image.open(images_imagenothing_filepath))
-        self.imagevalue_graphnogenerate = get_imagevalue(Image.open(images_graphnogenerate_filepath))
-        self.imagevalue_loading = get_imagevalue(Image.open(images_loading_filepath))
 
 class ResourceTimestamp():
     def __init__(self, resourcename):

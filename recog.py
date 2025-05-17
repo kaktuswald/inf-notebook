@@ -107,14 +107,14 @@ class Recognition():
 
         @staticmethod
         def get_music(np_value_informations):
-            """曲名を取得する
+            '''曲名を取得する
 
             Args:
                 np_value_informations (np.array): 対象のトリミングされたリザルト画像データ
 
             Returns:
                 str: 曲名(認識失敗時はNone)
-            """
+            '''
             if resource.informations is None:
                 return None
 

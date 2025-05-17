@@ -8,4 +8,4 @@ if __name__ == '__main__':
     
     if os.path.exists(sys.argv[1]):
         with open(sys.argv[1]) as f:
-            print(b64encode(f.read().encode('utf-8')).decode('utf-8'))
+            print(b64encode(f.read().encode('UTF-8')).decode('UTF-8'))

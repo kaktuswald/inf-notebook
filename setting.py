@@ -4,41 +4,46 @@ from os import getcwd
 setting_filepath = 'setting.json'
 
 default = {
-    'display_result': False,
     'newrecord_only': False,
+    'play_sound': False,
     'autosave': False,
     'autosave_filtered': False,
-    'display_music': False,
-    'play_sound': False,
+    'filter_compact': False,
     'savefilemusicname_right': False,
+    'hotkeys': {
+        'active_screenshot': 'alt+F10',
+        'upload_musicselect': 'alt+F8',
+    },
+    'summary_countmethod_only': False,
+    'display_result': False,
     'imagesave_path': getcwd(),
+    'startup_image': 'notesradar',
+    'hashtags': '#IIDX #infinitas573 #infnotebook',
+    'data_collection': False,
     'summaries' : {
         'SP': {
             '8': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '9': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '10': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '11': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
-            '12': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']}
+            '12': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
         },
         'DP': {
             '8': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '9': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '10': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '11': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
-            '12': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']}
-        }
+            '12': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
+        },
     },
-    'hotkeys': {
-        'active_screenshot': 'alt+F10',
-        'upload_musicselect': 'alt+F8'
-    },
-    'summary_countmethod_only': False,
     'discord_webhook': {
         'djname': 'NO NAME',
-        'servers': {}
+        'servers': {},
     },
-    'startup_image': 'notesradar',
-    'hashtags': '#IIDX #infinitas573 #infnotebook',
+    'port': {
+        'main': 52374,
+        'socket': 57328,
+    }
 }
 
 class Setting():
@@ -64,6 +69,11 @@ class Setting():
         if 'manage' in self.json.keys():
             self.json['debug'] = self.json['manage']
             del self.json['manage']
+        if 'display_music' in self.json.keys():
+            del self.json['display_music']
+        for key in tuple(self.json['discord_webhook']['servers'].keys()):
+            if not 'name' in self.json['discord_webhook']['servers'][key].keys():
+                del self.json['discord_webhook']['servers'][key]
         
         self.save()
 
@@ -87,79 +97,141 @@ class Setting():
         self.json[key] = value
 
     @property
-    def display_result(self):
-        return self.get_value('display_result')
-
-    @display_result.setter
-    def display_result(self, value):
-        self.set_value('display_result', value)
-    
-    @property
     def newrecord_only(self):
+        '''更新があったときのみ記録する
+        '''
         return self.get_value('newrecord_only')
 
     @newrecord_only.setter
-    def newrecord_only(self, value):
+    def newrecord_only(self, value: bool):
         self.set_value('newrecord_only', value)
     
     @property
+    def play_sound(self):
+        '''リザルトを認識した時等に音を鳴らす
+        '''
+        return self.get_value('play_sound')
+
+    @play_sound.setter
+    def play_sound(self, value: bool):
+        self.set_value('play_sound', value)
+    
+    @property
     def autosave(self):
+        '''リザルト画像を自動保存する
+        '''
         return self.get_value('autosave')
 
     @autosave.setter
-    def autosave(self, value):
+    def autosave(self, value: bool):
         self.set_value('autosave', value)
     
     @property
     def autosave_filtered(self):
+        '''ライバルを隠したリザルト画像を自動保存する
+        '''
         return self.get_value('autosave_filtered')
 
     @autosave_filtered.setter
-    def autosave_filtered(self, value):
+    def autosave_filtered(self, value: bool):
         self.set_value('autosave_filtered', value)
     
     @property
-    def display_music(self):
-        return self.get_value('display_music')
+    def filter_compact(self):
+        '''ライバル隠しを最小にする
+        '''
+        return self.get_value('filter_compact')
 
-    @display_music.setter
-    def display_music(self, value):
-        self.set_value('display_music', value)
-    
-    @property
-    def play_sound(self):
-        return self.get_value('play_sound')
-
-    @play_sound.setter
-    def play_sound(self, value):
-        self.set_value('play_sound', value)
+    @filter_compact.setter
+    def filter_compact(self, value: bool):
+        self.set_value('filter_compact', value)
     
     @property
     def savefilemusicname_right(self):
+        '''画像ファイルのファイル名につける曲名を最後にする
+        '''
         return self.get_value('savefilemusicname_right')
 
     @savefilemusicname_right.setter
-    def savefilemusicname_right(self, value):
+    def savefilemusicname_right(self, value: bool):
         self.set_value('savefilemusicname_right', value)
     
     @property
-    def data_collection(self):
-        return self.get_value('data_collection')
+    def hotkeys(self):
+        '''ショートカットキーの設定
+        '''
+        return self.get_value('hotkeys')
 
-    @data_collection.setter
-    def data_collection(self, value):
-        self.set_value('data_collection', value)
+    @hotkeys.setter
+    def hotkeys(self, value: dict[str, str]):
+        self.set_value('hotkeys', value)
+    
+    @property
+    def summary_countmethod_only(self):
+        '''統計の譜面数のカウント方式が、該当するもののみ
+
+        そうでない場合は、例えばEXH-CLEAR等もF-COMBOに含める。
+        '''
+        return self.get_value('summary_countmethod_only')
+
+    @summary_countmethod_only.setter
+    def summary_countmethod_only(self, value: bool):
+        self.set_value('summary_countmethod_only', value)
+    
+    @property
+    def display_result(self):
+        '''リザルトを記録時にそのリザルトを選択する
+        '''
+        return self.get_value('display_result')
+
+    @display_result.setter
+    def display_result(self, value: bool):
+        self.set_value('display_result', value)
     
     @property
     def imagesave_path(self):
+        '''リザルト画像等のファイルの保存先のフォルダパス
+        '''
         return self.get_value('imagesave_path')
 
     @imagesave_path.setter
-    def imagesave_path(self, value):
+    def imagesave_path(self, value: str):
         self.set_value('imagesave_path', value)
     
     @property
+    def startup_image(self):
+        '''リザルト手帳の初期処理完了後に選択状態にするタブの設定
+        '''
+        return self.get_value('startup_image')
+    
+    @startup_image.setter
+    def startup_image(self, value: str):
+        self.set_value('startup_image', value)
+    
+    @property
+    def hashtags(self):
+        '''ポストの本文に付与する文字列
+        '''
+        return self.get_value('hashtags')
+    
+    @hashtags.setter
+    def hashtags(self, value: str):
+        self.set_value('hashtags', value)
+    
+    @property
+    def data_collection(self):
+        '''収集画像をアップロードする
+        '''
+        return self.get_value('data_collection')
+
+    @data_collection.setter
+    def data_collection(self, value: bool):
+        self.set_value('data_collection', value)
+    
+    @property
     def summaries(self):
+        '''統計出力設定
+        '''
         return self.get_value('summaries')
 
     @summaries.setter
@@ -167,31 +239,9 @@ class Setting():
         self.set_value('summaries', value)
     
     @property
-    def hotkeys(self):
-        return self.get_value('hotkeys')
-
-    @hotkeys.setter
-    def hotkeys(self, value):
-        self.set_value('hotkeys', value)
-    
-    @property
-    def summary_countmethod_only(self):
-        return self.get_value('summary_countmethod_only')
-
-    @summary_countmethod_only.setter
-    def summary_countmethod_only(self, value):
-        self.set_value('summary_countmethod_only', value)
-    
-    @property
-    def filter_compact(self):
-        return self.get_value('filter_compact')
-
-    @filter_compact.setter
-    def filter_compact(self, value):
-        self.set_value('filter_compact', value)
-    
-    @property
     def discord_webhook(self):
+        '''連携投稿設定
+        '''
         return self.get_value('discord_webhook')
 
     @discord_webhook.setter
@@ -199,25 +249,25 @@ class Setting():
         self.set_value('discord_webhook', value)
 
     @property
-    def startup_image(self):
-        return self.get_value('startup_image')
-    
-    @startup_image.setter
-    def startup_image(self, value):
-        self.set_value('startup_image', value)
-    
-    @property
-    def hashtags(self):
-        return self.get_value('hashtags')
-    
-    @hashtags.setter
-    def hashtags(self, value):
-        self.set_value('hashtags', value)
-    
+    def port(self):
+        '''ポート設定
+        '''
+        return self.get_value('port')
+
+    @port.setter
+    def port(self, value):
+        self.set_value('port', value)
+
     @property
     def ignore_download(self):
+        '''最新リソースファイルの取得を無効にする
+        '''
         return self.get_value('ignore_download')
 
     @property
     def debug(self):
+        '''デバッグモード
+
+        デバッグ用のログ表示を有効にする。
+        '''
         return self.get_value('debug')

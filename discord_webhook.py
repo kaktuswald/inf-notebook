@@ -14,14 +14,24 @@ serversetting_default = {
 }
 
 def deactivate_allbattles(settings: dict):
-    """バトルモードの設定をすべてノンアクティブにする
-    """
+    '''バトルモードの設定をすべてノンアクティブにする
+
+    Args:
+        settings(dict): 対象の設定リスト
+    Returns:
+        bool: 変更が有り
+    '''
+    changed = False
+
     for target in settings.values():
         if target['mode'] != 'battle':
             continue
 
         if target['state'] == 'active':
             target['state'] = 'nonactive'
+            changed = True
+    
+    return changed
 
 def post_result(djname: str, setting: dict, result: Result, imagevalue: bytes):
     informations: ResultInformations = result.informations

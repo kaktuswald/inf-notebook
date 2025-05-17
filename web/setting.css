@@ -1,0 +1,84 @@
+div.tabpage {
+    height: 370px;
+}
+
+div#setting_contents {
+    border: 2px solid gainsboro;
+    flex: 1;
+}
+
+div.label {
+    width: 195px;
+}
+
+div.summary_comment {
+    font-size: small;
+}
+
+div.summary_playmode {
+    width: 25px;
+    text-align: center;
+    align-self: center;
+}
+
+div.summary_levelblock {
+    background-color: antiquewhite;
+    padding: 1px 5px;
+}
+
+div.summary_level {
+    width: 20px;
+    text-align: center;
+}
+
+div.summary_itemblock {
+    display: flex;
+    background-color: white;
+    align-items: center;
+}
+
+div.summary_item {
+    display: flex;
+    padding-right: 4px;
+    font-size: small;
+    align-self: center;
+}
+
+div.lineblock {
+    display: inline-block;
+    width: 2px;
+    height: 20px;
+    background-color: antiquewhite;
+    align-self: center;
+}
+
+div.setting_item {
+    display: block;
+    padding: 2px 0px;
+    margin-left: 30px;
+    font-size: small;
+}
+
+div.hotkey_label {
+    display: inline-block;
+    width: 150px;
+}
+
+div.port_label {
+    display: inline-block;
+    width: 150px;
+}
+
+input.port_input {
+    width: 80px;
+}
+
+span.setting_annotation {
+    font-size: xx-small;
+    user-select: none;
+}
+
+div.buttons {
+    display: block;
+    text-align: right;
+}

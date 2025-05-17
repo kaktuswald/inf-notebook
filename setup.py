@@ -20,6 +20,8 @@ build_exe_options = {
     'include_files': [
         'resources/',
         'export/',
+        'web/',
+        'web/lib/',
         'readme.txt',
         'version.txt',
         icon_filename
@@ -35,7 +37,7 @@ executables = (
     [
         Executable(
             'main.pyw',
-            copyright='Copyright (C) 2022-2024',
+            copyright='Copyright (C) 2022-2025',
             base=base,
             shortcut_name=u'ビートマニアリザルト手帳',
             shortcut_dir=u'ビートマニアリザルト手帳',

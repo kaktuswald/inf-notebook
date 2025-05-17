@@ -26,11 +26,11 @@ rectsizes = (
     (1280, 720),
     (1097, 617)
 )
-"""INFINITASの画面サイズの候補
+'''INFINITASの画面サイズの候補
 
 ディスプレイの拡大/縮小設定によって取得できるINFINITASの画面サイズが変化するため、
 いずれかに一致していたらOKとする
-"""
+'''
 
 windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS.PROCESS_DPI_UNAWARE)
 

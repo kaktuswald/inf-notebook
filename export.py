@@ -125,12 +125,12 @@ class Recent():
         with open(recent_filepath, 'w') as f:
             json.dump(self.json, f)
 
-def output(notebook):
-    """CSVファイルを出力する
+def output(notebook: NotebookSummary):
+    '''CSVファイルを出力する
     
     Args:
         notebook (NotebookSummary): 対象のデータ
-    """
+    '''
     musictable = resource.musictable
 
     summary_filenames = {

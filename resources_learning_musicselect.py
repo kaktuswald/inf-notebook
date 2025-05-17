@@ -945,7 +945,7 @@ def evaluate():
 
     table = musictable['musics']
     for musicname in table.keys():
-        escaped = musicname.encode('unicode-escape').decode('utf-8')
+        escaped = musicname.encode('unicode-escape').decode('UTF-8')
         if musicname in evaluate_musictable.keys():
             if not 'version' in evaluate_musictable[musicname].keys():
                 report.error(f'Not registered version {musicname}')

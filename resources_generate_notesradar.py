@@ -32,7 +32,7 @@ def import_csv():
     csv = {}
     for key, filename in filenames.items():
         if exists(filename):
-            with open(filename, 'r', encoding='utf-8') as f:
+            with open(filename, 'r', encoding='UTF-8') as f:
                 csvdata = f.read().split('\n')
                 splitted = [line.split(',') for line in csvdata]
                 csv[key] = [[

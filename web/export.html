@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+  <head>
+		<meta charset='utf-8' />
+    <title>リザルト手帳 エクスポート</title>
+    <link rel="stylesheet" href="./general.css" />
+    <link rel="stylesheet" href="./export.css" />
+    <script src="./lib/jquery-3.7.1.slim.min.js"></script>
+    <script src="./export.js"></script>
+  </head>
+  <body>
+    <p id="tabcontrol" class="tabcontrol">
+      <button id="display_tabpage_manual" class="select_tabpage">マニュアル</button>
+      <button id="display_tabpage_obs" class="select_tabpage">OBSについて</button>
+      <button id="display_tabpage_recent" class="select_tabpage">最近のデータ</button>
+      <button id="display_tabpage_summary" class="select_tabpage">統計データ</button>
+    </p>
+    <div id="tabbody_main">
+      <div id="tabpage_blank" class="tabpage">
+      </div>
+      <div id="tabpage_manual" class="tabpage">
+        <div>
+          <span>リザルト手帳はいくつかのファイルをexportフォルダに作成します。</span>
+        </div>
+        <div class="item">
+          <span>exportの場所</span>
+          <div id="exportpath"></div>
+          <button id="clipboardcopy_exportpath">クリップボードにコピー</button>
+        </div>
+        <div class="label highlight">CSV出力</div>
+        <div>
+          「CSV出力」ボタンを押すと全プレイデータと、いくつかの統計データファイル(CSV)を作成します。
+        </div>
+        <div>
+          作られた統計データファイルはExcel等で開くことができます。
+        </div>
+        <div class="label highlight">全プレイデータ</div>
+        <div>SP.csvとDP.csvは全プレイデータです。</div>
+        <div class="label highlight">統計データ</div>
+        <div>
+          難易度ごとの各クリアタイプ・各DJレベルの曲数や、レベルごとの各クリアタイプ・各DJレベルの曲数を統計したファイルを作成します。
+        </div>
+        <div>
+          たとえば、SP-難易度-DJレベル.csv はSPの難易度ごとに各DJレベルの曲数を統計したデータです。
+        </div>
+      </div>
+      <div id="tabpage_obs" class="tabpage">
+        <div class="highlight">OBSとは録画や配信をするためのソフトウェアです。</div>
+        <div>
+          exportフォルダに含まれるいくつかのファイルは、OBSに追加することができます。
+        </div>
+        <div>
+          統計データ(summary.png)と選曲情報(musicinformation.png)はソースに画像を追加して、対象の画像ファイルを指定してください。
+        </div>
+        <div>
+          最近のデータ(recent.html)と統計データ(summary.html)はソースにブラウザを追加して、ローカルファイルのチェックを入れて対象のhtmlファイルを指定してください。
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="obs_itemlabel">summary.png</div>
+            <div class="contentblock">起動時に表示する統計データの画像です。</div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="obs_itemlabel">musicinformation.png</div>
+            <div class="contentblock">選曲中に表示する曲情報の画像です。</div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="obs_itemlabel">recent.html</div>
+            <div class="contentblock">過去12時間以内のプレイ曲数と曲名が表示できます。</div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="obs_itemlabel">summary.html</div>
+            <div class="contentblock">
+              <div>デフォルトではSP,DP両方のANOTHERのA,AA,AAAの曲数を表示します。</div>
+              <div>表示内容を変更するときは「統計データ」タブでカスタムCSSを作成してください。</div>
+            </div>
+          </div>
+        </div>
+        <div class="label highlight">カスタムCSS</div>
+        <div>
+          「最近のデータ」「統計データ」タブからカスタムCSSを作成できます。
+        </div>
+        <div>
+          作成されたCSSをコピーして、OBSのほうのソースのプロパティで「カスタムCSS」に貼り付けてください。
+        </div>
+      </div>
+      <div id="tabpage_recent" class="tabpage">
+        <div class="item">
+          <div class="item">
+            <span>文字サイズ</span>
+            <input type="text" id="text_recent_textsize" class="recent input_size" />
+            <span>px</span>
+          </div>
+          <div class="item">
+            <span>文字色</span>
+            <input type="text" id="text_recent_textcolor" class="recent input_color" />
+            <div id="colorblock_recent_textcolor" class="colorblock"></div>
+          </div>
+          <div class="item">
+            <span>影色</span>
+            <input type="text" id="text_recent_shadowcolor" class="recent input_color" />
+            <div id="colorblock_recent_shadowcolor" class="colorblock"></div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="item">
+            <div class="difficultylabel">NORMAL</div>
+            <input type="text" id="text_recent_NORMAL_color" class="recent input_color" />
+            <div id="colorblock_recent_NORMAL_color" class="colorblock"></div>
+          </div>
+          <div class="item">
+            <div class="difficultylabel">HYPER</div>
+            <input type="text" id="text_recent_HYPER_color" class="recent input_color" />
+            <div id="colorblock_recent_HYPER_color" class="colorblock"></div>
+          </div>
+          <div class="item">
+            <div class="difficultylabel">ANOTHER</div>
+            <input type="text" id="text_recent_ANOTHER_color" class="recent input_color" />
+            <div id="colorblock_recent_ANOTHER_color" class="colorblock"></div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="item">
+            <div class="difficultylabel">BEGINNER</div>
+            <input type="text" id="text_recent_BEGINNER_color" class="recent input_color" />
+            <div id="colorblock_recent_BEGINNER_color" class="colorblock"></div>
+          </div>
+          <div class="difficultylabel">LEGGENDARIA</div>
+          <input type="text" id="text_recent_LEGGENDARIA_color" class="recent input_color" />
+          <div id="colorblock_recent_LEGGENDARIA_color" class="colorblock"></div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="recent_itemlabel">プレイ曲数</div>
+            <input type="checkbox" id="check_recent_played_count_display" class="recent" />
+            <label for="check_recent_played_count_display">表示する</label>
+            <div class="contentblock">
+              <div class="item">
+                <span>文字色</span>
+                <input type="text" id="text_recent_played_count_color" class="recent input_color" />
+                <div id="colorblock_recent_played_count_color" class="colorblock"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="recent_itemlabel">スコアの合計</div>
+            <input type="checkbox" id="check_recent_score_display" class="recent" />
+            <label for="check_recent_score_display">表示する</label>
+            <div class="contentblock">
+              <div class="item">
+                <span>文字色</span>
+                <input type="text" id="text_recent_score_color" class="recent input_color" />
+                <div id="colorblock_recent_score_color" class="colorblock"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="recent_itemlabel">ミスカウントの合計</div>
+            <input type="checkbox" id="check_recent_misscount_display" class="recent" />
+            <label for="check_recent_misscount_display">表示する</label>
+            <div class="contentblock">
+              <div class="item">
+                <span>文字色</span>
+                <input type="text" id="text_recent_misscount_color" class="recent input_color" />
+                <div id="colorblock_recent_misscount_color" class="colorblock"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="recent_itemlabel">更新したスコアの合計</div>
+            <input type="checkbox" id="check_recent_updated_edscore_display" class="recent" />
+            <label for="check_recent_updated_score_display">表示する</label>
+            <div class="contentblock">
+              <div class="item">
+                <span>文字色</span>
+                <input type="text" id="text_recent_updated_score_color" class="recent input_color" />
+                <div id="colorblock_recent_updated_score_color" class="colorblock"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="recent_itemlabel">更新したミスカウントの合計</div>
+            <input type="checkbox" id="check_recent_updated_misscount_display" class="recent" />
+            <label for="check_recent_updated_misscount_display">表示する</label>
+            <div class="contentblock">
+              <div class="item">
+                <span>文字色</span>
+                <input type="text" id="text_recent_updated_misscount_color" class="recent input_color" />
+                <div id="colorblock_recent_updated_misscount_color" class="colorblock"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="recent_itemlabel">クリアの回数</div>
+            <input type="checkbox" id="check_recent_clear_display" class="recent" />
+            <label for="check_recent_clear_display">表示する</label>
+            <div class="contentblock">
+              <div class="item">
+                <span>文字色</span>
+                <input type="text" id="text_recent_clear_color" class="recent input_color" />
+                <div id="colorblock_recent_clear_color" class="colorblock"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="recent_itemlabel">FAILEDの曲数</div>
+            <input type="checkbox" id="check_recent_failed_display" class="recent" />
+            <label for="check_recent_failed_display">表示する</label>
+            <div class="contentblock">
+              <div class="item">
+                <span>文字色</span>
+                <input type="text" id="text_recent_failed_color" class="recent input_color" />
+                <div id="colorblock_recent_failed_color" class="colorblock"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tabpage_summary" class="tabpage">
+        <div class="item">
+          <div class="item">
+            <span>文字色</span>
+            <input type="text" id="text_summary_textcolor" class="summary input_color" />
+            <div id="colorblock_summary_textcolor" class="colorblock"></div>
+          </div>
+          <div class="item">
+            <span>影色</span>
+            <input type="text" id="text_summary_shadowcolor" class="summary input_color" />
+            <div id="colorblock_summary_shadowcolor" class="colorblock"></div>
+          </div>
+          <div class="item">
+            <span>日時の文字色</span>
+            <input type="text" id="text_summary_datecolor" class="summary input_color" />
+            <div id="colorblock_summary_datecolor" class="colorblock"></div>
+          </div>
+        </div>
+        <div class="split_horizontal">
+          <div class="item summary_playmode">
+            <input type="checkbox" id="check_summary_SP" class="summaryplaymodes" />
+            <label for="check_summary_SP">SP</label>
+          </div>
+          <div class="itemblock summary_itemblock">
+            <div>
+              <input type="checkbox" id="check_summary_SP_BEGINNER" class="summary SP" />
+              <label for="check_summary_SP_BEGINNER">BEGINNER</label>
+              <input type="checkbox" id="check_summary_SP_NORMAL" class="summary SP" />
+              <label for="check_summary_SP_NORMAL">NORMAL</label>
+              <input type="checkbox" id="check_summary_SP_HYPER" class="summary SP" />
+              <label for="check_summary_SP_HYPER">HYPER</label>
+              <input type="checkbox" id="check_summary_SP_ANOTHER" class="summary SP" />
+              <label for="check_summary_SP_ANOTHER">ANOTHER</label>
+              <input type="checkbox" id="check_summary_SP_LEGGENDARIA" class="summary SP" />
+              <label for="check_summary_SP_LEGGENDARIA">LEGGENDARIA</label>
+            </div>
+            <div class="contentblock">
+              <div>
+                <input type="checkbox" id="check_summary_SP_difficulties_NO--PLAY" class="summary SP" />
+                <label for="check_summary_SP_difficulties_NO--PLAY">NO PLAY</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_FAILED" class="summary SP" />
+                <label for="check_summary_SP_difficulties_FAILED">FAILED</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_A-CLEAR" class="summary SP" />
+                <label for="check_summary_SP_difficulties_A-CLEAR">A-CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_E-CLEAR" class="summary SP" />
+                <label for="check_summary_SP_difficulties_E-CLEAR">E-CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_CLEAR" class="summary SP" />
+                <label for="check_summary_SP_difficulties_CLEAR">CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_H-CLEAR" class="summary SP" />
+                <label for="check_summary_SP_difficulties_H-CLEAR">H-CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_EXH-CLEAR" class="summary SP" />
+                <label for="check_summary_SP_difficulties_EXH-CLEAR">EXH-CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_F-COMBO" class="summary SP" />
+                <label for="check_summary_SP_difficulties_F-COMBO">F-COMBO</label>
+              </div>
+              <div>
+                <input type="checkbox" id="check_summary_SP_difficulties_F" class="summary SP" />
+                <label for="check_summary_SP_difficulties_F">F</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_E" class="summary SP" />
+                <label for="check_summary_SP_difficulties_E">E</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_D" class="summary SP" />
+                <label for="check_summary_SP_difficulties_D">D</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_C" class="summary SP" />
+                <label for="check_summary_SP_difficulties_C">C</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_B" class="summary SP" />
+                <label for="check_summary_SP_difficulties_B">B</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_A" class="summary SP" />
+                <label for="check_summary_SP_difficulties_A">A</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_AA" class="summary SP" />
+                <label for="check_summary_SP_difficulties_AA">AA</label>
+                <input type="checkbox" id="check_summary_SP_difficulties_AAA" class="summary SP" />
+                <label for="check_summary_SP_difficulties_AAA">AAA</label>
+              </div>
+            </div>
+            <div>
+              <input type="checkbox" id="check_summary_SP_1" class="summary SP" />
+              <label for="check_summary_SP_1">1</label>
+              <input type="checkbox" id="check_summary_SP_2" class="summary SP" />
+              <label for="check_summary_SP_2">2</label>
+              <input type="checkbox" id="check_summary_SP_3" class="summary SP" />
+              <label for="check_summary_SP_3">3</label>
+              <input type="checkbox" id="check_summary_SP_4" class="summary SP" />
+              <label for="check_summary_SP_4">4</label>
+              <input type="checkbox" id="check_summary_SP_5" class="summary SP" />
+              <label for="check_summary_SP_5">5</label>
+              <input type="checkbox" id="check_summary_SP_6" class="summary SP" />
+              <label for="check_summary_SP_6">6</label>
+              <input type="checkbox" id="check_summary_SP_7" class="summary SP" />
+              <label for="check_summary_SP_7">7</label>
+              <input type="checkbox" id="check_summary_SP_8" class="summary SP" />
+              <label for="check_summary_SP_8">8</label>
+              <input type="checkbox" id="check_summary_SP_9" class="summary SP" />
+              <label for="check_summary_SP_9">9</label>
+              <input type="checkbox" id="check_summary_SP_10" class="summary SP" />
+              <label for="check_summary_SP_10">10</label>
+              <input type="checkbox" id="check_summary_SP_11" class="summary SP" />
+              <label for="check_summary_SP_11">11</label>
+              <input type="checkbox" id="check_summary_SP_12" class="summary SP" />
+              <label for="check_summary_SP_12">12</label>
+            </div>
+            <div class="contentblock">
+              <div>
+                <input type="checkbox" id="check_summary_SP_levels_NO--PLAY" class="summary SP" />
+                <label for="check_summary_SP_levels_NO--PLAY">NO PLAY</label>
+                <input type="checkbox" id="check_summary_SP_levels_FAILED" class="summary SP" />
+                <label for="check_summary_SP_levels_FAILED">FAILED</label>
+                <input type="checkbox" id="check_summary_SP_levels_A-CLEAR" class="summary SP" />
+                <label for="check_summary_SP_levels_A-CLEAR">A-CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_levels_E-CLEAR" class="summary SP" />
+                <label for="check_summary_SP_levels_E-CLEAR">E-CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_levels_CLEAR" class="summary SP" />
+                <label for="check_summary_SP_levels_CLEAR">CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_levels_H-CLEAR" class="summary SP" />
+                <label for="check_summary_SP_levels_H-CLEAR">H-CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_levels_EXH-CLEAR" class="summary SP" />
+                <label for="check_summary_SP_levels_EXH-CLEAR">EXH-CLEAR</label>
+                <input type="checkbox" id="check_summary_SP_levels_F-COMBO" class="summary SP" />
+                <label for="check_summary_SP_levels_F-COMBO">F-COMBO</label>
+              </div>
+              <div>
+                <input type="checkbox" id="check_summary_SP_levels_F" class="summary SP" />
+                <label for="check_summary_SP_levels_F">F</label>
+                <input type="checkbox" id="check_summary_SP_levels_E" class="summary SP" />
+                <label for="check_summary_SP_levels_E">E</label>
+                <input type="checkbox" id="check_summary_SP_levels_D" class="summary SP" />
+                <label for="check_summary_SP_levels_D">D</label>
+                <input type="checkbox" id="check_summary_SP_levels_C" class="summary SP" />
+                <label for="check_summary_SP_levels_C">C</label>
+                <input type="checkbox" id="check_summary_SP_levels_B" class="summary SP" />
+                <label for="check_summary_SP_levels_B">B</label>
+                <input type="checkbox" id="check_summary_SP_levels_A" class="summary SP" />
+                <label for="check_summary_SP_levels_A">A</label>
+                <input type="checkbox" id="check_summary_SP_levels_AA" class="summary SP" />
+                <label for="check_summary_SP_levels_AA">AA</label>
+                <input type="checkbox" id="check_summary_SP_levels_AAA" class="summary SP" />
+                <label for="check_summary_SP_levels_AAA">AAA</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="split_horizontal">
+          <div class="item summary_playmode">
+            <input type="checkbox" id="check_summary_DP" class="summaryplaymodes" />
+            <label for="check_summary_DP">DP</label>
+          </div>
+          <div class="itemblock summary_itemblock">
+            <div>
+              <input type="checkbox" id="check_summary_DP_BEGINNER" class="summary DP" />
+              <label for="check_summary_DP_BEGINNER">BEGINNER</label>
+              <input type="checkbox" id="check_summary_DP_NORMAL" class="summary DP" />
+              <label for="check_summary_DP_NORMAL">NORMAL</label>
+              <input type="checkbox" id="check_summary_DP_HYPER" class="summary DP" />
+              <label for="check_summary_DP_HYPER">HYPER</label>
+              <input type="checkbox" id="check_summary_DP_ANOTHER" class="summary DP" />
+              <label for="check_summary_DP_ANOTHER">ANOTHER</label>
+              <input type="checkbox" id="check_summary_DP_LEGGENDARIA" class="summary DP" />
+              <label for="check_summary_DP_LEGGENDARIA">LEGGENDARIA</label>
+            </div>
+            <div class="contentblock">
+              <div>
+                <input type="checkbox" id="check_summary_DP_difficulties_NO--PLAY" class="summary DP" />
+                <label for="check_summary_DP_difficulties_NO--PLAY">NO PLAY</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_FAILED" class="summary DP" />
+                <label for="check_summary_DP_difficulties_FAILED">FAILED</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_A-CLEAR" class="summary DP" />
+                <label for="check_summary_DP_difficulties_A-CLEAR">A-CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_E-CLEAR" class="summary DP" />
+                <label for="check_summary_DP_difficulties_E-CLEAR">E-CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_CLEAR" class="summary DP" />
+                <label for="check_summary_DP_difficulties_CLEAR">CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_H-CLEAR" class="summary DP" />
+                <label for="check_summary_DP_difficulties_H-CLEAR">H-CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_EXH-CLEAR" class="summary DP" />
+                <label for="check_summary_DP_difficulties_EXH-CLEAR">EXH-CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_F-COMBO" class="summary DP" />
+                <label for="check_summary_DP_difficulties_F-COMBO">F-COMBO</label>
+              </div>
+              <div>
+                <input type="checkbox" id="check_summary_DP_difficulties_F" class="summary DP" />
+                <label for="check_summary_DP_difficulties_F">F</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_E" class="summary DP" />
+                <label for="check_summary_DP_difficulties_E">E</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_D" class="summary DP" />
+                <label for="check_summary_DP_difficulties_D">D</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_C" class="summary DP" />
+                <label for="check_summary_DP_difficulties_C">C</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_B" class="summary DP" />
+                <label for="check_summary_DP_difficulties_B">B</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_A" class="summary DP" />
+                <label for="check_summary_DP_difficulties_A">A</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_AA" class="summary DP" />
+                <label for="check_summary_DP_difficulties_AA">AA</label>
+                <input type="checkbox" id="check_summary_DP_difficulties_AAA" class="summary DP" />
+                <label for="check_summary_DP_difficulties_AAA">AAA</label>
+              </div>
+            </div>
+            <div>
+              <input type="checkbox" id="check_summary_DP_1" class="summary DP" />
+              <label for="check_summary_DP_1">1</label>
+              <input type="checkbox" id="check_summary_DP_2" class="summary DP" />
+              <label for="check_summary_DP_2">2</label>
+              <input type="checkbox" id="check_summary_DP_3" class="summary DP" />
+              <label for="check_summary_DP_3">3</label>
+              <input type="checkbox" id="check_summary_DP_4" class="summary DP" />
+              <label for="check_summary_DP_4">4</label>
+              <input type="checkbox" id="check_summary_DP_5" class="summary DP" />
+              <label for="check_summary_DP_5">5</label>
+              <input type="checkbox" id="check_summary_DP_6" class="summary DP" />
+              <label for="check_summary_DP_6">6</label>
+              <input type="checkbox" id="check_summary_DP_7" class="summary DP" />
+              <label for="check_summary_DP_7">7</label>
+              <input type="checkbox" id="check_summary_DP_8" class="summary DP" />
+              <label for="check_summary_DP_8">8</label>
+              <input type="checkbox" id="check_summary_DP_9" class="summary DP" />
+              <label for="check_summary_DP_9">9</label>
+              <input type="checkbox" id="check_summary_DP_10" class="summary DP" />
+              <label for="check_summary_DP_10">10</label>
+              <input type="checkbox" id="check_summary_DP_11" class="summary DP" />
+              <label for="check_summary_DP_11">11</label>
+              <input type="checkbox" id="check_summary_DP_12" class="summary DP" />
+              <label for="check_summary_DP_12">12</label>
+            </div>
+            <div class="contentblock">
+              <div>
+                <input type="checkbox" id="check_summary_DP_levels_NO--PLAY" class="summary DP" />
+                <label for="check_summary_DP_levels_NO--PLAY">NO PLAY</label>
+                <input type="checkbox" id="check_summary_DP_levels_FAILED" class="summary DP" />
+                <label for="check_summary_DP_levels_FAILED">FAILED</label>
+                <input type="checkbox" id="check_summary_DP_levels_A-CLEAR" class="summary DP" />
+                <label for="check_summary_DP_levels_A-CLEAR">A-CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_levels_E-CLEAR" class="summary DP" />
+                <label for="check_summary_DP_levels_E-CLEAR">E-CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_levels_CLEAR" class="summary DP" />
+                <label for="check_summary_DP_levels_CLEAR">CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_levels_H-CLEAR" class="summary DP" />
+                <label for="check_summary_DP_levels_H-CLEAR">H-CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_levels_EXH-CLEAR" class="summary DP" />
+                <label for="check_summary_DP_levels_EXH-CLEAR">EXH-CLEAR</label>
+                <input type="checkbox" id="check_summary_DP_levels_F-COMBO" class="summary DP" />
+                <label for="check_summary_DP_levels_F-COMBO">F-COMBO</label>
+              </div>
+              <div>
+                <input type="checkbox" id="check_summary_DP_levels_F" class="summary DP" />
+                <label for="check_summary_DP_levels_F">F</label>
+                <input type="checkbox" id="check_summary_DP_levels_E" class="summary DP" />
+                <label for="check_summary_DP_levels_E">E</label>
+                <input type="checkbox" id="check_summary_DP_levels_D" class="summary DP" />
+                <label for="check_summary_DP_levels_D">D</label>
+                <input type="checkbox" id="check_summary_DP_levels_C" class="summary DP" />
+                <label for="check_summary_DP_levels_C">C</label>
+                <input type="checkbox" id="check_summary_DP_levels_B" class="summary DP" />
+                <label for="check_summary_DP_levels_B">B</label>
+                <input type="checkbox" id="check_summary_DP_levels_A" class="summary DP" />
+                <label for="check_summary_DP_levels_A">A</label>
+                <input type="checkbox" id="check_summary_DP_levels_AA" class="summary DP" />
+                <label for="check_summary_DP_levels_AA">AA</label>
+                <input type="checkbox" id="check_summary_DP_levels_AAA" class="summary DP" />
+                <label for="check_summary_DP_levels_AAA">AAA</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="split_horizontal">
+      <textarea id="css"></textarea>
+      <div>
+        <div class="buttons">
+          <button id="button_output_csv">CSV出力</button>
+          <button id="button_confirm_clearrecent">最近のデータのリセット</button>
+        </div>
+        <div>
+          <span id="csstarget"></span>
+        </div>
+        <div class="buttons">
+          <button id="button_clipboardcopy_css">←CSSをクリップボードにコピー</button>
+        </div>
+        <div class="buttons">
+          <button id="button_close">閉じる</button>
+        </div>
+      </div>
+    </div>
+    <dialog id="dialog_clearrecent">
+      <div>
+        <div>exportフォルダのrecent.htmlの内容をリセットしますか？</div>
+        <div class="buttons_in_dialog">
+          <button id="button_execute_clearrecent">OK</button>
+          <button class="dialogclose">cancel</button>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>
