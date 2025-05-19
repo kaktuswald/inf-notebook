@@ -1512,7 +1512,7 @@ def check_latest_version():
         if config.installer_filepath.exists():
             def action():
                 Popen(config.installer_filepath)
-                exit()
+                window.mainwindow.destroy()
             message = find_latest_version_message_has_installer
     
     if action is None:
