@@ -32,7 +32,7 @@ jobs:
         run: pip install -r installer_requirements.txt
 
       - name: Install cx_Freeze
-        run: pip install cx_Freeze==7.2.10
+        run: pip install cx_Freeze==8.3.0
     
       - name: Build
         run: python installer_setup.py build
@@ -65,7 +65,7 @@ jobs:
         run: pip install -r requirements.txt
     
       - name: Install cx_Freeze
-        run: pip install cx_Freeze==7.2.10
+        run: pip install cx_Freeze==8.3.0
     
       - name: Build
         run: |
