@@ -1,26 +1,22 @@
 from os.path import join,exists
 import json
+import pandas as pd
 
 from define import define
 from resources import resource
-from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
+from resources_generate import Report,save_resource_serialized,registries_dirname
 
 resource_filename = f'notesradar{define.notesradar_version}.res'
 
-filenames = {
-    'SP': join(registries_dirname, 'notesradardata_sp.csv'),
-    'DP': join(registries_dirname, 'notesradardata_dp.csv')
-}
+radardata_dirpath = join(registries_dirname, 'notesradars')
+
+filenames = {}
+for playmode in define.value_list['play_modes']:
+    filenames[playmode] = {}
+    for attribute in define.value_list['notesradar_attributes']:
+        filenames[playmode][attribute] = join(radardata_dirpath, f'{playmode} {attribute}.csv')
 
 ignore_filepath = join(registries_dirname, 'notesradar_ignore.json')
-
-difficulties = {
-    'B': 'BEGINNER',
-    'N': 'NORMAL',
-    'H': 'HYPER',
-    'A': 'ANOTHER',
-    'L': 'LEGGENDARIA'
-}
 
 report_name = 'notesradar'
 
@@ -30,31 +26,19 @@ def load_musictable():
 
 def import_csv():
     csv = {}
-    for key, filename in filenames.items():
-        if exists(filename):
-            with open(filename, 'r', encoding='UTF-8') as f:
-                csvdata = f.read().split('\n')
-                splitted = [line.split(',') for line in csvdata]
-                csv[key] = [[
-                    s[1],
-                    s[2].replace('""', '"'),
-                    difficulties[s[4]],
-                    s[5],
-                    int(s[6]),
-                    {
-                        'NOTES': float(s[13]),
-                        'CHORD': float(s[15]),
-                        'PEAK': float(s[17]),
-                        'CHARGE': float(s[19]),
-                        'SCRATCH': float(s[21]),
-                        'SOF-LAN': float(s[23])
-                    }
-                ] for s in splitted if len(s[1]) > 0 and s[1] != 'バージョン' and s[6].isdigit()]
+    for playmode in filenames.keys():
+        csv[playmode] = {}
+        for attribute in filenames[playmode].keys():
+
+            filename = filenames[playmode][attribute]
+            if not exists(filename):
+                continue
+
+            csv[playmode][attribute] = pd.read_csv(filename, encoding='UTF-8')
 
     return csv
 
 def output_attributevalues(resource: dict, output_dirpath: str):
-
     for playmode, targets1 in resource.items():
         for attribute, targets2 in targets1['attributes'].items():
             output = []
@@ -99,68 +83,76 @@ def generate(musics, csv):
         ignore = {}
     
     resource: dict[str, dict[str, dict[str, dict[str, int | dict[str, float]]]| dict[str, list[dict[str, str | int]]]]] = {}
-    for playmode in define.value_list['play_modes']:
-        resource[playmode] = {'musics': {}, 'attributes': {}}
 
-    duplicate_difficulty = []
     added = {}
-    for playmode in define.value_list['play_modes']:
-        attribute_list = {}
-        for attribute in define.value_list['notesradar_attributes']:
-            attribute_list[attribute] = []
+    mismatch_notes = {}
 
-        for line in csv[playmode]:
-            musicname = line[1]
-            difficulty = line[2]
-            notes = line[4]
-            radars = line[5]
-            
-            if not musicname in musics.keys():
-                continue
+    for playmode in csv.keys():
+        resource[playmode] = {'musics': {}, 'attributes': {}}
+        mismatch_notes[playmode] = {}
 
-            if not difficulty in musics[musicname][playmode].keys():
-                continue
+        notesradar_musics = resource[playmode]['musics']
+        for attribute in csv[playmode].keys():
+            resource[playmode]['attributes'][attribute] = []
+            notesradar_attribute = resource[playmode]['attributes'][attribute]
 
-            if musicname in ignore.keys() and playmode in ignore[musicname].keys() and difficulty in ignore[musicname][playmode]:
-                report.append_log(f'Ignore {playmode} {musicname} {difficulty}')
-                continue
-            
-            if musicname in added.keys() and playmode in added[musicname].keys() and difficulty in added[musicname][playmode]:
-                duplicate_difficulty.append(f'{playmode} {musicname} {difficulty}')
-                continue
-            
-            if not musicname in resource[playmode]['musics'].keys():
-                resource[playmode]['musics'][musicname] = {}
-            if not difficulty in resource[playmode]['musics'][musicname].keys():
-                resource[playmode]['musics'][musicname][difficulty] = {
-                    'notes': notes,
-                    'radars': radars
-                }
+            df: pd.DataFrame = csv[playmode][attribute]
 
-            for attribute, value in radars.items():
-                if value != 0:
-                    attribute_list[attribute].append({
-                        'musicname': musicname,
-                        'difficulty': difficulty,
-                        'max': radars[attribute]
-                    })
+            for row in df.itertuples():
+                musicname = row.タイトル
+                difficulty = row.難易度
+                notes = row.ノーツ数
+                value = row.MAX
 
-            if not musicname in added.keys():
-                added[musicname] = {}
-            if not playmode in added[musicname].keys():
-                added[musicname][playmode] = []
-            added[musicname][playmode].append(difficulty)
-    
-        for attribute in attribute_list.keys():
-            attribute_list[attribute].sort(key=lambda t: t['max'], reverse=True)
-            sorted_attributevalues = [{'musicname': t['musicname'], 'difficulty': t['difficulty']} for t in attribute_list[attribute]]
-            resource[playmode]['attributes'][attribute] = sorted_attributevalues
+                if not musicname in musics.keys():
+                    continue
 
-    if len(duplicate_difficulty) > 0:
-        report.error(f'Find duplicate difficulty: {len(duplicate_difficulty)}')
-        for line in duplicate_difficulty:
-            report.error(line)
-    
+                if musicname in ignore.keys():
+                    if playmode in ignore[musicname].keys():
+                        if difficulty in ignore[musicname][playmode]:
+                            report.append_log(f'Ignore {playmode} {musicname} {difficulty} {attribute}')
+                            continue
+
+                if not musicname in notesradar_musics.keys():
+                    notesradar_musics[musicname] = {}
+                    if not musicname in added.keys():
+                        added[musicname] = {}
+
+                if difficulty in notesradar_musics[musicname].keys():
+                    if notesradar_musics[musicname][difficulty]['notes'] != notes:
+                        if not musicname in mismatch_notes[playmode].keys():
+                            mismatch_notes[playmode][musicname] = {}
+                        if not difficulty in mismatch_notes[playmode][musicname].keys():
+                            mismatch_notes[playmode][musicname][difficulty] = [notesradar_musics[musicname][difficulty]['notes']]
+
+                        mismatch_notes[playmode][musicname][difficulty].append(notes)
+                        
+                        continue
+                
+                if not playmode in added[musicname].keys():
+                    added[musicname][playmode] = []
+                added[musicname][playmode].append(difficulty)
+
+                if not difficulty in notesradar_musics[musicname].keys():
+                    notesradar_musics[musicname][difficulty] = {
+                        'notes': notes,
+                        'radars': {}
+                    }
+
+                    for attribute1 in define.value_list['notesradar_attributes']:
+                        notesradar_musics[musicname][difficulty]['radars'][attribute1] = 0
+                
+                notesradar_musics[musicname][difficulty]['radars'][attribute] = value
+
+                notesradar_attribute.append({
+                    'musicname': musicname,
+                    'difficulty': difficulty,
+                })
+
+    for playmode in mismatch_notes.keys():
+        if len(mismatch_notes[playmode]):
+            report.append_log(f'Mismatch notes count: {playmode} {len(mismatch_notes[playmode])}')
+
     report.report()
 
     output_attributevalues(resource, report.report_dirpath)
