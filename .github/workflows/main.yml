@@ -32,7 +32,7 @@ jobs:
         run: pip install -r installer_requirements.txt
 
       - name: Install cx_Freeze
-        run: pip install cx_Freeze==8.3.0
+        run: pip install cx_Freeze==7.0.0
     
       - name: Build
         run: python installer_setup.py build
@@ -61,6 +61,9 @@ jobs:
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       
+      - name: Upgrade setuptools
+        run: python -m pip install --upgrade setuptools
+      
       - name: Install modules
         run: pip install -r requirements.txt
     
@@ -87,7 +90,8 @@ jobs:
   release:
     needs: [windows-build, windows-build-installer]
     runs-on: ubuntu-latest
-
+    permissions: read-all
+    
     steps:
       - name: Checkout commit
         uses: actions/checkout@master
