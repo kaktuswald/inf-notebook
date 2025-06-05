@@ -27,12 +27,11 @@ jobs:
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
-      
       - name: Install modules
         run: pip install -r installer_requirements.txt
 
       - name: Install cx_Freeze
-        run: pip install cx_Freeze==8.3.0
+        run: pip install cx_Freeze==7.0.0
     
       - name: Build
         run: python installer_setup.py build
@@ -54,12 +53,15 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@master
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.13
         uses: actions/setup-python@master
-        with: { python-version: 3.12 }
+        with: { python-version: 3.13 }
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
+      
+      - name: Upgrade setuptools
+        run: python -m pip install --upgrade setuptools
       
       - name: Install modules
         run: pip install -r requirements.txt
@@ -75,7 +77,7 @@ jobs:
   
       - name: Rename
         working-directory: build/
-        run: mv exe.win-amd64-3.12 inf-notebook
+        run: mv exe.win-amd64-3.13 inf-notebook
   
       - name: Upload
         uses: actions/upload-artifact@v4
