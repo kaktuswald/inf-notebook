@@ -90,8 +90,7 @@ jobs:
   release:
     needs: [windows-build, windows-build-installer]
     runs-on: ubuntu-latest
-    permissions: read-all
-    
+
     steps:
       - name: Checkout commit
         uses: actions/checkout@master
