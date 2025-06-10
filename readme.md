@@ -7,7 +7,7 @@
 
 ### 仮想環境を構築
 ```shell
-py -3.12 -m venv env_inf-notebook
+py -3.11 -m venv env_inf-notebook
 env_inf-notebook/Scripts/Activate
 ```
 

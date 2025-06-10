@@ -54,9 +54,9 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@master
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.11
         uses: actions/setup-python@master
-        with: { python-version: 3.12 }
+        with: { python-version: 3.11 }
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
@@ -78,7 +78,7 @@ jobs:
   
       - name: Rename
         working-directory: build/
-        run: mv exe.win-amd64-3.12 inf-notebook
+        run: mv exe.win-amd64-3.11 inf-notebook
   
       - name: Upload
         uses: actions/upload-artifact@v4
