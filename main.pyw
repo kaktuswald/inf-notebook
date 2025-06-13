@@ -1,4 +1,3 @@
-from sys import exit
 import keyboard
 import time
 from threading import Thread,Event
@@ -1654,7 +1653,6 @@ if __name__ == '__main__':
     recentresults: list[RecentResult] = []
 
     queue_log = Queue()
-    # queue_display_image = Queue()
     queue_result_screen = Queue(1)
     queue_musicselect_screen = Queue(1)
     queue_messages = Queue()
@@ -1668,7 +1666,6 @@ if __name__ == '__main__':
         event_close,
         queues = {
             'log': queue_log,
-            # 'display_image': queue_display_image,
             'result_screen': queue_result_screen,
             'musicselect_screen': queue_musicselect_screen,
             'messages': queue_messages,
