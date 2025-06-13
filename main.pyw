@@ -1698,7 +1698,32 @@ if __name__ == '__main__':
 
     window = Gui(version, setting, window_api)
 
-    window.start(callback)
+    # window.start(callback)
+
+    from webui import webui
+    webui.set_config(webui.Config.multi_client, True)
+    webui.set_default_root_folder('web/')
+
+    def function(event: webui.Event):
+        print('function', event)
+    def event(event: webui.Event):
+        print('event', event)
+    
+    newwindow = webui.window()
+    newwindow.set_size(1000, 600)
+    newwindow.set_port(9998)
+    newwindow.set_public(True)
+
+    url = newwindow.get_url()
+    print(url)
+
+    newwindow.show('index.html')
+    newwindow.run("initialize();")
+    thread.start()
+
+    webui.wait()
+
+    webui.clean()
 
     event_close.set()
 

@@ -5,3 +5,4 @@ google-cloud-storage==2.16.0
 matplotlib==3.9.0
 pywebview==5.4
 websockets==15.0.1
+webui2==2.5.6
