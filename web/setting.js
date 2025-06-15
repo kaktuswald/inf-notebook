@@ -1,6 +1,11 @@
 let setting = null;
 
 $(function() {
+  webui.setEventCallback((e) => {
+    if(e == webui.event.CONNECTED) initialize();
+    if(e == webui.event.DISCONNECTED) console.log('disconnect.');
+  });
+
   $('button.select_tabpage').on('click', onclick_tab);
 
   $('button#button_save').on('click', onclick_button_save);
@@ -9,15 +14,13 @@ $(function() {
   switch_displaytab('blank');
 });
 
-window.addEventListener('pywebviewready', initialize);
-
 /**
  * 初期処理
  * 
  * ロード完了時に実行する。
  */
 async function initialize() {
-  setting = await pywebview.api.get_setting();
+  const setting = JSON.parse(await webui.get_setting());
   globalThis.setting = setting;
   
   $('#check_newrecord_only').prop('checked', setting['newrecord_only']);
@@ -73,11 +76,14 @@ async function initialize() {
     });
   });
 
-  const tabname = await pywebview.api.get_starttab();
-  if(tabname == null)
+  const params = new URLSearchParams(window.location.search);
+  if(!params.has('tab')) {
     switch_displaytab('general');
-  else
+  }
+  else {
+    const tabname = params.get('tab')
     switch_displaytab(tabname);
+  }
 }
 
 /**
@@ -143,15 +149,15 @@ async function onclick_button_save(e) {
     });
   });
 
-  const portmain = Number($('input#text_portmain').val());
-  const portsocket = Number($('input#text_portsocket').val());
+  // const portmain = Number($('input#text_portmain').val());
+  // const portsocket = Number($('input#text_portsocket').val());
 
-  const portsetting = {
-    'main': Number.isInteger(portmain) ? portmain : setting['port']['main'],
-    'socket': Number.isInteger(portsocket) ? portsocket : setting['port']['socket'],
-  }
+  // const portsetting = {
+  //   'main': Number.isInteger(portmain) ? portmain : setting['port']['main'],
+  //   'socket': Number.isInteger(portsocket) ? portsocket : setting['port']['socket'],
+  // }
 
-  await pywebview.api.save({
+  await webui.save_setting(JSON.stringify({
     'newrecord_only': $('#check_newrecord_only').prop('checked'),
     'play_sound': $('#check_play_sound').prop('checked'),
     'autosave': $('#check_autosave').prop('checked'),
@@ -173,9 +179,9 @@ async function onclick_button_save(e) {
       'socket': $('input#text_portsocket').val(),
     },
     'summaries': summaries,
-  });
+  }));
 
-  pywebview.api.close();
+  window.parent.postMessage("setting_close", "*");
 }
 
 /**
@@ -185,5 +191,5 @@ async function onclick_button_save(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_button_close(e) {
-  pywebview.api.close();
+  window.parent.postMessage("setting_close", "*");
 }

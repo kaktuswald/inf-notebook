@@ -168,3 +168,22 @@ ul#logs {
     text-shadow: 1px 1px 4px black;
     font-size: small;
 }
+
+dialog.insidewindow {
+    padding: 0px;
+}
+
+iframe#inner_setting {
+    width: 600px;
+    height: 440px;
+}
+
+iframe#inner_export {
+    width: 800px;
+    height: 440px;
+}
+
+iframe#inner_discordwebhook {
+    width: 600px;
+    height: 450px;
+}

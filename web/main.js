@@ -1,6 +1,4 @@
 
-pywebview = null;
-
 setting = null;
 
 musictable = null;
@@ -57,6 +55,11 @@ imageblobs = {};
 imageurls = {};
 
 $(function() {
+  webui.setEventCallback((e) => {
+    if(e == webui.event.CONNECTED) initialize();
+    if(e == webui.event.DISCONNECTED) console.log('disconnect.');
+  });
+
   $('button.select_tabpage').on('click', onclick_tab);
 
   $('button#button_save_scoreinformationimage').on('click', onclick_save_scoreinformationimage);
@@ -76,7 +79,11 @@ $(function() {
   $('button#button_summary_setting').on('click', onclick_summary_setting);
 
   $('button#button_setting_open').on('click', onclick_setting_open);
+  $('iframe#inner_setting').on('load', onload_setting_window);
+
   $('button#button_export_open').on('click', onclick_export_open);
+  $('iframe#inner_export').on('load', onload_export_window);
+
   $('button#button_confirm_outputcsv').on('click', onclick_confirm_outputcsv);
   $('button#button_execute_outputcsv').on('click', onclick_execute_outputcsv);
   $('button#button_confirm_clearrecent').on('click', onclick_confirm_clearrecent);
@@ -110,6 +117,7 @@ $(function() {
   $('button#button_discordwebhook_activate').on('click', onclick_discordwebhook_activate);
   $('button#button_discordwebhook_deactivate').on('click', onclick_discordwebhook_deactivate);
   $('button#button_discordwebhook_delete').on('click', onclick_discordwebhook_delete);
+  $('iframe#inner_discordwebhook').on('load', onload_discordwebhook_window);
 
   $('input[name="notesradar_playmode"]').on('change', onchange_notesradar_playmode);
   $('select#select_notesradar_attributes').on('change', onchange_notesradar_attribute);
@@ -122,12 +130,12 @@ $(function() {
 
   $('button.dialogclose').on('click', onclick_button_dialogclose);
 
+  $(window).on('message', onmessage_window);
+
   switch_displaytab('main', 'information');
   switch_displaytab('control', 'recents');
   switch_displaytab('detail', 'best');
 });
-
-window.addEventListener('pywebviewready', initialize);
 
 /**
  * 初期処理
@@ -139,17 +147,17 @@ async function initialize() {
 
   Chart.defaults.font.family = fontfamily;
 
-  const result = await pywebview.api.check_latestversion();
-  if(result != null) {
+  const result = JSON.parse(await webui.check_latestversion());
+  if(result) {
     $('div#findnewestversion_message').text(result);
     $('dialog#dialog_findnewestversion')[0].showModal();
   }
 
-  const [width, height] = await pywebview.api.get_imagesize();
+  const [width, height] = JSON.parse(await webui.get_imagesize());
 
-  const playmodes = await pywebview.api.get_playmodes();
-  const difficulties = await pywebview.api.get_difficulties();
-  const attributes = await pywebview.api.get_notesradar_attributes();
+  const playmodes = JSON.parse(await webui.get_playmodes());
+  const difficulties = JSON.parse(await webui.get_difficulties());
+  const attributes = JSON.parse(await webui.get_notesradar_attributes());
 
   for(const difficulty of difficulties) {
     $('#select_difficulties').append($('<option>')
@@ -165,8 +173,7 @@ async function initialize() {
     );
   }
 
-  const setting = await pywebview.api.get_setting();
-  setting_set(setting);
+  await load_setting();
 
   drawer_imagenothing = new DrawerSimpletext(width, height, fontfamily);
   drawer_simpletext = new DrawerSimpletext(width, height, fontfamily);
@@ -187,12 +194,12 @@ async function initialize() {
   await generate_imagenothingimage();
   await generate_loadingimage();
 
-  await pywebview.api.checkresource();
+  await webui.checkresource();
 
   await load_musictable();
 
-  await pywebview.api.execute_records_processing();
-  await pywebview.api.execute_generate_notesradar();
+  await webui.execute_records_processing();
+  await webui.execute_generate_notesradar();
 
   await generate_infinitasinformatioinimage();
   
@@ -203,7 +210,24 @@ async function initialize() {
 
   await set_recentnotebook_results(false);
 
-  pywebview.api.start_capturing();
+  webui.start_capturing();
+}
+
+async function load_setting() {
+  const setting = JSON.parse(await webui.get_setting());
+  globalThis.setting = setting;
+
+  if(setting['debug'])
+    $('#display_tabpage_main_log').css('display', 'inline-block');
+
+  if(setting['data_collection'])
+    $('#button_recents_confirm_uploadcollectionimages').css('display', 'block');
+  else
+    $('#button_recents_confirm_uploadcollectionimages').css('display', 'none');
+
+  $('input#text_discordwebhook_playername').val(setting['discord_webhook']['djname']);
+
+  refresh_discordwebhook_settings(setting['discord_webhook']['servers']);
 }
 
 async function generate_imagenothingimage() {
@@ -281,42 +305,6 @@ function selecttab_main_initial() {
  * @param {*} message メッセージ本文
  */
 function communication_message(message, data = null) {
-  // // switch文に直したい
-  // if(message == 'start_resourcecheck')
-  //   generate_resourcecheckimage();
-  // if(message == 'start_summaryprocessing')
-  //   generate_summaryprocessingimage();
-  // if(message == 'switch_displaytab')
-  //   switch_displaytab(data.groupname, data.tabname);
-  // if(message == 'request_imagereload')
-  //   request_imagereload(data.tagid, data.filename);
-  // if(message == 'switch_detect_infinitas')
-  //   switch_detect_infinitas(data);
-  // if(message == 'switch_capturable')
-  //   switch_capturable(data);
-  // if(message == 'detect_loading')
-  //   detect_loading();
-  // if(message == 'escape_loading')
-  //   escape_loading();
-  // if(message == 'update_summary')
-  //   draw_summary();
-  // if(message == 'update_notesradar')
-  //   update_notesradar();
-  // if(message == 'update_recentrecords')
-  //   set_recentnotebook_results(data);
-  // if(message == 'discordwebhook_refresh')
-  //   reload_discordwebhook_settings();
-  // if(message == 'activescreenshot')
-  //   activescreenshot(data);
-  // if(message == 'musicselect_upload')
-  //   musicselect_upload();
-  // if(message == 'discordwebhook_append_log')
-  //   discordwebhook_append_logs(data);
-  // if(message == 'scoreselect')
-  //   select_score(data.musicname, data.playmode, data.difficulty);
-  // if(message == 'append_log')
-  //   append_log(data);
-
   switch(message) {
     case 'start_resourcecheck':
       generate_resourcecheckimage();
@@ -404,27 +392,11 @@ function request_imagereload(tagid, filename) {
   $(`img#${tagid}`).attr('src', `image/${filename}?${timestamp}`);
 }
 
-async function setting_set(setting) {
-  globalThis.setting = setting;
-
-  if(setting['debug'])
-    $('#display_tabpage_main_log').css('display', 'inline-block');
-
-  if(setting['data_collection'])
-    $('#button_recents_confirm_uploadcollectionimages').css('display', 'block');
-  else
-    $('#button_recents_confirm_uploadcollectionimages').css('display', 'none');
-
-  $('input#text_discordwebhook_playername').val(setting['discord_webhook']['djname']);
-
-  refresh_discordwebhook_settings(setting['discord_webhook']['servers']);
-}
-
 /**
  * 全曲データを読み出す
  */
 async function load_musictable() {
-  musictable = await pywebview.api.get_musictable();
+  musictable = JSON.parse(await webui.get_musictable());
 
   selected_musicname = null;
 
@@ -458,7 +430,7 @@ async function load_musictable() {
  * @param {{}[]} values 最近のリザルトのデータ
  */
 async function set_recentnotebook_results(selectnewest) {
-  const values = await pywebview.api.get_recentnotebooks();
+  const values = JSON.parse(await webui.get_recentnotebooks());
 
   const firstselect_timestamp = $('tr.recentresultitem.select_first').find('td.recentresult_cell_timestamp').text();
   const selected_timestamps = [];
@@ -671,7 +643,7 @@ async function display_scoreresult() {
     return;
   }
 
-  const scoreresult = await pywebview.api.get_scoreresult(selected_musicname, selected_playmode, selected_difficulty);
+  const scoreresult = JSON.parse(await webui.get_scoreresult(selected_musicname, selected_playmode, selected_difficulty));
 
   if(scoreresult == null) {
     $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
@@ -808,10 +780,10 @@ async function display_playresult(timestamp) {
 
   selected_timestamp = timestamp;
 
-  const encodedimage = await pywebview.api.get_resultimage(selected_musicname, selected_playmode, selected_difficulty, timestamp);
+  const encodedimage = JSON.parse(await webui.get_resultimage(selected_musicname, selected_playmode, selected_difficulty, timestamp));
   display_encodedimage(encodedimage, 'image_screenshot');
 
-  const playresult = await pywebview.api.get_playresult(selected_musicname, selected_playmode, selected_difficulty, timestamp);
+  const playresult = JSON.parse(await webui.get_playresult(selected_musicname, selected_playmode, selected_difficulty, timestamp));
 
   if(playresult == null) return;
 
@@ -905,7 +877,7 @@ function onclick_tab(e) {
 async function onclick_save_scoreinformationimage(e) {
   if(selected_playmode == null || selected_musicname == null || selected_difficulty == null) return;
   
-  if(!await pywebview.api.save_scoreinformationimage(selected_playmode, selected_musicname, selected_difficulty))
+  if(!await webui.save_scoreinformationimage(selected_playmode, selected_musicname, selected_difficulty))
     $('dialog#dialog_message_imagesavefailed')[0].showModal();
 }
 
@@ -916,7 +888,7 @@ async function onclick_save_scoreinformationimage(e) {
 async function onclick_save_scoregraphimage(e) {
   if(selected_playmode == null || selected_musicname == null || selected_difficulty == null) return;
 
-  if(!await pywebview.api.save_scoregraphimage(selected_playmode, selected_musicname, selected_difficulty))
+  if(!await webui.save_scoregraphimage(selected_playmode, selected_musicname, selected_difficulty))
     $('dialog#dialog_message_imagesavefailed')[0].showModal();
 }
 
@@ -972,7 +944,7 @@ function onclick_recentresultitem(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_post_summary(e) {
-  pywebview.api.post_summary();
+  webui.post_summary();
 }
 
 /**
@@ -982,7 +954,7 @@ function onclick_post_summary(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_post_notesradar(e) {
-  pywebview.api.post_notesradar();
+  webui.post_notesradar();
 }
 
 /**
@@ -992,9 +964,9 @@ function onclick_post_notesradar(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_post_scoreinformation(e) {
-  pywebview.api.post_scoreinformation(
-    selected_musicname,
+  webui.post_scoreinformation(
     selected_playmode,
+    selected_musicname,
     selected_difficulty,
   );
 }
@@ -1004,7 +976,7 @@ function onclick_post_scoreinformation(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_openfolder_export(e) {
-  if(!await pywebview.api.openfolder_export())
+  if(!await webui.openfolder_export())
     $('dialog#dialog_message_openfolderfailed')[0].showModal();
 }
 
@@ -1013,7 +985,7 @@ async function onclick_openfolder_export(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_openfolder_results(e) {
-  if(!await pywebview.api.openfolder_results())
+  if(!await webui.openfolder_results())
     $('dialog#dialog_message_openfolderfailed')[0].showModal();
 }
 
@@ -1022,7 +994,7 @@ async function onclick_openfolder_results(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_openfolder_filtereds(e) {
-  if(!await pywebview.api.openfolder_filtereds())
+  if(!await webui.openfolder_filtereds())
     $('dialog#dialog_message_openfolderfailed')[0].showModal();
 }
 
@@ -1031,7 +1003,7 @@ async function onclick_openfolder_filtereds(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_openfolder_scoreinformations(e) {
-  if(!await pywebview.api.openfolder_scoreinformations())
+  if(!await webui.openfolder_scoreinformations())
     $('dialog#dialog_message_openfolderfailed')[0].showModal();
 }
 
@@ -1040,7 +1012,7 @@ async function onclick_openfolder_scoreinformations(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_openfolder_scorecharts(e) {
-  if(!await pywebview.api.openfolder_scorecharts())
+  if(!await webui.openfolder_scorecharts())
     $('dialog#dialog_message_openfolderfailed')[0].showModal();
 }
 
@@ -1054,7 +1026,7 @@ function onclick_recents_save_resultimages(e) {
     timestamps.push($(this).find('td.recentresult_cell_timestamp').text());
   });
 
-  pywebview.api.recents_save_resultimages(timestamps);
+  webui.recents_save_resultimages(JSON.stringify(timestamps));
 }
 
 /**
@@ -1067,10 +1039,10 @@ async function onclick_recents_save_resultimages_filtered(e) {
     timestamps.push($(this).find('td.recentresult_cell_timestamp').text());
   });
 
-  await pywebview.api.recents_save_resultimages_filtered(timestamps);
+  await webui.recents_save_resultimages_filtered(JSON.stringify(timestamps));
 
   const item = $('tr.recentresultitem.select_first').first();
-  const encodedimage = await pywebview.api.get_resultimage_filtered(item.children('td.recentresult_cell_timestamp').text());
+  const encodedimage = JSON.parse(await webui.get_resultimage_filtered(item.children('td.recentresult_cell_timestamp').text()));
   display_encodedimage(encodedimage, 'image_screenshot');
 }
 
@@ -1084,7 +1056,7 @@ function onclick_recents_post_results(e) {
     timestamps.push($(this).find('td.recentresult_cell_timestamp').text());
   });
 
-  pywebview.api.recents_post_results(timestamps);
+  webui.recents_post_results(JSON.stringify(timestamps));
 }
 
 /**
@@ -1092,10 +1064,9 @@ function onclick_recents_post_results(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_summary_switch(e) {
-  await pywebview.api.switch_summarycountmethod();
+  await webui.switch_summarycountmethod();
 
-  const setting = await pywebview.api.get_setting();
-  setting_set(setting);
+  await load_setting();
 
   draw_summary();
 }
@@ -1107,7 +1078,7 @@ async function onclick_summary_switch(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_summary_setting(e) {
-  pywebview.api.openwindow_setting('summary');
+  $('iframe#inner_setting').attr('src', './setting.html?tab=summary')
 }
 
 /**
@@ -1115,14 +1086,17 @@ async function onclick_summary_setting(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_setting_open(e) {
-  operation_disable();
-  await pywebview.api.openwindow_setting();
-  operation_enable();
+  $('iframe#inner_setting').attr('src', './setting.html')
+}
 
-  const setting = await pywebview.api.get_setting();
-  setting_set(setting);
+/**
+ * 設定のウィンドウが開かれた
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onload_setting_window(e) {
+  if(!$('iframe#inner_setting').attr('src')) return;
 
-  draw_summary();
+  $('dialog#dialog_setting')[0].showModal();
 }
 
 /**
@@ -1132,9 +1106,17 @@ async function onclick_setting_open(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_export_open(e) {
-  operation_disable();
-  await pywebview.api.openwindow_export();
-  operation_enable();
+  $('iframe#inner_export').attr('src', './export.html')
+}
+
+/**
+ * エクスポートのウィンドウが開かれた
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onload_export_window(e) {
+  if(!$('iframe#inner_export').attr('src')) return;
+
+  $('dialog#dialog_export')[0].showModal();
 }
 
 /**
@@ -1150,7 +1132,7 @@ function onclick_confirm_outputcsv(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_execute_outputcsv(e) {
-  pywebview.api.output_csv();
+  webui.output_csv();
 
   $(this).closest('dialog')[0].close();
 }
@@ -1168,7 +1150,7 @@ function onclick_confirm_clearrecent(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_execute_clearrecent(e) {
-  pywebview.api.clear_recent();
+  webui.clear_recent();
 
   $(this).closest('dialog')[0].close();
 }
@@ -1235,7 +1217,7 @@ function onclick_recents_execute_uploadcollectionimages(e) {
     timestamps.push($(this).find('td.recentresult_cell_timestamp').text());
   });
 
-  pywebview.api.recents_upload_collectionimages(timestamps);
+  webui.recents_upload_collectionimages(timestamps);
 
   $(this).closest('dialog')[0].close();
 }
@@ -1258,7 +1240,7 @@ function onclick_confirm_deletemusicnotebook(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_execute_deletemusicnotebook(e) {
-  await pywebview.api.delete_musicresult(selected_musicname);
+  await webui.delete_musicresult(selected_musicname);
 
   selected_timestamp = null;
 
@@ -1286,7 +1268,7 @@ function onclick_confirm_deletescoreresult(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_execute_deletescoreresult(e) {
-  await pywebview.api.delete_scoreresult(selected_playmode, selected_musicname, selected_difficulty);
+  await webui.delete_scoreresult(selected_playmode, selected_musicname, selected_difficulty);
 
   selected_timestamp = null;
   
@@ -1314,7 +1296,7 @@ function onclick_confirm_deleteplayresult(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_execute_deleteplayresult(e) {
-  await pywebview.api.delete_playresult(selected_playmode, selected_musicname, selected_difficulty, selected_timestamp);
+  await webui.delete_playresult(selected_playmode, selected_musicname, selected_difficulty, selected_timestamp);
 
   selected_timestamp = null;
 
@@ -1329,7 +1311,7 @@ async function onclick_execute_deleteplayresult(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function oninput_discordwebhook_playername(e) {
-  pywebview.api.set_playername($('input#text_discordwebhook_playername').val());
+  webui.set_playername($('input#text_discordwebhook_playername').val());
 }
 
 /**
@@ -1337,7 +1319,7 @@ function oninput_discordwebhook_playername(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onchange_discordwebhook_playername(e) {
-  pywebview.api.save_playername();
+  webui.save_playername();
 }
 
 /**
@@ -1403,9 +1385,16 @@ function onclick_discordwebhookitem(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_discordwebhook_add(e) {
+  $('tr.discordwebhookitem.selected').removeClass('selected');
+
+  $('iframe#inner_discordwebhook').attr('src', './discordwebhook.html')
+  // $('dialog#dialog_discordwebhook')[0].showModal();
+
+  return;
+
   operation_disable();
 
-  await pywebview.api.discordwebhook_add();
+  await webui.discordwebhook_add();
 
   operation_enable();
 
@@ -1424,9 +1413,15 @@ async function onclick_discordwebhook_update(e) {
     return;
   }
 
+  // $('iframe#inner_discordwebhook').attr('src', './discordwebhook.html')
+  $('iframe#inner_discordwebhook').attr('src', `./discordwebhook.html?id=${id}`)
+  $('dialog#dialog_discordwebhook')[0].showModal();
+
+  return;
+
   operation_disable();
 
-  await pywebview.api.discordwebhook_update(id);
+  await webui.discordwebhook_update(id);
 
   operation_enable();
 
@@ -1445,7 +1440,7 @@ async function onclick_discordwebhook_activate(e) {
     return;
   }
 
-  await pywebview.api.discordwebhook_activate(id);
+  await webui.discordwebhook_activate(id);
 
   reload_discordwebhook_settings();
 }
@@ -1462,7 +1457,7 @@ async function onclick_discordwebhook_deactivate(e) {
     return;
   }
 
-  await pywebview.api.discordwebhook_deactivate(id);
+  await webui.discordwebhook_deactivate(id);
 
   reload_discordwebhook_settings();
 }
@@ -1479,9 +1474,25 @@ async function onclick_discordwebhook_delete(e) {
     return;
   }
 
-  await pywebview.api.discordwebhook_delete(id);
+  await webui.discordwebhook_delete(id);
 
   reload_discordwebhook_settings();
+}
+
+/**
+ * 連携投稿のウィンドウが開かれた
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onload_discordwebhook_window(e) {
+  if(!$('iframe#inner_setting').attr('src')) return;
+
+  const targetcell = $('tr.discordwebhookitem.selected td.discordwebhook_cell_id');
+  if(targetcell.length == 0) return;
+
+  const targetwindow = $('iframe#inner_discordwebhook')[0].contentWindow;
+  targetwindow.a(targetcell.text());
+
+  $('dialog#dialog_discordwebhook')[0].showModal();
 }
 
 /**
@@ -1506,9 +1517,9 @@ function operation_enable() {
  * ノーツレーダーのプレイモードを変更する
  * @param {ce.Event} e イベントハンドラ
  */
-function onchange_notesradar_playmode(e) {
-  display_notesradar_total();
-  display_notesradar_ranking();
+async function onchange_notesradar_playmode(e) {
+  await display_notesradar_total();
+  await display_notesradar_ranking();
 }
 
 /**
@@ -1548,24 +1559,8 @@ function onclick_timestampitem(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_execute_findnewestversionaction(e) {
-  pywebview.api.execute_findnewestversionaction();
+  webui.execute_findnewestversionaction();
   $(this).closest('dialog')[0].close();
-}
-
-/**
- * インストーラーを起動する
- * @param {ce.Event} e イベントハンドラ
- */
-function onclick_execute_openinstaller(e) {
-  pywebview.api.open_installer();
-}
-
-/**
- * リザルト手帳のサイトを開く
- * @param {ce.Event} e イベントハンドラ
- */
-function onclick_execute_openhomepage(e) {
-  pywebview.api.open_homepage();
 }
 
 /**
@@ -1574,6 +1569,34 @@ function onclick_execute_openhomepage(e) {
  */
 function onclick_button_dialogclose(e) {
   $(this).closest('dialog')[0].close();
+}
+
+/**
+ * 子ウィンドウからメッセージを取得
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onmessage_window(e) {
+  message = e.originalEvent.data;
+
+  if(message == 'setting_close') {
+    $('dialog#dialog_setting')[0].close();
+    $('iframe#inner_setting').removeAttr('src');
+
+    load_setting();
+    draw_summary();
+  }
+
+  if(message == 'export_close') {
+    $('dialog#dialog_export')[0].close();
+    $('iframe#inner_export').removeAttr('src');
+
+    webui.save_csssetting();
+  }
+
+  if(message == 'discordwebhook_close') {
+    $('dialog#dialog_discordwebhook')[0].close();
+    $('iframe#inner_discordwebhook').removeAttr('src');
+  }
 }
 
 /**
@@ -1605,10 +1628,10 @@ function musicname_search(version, musicname_pattern) {
 /**
  * 連携投稿の設定を読み出す
  */
-function reload_discordwebhook_settings() {
-  pywebview.api.get_discordwebhook_settings().then((values) => {
-    refresh_discordwebhook_settings(values);
-  });
+async function reload_discordwebhook_settings() {
+  const values = JSON.parse(await webui.get_discordwebhook_settings());
+
+  refresh_discordwebhook_settings(values);
 }
 
 /**
@@ -1823,7 +1846,7 @@ function update_notesradar() {
 async function draw_summary() {
   if(setting == null) return;
 
-  const values = await pywebview.api.get_summaryvalues();
+  const values = JSON.parse(await webui.get_summaryvalues());
 
   if(values == null) return;
 
@@ -1842,7 +1865,7 @@ async function draw_summary() {
  * 初期処理完了時のほか、更新時にPythonから呼び出される。
  */
 async function draw_notesradar() {
-  const values = await pywebview.api.get_notesradar_chartvalues();
+  const values = JSON.parse(await webui.get_notesradar_chartvalues());
 
   const blob = await drawer_notesradar.draw(values);
   const url = URL.createObjectURL(blob)
@@ -1864,37 +1887,37 @@ function update_imageurl(name, tagid, url) {
 function onloadend_imagenothingimage(e) {
   if(e.target.result == null) return;
 
-  pywebview.api.upload_imagenothingimage(e.target.result.split(',')[1]);
+  webui.upload_imagenothingimage(e.target.result.split(',')[1]);
 }
 
 function onloadend_simpletextimage(e) {
   if(e.target.result == null) return;
 
-  pywebview.api.upload_informationimage(e.target.result.split(',')[1]);
+  webui.upload_informationimage(e.target.result.split(',')[1]);
 }
 
 function onloadend_informationimage(e) {
   if(e.target.result == null) return;
 
-  pywebview.api.upload_informationimage(e.target.result.split(',')[1]);
+  webui.upload_informationimage(e.target.result.split(',')[1]);
 }
 
 function onloadend_summaryimage(e) {
   if(e.target.result == null) return;
 
-  pywebview.api.upload_summaryimage(e.target.result.split(',')[1]);
+  webui.upload_summaryimage(e.target.result.split(',')[1]);
 }
 
 function onloadend_notesradarimage(e) {
   if(e.target.result == null) return;
 
-  pywebview.api.upload_notesradarimage(e.target.result.split(',')[1]);
+  webui.upload_notesradarimage(e.target.result.split(',')[1]);
 }
 
 function onloadend_scoreinformationimage(e) {
   if(e.target.result == null) return;
 
-  pywebview.api.upload_scoreinformationimage(
+  webui.upload_scoreinformationimage(
     e.target.result.split(',')[1],
     selected_playmode,
     selected_musicname,
@@ -1905,7 +1928,7 @@ function onloadend_scoreinformationimage(e) {
 function onloadend_scoregraphimage(e) {
   if(e.target.result == null) return;
 
-  pywebview.api.upload_scoregraphimage(
+  webui.upload_scoregraphimage(
     e.target.result.split(',')[1],
     selected_playmode,
     selected_musicname,
@@ -1921,17 +1944,17 @@ function onabort_filereader(e) {
   console.log('abort', e);
 }
 
-function display_notesradar_total() {
+async function display_notesradar_total() {
   const selected = $('input[name="notesradar_playmode"]:checked').attr('id');
   const playmode = $(`label[for=${selected}]`).text();
   if(playmode.length > 0) {
-    pywebview.api.get_notesradar_total(playmode).then((value) => {
-      $('span#notesradar_total').text(Math.floor(value * 100) / 100);
-    });
+    const value = JSON.parse(await webui.get_notesradar_total(playmode));
+
+    $('span#notesradar_total').text(Math.floor(value * 100) / 100);
   }
 }
 
-function display_notesradar_ranking() {
+async function display_notesradar_ranking() {
   const selected_playmode = $('input[name="notesradar_playmode"]:checked').attr('id');
   const selected_tablemode = $('input[name="notesradar_tablemode"]:checked').attr('id');
 
@@ -1942,33 +1965,32 @@ function display_notesradar_ranking() {
   const tablemode = selected_tablemode.match(/(?<=radio_notesradar_tablemode_)(.*)/)[0];
 
   if(playmode.length > 0 && attribute.length > 0 && tablemode.length > 0) {
-    pywebview.api.get_notesradar_ranking(playmode, attribute, tablemode).then((values) => {
-      $('table#table_notesradar_ranking tr.notesradaritem').remove();
+    $('table#table_notesradar_ranking tr.notesradaritem').remove();
 
-      if(values == null) return;
+    const values = JSON.parse(await webui.get_notesradar_ranking(playmode, attribute, tablemode));
+    if(values == null) return;
 
-      values.forEach((value) => {
-        const tr = $('<tr>');
-        tr.addClass('tableitem notesradaritem');
-    
-        const td_latest = $('<td>').text(value['rank']);
-        td_latest.addClass('right notesradar_cell_rank');
-        tr.append(td_latest);
-    
-        const td_saved = $('<td>').text(value['musicname']);
-        td_saved.addClass('notesradar_cell_musicname');
-        tr.append(td_saved);
-    
-        const td_filtered = $('<td>').text(value['difficulty'][0]);
-        td_filtered.addClass('center notesradar_cell_difficulty');
-        tr.append(td_filtered);
-    
-        const td_timestamp = $('<td>').text(value['value'].toFixed(2));
-        td_timestamp.addClass('right notesradar_cell_value');
-        tr.append(td_timestamp);
-    
-        $('table#table_notesradar_ranking').append(tr);
-      });
+    values.forEach((value) => {
+      const tr = $('<tr>');
+      tr.addClass('tableitem notesradaritem');
+  
+      const td_latest = $('<td>').text(value['rank']);
+      td_latest.addClass('right notesradar_cell_rank');
+      tr.append(td_latest);
+  
+      const td_saved = $('<td>').text(value['musicname']);
+      td_saved.addClass('notesradar_cell_musicname');
+      tr.append(td_saved);
+  
+      const td_filtered = $('<td>').text(value['difficulty'][0]);
+      td_filtered.addClass('center notesradar_cell_difficulty');
+      tr.append(td_filtered);
+  
+      const td_timestamp = $('<td>').text(value['value'].toFixed(2));
+      td_timestamp.addClass('right notesradar_cell_value');
+      tr.append(td_timestamp);
+  
+      $('table#table_notesradar_ranking').append(tr);
     });
   }
 }
@@ -1988,7 +2010,7 @@ function discordwebhook_append_logs(texts) {
 }
 
 async function activescreenshot(filepath) {
-  const encodedimage = await pywebview.api.get_activescreenshot();
+  const encodedimage = JSON.parse(await webui.get_activescreenshot());
   display_encodedimage(encodedimage, 'image_screenshot');
   switch_displaytab('main', 'screenshot');
 
@@ -1996,7 +2018,7 @@ async function activescreenshot(filepath) {
 }
 
 async function musicselect_upload() {
-  const encodedimage = await pywebview.api.get_activescreenshot();
+  const encodedimage = JSON.parse(await webui.get_activescreenshot());
   display_encodedimage(encodedimage, 'image_screenshot');
   switch_displaytab('main', 'screenshot');
 }

@@ -60,3 +60,37 @@ class Result():
             self.details.miss_count is not None and self.details.miss_count.new
         ])
 
+class RecentResult():
+    class NewFlags():
+        cleartype: bool = False
+        djlevel: bool = False
+        score: bool = False
+        misscount: bool = False
+    
+    timestamp: str
+    musicname: str = None
+    playmode: str = None
+    difficulty: str = None
+    news: NewFlags = None
+    latest: bool = False
+    saved: bool = False
+    filtered: bool = False
+
+    def __init__(self, timestamp: str):
+        self.timestamp = timestamp
+        self.news = self.NewFlags()
+    
+    def encode(self):
+        return {
+            'timestamp': self.timestamp,
+            'musicname': self.musicname,
+            'playmode': self.playmode,
+            'difficulty': self.difficulty,
+            'news_cleartype': self.news.cleartype,
+            'news_djlevel': self.news.djlevel,
+            'news_score': self.news.score,
+            'news_misscount': self.news.misscount,
+            'latest': self.latest,
+            'saved': self.saved,
+            'filtered': self.filtered,
+        }

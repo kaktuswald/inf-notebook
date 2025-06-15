@@ -414,7 +414,7 @@ class NotebookMusic(Notebook):
         if not difficulty in self.json[play_mode].keys():
             return
         
-        del self.json[play_mode]
+        del self.json[play_mode][difficulty]
 
         self.save()
     

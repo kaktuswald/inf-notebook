@@ -81,6 +81,11 @@ dljevels = null;
 csssetting = null;
 
 $(function() {
+  webui.setEventCallback((e) => {
+    if(e == webui.event.CONNECTED) initialize();
+    if(e == webui.event.DISCONNECTED) console.log('disconnect.');
+  });
+
   $('button.select_tabpage').on('click', onclick_tab);
 
   $('button#clipboardcopy_exportpath').on('click', onclick_clipboardcopy_exportpath);
@@ -107,24 +112,22 @@ $(function() {
   switch_displaytab('blank');
 });
 
-window.addEventListener('pywebviewready', initialize);
-
 /**
  * 初期処理
  * 
  * ロード完了時に実行する。
  */
 async function initialize() {
-  const exportdirpath = await pywebview.api.get_exportdirpath();
+  const exportdirpath = await webui.get_exportdirpath();
   $('div#exportpath').text(exportdirpath);
 
-  playmodes = await pywebview.api.get_playmodes();
-  difficulties = await pywebview.api.get_difficulties();
-  levels = await pywebview.api.get_levels();
-  cleartypes = await pywebview.api.get_cleartypes();
-  djlevels = await pywebview.api.get_djlevels();
+  playmodes = JSON.parse(await webui.get_playmodes());
+  difficulties = JSON.parse(await webui.get_difficulties());
+  levels = JSON.parse(await webui.get_levels());
+  cleartypes = JSON.parse(await webui.get_cleartypes());
+  djlevels = JSON.parse(await webui.get_djlevels());
 
-  csssetting = await pywebview.api.get_csssetting();
+  csssetting = JSON.parse(await webui.get_csssetting());
   if(csssetting == null) csssetting = csssetting_default;
 
   $('input#text_recent_textsize').val(csssetting.recent['size']);
@@ -282,7 +285,7 @@ function onclick_summary(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_output_csv(e) {
-  pywebview.api.output_csv();
+  webui.output_csv();
 }
 
 /**
@@ -298,7 +301,7 @@ function onclick_confirm_clearrecent(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_execute_clearrecent(e) {
-  pywebview.api.clear_recent();
+  webui.clear_recent();
   $(this).closest('dialog')[0].close();
 }
 
@@ -325,7 +328,7 @@ function onclick_button_dialogclose(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_button_close(e) {
-  pywebview.api.close();
+  window.parent.postMessage("export_close", "*");
 }
 
 function generatecss_recent() {
@@ -340,11 +343,11 @@ function generatecss_recent() {
   }
 
   const textcolor = $('input#text_recent_textcolor').val();
-  csssetting.recent['color'] = textsize;
+  csssetting.recent['color'] = textcolor;
   css.push(`  color: ${textcolor};`);
 
   const shadowcolor = $('input#text_recent_shadowcolor').val();
-  csssetting.recent['shadow-color'] = textsize;
+  csssetting.recent['shadow-color'] = shadowcolor;
   const shadows = ['1px 1px', '-1px 1px', '1px -1px', '-1px -1px'];
   const shadow_value = shadows.map(v => {return `${v} 0 ${shadowcolor}`});
   css.push(`  text-shadow: ${shadow_value};`);
@@ -380,7 +383,7 @@ function generatecss_recent() {
   $('span#csstarget').text('最近のデータ');
   $("textarea#css").val(css.join("\n"));
 
-  pywebview.api.set_csssetting(csssetting);
+  update();
 }
 
 function generatecss_summary() {
@@ -474,5 +477,9 @@ function generatecss_summary() {
   $('span#csstarget').text('統計データ');
   $('textarea#css').val(css.join('\n'));
 
-  pywebview.api.set_csssetting(csssetting);
+  update();
+}
+
+function update() {
+  webui.update_csssetting(JSON.stringify(csssetting));
 }

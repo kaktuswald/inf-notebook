@@ -9,7 +9,7 @@
     <script src="./lib/jquery-3.7.1.slim.min.js"></script>
     <script src="./lib/chart4.4.9.min.js"></script>
     <script src="./lib/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="./index.js"></script>
+    <script src="./main.js"></script>
     <script src="./drawer_simpletext.js"></script>
     <script src="./drawer_information.js"></script>
     <script src="./drawer_summary.js"></script>
@@ -418,6 +418,22 @@
     <dialog id="dialog_message_discordwebhookselect">
       <div>
         <div>設定を選択してください。</div>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">OK</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_setting" class="insidewindow">
+      <iframe id="inner_setting"></iframe>
+    </dialog>
+    <dialog id="dialog_export" class="insidewindow">
+      <iframe id="inner_export"></iframe>
+    </dialog>
+    <dialog id="dialog_discordwebhook">
+      <div>
+        <div>設定を選択してください。</div>
+        <iframe id="inner_discordwebhook"></iframe>
+        <!-- <iframe id="inner_discordwebhook" src="./discordwebhook.html"></iframe> -->
         <div class="buttons_in_dialog">
           <button class="dialogclose">OK</button>
         </div>

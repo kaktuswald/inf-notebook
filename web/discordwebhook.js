@@ -1,6 +1,11 @@
 let musics = null;
 
 $(function() {
+  webui.setEventCallback((e) => {
+    if(e == webui.event.CONNECTED) initialize();
+    if(e == webui.event.DISCONNECTED) console.log('disconnect.');
+  });
+
   $('input[name="mode"]').on('change', onchange_mode);
 
   $('select#select_versions').on('change', onchange_version);
@@ -10,7 +15,9 @@ $(function() {
   $('button#button_cancel').on('click', onclick_cancel);
 });
 
-window.addEventListener('pywebviewready', initialize);
+function a(id) {
+  $('input#text_settingname').val(id);
+}
 
 /**
  * 初期処理
@@ -18,80 +25,82 @@ window.addEventListener('pywebviewready', initialize);
  * ロード完了時に実行する。Python側から選択肢のリストを取得する。
  */
 async function initialize() {
-  pywebview.api.get_musictable().then((musictable) => {
-    musics = musictable['musics'];
+  const musictable = JSON.parse(await webui.get_musictable());
+  musics = musictable['musics'];
 
-    for(const version in musictable['versions']) {
-      $('#select_versions').append($('<option>')
-          .val(version)
-          .text(version)
+  for(const version in musictable['versions']) {
+    $('#select_versions').append($('<option>')
+        .val(version)
+        .text(version)
+    );
+  }
+
+  for(const musicname in musictable['musics']) {
+    const tr = $('<tr>');
+    tr.addClass('tableitem musicnameitem');
+
+    const td_musicname = $('<td>').text(musicname);
+    td_musicname.addClass('musicname_cell_musicname');
+    tr.append(td_musicname);
+
+    const td_version = $('<td>').text(musictable['musics'][musicname]['version']);
+    td_version.addClass('musicname_cell_version');
+    tr.append(td_version);
+
+    tr.on('click', onclick_musicnameitem);
+    $('#table_musicnames').append(tr);
+  }
+
+  const playmodes = JSON.parse(await webui.get_playmodes());
+  for(const playmode of playmodes) {
+      $('#select_playmodes').append($('<option>')
+      .val(playmode)
+      .text(playmode)
       );
-    }
+  }
 
-    for(const musicname in musictable['musics']) {
-      const tr = $('<tr>');
-      tr.addClass('tableitem musicnameitem');
+  const difficulties = JSON.parse(await webui.get_difficulties());
+  for(const difficulty of difficulties) {
+      $('#select_difficulties').append($('<option>')
+      .val(difficulty)
+      .text(difficulty)
+      );
+  }
 
-      const td_musicname = $('<td>').text(musicname);
-      td_musicname.addClass('musicname_cell_musicname');
-      tr.append(td_musicname);
+  const params = new URLSearchParams(window.location.search);
+  if(!params.has('id')) return;
 
-      const td_version = $('<td>').text(musictable['musics'][musicname]['version']);
-      td_version.addClass('musicname_cell_version');
-      tr.append(td_version);
+  const id = params.get('id')
 
-      tr.on('click', onclick_musicnameitem);
-      $('#table_musicnames').append(tr);
-    }
+  const values = JSON.parse(await webui.discordwebhook_getsetting(id));
+
+  if(values == null) {
+    $('input#text_settingname').val(generate_randomsettingname());
+    return;
+  }
+
+  $('input#text_settingname').val(values['name']);
+  $('input#text_url').val(values['url']);
+  $(`input#radio_mode_${values['mode']}`).prop('checked', true);
+  $(`input#radio_filter_${values['filter']}`).prop('checked', true);
+
+  if(values['targetscore'] == null) return;
+
+  $('select#select_versions').removeClass('unusable');
+  $('text#text_musicname_search').removeClass('unusable');
+  $('table#table_musicnames').removeClass('unusable');
+  $('select#select_playmodes').removeClass('unusable');
+  $('select#select_difficulties').removeClass('unusable');
+
+  $('tr.musicnameitem').each(function() {
+    if($(this).children('td.musicname_cell_musicname').text() == values['targetscore'] ['musicname'])
+      $(this).addClass('selected');
   });
 
-  pywebview.api.get_playmodes().then((playmodes) => {
-    for(const playmode of playmodes) {
-        $('#select_playmodes').append($('<option>')
-        .val(playmode)
-        .text(playmode)
-        );
-    }
-  });
+  $('span#selected_musicname').text(values['targetscore']['musicname']);
 
-  pywebview.api.get_difficulties().then((difficulties) => {
-    for(const difficulty of difficulties) {
-        $('#select_difficulties').append($('<option>')
-        .val(difficulty)
-        .text(difficulty)
-        );
-    }
-  });
-
-  pywebview.api.get_webhooksetting().then((values) => {
-    if(values == null) {
-      $('input#text_settingname').val(generate_randomsettingname());
-      return;
-    }
-
-    $('input#text_settingname').val(values['name']);
-    $('input#text_url').val(values['url']);
-    $(`input#radio_mode_${values['mode']}`).prop('checked', true);
-    $(`input#radio_filter_${values['filter']}`).prop('checked', true);
-
-    if(values['targetscore'] == null) return;
-
-    $('select#select_versions').removeClass('unusable');
-    $('text#text_musicname_search').removeClass('unusable');
-    $('table#table_musicnames').removeClass('unusable');
-    $('select#select_playmodes').removeClass('unusable');
-    $('select#select_difficulties').removeClass('unusable');
-
-    $('tr.musicnameitem').each(function() {
-      if($(this).children('td.musicname_cell_musicname').text() == values['targetscore'] ['musicname'])
-        $(this).addClass('selected');
-    });
-
-    $('span#selected_musicname').text(values['targetscore']['musicname']);
-
-    $('select#select_playmodes').val(values['targetscore'] ['playmode']);
-    $('select#select_difficulties').val(values['targetscore'] ['difficulty']);
-  });
+  $('select#select_playmodes').val(values['targetscore'] ['playmode']);
+  $('select#select_difficulties').val(values['targetscore'] ['difficulty']);
 }
 
 /**
@@ -222,15 +231,15 @@ async function onclick_ok(e) {
 
   $('span#message').text('');
 
-  await pywebview.api.update_webhooksetting({
+  await webui.discordwebhook_updatesetting(JSON.stringify({
     'name': settingname,
     'url': url,
     'mode': mode,
     'filter': filter,
     'targetscore': targetscore,
-  });
+  }));
 
-  pywebview.api.close();
+  window.parent.postMessage("discordwebhook_close", "*");
 }
 
 /**
@@ -238,7 +247,7 @@ async function onclick_ok(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_cancel(e) {
-  pywebview.api.close();
+  window.parent.postMessage("discordwebhook_close", "*");
 }
 
 /**

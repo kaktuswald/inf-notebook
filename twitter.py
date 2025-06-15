@@ -65,7 +65,7 @@ def post_notesradar(notesradar: NotesRadar, hashtags: str):
                 attributename_top = attribute
                 attribute_top = attributeitem
 
-        musics_text.append(f'{playmode} TOTAL: {playmodeitem.total}(TOP {attributename_top})')
+        musics_text.append(f'{playmode} TOTAL: {playmodeitem.total}({attributename_top} tops)')
     
     text_total =f'TOTAL: {total}'
     
