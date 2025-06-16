@@ -2,16 +2,13 @@ from ctypes import (
     windll,
     c_bool,
     c_int,
-    c_uint,
     c_ulong,
-    byref,
     pointer,
     POINTER,
     WINFUNCTYPE,
     create_unicode_buffer,
 )
 from ctypes.wintypes import RECT,DWORD,MAX_PATH
-from psutil import Process
 from os import system,environ
 from os.path import basename,exists
 from pathlib import WindowsPath
