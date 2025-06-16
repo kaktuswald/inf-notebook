@@ -57,7 +57,7 @@ from export import (
     exportimage_musicinformation_filepath,
     csssetting_filepath,
 )
-from windows import find_window,get_rect,check_rectsize
+from windows import find_window,get_rect,check_rectsize,change_window_setting
 import image
 from image import (
     save_resultimage,
@@ -1198,21 +1198,6 @@ class GuiApi():
         else:
             newwindow.run(f'communication_message("{message}", {dumps(data)});')
     
-class GuiApiSetting():
-    '''設定画面のAPIクラス
-    '''
-    starttab: str | None
-    
-    def __init__(self, starttab=None):
-        '''
-        Args:
-            starttab(str): アクティブ化するタブの名称
-        '''
-        self.starttab = starttab
-
-    def get_starttab(self):
-        return self.starttab
-
 class GuiApiExport():
     '''エクスポート画面のAPIクラス
     '''
@@ -1327,6 +1312,27 @@ class ScoreSelection():
         self.musicname = musicname
         self.playmode = playmode
         self.difficulty = difficulty
+
+def mainloop():
+    while not event_close.wait(timeout=1):
+        if not newwindow.is_shown():
+            return
+        if not queue_result_screen.empty():
+            result_process(queue_result_screen.get_nowait())
+        if not queue_musicselect_screen.empty():
+            musicselect_process(queue_musicselect_screen.get_nowait())
+        if not queue_messages.empty():
+            queuemessage = queue_messages.get_nowait()
+            if queuemessage == 'hotkey_start':
+                start_hotkeys()
+            if queuemessage == 'hotkey_stop':
+                keyboard.clear_all_hotkeys()
+            if queuemessage in ['detect_loading', 'escape_loading']:
+                api.send_message(queuemessage)
+        if not queue_callfunction.empty():
+            queue_callfunction.get_nowait()()
+        if not queue_log.empty():
+            api.send_message('append_log', queue_log.get_nowait())
 
 def result_process(screen: Screen):
     '''リザルトを記録するときの処理をする
@@ -1900,55 +1906,30 @@ if __name__ == '__main__':
 
     insert_recentnotebook_results()
 
-    def callback():
-        while not event_close.wait(timeout=1):
-            if not queue_result_screen.empty():
-                result_process(queue_result_screen.get_nowait())
-            if not queue_musicselect_screen.empty():
-                musicselect_process(queue_musicselect_screen.get_nowait())
-            if not queue_messages.empty():
-                queuemessage = queue_messages.get_nowait()
-                if queuemessage == 'hotkey_start':
-                    start_hotkeys()
-                if queuemessage == 'hotkey_stop':
-                    keyboard.clear_all_hotkeys()
-                if queuemessage in ['detect_loading', 'escape_loading']:
-                    api.send_message(queuemessage)
-            if not queue_callfunction.empty():
-                queue_callfunction.get_nowait()()
-            if not queue_log.empty():
-                api.send_message('append_log', queue_log.get_nowait())
-
     webui.set_config(webui.Config.multi_client, True)
     webui.set_default_root_folder('web/')
 
     newwindow = webui.Window()
     newwindow.set_size(1000, 600)
-    newwindow.set_port(9998)
+    newwindow.set_port(setting.port['main'])
     newwindow.set_public(True)
-
-    api = GuiApi(newwindow, notebooks_music)
-    api_export = GuiApiExport(newwindow)
 
     url = newwindow.get_url()
     print(url)
 
+    api = GuiApi(newwindow, notebooks_music)
+    api_export = GuiApiExport(newwindow)
+
     newwindow.show('index.html')
-    # thread.start()
+    change_window_setting("リザルト手帳")
 
-    # window.start(callback)
-
-    loopthread = Thread(target=callback)
-    loopthread.start()
-
-    webui.wait()
+    mainloop()
 
     webui.clean()
 
     event_close.set()
 
     thread.join()
-    loopthread.join()
 
     del screenshot
     

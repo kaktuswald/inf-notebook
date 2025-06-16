@@ -116,6 +116,33 @@ def get_local_appdata_path() -> WindowsPath:
 
     return productpath
 
+def change_window_setting(title: str):
+    WS_MAXIMIZEBOX = 0x10000
+    WS_THICKFRAME = 0x40000
+    GWL_STYLE = -16
+    SC_MAXMIZE = 0xf030
+    MF_BYCOMMAND = 0x00
+    SWP_NOSIZE = 0x01
+    SWP_NOMOVE = 0x02
+    SWP_NOZORDER = 0x04
+    SWP_FRAMECHANGED = 0x20
+
+    hwnd = windll.user32.FindWindowW(None, title)
+    if hwnd == 0:
+        return
+    
+    style = windll.user32.GetWindowLongW(hwnd, GWL_STYLE)
+    style &= ~WS_MAXIMIZEBOX    # 無効化ができない
+    style &= ~WS_THICKFRAME
+    windll.user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+
+    hmenu = windll.user32.GetSystemMenu(hwnd, False)
+    windll.user32.RemoveMenu(hmenu, SC_MAXMIZE, MF_BYCOMMAND)
+    windll.user32.DrawMenuBar(hwnd)
+
+    # 現状なくても良い
+    windll.user32.SetWindowPos(hwnd, None, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED)
+
 if __name__ == '__main__':
     windowtitle = 'beatmania IIDX INFINITAS'
     exename = 'bm2dx.exe'
