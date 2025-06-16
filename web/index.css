@@ -2,11 +2,21 @@ div.pane {
     margin: 1px;
 }
 
+div.version {
+    display: inline-block;
+    user-select: none;
+    font-size: small;
+}
+
+span.version {
+    padding: 0px;
+}
+
 span#detect_infinitas {
     user-select: none;
 }
 
-span#capturable {
+div#capturable {
     user-select: none;
 }
 

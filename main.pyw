@@ -57,7 +57,7 @@ from export import (
     exportimage_musicinformation_filepath,
     csssetting_filepath,
 )
-from windows import find_window,get_rect,check_rectsize,change_window_setting
+from windows import find_window,get_rect,check_rectsize,gethandle,show_messagebox,change_window_setting
 import image
 from image import (
     save_resultimage,
@@ -76,6 +76,8 @@ from notesradar import NotesRadar
 from appdata import LocalConfig
 import twitter
 
+windowtitle = f'インフィニタス リザルト手帳'
+
 recent_maxcount = 100
 
 thread_time_wait_nonactive = 1  # INFINITASがアクティブでないときのスレッド周期
@@ -84,7 +86,7 @@ thread_time_normal = 0.3        # 通常のスレッド周期
 thread_time_result = 0.12       # リザルトのときのスレッド周期
 thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
 
-windowtitle = 'beatmania IIDX INFINITAS'
+gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
 
 notebooksummary_confirm_message = [
@@ -124,7 +126,7 @@ class ThreadMain(Thread):
 
     def routine(self):
         if self.handle == 0:
-            self.handle = find_window(windowtitle, exename)
+            self.handle = find_window(gamewindowtitle, exename)
             if self.handle == 0:
                 return
 
@@ -276,6 +278,10 @@ class GuiApi():
     image_scoregraph: dict[str, str|bytes] = None
 
     @staticmethod
+    def get_version(event: Event):
+        event.return_string(version)
+
+    @staticmethod
     def get_imagesize(event: Event):
         event.return_string(dumps(imagesize))
 
@@ -330,6 +336,8 @@ class GuiApi():
     def __init__(self, window: webui.Window, notebooks: Notebooks):
         self.window = window
         self.notebooks = notebooks
+
+        window.bind('get_version', GuiApi.get_version)
 
         window.bind('get_imagesize', GuiApi.get_imagesize)
 
@@ -1851,6 +1859,10 @@ def start_hotkeys():
         keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
 
 if __name__ == '__main__':
+    if gethandle(windowtitle) is not None:
+        show_messagebox('多重起動はできません。', windowtitle)
+        exit()
+    
     if 'servers' in setting.discord_webhook.keys():
         if deactivate_allbattles(setting.discord_webhook['servers']):
             setting.save()
@@ -1921,7 +1933,12 @@ if __name__ == '__main__':
     api_export = GuiApiExport(newwindow)
 
     newwindow.show('index.html')
-    change_window_setting("リザルト手帳")
+    handle = gethandle(windowtitle)
+    if handle is None:
+        show_messagebox('起動に失敗しました。', windowtitle)
+        exit()
+    
+    change_window_setting(handle)
 
     mainloop()
 

@@ -2,13 +2,16 @@ from ctypes import (
     windll,
     c_bool,
     c_int,
+    c_uint,
     c_ulong,
+    byref,
     pointer,
     POINTER,
     WINFUNCTYPE,
     create_unicode_buffer,
 )
 from ctypes.wintypes import RECT,DWORD,MAX_PATH
+from psutil import Process
 from os import system,environ
 from os.path import basename,exists
 from pathlib import WindowsPath
@@ -56,6 +59,9 @@ def find_window(title, filename):
 
     handles = []
     def foreach_window(hWnd, lParam):
+        if windll.user32.IsHungAppWindow(hWnd):
+            return True
+        filename = get_filename(hWnd)
         length = windll.user32.GetWindowTextLengthW(hWnd)
         if not length:
             return True
@@ -116,7 +122,17 @@ def get_local_appdata_path() -> WindowsPath:
 
     return productpath
 
-def change_window_setting(title: str):
+def gethandle(title: str):
+    handle = windll.user32.FindWindowW(None, title)
+    if handle == 0:
+        return None
+    return handle
+
+def show_messagebox(message: str, title: str):
+    MB_OK = 0x0000
+    windll.user32.MessageBoxW(0, message, title, MB_OK)
+
+def change_window_setting(handle: int):
     WS_MAXIMIZEBOX = 0x10000
     WS_THICKFRAME = 0x40000
     GWL_STYLE = -16
@@ -127,24 +143,20 @@ def change_window_setting(title: str):
     SWP_NOZORDER = 0x04
     SWP_FRAMECHANGED = 0x20
 
-    hwnd = windll.user32.FindWindowW(None, title)
-    if hwnd == 0:
-        return
-    
-    style = windll.user32.GetWindowLongW(hwnd, GWL_STYLE)
+    style = windll.user32.GetWindowLongW(handle, GWL_STYLE)
     style &= ~WS_MAXIMIZEBOX    # 無効化ができない
     style &= ~WS_THICKFRAME
-    windll.user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+    windll.user32.SetWindowLongW(handle, GWL_STYLE, style)
 
-    hmenu = windll.user32.GetSystemMenu(hwnd, False)
+    hmenu = windll.user32.GetSystemMenu(handle, False)
     windll.user32.RemoveMenu(hmenu, SC_MAXMIZE, MF_BYCOMMAND)
-    windll.user32.DrawMenuBar(hwnd)
+    windll.user32.DrawMenuBar(handle)
 
     # 現状なくても良い
-    windll.user32.SetWindowPos(hwnd, None, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED)
+    windll.user32.SetWindowPos(handle, None, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED)
 
 if __name__ == '__main__':
-    windowtitle = 'beatmania IIDX INFINITAS'
+    gamewindowtitle = 'beatmania IIDX INFINITAS'
     exename = 'bm2dx.exe'
 
-    print(find_window(windowtitle, exename))
+    print(find_window(gamewindowtitle, exename))

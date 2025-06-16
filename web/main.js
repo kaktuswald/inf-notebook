@@ -143,6 +143,9 @@ $(function() {
  * ロード完了時に実行する。Python側から選択肢のリストを取得する。
  */
 async function initialize() {
+  const version = await webui.get_version();
+  $('span#version').text(version);
+
   const fontfamily = $('body').css('font-family');
 
   Chart.defaults.font.family = fontfamily;
