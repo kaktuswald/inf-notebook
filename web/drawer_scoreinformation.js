@@ -224,8 +224,8 @@ class DrawerScoreinformation {
         );
 
         let option;
-        if(values.best[key].options != null && values.best[key].options.arrange != null)
-          option = values.best[key].options.arrange;
+        if(values.best[key].options != null)
+          option = values.best[key].options.arrange == null ? '-------' : values.best[key].options.arrange;
         else
           option = '?????'
 
