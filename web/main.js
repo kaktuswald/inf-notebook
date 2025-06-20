@@ -143,6 +143,8 @@ $(function() {
  * ロード完了時に実行する。Python側から選択肢のリストを取得する。
  */
 async function initialize() {
+  document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
+
   const version = await webui.get_version();
   $('span#version').text(version);
 
