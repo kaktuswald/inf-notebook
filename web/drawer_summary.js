@@ -194,14 +194,16 @@ class DrawerSummary {
             DrawerSummary.drawtextargs_basic,
           );
 
-          ctx.font = `${DrawerSummary.fontsize_small}px ${this.fontfamily}`;
-          ctx.lineWidth = DrawerSummary.fontsize_small / 5;
-          this.drawtext_right(
-            ctx,
-            `(${values[playmode][level]['NO DATA']})`,
-            DrawerSummary.nodata_x, line * 50 + 200 + 15,
-            DrawerSummary.drawtextargs_basic,
-          );
+          if(values[playmode][level]['NO DATA']) {
+            ctx.font = `${DrawerSummary.fontsize_small}px ${this.fontfamily}`;
+            ctx.lineWidth = DrawerSummary.fontsize_small / 5;
+            this.drawtext_right(
+              ctx,
+              `(${values[playmode][level]['NO DATA']})`,
+              DrawerSummary.nodata_x, line * 50 + 200 + 15,
+              DrawerSummary.drawtextargs_basic,
+            );
+          }
 
           line += 1;
         }
