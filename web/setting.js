@@ -20,6 +20,8 @@ $(function() {
  * ロード完了時に実行する。
  */
 async function initialize() {
+  document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
+
   const setting = JSON.parse(await webui.get_setting());
   globalThis.setting = setting;
   

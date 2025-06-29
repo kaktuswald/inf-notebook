@@ -118,6 +118,8 @@ $(function() {
  * ロード完了時に実行する。
  */
 async function initialize() {
+  document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
+
   const exportdirpath = await webui.get_exportdirpath();
   $('div#exportpath').text(exportdirpath);
 

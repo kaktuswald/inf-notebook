@@ -25,6 +25,8 @@ function a(id) {
  * ロード完了時に実行する。Python側から選択肢のリストを取得する。
  */
 async function initialize() {
+  document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
+
   const musictable = JSON.parse(await webui.get_musictable());
   musics = musictable['musics'];
 
