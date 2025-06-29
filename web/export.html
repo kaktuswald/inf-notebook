@@ -13,6 +13,7 @@
     <p id="tabcontrol" class="tabcontrol">
       <button id="display_tabpage_manual" class="select_tabpage">マニュアル</button>
       <button id="display_tabpage_obs" class="select_tabpage">OBSについて</button>
+      <button id="display_tabpage_obs2" class="select_tabpage">OBSについて2</button>
       <button id="display_tabpage_recent" class="select_tabpage">最近のデータ</button>
       <button id="display_tabpage_summary" class="select_tabpage">統計データ</button>
     </p>
@@ -89,6 +90,40 @@
         </div>
         <div>
           作成されたCSSをコピーして、OBSのほうのソースのプロパティで「カスタムCSS」に貼り付けてください。
+        </div>
+      </div>
+      <div id="tabpage_obs2" class="tabpage">
+        <div class="highlight">バージョン0.19.0.0以降の機能です。</div>
+        <div>
+          exportフォルダに含まれるいくつかのファイルは、OBSに追加することができます。
+        </div>
+        <div>
+          OBSのソースにブラウザを追加して、ローカルファイルのチェックを入れて各種htmlファイルを指定すると、メイン画面の各種タブに表示している画像をOBSに表示できます。
+        </div>
+        <div>
+          ・information.html(インフォメーションタブ)
+        </div>
+        <div>
+          ・summary2.html(統計タブ)
+        </div>
+        <div>
+          ・notesradar.html(ノーツレーダータブ)
+        </div>
+        <div>
+          ・screenshot.html(スクリーンショットタブ)
+        </div>
+        <div>
+          ・scoreinformation.html(譜面記録タブ)
+        </div>
+        <div>
+          ・scoregraph.html(グラフ)
+        </div>
+        <div class="label highlight">2PC環境について</div>
+        <div>
+          リザルト手帳(INFINITAS)を実行するPCとOBSを実行するPCが異なっている場合でも使用可能です。
+        </div>
+        <div>
+          exportフォルダ内にあるsetting.cssファイルの「localhost」をリザルト手帳を実行しているPCのIPアドレスに変更してください。
         </div>
       </div>
       <div id="tabpage_recent" class="tabpage">

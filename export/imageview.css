@@ -1,0 +1,38 @@
+body {
+    color: black;
+    text-shadow: 2px 2px 0px white;
+    position: relative;
+    margin: 0px;
+    width: 800px;
+}
+
+img#image {
+    position: absolute;
+    width: 800px;
+    height: auto;
+}
+
+div#setting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    padding: 100px 50px;
+}
+
+div#box {
+    height: 10px;
+}
+
+span {
+    font-size: x-large;
+}
+
+span#url {
+    width: 300px;
+    background-color: white;
+    padding: 2px 5px;
+    border-style: solid;
+    border-width: 1px;
+    font-size: large;
+}

@@ -52,6 +52,7 @@ from export import (
     Recent,
     output,
     output_notesradarcsv,
+    generate_exportsettingcss,
     export_dirname,
     summary_image_filepath,
     notesradar_image_filepath,
@@ -76,6 +77,7 @@ from result import Result,RecentResult
 from notesradar import NotesRadar
 from appdata import LocalConfig
 import twitter
+from socket_server import SocketServer
 
 windowtitle = f'インフィニタス リザルト手帳'
 
@@ -471,6 +473,8 @@ class GuiApi():
 
         setting.save()
 
+        generate_exportsettingcss(setting.port['socket'])
+
     def get_recentnotebooks(self, event: webui.Event):
         ret = [result.encode() for result in recentresults]
 
@@ -501,10 +505,8 @@ class GuiApi():
 
         decorded_data = b64decode(data)
 
-        # window.imagevalues['imagenothing.png'] = decorded_data
-
-        # window.imagevalues['information.png'] = decorded_data
-        # queue_callfunction.put(window.socketserver.update_information)
+        socket_server.imagevalue_imagenothing = decorded_data
+        socket_server.update_information(decorded_data)
     
     def upload_informationimage(self, event: webui.Event):
         '''インフォメーション画像のアップロード
@@ -517,8 +519,7 @@ class GuiApi():
 
         decorded_data = b64decode(data)
 
-        # window.imagevalues['information.png'] = decorded_data
-        # queue_callfunction.put(window.socketserver.update_information)
+        socket_server.update_information(decorded_data)
 
     def upload_summaryimage(self, event: webui.Event):
         '''統計画像のアップロード
@@ -531,8 +532,7 @@ class GuiApi():
 
         decorded_data = b64decode(data)
 
-        # window.imagevalues['summary.png'] = decorded_data
-        # queue_callfunction.put(window.socketserver.update_summary)
+        socket_server.update_summary(decorded_data)
 
         save_imagevalue(decorded_data, summary_image_filepath)
         self.send_message('append_log', 'saved summary.png')
@@ -548,8 +548,7 @@ class GuiApi():
 
         decorded_data = b64decode(data)
 
-        # window.imagevalues['notesradar.png'] = decorded_data
-        # queue_callfunction.put(window.socketserver.update_notesradar)
+        socket_server.update_notesradar(decorded_data)
 
         save_imagevalue(decorded_data, notesradar_image_filepath)
         self.send_message('append_log', 'saved notesradar.png')
@@ -578,8 +577,7 @@ class GuiApi():
             'imagevalue': decorded_value,
         }
 
-        # window.imagevalues['scoreinformation.png'] = decorded_value
-        # queue_callfunction.put(window.socketserver.update_scoreinformation)
+        socket_server.update_scoreinformation(decorded_value)
 
         save_imagevalue(decorded_value, exportimage_musicinformation_filepath)
         self.send_message('append_log', 'saved musicinformation.png')
@@ -600,17 +598,16 @@ class GuiApi():
         musicname = event.get_string_at(2)
         difficulty = event.get_string_at(3)
 
-        decorded_value = b64decode(data)
+        decorded_data = b64decode(data)
 
         self.image_scoregraph = {
             'playmode': playmode,
             'musicname': musicname,
             'difficulty': difficulty,
-            'imagevalue': decorded_value,
+            'imagevalue': decorded_data,
         }
 
-        # window.imagevalues['scoregraph.png'] = decorded_value
-        # queue_callfunction.put(window.socketserver.update_scoregraph)
+        socket_server.update_scoregraph(decorded_data)
 
     def save_scoreinformationimage(self, event: webui.Event):
         '''譜面記録画像をファイルに保存する
@@ -888,15 +885,12 @@ class GuiApi():
                     imagevalues_filtered[timestamp] = imagevalue
 
         if imagevalue is not None:
+            socket_server.update_screenshot(imagevalue)
             decorded_data = b64encode(imagevalue).decode('utf-8')
-            # window.imagevalues['screenshot.png'] = imagevalue
-            # queue_callfunction.put(window.socketserver.update_screenshot)
             event.return_string(dumps(decorded_data))
             return
         
-        # ここじゃなくて、あくまでjs側からimagenothingをアップロードする形で対応する？
-        # window.imagevalues['screenshot.png'] = window.imagevalues['imagenothing.png']
-        # queue_callfunction.put(window.socketserver.update_screenshot)
+        socket_server.update_screenshot(None)
         event.return_string(dumps(None))
     
     def get_resultimage_filtered(self, event: webui.Event):
@@ -924,9 +918,7 @@ class GuiApi():
             event.return_string(dumps(decorded_data))
             return
 
-        # ここじゃなくて、あくまでjs側からimagenothingをアップロードする形で対応する？
-        # window.imagevalues['screenshot.png'] = window.imagevalues['imagenothing.png']
-        # queue_callfunction.put(window.socketserver.update_screenshot)
+        socket_server.update_screenshot(None)
         event.return_string(dumps(None))
     
     def get_scoreresult(self, event: webui.Event):
@@ -1680,8 +1672,7 @@ def active_screenshot():
 
     api.send_message('activescreenshot', filepath)
 
-    # window.imagevalues['screenshot.png'] = get_imagevalue(image)
-    # queue_callfunction.put(window.socketserver.update_screenshot)
+    socket_server.update_screenshot(get_imagevalue(image))
 
 def upload_musicselect():
     '''
@@ -1705,8 +1696,7 @@ def upload_musicselect():
 
     api.send_message('musicselect_upload')
 
-    # window.imagevalues['screenshot.png'] = get_imagevalue(image)
-    # queue_callfunction.put(window.socketserver.update_screenshot)
+    socket_server.update_screenshot(get_imagevalue(image))
 
 def check_latest_version():
     if version == '0.0.0.0':
@@ -1868,6 +1858,8 @@ if __name__ == '__main__':
         if deactivate_allbattles(setting.discord_webhook['servers']):
             setting.save()
 
+    generate_exportsettingcss(setting.port['socket'])
+
     detect_infinitas: bool = False
     capture_enable: bool = False
 
@@ -1919,6 +1911,9 @@ if __name__ == '__main__':
 
     insert_recentnotebook_results()
 
+    socket_server = SocketServer(port=setting.port['socket'])
+    socket_server.start()
+
     webui.set_config(webui.Config.multi_client, True)
     webui.set_default_root_folder('web/')
 
@@ -1945,8 +1940,10 @@ if __name__ == '__main__':
 
     webui.clean()
 
+    socket_server.stop()
     event_close.set()
 
+    socket_server.join()
     thread.join()
 
     del screenshot

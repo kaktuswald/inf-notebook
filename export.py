@@ -3,6 +3,7 @@ from os.path import exists,join
 from datetime import datetime
 from csv import writer
 from logging import getLogger
+import re
 
 logger_child_name = 'export'
 
@@ -35,6 +36,8 @@ notesradar_csv_rankings_filepaths = {
 }
 
 exportimage_musicinformation_filepath = join(export_dirname, 'musicinformation.png')
+
+settingcss_filepath = join(export_dirname, 'setting.css')
 
 class Recent():
     delete_delta_seconds = 60 * 60 * 12
@@ -254,6 +257,27 @@ def output_notesradarcsv(notesradar: NotesRadar):
     for playmode, item in output_rankings.items():
         with open(notesradar_csv_rankings_filepaths[playmode], 'w', encoding='UTF-8') as f:
             f.write('\n'.join(item))
+
+def generate_exportsettingcss(port: int):
+    domain = 'localhost'
+
+    if exists(settingcss_filepath):
+        with open(settingcss_filepath, "r", encoding="utf-8") as f:
+            css_content = f.read()
+
+            pattern_url = r'\:root\s*{[^}]*--ws-url:\s*([^;]+);'
+            pattern_domain = r'\ws://([^:/]+)'
+            urlresult = re.search(pattern_url, css_content)
+            if urlresult:
+                domainresult = re.search(pattern_domain, urlresult.group(1))
+                if domainresult:
+                    domain = domainresult.group(1)
+    
+    with open(settingcss_filepath, "w", encoding="utf-8") as f:
+        f.write(':root {\n')
+        f.write(f'    --ws-url: ws://{domain}:{port};\n')
+        f.write('}\n')
+        f.write('')
 
 if __name__ == '__main__':
     notebook = NotebookSummary()
