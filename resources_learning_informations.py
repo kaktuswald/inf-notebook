@@ -30,12 +30,17 @@ def load_informations(labels):
 
     informations = {}
     for key in keys:
+        if 'ignore' in labels[key].keys():
+            continue
+
         filename = f'{key}.png'
         filepath = join(dc.informations_basepath, filename)
-        if isfile(filepath):
-            image = Image.open(filepath)
-            np_value = np.array(image)
-            informations[key] = Informations(np_value, labels[key]['informations'])
+        if not isfile(filepath):
+            continue
+
+        image = Image.open(filepath)
+        np_value = np.array(image)
+        informations[key] = Informations(np_value, labels[key]['informations'])
     
     return informations
 

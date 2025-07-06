@@ -30,10 +30,15 @@ def load_images(labels):
 
     imagevaleus = {}
     for filename in keys:
+        if 'ignore' in labels[filename].keys():
+            continue
+
         filepath = join(images_musicselect_basepath, filename)
-        if isfile(filepath):
-            np_value = np.array(Image.open(filepath))
-            imagevaleus[filename] = ImageValues(np_value, labels[filename])
+        if not isfile(filepath):
+            continue
+
+        np_value = np.array(Image.open(filepath))
+        imagevaleus[filename] = ImageValues(np_value, labels[filename])
     
     return imagevaleus
 
