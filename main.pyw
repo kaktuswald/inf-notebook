@@ -847,6 +847,13 @@ class GuiApi():
         difficulty = event.get_string_at(2)
         timestamp = event.get_string_at(3)
 
+        if len(musicname) == 0:
+            musicname = None
+        if len(playmode) == 0:
+            playmode = None
+        if len(difficulty) == 0:
+            difficulty = None
+        
         if not timestamp in images_result.keys():
             load_resultimages(
                 timestamp,
