@@ -109,14 +109,8 @@ $(function() {
   $('button#button_confirm_deleteplayresult').on('click', onclick_confirm_deleteplayresult);
   $('button#button_execute_deleteplayresult').on('click', onclick_execute_deleteplayresult);
 
-  $('input#text_discordwebhook_playername').on('input', oninput_discordwebhook_playername);
-  $('input#text_discordwebhook_playername').on('change', onchange_discordwebhook_playername);
-
-  $('button#button_discordwebhook_add').on('click', onclick_discordwebhook_add);
-  $('button#button_discordwebhook_update').on('click', onclick_discordwebhook_update);
-  $('button#button_discordwebhook_activate').on('click', onclick_discordwebhook_activate);
-  $('button#button_discordwebhook_deactivate').on('click', onclick_discordwebhook_deactivate);
-  $('button#button_discordwebhook_delete').on('click', onclick_discordwebhook_delete);
+  $('button#button_discordwebhook_open').on('click', onclick_discordwebhook_open);
+  $('button#button_discordwebhook_register').on('click', onclick_discordwebhook_register);
   $('iframe#inner_discordwebhook').on('load', onload_discordwebhook_window);
 
   $('input[name="notesradar_playmode"]').on('change', onchange_notesradar_playmode);
@@ -230,9 +224,7 @@ async function load_setting() {
   else
     $('#button_recents_confirm_uploadcollectionimages').css('display', 'none');
 
-  $('input#text_discordwebhook_playername').val(setting['discord_webhook']['djname']);
-
-  refresh_discordwebhook_settings(setting['discord_webhook']['servers']);
+  refresh_discordwebhook_settings(setting['discord_webhook']['events']);
 }
 
 async function generate_imagenothingimage() {
@@ -443,6 +435,7 @@ async function set_recentnotebook_results(selectnewest) {
     selected_timestamps.push($(this).find('td.recentresult_cell_timestamp').text());
   });
 
+  $('tr.recentresultitem').off('click', onclick_recentresultitem);
   $('tr.recentresultitem').remove();
 
   values.forEach(value => {
@@ -636,6 +629,7 @@ function get_selected_score() {
  * 選択されている譜面の記録を表示する
  */
 async function display_scoreresult() {
+  $('tr.timestampitem').off('click', onclick_timestampitem);
   $('table#table_timestamps tr.timestampitem').remove();
 
   $('span#musicname').text('');
@@ -1312,22 +1306,6 @@ async function onclick_execute_deleteplayresult(e) {
 }
 
 /**
- * 連携投稿のプレイヤー名を変更する
- * @param {ce.Event} e イベントハンドラ
- */
-function oninput_discordwebhook_playername(e) {
-  webui.set_playername($('input#text_discordwebhook_playername').val());
-}
-
-/**
- * 連携投稿のプレイヤー名を変更する
- * @param {ce.Event} e イベントハンドラ
- */
-function onchange_discordwebhook_playername(e) {
-  webui.save_playername();
-}
-
-/**
  * 絞り込み対象のバージョンを選択する
  * @param {ce.Event} e イベントハンドラ
  */
@@ -1377,115 +1355,25 @@ function onchange_scoreresult_difficulty(e) {
 }
 
 /**
- * 連携投稿の設定を選択する
+ * イベントのウィンドウを開く
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_discordwebhookitem(e) {
-  $('tr.discordwebhookitem.selected').removeClass('selected');
-  $(this).addClass('selected');
-}
-
-/**
- * 連携投稿の設定を追加する
- * @param {ce.Event} e イベントハンドラ
- */
-async function onclick_discordwebhook_add(e) {
-  $('tr.discordwebhookitem.selected').removeClass('selected');
-
+async function onclick_discordwebhook_open(e) {
   $('iframe#inner_discordwebhook').attr('src', './discordwebhook.html')
-  // $('dialog#dialog_discordwebhook')[0].showModal();
-
-  return;
-
-  operation_disable();
-
-  await webui.discordwebhook_add();
-
-  operation_enable();
-
-  reload_discordwebhook_settings();
-}
-
-/**
- * 連携投稿の設定を更新する
- * @param {ce.Event} e イベントハンドラ
- */
-async function onclick_discordwebhook_update(e) {
-  const id = $('tr.discordwebhookitem.selected td.discordwebhook_cell_id').text();
-
-  if(id.length == 0) {
-    $('dialog#dialog_message_discordwebhookselect')[0].showModal();
-    return;
-  }
-
-  // $('iframe#inner_discordwebhook').attr('src', './discordwebhook.html')
-  $('iframe#inner_discordwebhook').attr('src', `./discordwebhook.html?id=${id}`)
   $('dialog#dialog_discordwebhook')[0].showModal();
-
-  return;
-
-  operation_disable();
-
-  await webui.discordwebhook_update(id);
-
-  operation_enable();
-
-  reload_discordwebhook_settings();
 }
 
 /**
- * 連携投稿の設定を有効化する
+ * イベントを登録する
  * @param {ce.Event} e イベントハンドラ
  */
-async function onclick_discordwebhook_activate(e) {
-  const id = $('tr.discordwebhookitem.selected td.discordwebhook_cell_id').text();
-
-  if(id.length == 0) {
-    $('dialog#dialog_message_discordwebhookselect')[0].showModal();
-    return;
-  }
-
-  await webui.discordwebhook_activate(id);
-
-  reload_discordwebhook_settings();
+async function onclick_discordwebhook_register(e) {
+  $('iframe#inner_discordwebhook').attr('src', './discordwebhook_register.html')
+  $('dialog#dialog_discordwebhook')[0].showModal();
 }
 
 /**
- * 連携投稿の設定を無効化する
- * @param {ce.Event} e イベントハンドラ
- */
-async function onclick_discordwebhook_deactivate(e) {
-  const id = $('tr.discordwebhookitem.selected td.discordwebhook_cell_id').text();
-
-  if(id.length == 0) {
-    $('dialog#dialog_message_discordwebhookselect')[0].showModal();
-    return;
-  }
-
-  await webui.discordwebhook_deactivate(id);
-
-  reload_discordwebhook_settings();
-}
-
-/**
- * 連携投稿の設定を削除する
- * @param {ce.Event} e イベントハンドラ
- */
-async function onclick_discordwebhook_delete(e) {
-  const id = $('tr.discordwebhookitem.selected td.discordwebhook_cell_id').text();
-
-  if(id.length == 0) {
-    $('dialog#dialog_message_discordwebhookselect')[0].showModal();
-    return;
-  }
-
-  await webui.discordwebhook_delete(id);
-
-  reload_discordwebhook_settings();
-}
-
-/**
- * 連携投稿のウィンドウが開かれた
+ * イベントのウィンドウが開かれた
  * @param {ce.Event} e イベントハンドラ
  */
 function onload_discordwebhook_window(e) {
@@ -1631,7 +1519,7 @@ function musicname_search(version, musicname_pattern) {
 }
 
 /**
- * 連携投稿の設定を読み出す
+ * イベントの設定を読み出す
  */
 async function reload_discordwebhook_settings() {
   const values = JSON.parse(await webui.get_discordwebhook_settings());
@@ -1648,7 +1536,7 @@ function display_screenshot_filepath(path) {
 }
 
 /**
- * 連携投稿の設定を再表示する
+ * イベントの設定を再表示する
  * @param {*} settings 
  */
 function refresh_discordwebhook_settings(settings) {
@@ -1660,41 +1548,20 @@ function refresh_discordwebhook_settings(settings) {
     const tr = $('<tr>');
     tr.addClass('tableitem discordwebhookitem');
 
-    const td_id = $('<td>').text(key);
-    td_id.addClass('discordwebhook_cell_id');
-    tr.append(td_id);
-
     const td_name = $('<td>').text(target['name']);
     td_name.addClass('discordwebhook_cell_name');
     tr.append(td_name);
 
-    const td_mode = $('<td>');
-    if(target['mode'] == 'battle') td_mode.text('M');
-    if(target['mode'] == 'score') td_mode.text('SC');
-    if(target['mode'] == 'misscount') td_mode.text('MS');
-    td_mode.addClass('center discordwebhook_cell_mode');
-    tr.append(td_mode);
+    const localdt = new Date(target.limit);
+    const year = localdt.getFullYear();
+    const month = localdt.getMonth() + 1;
+    const day = localdt.getDate();
+    const hour = localdt.getHours();
+    const minute = localdt.getMinutes();
+    const td_limit = $('<td>').text(`${year}/${month}/${day} ${hour}:${minute}`);
+    td_limit.addClass('discordwebhook_cell_limit');
+    tr.append(td_limit);
 
-    const td_musicname = $('<td>');
-    if(target['mode'] != 'battle') td_musicname.text(target['targetscore']['musicname']);
-    td_musicname.addClass('discordwebhook_cell_musicname');
-    tr.append(td_musicname);
-
-    const td_state = $('<td>');
-    if(target['state'] == 'active') td_state.text('*');
-    if(target['state'] == 'error') td_state.text('--');
-    td_state.addClass('center discordwebhook_cell_state');
-    tr.append(td_state);
-
-    const td_best = $('<td>');
-    if(target['mode'] == 'battle')
-      td_best.text('---');
-    else
-      td_best.text(target['mybest']);
-    td_best.addClass('center discordwebhook_cell_best');
-    tr.append(td_best);
-
-    tr.on('click', onclick_discordwebhookitem);
     $('#table_discordwebhooks').append(tr);
   });
 }
@@ -2001,7 +1868,7 @@ async function display_notesradar_ranking() {
 }
 
 /**
- * 連携投稿タブ内のログを追加
+ * イベントタブ内のログを追加
  * @param {string} text 
  */
 function discordwebhook_append_logs(texts) {

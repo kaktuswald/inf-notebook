@@ -58,10 +58,6 @@ button.select_tabpage_selected {
     background-color: white;
 }
 
-/* button.selected_tabpage {
-    background-color: white;
-} */
-
 div.tabpage {
     display: none;
     flex-direction: column;
@@ -85,7 +81,7 @@ div.split_horizontal {
 
 div.scroll {
     overflow-y: scroll;
-    border: 1px solid black;
+    border: 1px solid lightgrey;
     background-color: white;
 }
 

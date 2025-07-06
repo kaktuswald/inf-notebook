@@ -1,5 +1,8 @@
 import json
 from os import getcwd
+from datetime import datetime,timezone
+
+from discord_webhook import filtereds
 
 setting_filepath = 'setting.json'
 
@@ -37,8 +40,9 @@ default = {
         },
     },
     'discord_webhook': {
-        'djname': 'NO NAME',
-        'servers': {},
+        'playername': 'NO NAME',
+        'filter': filtereds.NONE,
+        'events': {},
     },
     'port': {
         'main': 52374,
@@ -58,6 +62,7 @@ class Setting():
             if not k in self.json.keys():
                 self.json[k] = default[k]
         
+        # バージョンアップによる仕様変更の対処
         if 'display_saved_result' in self.json.keys():
             self.json['display_result'] = self.json['display_saved_result']
             del self.json['display_saved_result']
@@ -71,10 +76,18 @@ class Setting():
             del self.json['manage']
         if 'display_music' in self.json.keys():
             del self.json['display_music']
-        for key in tuple(self.json['discord_webhook']['servers'].keys()):
-            if not 'name' in self.json['discord_webhook']['servers'][key].keys():
-                del self.json['discord_webhook']['servers'][key]
-        
+        if 'djname' in self.json['discord_webhook'].keys():
+            self.json['discord_webhook']['playername'] = self.json['discord_webhook']['djname']
+            del self.json['discord_webhook']['djname']
+        if 'servers' in self.json['discord_webhook'].keys():
+            del self.json['discord_webhook']['servers']
+        if not 'playername' in self.json['discord_webhook'].keys():
+            self.json['discord_webhook']['playername'] = default['discord_webhook']['playername']
+        if not 'filter' in self.json['discord_webhook'].keys():
+            self.json['discord_webhook']['filter'] = default['discord_webhook']['filter']
+        if not 'events' in self.json['discord_webhook'].keys():
+            self.json['discord_webhook']['events'] = {}
+
         self.save()
 
     def save(self):
@@ -240,7 +253,7 @@ class Setting():
     
     @property
     def discord_webhook(self):
-        '''連携投稿設定
+        '''イベント設定
         '''
         return self.get_value('discord_webhook')
 

@@ -49,7 +49,7 @@ class SocketServer(Thread):
                 print('websocket connection close', connection.id)
         
         try:
-            self.server = serve(handler, 'localhost', self.port)
+            self.server = serve(handler, '0.0.0.0', self.port)
             self.server.serve_forever()
         except:
             pass

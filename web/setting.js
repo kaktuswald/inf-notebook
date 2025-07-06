@@ -151,14 +151,6 @@ async function onclick_button_save(e) {
     });
   });
 
-  // const portmain = Number($('input#text_portmain').val());
-  // const portsocket = Number($('input#text_portsocket').val());
-
-  // const portsetting = {
-  //   'main': Number.isInteger(portmain) ? portmain : setting['port']['main'],
-  //   'socket': Number.isInteger(portsocket) ? portsocket : setting['port']['socket'],
-  // }
-
   await webui.save_setting(JSON.stringify({
     'newrecord_only': $('#check_newrecord_only').prop('checked'),
     'play_sound': $('#check_play_sound').prop('checked'),

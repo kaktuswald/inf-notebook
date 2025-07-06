@@ -1,10 +1,13 @@
 from os import mkdir
-from os.path import join,exists
+from os.path import join,exists,splitext
 import io
 from google.cloud import storage
+from google.cloud.storage import Blob
 import uuid
 from PIL import Image,ImageDraw
-
+from json import loads,dumps
+from uuid import uuid1
+from datetime import datetime,timezone
 from threading import Thread
 from logging import getLogger
 
@@ -19,6 +22,7 @@ bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
 bucket_name_musicselect = 'bucket-inf-notebook-musicselect'
 bucket_name_resources = 'bucket-inf-notebook-resources'
+bucket_name_discordwebhooks = 'bucket-inf-notebook-discordwebhook'
 
 informations_dirname = 'informations'
 details_dirname = 'details'
@@ -53,6 +57,7 @@ class StorageAccessor():
     bucket_details = None
     bucket_musicselect = None
     bucket_resources = None
+    bucket_discordwebhooks = None
     blob_musics = None
 
     def connect_client(self):
@@ -111,6 +116,18 @@ class StorageAccessor():
         try:
             self.bucket_resources = self.client.get_bucket(bucket_name_resources)
             logger.debug('connect bucket resources')
+        except Exception as ex:
+            logger.exception(ex)
+
+    def connect_bucket_discordwebhooks(self):
+        if self.client is None:
+            self.connect_client()
+        if self.client is None:
+            return
+        
+        try:
+            self.bucket_discordwebhooks = self.client.get_bucket(bucket_name_discordwebhooks)
+            logger.debug('connect bucket discordwebhooks')
         except Exception as ex:
             logger.exception(ex)
 
@@ -275,8 +292,62 @@ class StorageAccessor():
             return False
         
         return True
+    
+    def download_discordwebhooks(self) -> dict[dict]:
+        if self.bucket_discordwebhooks is None:
+            self.connect_bucket_discordwebhooks()
+        if self.bucket_discordwebhooks is None:
+            return None
+        
+        list = {}
 
-    def save_image(self, basepath, blob):
+        blobs = self.client.list_blobs(bucket_name_discordwebhooks)
+        for blob in blobs:
+            blob: Blob = blob
+            content = loads(blob.download_as_string())
+
+            limit = datetime.strptime(content['limit'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+            nowdt = datetime.now(timezone.utc)
+            daydifference = (limit - nowdt).total_seconds() / (60 * 60 * 24)
+
+            if daydifference >= 0:
+                list[splitext(blob.name)[0]] = content
+            else:
+                # 終了日時を過ぎたファイルは削除する
+                try:
+                    blob.delete()
+                except Exception as ex:
+                    pass
+
+        
+        return list
+
+    def upload_discordwebhook(self, filename: str, value: dict) -> bool:
+        '''
+        イベント内容ファイルをアップロードする
+
+        Args:
+            filename(str): ファイル名
+            value(dict): イベント内容
+        Returns:
+            bool: アップロードの成功
+        '''
+        if self.bucket_discordwebhooks is None:
+            self.connect_bucket_discordwebhooks()
+        if self.bucket_discordwebhooks is None:
+            return False
+        
+        try:
+            blob = self.bucket_discordwebhooks.blob(filename)
+            blob.upload_from_string(dumps(value))
+            logger.debug(f'upload discordwebhooks {filename}')
+        except Exception as ex:
+            logger.exception(ex)
+            return False
+
+        return True
+    
+    def save_image(self, basepath, blob: Blob):
         if not exists(basepath):
             mkdir(basepath)
         

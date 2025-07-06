@@ -6,9 +6,69 @@ div {
     align-self: center;
 }
 
+div.box {
+    border-style: solid;
+    border-color: black;
+    border-width: 1px;
+}
+
 div.label {
     margin: 1px 5px;
     width: 80px;
+}
+
+div.buttons {
+    display: block;
+    text-align: right;
+}
+
+div#scroll_publics {
+    height: 95px;
+}
+
+td.publicitem_cell_id {
+    display: none;
+}
+
+td.publicitem_cell_name {
+    width: 70px;
+}
+
+td.publicitem_cell_mode {
+    text-align: center;
+    width: 80px;
+}
+
+td.publicitem_cell_limit {
+    text-align: center;
+    width: 85px;
+}
+
+div#scroll_joineds {
+    height: 95px;
+}
+
+td.joineditem_cell_id {
+    display: none;
+}
+
+td.joineditem_cell_name {
+    width: 70px;
+}
+
+td.joineditem_cell_mode {
+    text-align: center;
+    width: 80px;
+}
+
+td.joineditem_cell_limit {
+    text-align: center;
+    width: 85px;
+}
+
+td.joineditem_cell_mybest {
+    text-align: center;
+    width: 40px;
 }
 
 input#text_url {
@@ -16,18 +76,31 @@ input#text_url {
 }
 
 div.scroll_musicnames {
-    height: 165px;
+    height: 123px;
 }
 
 td.musicname_cell_version {
     display: none;
 }
 
+input#text_eventid {
+    width: 260px;
+}
+
+textarea#faildtestpostmessage {
+    width: 360px;
+    height: 70px;
+}
+
 span#message {
     color: darkred;
 }
 
-div.buttons {
-    display: block;
-    text-align: right;
+dialog#dialog_confirmregister {
+    width: 400px;
+}
+
+div.warning {
+    color: darkred;
+    font-size: small;
 }

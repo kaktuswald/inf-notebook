@@ -38,7 +38,7 @@ div.tabpage_main {
 }
 
 div.tabpage_control {
-    height: 260px;
+    height: 271px;
 }
 
 div.tabpage_detail {
@@ -134,29 +134,17 @@ button#button_recents_confirm_uploadcollectionimages {
     display: none;
 }
 
-div.label_in_discordwebhook {
-    display: inline-block;
-    width: 120px;
-}
-
-div#scroll_discordwebhook_logs {
+div#scroll_discordwebhook_events {
     height: 100px;
 }
 
-td.discordwebhook_cell_id {
-    display: none;
+div#scroll_discordwebhook_logs {
+    height: 140px;
 }
 
-td.discordwebhook_cell_mode {
-    width: 20px;
-}
-
-td.discordwebhook_cell_state {
-    width: 20px;
-}
-
-td.discordwebhook_cell_best {
-    width: 20px;
+td.discordwebhook_cell_limit {
+    text-align: center;
+    width: 85px;
 }
 
 ul#list_discordwebhook_logs {

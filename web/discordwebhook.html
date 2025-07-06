@@ -2,7 +2,7 @@
 <html>
   <head>
 		<meta charset='utf-8' />
-    <title>インフィニタス リザルト手帳 連携投稿設定</title>
+    <title>インフィニタス リザルト手帳 イベントリスト</title>
     <link rel="stylesheet" href="./general.css" />
     <link rel="stylesheet" href="./discordwebhook.css" />
     <script src="./webui.js"></script>
@@ -10,75 +10,89 @@
     <script src="./discordwebhook.js"></script>
   </head>
   <body>
-    <div class="split_horizontal">
-      <div class="label highlight">名称</div>
-      <input type="text" id="text_settingname"></select>
+    <div>プレイヤー設定</div>
+    <div class="box">
+      <div class="split_horizontal">
+        <div class="label highlight">プレイヤー名</div>
+        <input type="text" id="text_playername"></select>
+      </div>
+      <div class="split_horizontal">
+        <div class="label highlight">ライバル名</div>
+        <input type="radio" name="filter" id="radio_filter_none" checked/>
+        <label class="filter" for="radio_filter_none">なし</label>
+        <input type="radio" name="filter" id="radio_filter_whole" />
+        <label class="filter" for="radio_filter_whole">全体をぼかす</label>
+        <input type="radio" name="filter" id="radio_filter_compact" />
+        <label class="filter" for="radio_filter_compact">DJ NAMEのみぼかす</label>
+      </div>
+      <div class="buttons">
+        <button id="button_save">設定保存</button>
+      </div>
     </div>
-    <div class="split_horizontal">
-      <div class="label highlight">URL</div>
-      <input type="text" id="text_url"></select>
+    <div>公開中のイベント</div>
+    <div id="box_publics" class="box">
+      <div id="scroll_publics" class="scroll">
+        <table id="table_publics">
+          <tr class="tableheader">
+            <th class="hiddenheader">ID</th>
+            <th>名称</th>
+            <th>モード</th>
+            <th>終了日時</th>
+            <th>対象譜面</th>
+          </tr>
+        </table>
+      </div>
+      <div class="buttons">
+        <button id="button_joinevent">リストから選択して参加する</button>
+        <button id="button_joineventinputid">ID指定で参加する</button>
+      </div>
     </div>
-    <div class="split_horizontal">
-      <div class="label highlight">モード</div>
-      <input type="radio" name="mode" id="radio_mode_battle" checked/>
-      <label class="mode" for="radio_mode_battle">バトル</label>
-      <input type="radio" name="mode" id="radio_mode_score" />
-      <label class="mode" for="radio_mode_score">スコア大会</label>
-      <input type="radio" name="mode" id="radio_mode_misscount" />
-      <label class="mode" for="radio_mode_misscount">ミスカウント大会</label>
-    </div>
-    <div class="split_horizontal">
-      <div class="label highlight">ライバル名</div>
-      <input type="radio" name="filter" id="radio_filter_none" checked/>
-      <label class="filter" for="radio_filter_none">なし</label>
-      <input type="radio" name="filter" id="radio_filter_whole" />
-      <label class="filter" for="radio_filter_whole">全体をぼかす</label>
-      <input type="radio" name="filter" id="radio_filter_compact" />
-      <label class="filter" for="radio_filter_compact">DJ NAMEのみぼかす</label>
-    </div>
-    <div class="split_horizontal">
-      <div class="label highlight">対象譜面</div>
-      <div>
-        <div class="split_horizontal">
-          <div class="label highlight">絞り込み</div>
-          <div>
-            <div>
-              <div class="label">バージョン</div>
-              <select id="select_versions" class="unusable">
-                <option value="ALL">ALL</option>
-              </select>
-            </div>
-            <div>
-              <div class="label">曲名</div>
-              <input type="text" id="text_musicname_search" class="unusable"></select>
-            </div>
-            </div>
-        </div>
-        <div class="scroll scroll_musicnames">
-          <table id="table_musicnames" class="unusable">
-            <tr class="tableheader">
-              <th>曲名</th>
-              <th class="hiddenheader">バージョン</th>
-            </tr>
-          </table>
-        </div>
-        <div>
-          <span>選択中</span>
-          <span>:</span>
-          <span id="selected_musicname"></span>
-        </div>
-        <div>
-          <select id="select_playmodes" class="unusable"></select>
-          <select id="select_difficulties" class="unusable"></select>
-        </div>
-        <div>
-          <span id="message"></span>
-        </div>
+    <div>参加中のイベント</div>
+    <div id="box_joineds" class="box">
+      <div id="scroll_joineds" class="scroll">
+        <table id="table_joineds">
+          <tr class="tableheader">
+            <th class="hiddenheader">ID</th>
+            <th>名称</th>
+            <th>モード</th>
+            <th>終了日時</th>
+            <th>対象譜面</th>
+            <th>スコア</th>
+          </tr>
+        </table>
+      </div>
+      <div class="buttons">
+        <button id="button_leaveevent">選択したイベントを辞退する</button>
       </div>
     </div>
     <div class="buttons">
-      <button id="button_ok">OK</button>
-      <button id="button_cancel">キャンセル</button>
+      <button id="button_close">閉じる</button>
     </div>
+    <dialog id="dialog_savecomplete">
+      <div>
+        <div>保存しました。</div>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">OK</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_idinput">
+      <div>
+        <div>IDを入力してください。</div>
+        <input type="text" id="text_eventid"></select>
+        <div class="buttons_in_dialog">
+          <button id="button_eventidinputok">OK</button>
+          <button class="dialogclose">キャンセル</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_idnotfound">
+      <div>
+        <div>指定したIDのイベントが見つかりませんでした。</div>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">OK</button>
+        </div>
+      </div>
+    </dialog>
   </body>
 </html>

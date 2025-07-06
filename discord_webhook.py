@@ -3,36 +3,52 @@ import requests
 
 from result import Result,ResultInformations,ResultDetails
 
-serversetting_default = {
-    'settingname': None,
-    'url': '',
-    'mode': 'battle',
-    'filter': 'none',
-    'targetscore': None,
-    'state': 'active',
-    'mybest': None
-}
+class filtereds():
+    NONE: str = 'none'
+    WHOLE: str = 'whole'
+    COMPACT: str = 'compact'
 
-def deactivate_allbattles(settings: dict):
-    '''バトルモードの設定をすべてノンアクティブにする
+def post_test(url: str, values):
+    if not values['private']:
+        contexts = [f'{values['name']}']
+    else:
+        contexts = [f'{values['name']}(非公開)']
 
-    Args:
-        settings(dict): 対象の設定リスト
-    Returns:
-        bool: 変更が有り
-    '''
-    changed = False
+    if values['mode'] == 'battle':
+        contexts.append('モード: バトル')
+    if values['mode'] == 'score':
+        contexts.append('モード: スコア大会')
+    if values['mode'] == 'misscount':
+        contexts.append('モード: ミスカウント大会')
 
-    for target in settings.values():
-        if target['mode'] != 'battle':
-            continue
+    if values['mode'] != 'battle':
+        playmode = values['targetscore']['playmode']
+        musicname = values['targetscore']['musicname']
+        difficulty = values['targetscore']['difficulty']
+        contexts.append(f'対象譜面: {musicname}[{playmode}{difficulty[0]}]')
 
-        if target['state'] == 'active':
-            target['state'] = 'nonactive'
-            changed = True
+    try:
+        data = {'content': '\n'.join(contexts)}
+        response = requests.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"})
+        if response.status_code != 204:
+            return f'Error {response.status_code}'
+    except Exception as ex:
+        return (f'Error({len(ex.args)})', *ex.args)
     
-    return changed
+    return None
 
+def post_registered(url: str, id: str):
+    contexts = [
+        '登録が完了しました。',
+        id
+    ]
+
+    try:
+        data = {'content': '\n'.join(contexts)}
+        requests.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"})
+    except Exception as ex:
+        pass
+    
 def post_result(djname: str, setting: dict, result: Result, imagevalue: bytes):
     informations: ResultInformations = result.informations
     details: ResultDetails = result.details
@@ -40,7 +56,7 @@ def post_result(djname: str, setting: dict, result: Result, imagevalue: bytes):
     if details is None:
         return None, None
 
-    contexts = [f'DJ NAME: **{djname}**']
+    contexts = [f'プレイヤー名: **{djname}**']
 
     if setting['mode'] != 'battle':
         if informations is None:
@@ -75,7 +91,7 @@ def post_result(djname: str, setting: dict, result: Result, imagevalue: bytes):
         contexts.append(f'option: **{option_arrange if option_arrange is not None else "正規"}**')
     
     try:
-        data = {"content": '\n'.join(contexts)}
+        data = {'content': '\n'.join(contexts)}
         response = requests.post(setting['url'], data=json.dumps(data), headers={"Content-Type": "application/json"})
         if response.status_code != 204:
             return False, f'Error {response.status_code}'

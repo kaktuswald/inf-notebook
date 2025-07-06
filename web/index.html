@@ -4,7 +4,7 @@
 		<meta charset='utf-8' />
     <title>インフィニタス リザルト手帳</title>
     <link rel="stylesheet" href="./general.css" />
-    <link rel="stylesheet" href="./index.css" />
+    <link rel="stylesheet" href="./main.css" />
     <script src="./webui.js"></script>
     <script src="./lib/jquery-3.7.1.slim.min.js"></script>
     <script src="./lib/chart4.4.9.min.js"></script>
@@ -102,7 +102,7 @@
           <p id="tabcontrol_control" class="tabcontrol">
             <button id="display_tabpage_control_recents" class="select_tabpage select_tabpage_control">最近のリザルト</button>
             <button id="display_tabpage_control_search" class="select_tabpage select_tabpage_control">検索</button>
-            <button id="display_tabpage_control_discord" class="select_tabpage select_tabpage_control">連携投稿</button>
+            <button id="display_tabpage_control_discord" class="select_tabpage select_tabpage_control">イベント</button>
             <button id="display_tabpage_control_notesradars" class="select_tabpage select_tabpage_control">レーダー</button>
           </p>
           <div id="tabbody_control">
@@ -177,28 +177,17 @@
               </div>
             </div>
             <div id="tabpage_control_discord" class="tabpage tabpage_control">
-              <div>
-                <div class="label highlight label_in_discordwebhook">名前</div>
-                <input type="text" id="text_discordwebhook_playername"></select>
-              </div>
-              <div id="scroll_discordwebhook_settings" class="scroll">
+              <div id="scroll_discordwebhook_events" class="scroll">
                 <table id="table_discordwebhooks">
                   <tr class="tableheader">
-                    <th class="hiddenheader">ID</th>
-                    <th>Name</th>
-                    <th>M</th>
-                    <th>musicname</th>
-                    <th>State</th>
-                    <th>Best</th>
+                    <th>参加中のイベント</th>
+                    <th>終了日時</th>
                   </tr>
                 </table>
               </div>
               <div class="bottons">
-                <button id="button_discordwebhook_add">追加</button>
-                <button id="button_discordwebhook_update">更新</button>
-                <button id="button_discordwebhook_activate">有効化</button>
-                <button id="button_discordwebhook_deactivate">無効化</button>
-                <button id="button_discordwebhook_delete">削除</button>
+                <button id="button_discordwebhook_open">イベント閲覧</button>
+                <button id="button_discordwebhook_register">イベント登録</button>
               </div>
               <div id="scroll_discordwebhook_logs" class="scroll">
                 <ul id="list_discordwebhook_logs"></ul>
@@ -434,14 +423,7 @@
       <iframe id="inner_export"></iframe>
     </dialog>
     <dialog id="dialog_discordwebhook">
-      <div>
-        <div>設定を選択してください。</div>
-        <iframe id="inner_discordwebhook"></iframe>
-        <!-- <iframe id="inner_discordwebhook" src="./discordwebhook.html"></iframe> -->
-        <div class="buttons_in_dialog">
-          <button class="dialogclose">OK</button>
-        </div>
-      </div>
+      <iframe id="inner_discordwebhook"></iframe>
     </dialog>
   </body>
 </html>

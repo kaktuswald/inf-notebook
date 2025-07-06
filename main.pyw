@@ -5,7 +5,7 @@ from queue import Queue,Full
 import webbrowser
 import logging
 from urllib import request
-from datetime import datetime
+from datetime import datetime,timezone
 from PIL import Image
 from urllib.parse import urljoin
 from subprocess import Popen
@@ -72,7 +72,8 @@ from image import (
     openfolder_scoreinformations,
     openfolder_export,
 )
-from discord_webhook import post_result,deactivate_allbattles
+from discord_webhook import filtereds as discordwebhook_filtereds
+from discord_webhook import post_test,post_registered,post_result
 from result import Result,RecentResult
 from notesradar import NotesRadar
 from appdata import LocalConfig
@@ -408,20 +409,9 @@ class GuiApi():
         window.bind('recents_post_results', self.recents_post_results)
         window.bind('recents_upload_collectionimages', self.recents_upload_collectionimages)
 
-        # window.bind('discordwebhook_add', self.discordwebhook_add)
-        # window.bind('discordwebhook_update', self.discordwebhook_update)
-        window.bind('discordwebhook_activate', self.discordwebhook_activate)
-        window.bind('discordwebhook_deactivate', self.discordwebhook_deactivate)
-        window.bind('discordwebhook_delete', self.discordwebhook_delete)
-        window.bind('discordwebhook_getsetting', self.discordwebhook_getsetting)
-        window.bind('discordwebhook_updatesetting', self.discordwebhook_updatesetting)
-
         window.bind('delete_musicresult', self.delete_musicresult)
         window.bind('delete_scoreresult', self.delete_scoreresult)
         window.bind('delete_playresult', self.delete_playresult)
-
-        window.bind('set_playername', self.set_playername)
-        window.bind('save_playername', self.save_playername)
 
         window.bind('execute_findnewestversionaction', self.execute_findnewestversionaction)
 
@@ -481,7 +471,7 @@ class GuiApi():
         event.return_string(dumps(ret))
     
     def get_discordwebhook_settings(self, event: webui.Event):
-        event.return_string(dumps(setting.discord_webhook['servers']))
+        event.return_string(dumps(setting.discord_webhook['events']))
     
     def check_latestversion(self, event: webui.Event):
         '''最新バージョンをチェックする
@@ -1057,69 +1047,6 @@ class GuiApi():
                 if storage.start_uploadcollection(results_today[timestamp], images_result[timestamp], True):
                     timestamps_uploaded.append(timestamp)
 
-    # def discordwebhook_add(self, event: webui.Event):
-    #     # discordwebhookwindow = webui.Window()
-    #     # print(discordwebhookwindow.get_url())
-    #     # discordwebhookwindow.show('discordwebhook.html')
-    #     api = GuiApiDiscordWebhook(str(uuid1()))
-    #     window.openwindow_modal('discordwebhook.html', '連携投稿', api)
-    
-    # def discordwebhook_update(self, event: webui.Event):
-    #     id = event.get_string_at(0)
-
-    #     api = GuiApiDiscordWebhook(id)
-    #     window.openwindow_modal('discordwebhook.html', '連携投稿', api)
-    
-    def discordwebhook_activate(self, event: webui.Event):
-        id = event.get_string_at(0)
-
-        if id in setting.discord_webhook['servers'].keys():
-            setting.discord_webhook['servers'][id]['state'] = 'active'
-            setting.save()
-    
-    def discordwebhook_deactivate(self, event: webui.Event):
-        id = event.get_string_at(0)
-
-        if id in setting.discord_webhook['servers'].keys():
-            setting.discord_webhook['servers'][id]['state'] = 'nonactive'
-            setting.save()
-    
-    def discordwebhook_delete(self, event: webui.Event):
-        id = event.get_string_at(0)
-
-        if id in setting.discord_webhook['servers'].keys():
-            del setting.discord_webhook['servers'][id]
-            setting.save()
-    
-    def discordwebhook_getsetting(self, event: webui.Event):
-        '''対象の連携投稿設定の取得
-        
-        Returns:
-            dict: 対象の設定
-        '''
-        id = event.get_string_at(0)
-
-        if not id in setting.json['discord_webhook']['servers'].keys():
-            event.return_string(dumps(None))
-            return
-        
-        event.return_string(dumps(setting.json['discord_webhook']['servers'][id]))
-    
-    def discordwebhook_updatesetting(self, event: webui.Event):
-        values = loads(event.get_string_at(0))
-
-        setting.json['discord_webhook']['servers'][values['id']] = {
-            'name': values['name'],
-            'url': values['url'],
-            'mode': values['mode'],
-            'filter': values['filter'],
-            'targetscore': values['targetscore'],
-            'state': 'active',
-            'mybest': None,
-        }
-
-        setting.save()
-
     def delete_musicresult(self, event: webui.Event):
         '''指定した曲の記録データを全て削除する
         
@@ -1168,16 +1095,6 @@ class GuiApi():
 
         # 統計やノーツレーダーの再計算
         # 譜面記録を再表示する
-    
-    def set_playername(self, event: webui.Event):
-        '''連携投稿のプレイヤー名を変更
-        '''
-        playername = event.get_string_at(0)
-
-        setting.discord_webhook['djname'] = playername
-    
-    def save_playername(self, event: webui.Event):
-        setting.save()
     
     def execute_findnewestversionaction(self, event: webui.Event):
         '''最新バージョンを見つけたときの処理を実行する
@@ -1244,59 +1161,111 @@ class GuiApiExport():
             dump(self.csssetting, f, indent=2)
 
 class GuiApiDiscordWebhook():
-    def __init__(self, id: str):
-        '''
-        Args:
-            id(str): Webhook設定のID
-        '''
-        self.id = id
+    events: dict = {}
 
-    def get_musictable(self):
-        '''曲情報を取得
-        
-        Returns:
-            dict(str, ): 曲情報
-        '''
-        return resource.musictable
-    
-    def get_playmodes(self):
-        '''プレイモードの名称を取得
+    def __init__(self, window: webui.Window):
+        self.window = window
 
-        Returns:
-            list(str): プレイモードの名称のリスト
-        '''
-        return define.value_list['play_modes']
-    
-    def get_difficulties(self):
-        '''譜面難易度の名称を取得
+        window.bind('discordwebhook_getpublics', self.get_publics)
+        window.bind('discordwebhook_getjoineds', self.get_joineds)
+        window.bind('discordwebhook_savesetting', self.save_setting)
+        window.bind('discordwebhook_joinevent', self.join_event)
+        window.bind('discordwebhook_leaveevent', self.leave_event)
+        window.bind('discordwebhook_testpost', self.testpost)
+        window.bind('discordwebhook_register', self.register)
 
-        Returns:
-            list(str): 譜面難易度の名称のリスト
+    def get_publics(self, event: webui.Event):
+        self.events = storage.download_discordwebhooks()
+
+        publics = {}
+        for key, value in self.events.items():
+            if not value['private']:
+                publics[key] = value
+        event.return_string(dumps(publics))
+
+    def get_joineds(self, event: webui.Event):
+        event.return_string(dumps(setting.discord_webhook['events']))
+
+    def save_setting(self, event: webui.Event):
+        discordwebhooksetting = loads(event.get_string_at(0))
+
+        setting.discord_webhook['playername'] = discordwebhooksetting['playername']
+        setting.discord_webhook['filter'] = discordwebhooksetting['filter']
+
+        setting.save()
+
+    def join_event(self, event: webui.Event):
         '''
-        return define.value_list['difficulties']
-    
-    def get_webhooksetting(self):
-        '''対象の連携投稿設定の取得
-        
-        Returns:
-            dict: 対象の設定
+        イベントに参加する
+
+        指定されたIDがない場合はFalseを返す。
         '''
-        if not self.id in setting.json['discord_webhook']['servers'].keys():
-            return None
+        id = event.get_string_at(0)
+
+        if not id in self.events.keys():
+            event.return_string(dumps(False))
+            return
         
-        return setting.json['discord_webhook']['servers'][self.id]
-    
-    def update_webhooksetting(self, values):
-        setting.json['discord_webhook']['servers'][self.id] = {
-            'name': values['name'],
-            'url': values['url'],
-            'mode': values['mode'],
-            'filter': values['filter'],
-            'targetscore': values['targetscore'],
-            'state': 'active',
+        target = self.events[id]
+
+        setting.discord_webhook['events'][id] = {
+            'name': target['name'],
+            'url': target['url'],
+            'mode': target['mode'],
+            'limit': target['limit'],
+            'targetscore': target['targetscore'],
             'mybest': None,
         }
+
         setting.save()
+        api.send_message('discordwebhook_refresh')
+
+        event.return_string(dumps(True))
+
+    def leave_event(self, event: webui.Event):
+        id = event.get_string_at(0)
+
+        del setting.discord_webhook['events'][id]
+
+        setting.save()
+        api.send_message('discordwebhook_refresh')
+
+    def testpost(self, event: webui.Event):
+        values = loads(event.get_string_at(0))
+
+        ret = post_test(values['url'], values)
+
+        event.return_string(dumps(ret))
+    
+    def register(self, event: webui.Event):
+        values = loads(event.get_string_at(0))
+
+        try:
+            targetscore = None
+            if values['mode'] != 'battle':
+                targetscore = {
+                    'musicname': values['targetscore']['musicname'],
+                    'playmode': values['targetscore']['playmode'],
+                    'difficulty': values['targetscore']['difficulty'],
+                }
+            
+            discordwebhook = {
+                'name': values['name'],
+                'private': values['private'],
+                'url': values['url'],
+                'mode': values['mode'],
+                'limit': values['limit'],
+                'targetscore': targetscore,
+            }
+
+            id = str(uuid1())
+            if(storage.upload_discordwebhook(f'{id}.json', discordwebhook)):
+                event.return_string(dumps(id))
+                ret = post_registered(values['url'], id)
+            else:
+                event.return_string(dumps(None))
+        except Exception as ex:
+            event.return_string(dumps(None))
 
 class ScoreSelection():
     '''選択中の譜面
@@ -1364,8 +1333,8 @@ def result_process(screen: Screen):
         if storage.start_uploadcollection(result, resultimage, force_upload_enable):
             timestamps_uploaded.append(result.timestamp)
 
-    if 'djname' in setting.discord_webhook.keys() and setting.discord_webhook['djname'] is not None and len(setting.discord_webhook['djname']) > 0:
-        if 'servers' in setting.discord_webhook.keys() and len(setting.discord_webhook['servers']) > 0:
+    if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
+        if 'events' in setting.discord_webhook.keys() and len(setting.discord_webhook['events']) > 0:
             Thread(target=post_discord_webhooks, args=(result, resultimage, queue_multimessages)).start()
     
     if setting.newrecord_only and not result.has_new_record():
@@ -1498,16 +1467,30 @@ def musicselect_process(np_value):
 def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
     imagevalue = None
     setting_updated = False
+    posttargets = []
+    deletetargets = []
     logs = []
-    for webhooksetting in setting.discord_webhook['servers'].values():
-        settingname = webhooksetting['name']
-        if webhooksetting['state'] != 'active':
+
+    for key, webhooksetting in setting.discord_webhook['events'].items():
+        limit = datetime.strptime(webhooksetting['limit'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        nowdt = datetime.now(timezone.utc)
+        daydifference = (limit - nowdt).total_seconds() / (60 * 60 * 24)
+        if daydifference < 0:
+            deletetargets.append(key)
             continue
 
-        if webhooksetting['filter'] == 'none':
+        posttargets.append(webhooksetting)
+
+    if len(deletetargets):
+        setting_updated = True
+        for key in deletetargets:
+            del setting.discord_webhook['events'][key]
+
+    if len(posttargets):
+        if setting.discord_webhook['filter'] == discordwebhook_filtereds.NONE:
             imagevalue = get_imagevalue(resultimage)
         else:
-            if webhooksetting['filter'] == 'whole':
+            if webhooksetting['filter'] == discordwebhook_filtereds.WHOLE:
                 imagevalue = get_imagevalue(filter_result(
                     resultimage,
                     result.play_side,
@@ -1515,7 +1498,7 @@ def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
                     result.details.graphtarget == 'rival',
                     False
                 ))
-            if webhooksetting['filter'] == 'compact':
+            if webhooksetting['filter'] == discordwebhook_filtereds.COMPACT:
                 imagevalue = get_imagevalue(filter_result(
                     resultimage,
                     result.play_side,
@@ -1524,34 +1507,35 @@ def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
                     True
                 ))
 
-        postresult, resultmessages = post_result(setting.discord_webhook['djname'], webhooksetting, result, imagevalue)
-        if postresult is None:
-            continue
-        
         dt = datetime.now().strftime('%H:%M')
-        if postresult:
-            if result.informations.music is not None:
-                logs.append(f'{dt} {settingname}: {resultmessages}({result.informations.music})')
+        
+        for webhooksetting in posttargets:
+            postresult, resultmessages = post_result(setting.discord_webhook['playername'], webhooksetting, result, imagevalue)
+            if postresult is None:
+                continue
+
+            settingname = webhooksetting['name']
+
+            if postresult:
+                if result.informations.music is not None:
+                    logs.append(f'{dt} {settingname}: {resultmessages}({result.informations.music})')
+                else:
+                    logs.append(f'{dt} {settingname}: {resultmessages}')
+
+                if webhooksetting['mode'] != 'battle':
+                    if webhooksetting['mode'] == 'score':
+                        webhooksetting['mybest'] = result.details.score.current
+                    if webhooksetting['mode'] == 'misscount':
+                        webhooksetting['mybest'] = result.details.miss_count.current
+                    setting_updated = True
             else:
-                logs.append(f'{dt} {settingname}: {resultmessages}')
-
-            if webhooksetting['mode'] != 'battle':
-                if webhooksetting['mode'] == 'score':
-                    webhooksetting['mybest'] = result.details.score.current
-                if webhooksetting['mode'] == 'misscount':
-                    webhooksetting['mybest'] = result.details.miss_count.current
-                setting_updated = True
-        else:
-            webhooksetting['state'] = 'error'
-            setting_updated = True
-
-            if type(resultmessages) == str:
-                logs.append(f'{dt} {settingname}: {resultmessages}')
-            else:
-                logs.append(f'{dt} {settingname}: {resultmessages[0]}')
-                for line in resultmessages[1:]:
-                    logs.append(line)
-
+                if type(resultmessages) == str:
+                    logs.append(f'{dt} {settingname}: {resultmessages}')
+                else:
+                    logs.append(f'{dt} {settingname}: {resultmessages[0]}')
+                    for line in resultmessages[1:]:
+                        logs.append(line)
+    
     if setting_updated:
         setting.save()
         api.send_message('discordwebhook_refresh')
@@ -1854,10 +1838,6 @@ if __name__ == '__main__':
         show_messagebox('多重起動はできません。', windowtitle)
         exit()
     
-    if 'servers' in setting.discord_webhook.keys():
-        if deactivate_allbattles(setting.discord_webhook['servers']):
-            setting.save()
-
     generate_exportsettingcss(setting.port['socket'])
 
     detect_infinitas: bool = False
@@ -1927,6 +1907,7 @@ if __name__ == '__main__':
 
     api = GuiApi(newwindow, notebooks_music)
     api_export = GuiApiExport(newwindow)
+    api_discordwebhook = GuiApiDiscordWebhook(newwindow)
 
     newwindow.show('index.html')
     handle = gethandle(windowtitle)

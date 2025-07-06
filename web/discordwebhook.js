@@ -1,23 +1,17 @@
-let musics = null;
-
 $(function() {
   webui.setEventCallback((e) => {
     if(e == webui.event.CONNECTED) initialize();
     if(e == webui.event.DISCONNECTED) console.log('disconnect.');
   });
 
-  $('input[name="mode"]').on('change', onchange_mode);
-
-  $('select#select_versions').on('change', onchange_version);
-  $('input#text_musicname_search').on('input', oninput_musicname);
-
-  $('button#button_ok').on('click', onclick_ok);
-  $('button#button_cancel').on('click', onclick_cancel);
+  $('button.dialogclose').on('click', onclick_dialogclose);
+  $('button#button_save').on('click', onclick_save);
+  $('button#button_joinevent').on('click', onclick_joinevent);
+  $('button#button_joineventinputid').on('click', onclick_joineventinputid);
+  $('button#button_eventidinputok').on('click', onclick_eventidinputok);
+  $('button#button_leaveevent').on('click', onclick_leaveevent);
+  $('button#button_close').on('click', onclick_close);
 });
-
-function a(id) {
-  $('input#text_settingname').val(id);
-}
 
 /**
  * 初期処理
@@ -27,282 +21,237 @@ function a(id) {
 async function initialize() {
   document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
 
-  const musictable = JSON.parse(await webui.get_musictable());
-  musics = musictable['musics'];
+  const setting = JSON.parse(await webui.get_setting());
+  $('input#text_playername').val(setting.discord_webhook.playername);
+  $(`input#radio_filter_${setting.discord_webhook.filter}`).prop('checked', true);
 
-  for(const version in musictable['versions']) {
-    $('#select_versions').append($('<option>')
-        .val(version)
-        .text(version)
-    );
-  }
+  await get_joineds();
+  await get_publics();
+}
 
-  for(const musicname in musictable['musics']) {
+async function get_publics() {
+  $('tr.publicitem').off('click', onclick_publicitem);
+  $('tr.publicitem').remove();
+
+  const publics = JSON.parse(await webui.discordwebhook_getpublics());
+  Object.keys(publics).forEach(id => {
+    const target = publics[id];
+
     const tr = $('<tr>');
-    tr.addClass('tableitem musicnameitem');
+    tr.addClass('tableitem publicitem');
 
-    const td_musicname = $('<td>').text(musicname);
-    td_musicname.addClass('musicname_cell_musicname');
-    tr.append(td_musicname);
+    const td_id = $('<td>').text(id);
+    td_id.addClass('publicitem_cell_id');
+    tr.append(td_id);
 
-    const td_version = $('<td>').text(musictable['musics'][musicname]['version']);
-    td_version.addClass('musicname_cell_version');
-    tr.append(td_version);
+    const td_name = $('<td>').text(target.name);
+    td_name.addClass('publicitem_cell_name');
+    tr.append(td_name);
 
-    tr.on('click', onclick_musicnameitem);
-    $('#table_musicnames').append(tr);
-  }
+    const td_mode = $('<td>');
+    if(target.mode == 'battle')
+      td_mode.text('バトル');
+    if(target.mode == 'score')
+      td_mode.text('スコア大会');
+    if(target.mode == 'misscount')
+      td_mode.text('ミスカウント大会');
+    td_mode.addClass('publicitem_cell_mode');
+    tr.append(td_mode);
 
-  const playmodes = JSON.parse(await webui.get_playmodes());
-  for(const playmode of playmodes) {
-      $('#select_playmodes').append($('<option>')
-      .val(playmode)
-      .text(playmode)
-      );
-  }
+    const localdt = new Date(target.limit);
+    const year = localdt.getFullYear();
+    const month = localdt.getMonth() + 1;
+    const day = localdt.getDate();
+    const hour = localdt.getHours();
+    const minute = localdt.getMinutes();
+    const td_limit = $('<td>').text(`${year}/${month}/${day} ${hour}:${minute}`);
+    td_limit.addClass('publicitem_cell_limit');
+    tr.append(td_limit);
 
-  const difficulties = JSON.parse(await webui.get_difficulties());
-  for(const difficulty of difficulties) {
-      $('#select_difficulties').append($('<option>')
-      .val(difficulty)
-      .text(difficulty)
-      );
-  }
+    const td_targetscore = $('<td>');
+    if(target.mode != 'battle') {
+      const targetscore = target.targetscore;
+      const text = `${targetscore.musicname}[${targetscore.playmode}${targetscore.difficulty[0]}]`;
+      td_targetscore.text(text);
+    }
+    else {
+      td_targetscore.text('-');
+    }
+    td_targetscore.addClass('publicitem_cell_targetscore');
+    tr.append(td_targetscore);
 
-  const params = new URLSearchParams(window.location.search);
-  if(!params.has('id')) return;
-
-  const id = params.get('id')
-
-  const values = JSON.parse(await webui.discordwebhook_getsetting(id));
-
-  if(values == null) {
-    $('input#text_settingname').val(generate_randomsettingname());
-    return;
-  }
-
-  $('input#text_settingname').val(values['name']);
-  $('input#text_url').val(values['url']);
-  $(`input#radio_mode_${values['mode']}`).prop('checked', true);
-  $(`input#radio_filter_${values['filter']}`).prop('checked', true);
-
-  if(values['targetscore'] == null) return;
-
-  $('select#select_versions').removeClass('unusable');
-  $('text#text_musicname_search').removeClass('unusable');
-  $('table#table_musicnames').removeClass('unusable');
-  $('select#select_playmodes').removeClass('unusable');
-  $('select#select_difficulties').removeClass('unusable');
-
-  $('tr.musicnameitem').each(function() {
-    if($(this).children('td.musicname_cell_musicname').text() == values['targetscore'] ['musicname'])
-      $(this).addClass('selected');
+    tr.on('click', onclick_publicitem);
+    $('#table_publics').append(tr);
   });
-
-  $('span#selected_musicname').text(values['targetscore']['musicname']);
-
-  $('select#select_playmodes').val(values['targetscore'] ['playmode']);
-  $('select#select_difficulties').val(values['targetscore'] ['difficulty']);
 }
 
-/**
- * モードを選択する
- * @param {ce.Event} e イベントハンドラ
- */
-function onchange_mode(e) {
-  const selected_mode = $('input[name="mode"]:checked').attr('id');
-  const mode = selected_mode.match(/(?<=radio_mode_)(.*)/)[0];
+async function get_joineds() {
+  console.log($('tr.joineditem').length)
+  $('tr.joineditem').off('click', onclick_joineditem);
+  $('tr.joineditem').remove();
 
-  if(mode == "battle") {
-    $('select#select_versions').addClass('unusable');
-    $('input#text_musicname_search').addClass('unusable');
-    $('table#table_musicnames').addClass('unusable');
-    $('select#select_playmodes').addClass('unusable');
-    $('select#select_difficulties').addClass('unusable');
-  }
-  else {
-    $('select#select_versions').removeClass('unusable');
-    $('input#text_musicname_search').removeClass('unusable');
-    $('table#table_musicnames').removeClass('unusable');
-    $('select#select_playmodes').removeClass('unusable');
-    $('select#select_difficulties').removeClass('unusable');
-  }
-}
+  const joined = JSON.parse(await webui.discordwebhook_getjoineds());
+  Object.keys(joined).forEach(id => {
+    const target = joined[id];
 
-/**
- * 絞り込み対象のバージョンを選択する
- * @param {ce.Event} e イベントハンドラ
- */
-function onchange_version(e) {
-  const version = e.target.value;
-  const musicname_pattern = $('input#text_musicname_search').val();
+    const tr = $('<tr>');
+    tr.addClass('tableitem joineditem');
 
-  musicname_search(version, musicname_pattern);
-}
+    const td_id = $('<td>').text(id);
+    td_id.addClass('joineditem_cell_id');
+    tr.append(td_id);
 
-/**
- * 絞り込み対象の曲名の文字列を入力する
- * @param {ce.Event} e イベントハンドラ
- */
-function oninput_musicname(e) {
-  const version = $('select#select_versions').val();
-  const musicname_pattern = e.target.value;
+    const td_name = $('<td>').text(target.name);
+    td_name.addClass('joineditem_cell_name');
+    tr.append(td_name);
 
-  musicname_search(version, musicname_pattern);
-}
+    const td_mode = $('<td>');
+    if(target.mode == 'battle')
+      td_mode.text('バトル');
+    if(target.mode == 'score')
+      td_mode.text('スコア大会');
+    if(target.mode == 'misscount')
+      td_mode.text('ミスカウント大会');
+    td_mode.addClass('joineditem_cell_mode');
+    tr.append(td_mode);
 
-/**
- * 曲名を選択する
- * @param {ce.Event} e イベントハンドラ
- */
-function onclick_musicnameitem(e) {
-  $('tr.musicnameitem.selected').removeClass('selected');
-  $(this).addClass('selected');
+    const localdt = new Date(target.limit);
+    const year = localdt.getFullYear();
+    const month = localdt.getMonth() + 1;
+    const day = localdt.getDate();
+    const hour = localdt.getHours();
+    const minute = localdt.getMinutes();
+    const td_limit = $('<td>').text(`${year}/${month}/${day} ${hour}:${minute}`);
+    td_limit.addClass('publicitem_cell_limit');
+    tr.append(td_limit);
 
-  $('span#selected_musicname').text($(this).find('td.musicname_cell_musicname').text());
-}
-
-/**
- * OKボタンを押す
- * @param {ce.Event} e イベントハンドラ
- */
-async function onclick_ok(e) {
-  const settingname = $('input#text_settingname').val();
-
-  if(settingname.length == 0) {
-    $('span#message').text('名称を入力してください。');
-    return;
-  }
-
-  if(settingname.length > 256) {
-    $('span#message').text('名称を短くしてください。');
-    return;
-  }
-
-  const url = $('input#text_url').val();
-
-  if(url.length == 0) {
-    $('span#message').text('URLを入力してください。');
-    return;
-  }
-
-  if(url.length > 256) {
-    $('span#message').text('URLを短くしてください。');
-    return;
-  }
-
-  const modeid = $('input[name="mode"]:checked').attr('id');
-  const mode = modeid.match(/(?<=radio_mode_)(.*)/)[0];
-
-  if(mode == null) {
-    $('span#message').text('モードを選択してください。');
-    return;
-  }
-
-  const filterid = $('input[name="filter"]:checked').attr('id');
-  const filter = filterid.match(/(?<=radio_filter_)(.*)/)[0];
-
-  if(filter == null) {
-    $('span#message').text('フィルター設定を選択してください。');
-    return;
-  }
-
-  let targetscore = null;
-  if(mode != 'battle') {
-    const musicname = $('tr.musicnameitem.selected .musicname_cell_musicname').first().text();
-  
-    if(musicname.length == 0) {
-      $('span#message').text('対象曲を選択してください。');
-      return;
+    const td_targetscore = $('<td>');
+    if(target.mode != 'battle') {
+      const targetscore = target.targetscore;
+      const text = `${targetscore.musicname}[${targetscore.playmode}${targetscore.difficulty[0]}]`;
+      td_targetscore.text(text);
     }
-  
-    const playmode = $('#select_playmodes option:selected').val();
-    const difficulty = $('#select_difficulties option:selected').val();
-
-    if(!Object.keys(musics[musicname][playmode]).includes(difficulty)) {
-      $('span#message').text(`${playmode} の ${musicname} に ${difficulty} はありません。`);
-      return;
+    else {
+      td_targetscore.text('-');
     }
+    td_targetscore.addClass('joineditem_cell_targetscore');
+    tr.append(td_targetscore);
 
-    targetscore = {
-      'musicname': musicname,
-      'playmode': playmode,
-      'difficulty': difficulty,
-    }
+    const td_mybest = $('<td>').text(target.mybest != null ? target.mybest : '');
+    td_mybest.addClass('joineditem_cell_mybest');
+    tr.append(td_mybest);
+
+    tr.on('click', onclick_joineditem);
+    $('#table_joineds').append(tr);
+  });
+}
+
+/**
+ * Python側からのメッセージ処理
+
+ * @param {*} message メッセージ本文
+ */
+function communication_message(message, data = null) {
+  switch(message) {
+    case 'discordwebhook_refresh':
+      get_joineds();
+      break;
   }
+}
 
-  $('span#message').text('');
+/**
+ * ダイアログを閉じるボタンを押す
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_dialogclose(e) {
+  $(this).closest('dialog')[0].close();
+}
 
-  await webui.discordwebhook_updatesetting(JSON.stringify({
-    'name': settingname,
-    'url': url,
-    'mode': mode,
-    'filter': filter,
-    'targetscore': targetscore,
+/**
+ * 設定保存ボタンを押す
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_save(e) {
+  webui.discordwebhook_savesetting(JSON.stringify({
+    playername: $('input#text_playername').val(),
+    filter: $('input[name="filter"]:checked').attr('id').match(/[^_]+$/)[0],
   }));
 
-  window.parent.postMessage("discordwebhook_close", "*");
+  $('dialog#dialog_savecomplete')[0].showModal();
 }
 
 /**
- * キャンセルボタンを押す
+ * 公開されたイベントを選択する
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_cancel(e) {
-  window.parent.postMessage("discordwebhook_close", "*");
+async function onclick_publicitem(e) {
+  $('tr.publicitem.selected').removeClass('selected');
+  $(this).addClass('selected');
 }
 
 /**
- * ランダムな設定名を生成する
- * @param {int} length ランダム文字列の長さ
- * @returns 生成された文字列
+ * 参加中のイベントを選択する
+ * @param {ce.Event} e イベントハンドラ
  */
-function generate_randomsettingname(length = 4) {
-  const characters = Array.from({length}, () => 
-    String.fromCharCode(65 + Math.floor(Math.random() * 26))
-  );
-
-  return `Server-${characters.join('')}`;
+async function onclick_joineditem(e) {
+  $('tr.joineditem.selected').removeClass('selected');
+  $(this).addClass('selected');
 }
 
 /**
- * 入力された条件をもとに一致する曲名だけを表示する
- * @param {str} version バージョン名。ALLの場合は全てのバージョンが対象
- * @param {str} musicname_pattern 曲名の条件(部分一致)。なしの場合は全ての曲名が対象
+ * 参加ボタンを押す
+ * @param {ce.Event} e イベントハンドラ
  */
-function musicname_search(version, musicname_pattern) {
-  const version_all = version == 'ALL';
-  const musicname_all = musicname_pattern.length == 0;
+async function onclick_joinevent(e) {
+  const target = $('tr.publicitem.selected');
+  if(!target.length) return;
 
-  let reg = null;
-  if(!musicname_all)
-    reg = new RegExp(musicname_pattern, 'i');
-
-  $('table#table_musicnames tr.musicnameitem').each(function() {
-    const version_condition = version_all || $(this).children('td.musicname_cell_version').text() == version;
-    const musicname_condition = musicname_all || reg.test($(this).children('td.musicname_cell_musicname').text());
-
-    if(version_condition && musicname_condition)
-      $(this).removeClass('hidden');
-    else
-      $(this).addClass('hidden');
-  });
+  const id = target.find('td.publicitem_cell_id').text();
+  await webui.discordwebhook_joinevent(id);
 }
 
 /**
- * 検索タブから選択された譜面の情報を表示する
+ * ID指定で参加ボタンを押す
+ * @param {ce.Event} e イベントハンドラ
  */
-function check_selectscore() {
-  const musicname = $('tr.musicnameitem.selected .musicname_cell_musicname').first().text();
-  const playmode = $('#select_playmodes option:selected').val();
-  const difficulty = $('#select_difficulties option:selected').val();
+async function onclick_joineventinputid(e) {
+  $('input#text_eventid').val('');
+  $('dialog#dialog_idinput')[0].showModal();
+}
 
-  if(!Object.keys(musics[musicname][playmode]).includes(difficulty)) {
-    $('span#message').text(`${playmode} の ${musicname} に ${difficulty} はありません。`);
-    return null;
+/**
+ * 登録のイベントIDを指定してOKボタンを押す
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_eventidinputok(e) {
+  $(this).closest('dialog')[0].close();
+
+  const inputid = $('input#text_eventid').val();
+  if(!inputid.length) return;
+
+  const result = JSON.parse(await webui.discordwebhook_joinevent(inputid));
+  if(!result) {
+    $('dialog#dialog_idnotfound')[0].showModal();
+    return;
   }
+}
 
-  $('span#message').text('');
+/**
+ * 辞退ボタンを押す
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_leaveevent(e) {
+  const target = $('tr.joineditem.selected');
+  if(!target.length) return;
 
-  return [playmode, difficulty, musicname];
+  const id = target.find('td.joineditem_cell_id').text();
+  await webui.discordwebhook_leaveevent(id);
+}
+
+/**
+ * 閉じるボタンを押す
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onclick_close(e) {
+  window.parent.postMessage("discordwebhook_close", "*");
 }
