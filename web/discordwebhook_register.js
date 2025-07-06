@@ -36,7 +36,6 @@ async function initialize() {
   document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
 
   const musictable = JSON.parse(await webui.get_musictable());
-  musics = musictable['musics'];
 
   for(const version in musictable['versions']) {
     $('#select_versions').append($('<option>')
@@ -45,21 +44,9 @@ async function initialize() {
     );
   }
 
-  for(const musicname in musictable['musics']) {
-    const tr = $('<tr>');
-    tr.addClass('tableitem musicnameitem');
+  musics = musictable['musics']
 
-    const td_musicname = $('<td>').text(musicname);
-    td_musicname.addClass('musicname_cell_musicname');
-    tr.append(td_musicname);
-
-    const td_version = $('<td>').text(musictable['musics'][musicname]['version']);
-    td_version.addClass('musicname_cell_version');
-    tr.append(td_version);
-
-    tr.on('click', onclick_musicnameitem);
-    $('#table_musicnames').append(tr);
-  }
+  set_musicnames();
 
   const playmodes = JSON.parse(await webui.get_playmodes());
   for(const playmode of playmodes) {
@@ -112,15 +99,47 @@ function onchange_mode(e) {
   }
 }
 
+async function set_musicnames() {
+  $('tr.musicnameitem').off('click', onclick_musicnameitem);
+  $('tr.musicnameitem').remove();
+
+  const version = $('select#select_versions').val();
+  const musicname_pattern = $('input#text_musicname_search').val();
+
+  const version_all = version == 'ALL';
+
+  let reg = null;
+  if(musicname_pattern.length)
+    reg = new RegExp(musicname_pattern, 'i');
+
+  for(const musicname in musics) {
+    if(!version_all && musics[musicname].version != version)
+      continue;
+    if(reg !== null && !reg.test(musicname))
+      continue;
+
+    const tr = $('<tr>');
+    tr.addClass('tableitem musicnameitem');
+
+    const td_musicname = $('<td>').text(musicname);
+    td_musicname.addClass('musicname_cell_musicname');
+    tr.append(td_musicname);
+
+    const td_version = $('<td>').text(musics[musicname]['version']);
+    td_version.addClass('musicname_cell_version');
+    tr.append(td_version);
+
+    tr.on('click', onclick_musicnameitem);
+    $('#table_musicnames').append(tr);
+  }
+}
+
 /**
  * 絞り込み対象のバージョンを選択する
  * @param {ce.Event} e イベントハンドラ
  */
 function onchange_version(e) {
-  const version = e.target.value;
-  const musicname_pattern = $('input#text_musicname_search').val();
-
-  musicname_search(version, musicname_pattern);
+  set_musicnames();
 }
 
 /**
@@ -128,10 +147,7 @@ function onchange_version(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function oninput_musicname(e) {
-  const version = $('select#select_versions').val();
-  const musicname_pattern = e.target.value;
-
-  musicname_search(version, musicname_pattern);
+  set_musicnames();
 }
 
 /**
@@ -246,30 +262,6 @@ function generate_randomsettingname(length = 4) {
   );
 
   return `Server-${characters.join('')}`;
-}
-
-/**
- * 入力された条件をもとに一致する曲名だけを表示する
- * @param {str} version バージョン名。ALLの場合は全てのバージョンが対象
- * @param {str} musicname_pattern 曲名の条件(部分一致)。なしの場合は全ての曲名が対象
- */
-function musicname_search(version, musicname_pattern) {
-  const version_all = version == 'ALL';
-  const musicname_all = musicname_pattern.length == 0;
-
-  let reg = null;
-  if(!musicname_all)
-    reg = new RegExp(musicname_pattern, 'i');
-
-  $('table#table_musicnames tr.musicnameitem').each(function() {
-    const version_condition = version_all || $(this).children('td.musicname_cell_version').text() == version;
-    const musicname_condition = musicname_all || reg.test($(this).children('td.musicname_cell_musicname').text());
-
-    if(version_condition && musicname_condition)
-      $(this).removeClass('hidden');
-    else
-      $(this).addClass('hidden');
-  });
 }
 
 /**

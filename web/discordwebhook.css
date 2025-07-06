@@ -26,20 +26,24 @@ div#scroll_publics {
     height: 95px;
 }
 
-td.publicitem_cell_id {
+table#table_publics th:nth-child(1),
+table#table_publics td:nth-child(1) {
     display: none;
 }
 
-td.publicitem_cell_name {
-    width: 70px;
+table#table_publics th:nth-child(2),
+table#table_publics td:nth-child(2) {
+    width: 100px;
 }
 
-td.publicitem_cell_mode {
+table#table_publics th:nth-child(3),
+table#table_publics td:nth-child(3) {
     text-align: center;
     width: 80px;
 }
 
-td.publicitem_cell_limit {
+table#table_publics th:nth-child(4),
+table#table_publics td:nth-child(4) {
     text-align: center;
     width: 85px;
 }
@@ -48,27 +52,41 @@ div#scroll_joineds {
     height: 95px;
 }
 
-td.joineditem_cell_id {
+table#table_joineds th:nth-child(1),
+table#table_joineds td:nth-child(1) {
     display: none;
 }
 
-td.joineditem_cell_name {
-    width: 70px;
+table#table_joineds th:nth-child(2),
+table#table_joineds td:nth-child(2) {
+    width: 100px;
 }
 
-td.joineditem_cell_mode {
+table#table_joineds th:nth-child(3),
+table#table_joineds td:nth-child(3) {
     text-align: center;
     width: 80px;
 }
 
-td.joineditem_cell_limit {
+table#table_joineds th:nth-child(4),
+table#table_joineds td:nth-child(4) {
     text-align: center;
     width: 85px;
 }
 
-td.joineditem_cell_mybest {
+table#table_joineds th:nth-child(6),
+table#table_joineds td:nth-child(6) {
     text-align: center;
     width: 40px;
+}
+
+table#table_musicnames {
+    width: 450px;
+}
+
+table#table_musicnames th:nth-child(2),
+table#table_musicnames td:nth-child(2) {
+    display: none;
 }
 
 input#text_url {

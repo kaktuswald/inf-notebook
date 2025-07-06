@@ -49,20 +49,39 @@ td.cell_hidden {
     display: none;
 }
 
-td.recentresult_cell_scoretype {
-    width: 20px;
+table#table_recents th:nth-child(1),
+table#table_recents td:nth-child(1),
+table#table_recents th:nth-child(2),
+table#table_recents td:nth-child(2),
+table#table_recents th:nth-child(3),
+table#table_recents td:nth-child(3) {
+    text-align: center;
+    width: 12px;
 }
 
-td.cell_check {
-    width: 10px;
+table#table_recents th:nth-child(5),
+table#table_recents td:nth-child(5) {
+    width: 25px;
 }
 
-td.music_cell_version {
+table#table_recents th:nth-child(6),
+table#table_recents td:nth-child(6),
+table#table_recents th:nth-child(7),
+table#table_recents td:nth-child(7),
+table#table_recents th:nth-child(8),
+table#table_recents td:nth-child(8),
+table#table_recents th:nth-child(9),
+table#table_recents td:nth-child(9) {
+    text-align: center;
+    width: 15px;
+}
+
+table#table_musics td:nth-child(2),
+table#table_musics th:nth-child(2) {
     display: none;
 }
 
 div.pane_musicname_search_left {
-    flex: 1;
     padding: 2px;
     overflow: hidden;
     display: flex;
@@ -70,7 +89,7 @@ div.pane_musicname_search_left {
 }
 
 div.pane_musicname_search_right {
-    flex: 1;
+    width: 130px;
     padding: 2px;
     display: flex;
     flex-direction: column;
@@ -136,15 +155,17 @@ button#button_recents_confirm_uploadcollectionimages {
 
 div#scroll_discordwebhook_events {
     height: 100px;
+    overflow-x: hidden;
+}
+
+table#table_discordwebhooks th:nth-child(2),
+table#table_discordwebhooks td:nth-child(2) {
+    text-align: center;
+    width: 85px;
 }
 
 div#scroll_discordwebhook_logs {
     height: 140px;
-}
-
-td.discordwebhook_cell_limit {
-    text-align: center;
-    width: 85px;
 }
 
 ul#list_discordwebhook_logs {
@@ -152,6 +173,21 @@ ul#list_discordwebhook_logs {
     padding: 0px;
     font-size: xx-small;
 }
+
+table#table_notesradar_ranking th:nth-child(1),
+table#table_notesradar_ranking td:nth-child(1) {
+    width: 25px;
+}
+
+table#table_notesradar_ranking th:nth-child(3),
+table#table_notesradar_ranking td:nth-child(3) {
+    width: 20px;
+}
+table#table_notesradar_ranking th:nth-child(4),
+table#table_notesradar_ranking td:nth-child(4) {
+    width: 40px;
+}
+
 
 div#scroll_logs {
     font-size: large;

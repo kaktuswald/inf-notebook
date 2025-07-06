@@ -395,8 +395,6 @@ function request_imagereload(tagid, filename) {
 async function load_musictable() {
   musictable = JSON.parse(await webui.get_musictable());
 
-  selected_musicname = null;
-
   for(const version in musictable['versions']) {
     $('#select_versions').append($('<option>')
       .val(version)
@@ -404,7 +402,33 @@ async function load_musictable() {
     );
   }
 
-  for(const musicname in musictable['musics']) {
+  set_musicnames();
+}
+
+/**
+ * 曲名リストをセットする
+ */
+function set_musicnames() {
+  selected_musicname = null;
+
+  $('tr.musictableitem').off('click', onclick_musictableitem);
+  $('tr.musictableitem').remove();
+
+  const version = $('select#select_versions').val();
+  const musicname_pattern = $('input#text_musicname_search').val();
+
+  const version_all = version == 'ALL';
+
+  let reg = null;
+  if(musicname_pattern.length)
+    reg = new RegExp(musicname_pattern, 'i');
+
+  for(const musicname in musictable.musics) {
+    if(!version_all && musictable.musics[musicname].version != version)
+      continue;
+    if(reg !== null && !reg.test(musicname))
+      continue;
+
     const tr = $('<tr>');
     tr.addClass('tableitem musictableitem');
 
@@ -443,15 +467,15 @@ async function set_recentnotebook_results(selectnewest) {
     tr.addClass('tableitem recentresultitem');
 
     const td_latest = $('<td>').text(value['latest'] ? '☑' : '');
-    td_latest.addClass('center cell_check recentresult_cell_latest');
+    td_latest.addClass('recentresult_cell_latest');
     tr.append(td_latest);
 
     const td_saved = $('<td>').text(value['saved'] ? '☑' : '');
-    td_saved.addClass('center cell_check recentresult_cell_saved');
+    td_saved.addClass('recentresult_cell_saved');
     tr.append(td_saved);
 
     const td_filtered = $('<td>').text(value['filtered'] ? '☑' : '');
-    td_filtered.addClass('center cell_check recentresult_cell_filtered');
+    td_filtered.addClass('recentresult_cell_filtered');
     tr.append(td_filtered);
 
     const td_displaymusicname = $('<td>').text(typeof value['musicname'] === 'string' ? value['musicname'] : '?????');
@@ -459,23 +483,23 @@ async function set_recentnotebook_results(selectnewest) {
     tr.append(td_displaymusicname);
 
     const td_scoretype = $('<td>').text((typeof value['playmode'] === 'string' && typeof value['difficulty'] === 'string') ? `${value['playmode']}${value['difficulty'][0]}` : '???');
-    td_scoretype.addClass('center recentresult_cell_scoretype');
+    td_scoretype.addClass('recentresult_cell_scoretype');
     tr.append(td_scoretype);
 
     const td_news_cleartype = $('<td>').text(value['news_cleartype'] ? '☑' : '');
-    td_news_cleartype.addClass('center cell_check recentresult_cell_news_cleartype');
+    td_news_cleartype.addClass('recentresult_cell_news_cleartype');
     tr.append(td_news_cleartype);
 
     const td_news_djlevel = $('<td>').text(value['news_djlevel'] ? '☑' : '');
-    td_news_djlevel.addClass('center cell_check recentresult_cell_news_djlevel');
+    td_news_djlevel.addClass('recentresult_cell_news_djlevel');
     tr.append(td_news_djlevel);
 
     const td_news_score = $('<td>').text(value['news_score'] ? '☑' : '');
-    td_news_score.addClass('center cell_check recentresult_cell_news_score');
+    td_news_score.addClass('recentresult_cell_news_score');
     tr.append(td_news_score);
 
     const td_news_misscount = $('<td>').text(value['news_misscount'] ? '☑' : '');
-    td_news_misscount.addClass('center cell_check recentresult_cell_news_misscount');
+    td_news_misscount.addClass('recentresult_cell_news_misscount');
     tr.append(td_news_misscount);
 
     const td_playmode = $('<td>').text(value['playmode']);
@@ -530,7 +554,7 @@ function select_newest_recentresult() {
  * @param {string} difficulty 譜面難易度
  */
 function select_score(musicname, playmode, difficulty) {
-  if(!change_selected_score(musicname, playmode, difficulty))
+  if(!change_selected_score(musicname, playmode, difficulty, false))
     return;
 
   $('tr.recentresultitem.select_first').removeClass('select_first');
@@ -553,7 +577,7 @@ function display_scoreresult_and_playresult_from_recents() {
   if(musicname.lenth == 0) musicname = null;
   if(difficulty.lenth == 0) difficulty = null;
 
-  if(change_selected_score(musicname, playmode, difficulty))
+  if(change_selected_score(musicname, playmode, difficulty, true))
     display_scoreresult();
 
   const timestamp = targetitem.children('td.recentresult_cell_timestamp').text();
@@ -586,10 +610,11 @@ function display_scoreresult_from_scoresearch() {
  * @param {string} musicname 曲名
  * @param {string} playmode プレイモード(SP or DP)
  * @param {string} difficulty 譜面難易度
+ * @param {bool} force 必ず選択する
  * @returns {boolean} 変更の有無
  */
-function change_selected_score(musicname, playmode, difficulty) {
-  if(musicname == selected_musicname && playmode == selected_playmode && difficulty == selected_difficulty)
+function change_selected_score(musicname, playmode, difficulty, force) {
+  if(!force && musicname == selected_musicname && playmode == selected_playmode && difficulty == selected_difficulty)
     return false;
 
   $('tr.musictableitem.selected').removeClass('selected');
@@ -1310,10 +1335,7 @@ async function onclick_execute_deleteplayresult(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onchange_scoreselect_version(e) {
-  const version = e.target.value;
-  const musicname_pattern = $('input#text_musicname_search').val();
-
-  musicname_search(version, musicname_pattern);
+  set_musicnames();
 }
 
 /**
@@ -1321,10 +1343,7 @@ function onchange_scoreselect_version(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function oninput_scoreselect_musicname(e) {
-  const version = $('select#select_versions').val();
-  const musicname_pattern = e.target.value;
-
-  musicname_search(version, musicname_pattern);
+  set_musicnames();
 }
 
 /**
@@ -1490,32 +1509,6 @@ function onmessage_window(e) {
     $('dialog#dialog_discordwebhook')[0].close();
     $('iframe#inner_discordwebhook').removeAttr('src');
   }
-}
-
-/**
- * 入力された条件をもとに一致する曲名だけを表示する
- * @param {str} version バージョン名。ALLの場合は全てのバージョンが対象
- * @param {str} musicname_pattern 曲名の条件(部分一致)。なしの場合は全ての曲名が対象
- */
-function musicname_search(version, musicname_pattern) {
-  // 表示方法を、displayを切り替えるのではなくて要素の全削除と追加のし直しにする
-  // 背景色のゼブラが崩れるから
-  const version_all = version == 'ALL';
-  const musicname_all = musicname_pattern.length == 0;
-
-  let reg = null;
-  if(!musicname_all)
-    reg = new RegExp(musicname_pattern, 'i');
-
-  $('table#table_musics tr.tableitem').each(function() {
-    const version_condition = version_all || $(this).children('td.music_cell_version').text() == version;
-    const musicname_condition = musicname_all || reg.test($(this).children('td.music_cell_musicname').text());
-
-    if(version_condition && musicname_condition)
-      $(this).removeClass('hidden');
-    else
-      $(this).addClass('hidden');
-  });
 }
 
 /**
