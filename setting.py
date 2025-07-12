@@ -42,7 +42,8 @@ default = {
     'discord_webhook': {
         'playername': 'NO NAME',
         'filter': filtereds.NONE,
-        'events': {},
+        'seenevents': [],
+        'joinedevents': {},
     },
     'port': {
         'main': 52374,
@@ -85,8 +86,10 @@ class Setting():
             self.json['discord_webhook']['playername'] = default['discord_webhook']['playername']
         if not 'filter' in self.json['discord_webhook'].keys():
             self.json['discord_webhook']['filter'] = default['discord_webhook']['filter']
-        if not 'events' in self.json['discord_webhook'].keys():
-            self.json['discord_webhook']['events'] = {}
+        if not 'seenevents' in self.json['discord_webhook'].keys():
+            self.json['discord_webhook']['seenevents'] = []
+        if not 'joinedevents' in self.json['discord_webhook'].keys():
+            self.json['discord_webhook']['joinedevents'] = {}
 
         self.save()
 

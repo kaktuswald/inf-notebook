@@ -134,7 +134,7 @@ $(function() {
 /**
  * 初期処理
  * 
- * ロード完了時に実行する。Python側から選択肢のリストを取得する。
+ * ロード完了時に実行する。
  */
 async function initialize() {
   document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
@@ -145,12 +145,6 @@ async function initialize() {
   const fontfamily = $('body').css('font-family');
 
   Chart.defaults.font.family = fontfamily;
-
-  const result = JSON.parse(await webui.check_latestversion());
-  if(result) {
-    $('div#findnewestversion_message').text(result);
-    $('dialog#dialog_findnewestversion')[0].showModal();
-  }
 
   const [width, height] = JSON.parse(await webui.get_imagesize());
 
@@ -210,6 +204,34 @@ async function initialize() {
   await set_recentnotebook_results(false);
 
   webui.start_capturing();
+
+  const result = JSON.parse(await webui.check_latestversion());
+  if(result) {
+    $('div#findnewestversion_message').text(result);
+    $('dialog#dialog_findnewestversion')[0].showModal();
+
+    return;
+  }
+
+  const newpublicwebhooks = JSON.parse(await webui.discordwebhook_getnewpublics());
+  const ids = Object.keys(newpublicwebhooks);
+  if(ids.length) {
+    ids.forEach(id => {
+      const target = newpublicwebhooks[id];
+
+      const localdt = new Date(target.limit);
+      const month = localdt.getMonth() + 1;
+      const day = localdt.getDate();
+      const hour = localdt.getHours();
+      const minute = localdt.getMinutes();
+      const formatted_limit = `${month}/${day} ${hour}:${minute}`;
+      
+      const li = $('<li>').text(`${target.name} ${formatted_limit} まで`);
+      $('ul#list_newdiscordwebhookevents').append(li);
+    });
+
+    $('dialog#dialog_newdiscordwebhookevents')[0].showModal();
+  }
 }
 
 async function load_setting() {
@@ -224,7 +246,7 @@ async function load_setting() {
   else
     $('#button_recents_confirm_uploadcollectionimages').css('display', 'none');
 
-  refresh_discordwebhook_settings(setting['discord_webhook']['events']);
+  refresh_discordwebhook_settings(setting['discord_webhook']['joinedevents']);
 }
 
 async function generate_imagenothingimage() {

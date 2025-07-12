@@ -84,6 +84,8 @@ function onchange_mode(e) {
   const mode = selected_mode.match(/(?<=radio_mode_)(.*)/)[0];
 
   if(mode == "battle") {
+    $('input#check_private').prop('checked', true);
+    $('input#check_private').prop('disabled', true);
     $('select#select_versions').addClass('unusable');
     $('input#text_musicname_search').addClass('unusable');
     $('table#table_musicnames').addClass('unusable');
@@ -91,6 +93,7 @@ function onchange_mode(e) {
     $('select#select_difficulties').addClass('unusable');
   }
   else {
+    $('input#check_private').prop('disabled', false);
     $('select#select_versions').removeClass('unusable');
     $('input#text_musicname_search').removeClass('unusable');
     $('table#table_musicnames').removeClass('unusable');
@@ -256,12 +259,12 @@ function onclick_close(e) {
  * @param {int} length ランダム文字列の長さ
  * @returns 生成された文字列
  */
-function generate_randomsettingname(length = 4) {
+function generate_randomsettingname(length = 8) {
   const characters = Array.from({length}, () => 
     String.fromCharCode(65 + Math.floor(Math.random() * 26))
   );
 
-  return `Server-${characters.join('')}`;
+  return `Event-${characters.join('')}`;
 }
 
 /**

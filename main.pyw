@@ -471,7 +471,7 @@ class GuiApi():
         event.return_string(dumps(ret))
     
     def get_discordwebhook_settings(self, event: webui.Event):
-        event.return_string(dumps(setting.discord_webhook['events']))
+        event.return_string(dumps(setting.discord_webhook['joinedevents']))
     
     def check_latestversion(self, event: webui.Event):
         '''最新バージョンをチェックする
@@ -1174,6 +1174,7 @@ class GuiApiDiscordWebhook():
         self.window = window
 
         window.bind('discordwebhook_getpublics', self.get_publics)
+        window.bind('discordwebhook_getnewpublics', self.get_newpublics)
         window.bind('discordwebhook_getjoineds', self.get_joineds)
         window.bind('discordwebhook_savesetting', self.save_setting)
         window.bind('discordwebhook_joinevent', self.join_event)
@@ -1190,8 +1191,21 @@ class GuiApiDiscordWebhook():
                 publics[key] = value
         event.return_string(dumps(publics))
 
+    def get_newpublics(self, event: webui.Event):
+        self.events = storage.download_discordwebhooks()
+
+        newpublics = {}
+        for key, value in self.events.items():
+            if not value['private'] and not key in setting.discord_webhook['seenevents']:
+                newpublics[key] = value
+                setting.discord_webhook['seenevents'].append(key)
+        
+        event.return_string(dumps(newpublics))
+
+        setting.save()
+
     def get_joineds(self, event: webui.Event):
-        event.return_string(dumps(setting.discord_webhook['events']))
+        event.return_string(dumps(setting.discord_webhook['joinedevents']))
 
     def save_setting(self, event: webui.Event):
         discordwebhooksetting = loads(event.get_string_at(0))
@@ -1215,7 +1229,7 @@ class GuiApiDiscordWebhook():
         
         target = self.events[id]
 
-        setting.discord_webhook['events'][id] = {
+        setting.discord_webhook['joinedevents'][id] = {
             'name': target['name'],
             'url': target['url'],
             'mode': target['mode'],
@@ -1232,7 +1246,7 @@ class GuiApiDiscordWebhook():
     def leave_event(self, event: webui.Event):
         id = event.get_string_at(0)
 
-        del setting.discord_webhook['events'][id]
+        del setting.discord_webhook['joinedevents'][id]
 
         setting.save()
         api.send_message('discordwebhook_refresh')
@@ -1319,7 +1333,7 @@ def result_process(screen: Screen):
     '''
     global scoreselection
 
-    api.send_message('append_log', 'musicselect process')
+    api.send_message('append_log', 'result process')
 
     result: Result = recog.get_result(screen)
     if result is None:
@@ -1341,7 +1355,7 @@ def result_process(screen: Screen):
             timestamps_uploaded.append(result.timestamp)
 
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
-        if 'events' in setting.discord_webhook.keys() and len(setting.discord_webhook['events']) > 0:
+        if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
             Thread(target=post_discord_webhooks, args=(result, resultimage, queue_multimessages)).start()
     
     if setting.newrecord_only and not result.has_new_record():
@@ -1478,7 +1492,7 @@ def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
     deletetargets = []
     logs = []
 
-    for key, webhooksetting in setting.discord_webhook['events'].items():
+    for key, webhooksetting in setting.discord_webhook['joinedevents'].items():
         limit = datetime.strptime(webhooksetting['limit'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
         nowdt = datetime.now(timezone.utc)
         daydifference = (limit - nowdt).total_seconds() / (60 * 60 * 24)
@@ -1491,7 +1505,7 @@ def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
     if len(deletetargets):
         setting_updated = True
         for key in deletetargets:
-            del setting.discord_webhook['events'][key]
+            del setting.discord_webhook['joinedevents'][key]
 
     if len(posttargets):
         if setting.discord_webhook['filter'] == discordwebhook_filtereds.NONE:

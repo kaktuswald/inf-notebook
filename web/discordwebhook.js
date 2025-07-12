@@ -16,7 +16,7 @@ $(function() {
 /**
  * 初期処理
  * 
- * ロード完了時に実行する。Python側から選択肢のリストを取得する。
+ * ロード完了時に実行する。
  */
 async function initialize() {
   document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
@@ -86,7 +86,6 @@ async function get_publics() {
 }
 
 async function get_joineds() {
-  console.log($('tr.joineditem').length)
   $('tr.joineditem').off('click', onclick_joineditem);
   $('tr.joineditem').remove();
 
