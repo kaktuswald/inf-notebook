@@ -75,6 +75,8 @@ $(function() {
   $('button#button_openfolder_scoreinformations').on('click', onclick_openfolder_scoreinformations);
   $('button#button_openfolder_scorecharts').on('click', onclick_openfolder_scorecharts);
 
+  $('button#button_displayresultimage_switch').on('click', onclick_displayresultimage_switch);
+
   $('button#button_summary_switch').on('click', onclick_summary_switch);
   $('button#button_summary_setting').on('click', onclick_summary_setting);
 
@@ -225,7 +227,7 @@ async function initialize() {
       const hour = localdt.getHours();
       const minute = localdt.getMinutes();
       const formatted_limit = `${month}/${day} ${hour}:${minute}`;
-      
+
       const li = $('<li>').text(`${target.name} ${formatted_limit} まで`);
       $('ul#list_newdiscordwebhookevents').append(li);
     });
@@ -372,6 +374,9 @@ function communication_message(message, data = null) {
       break;
     case 'scoreselect':
       select_score(data.musicname, data.playmode, data.difficulty);
+      break;
+    case 'error':
+      display_errormessage(data);
       break;
     case 'append_log':
       append_log(data);
@@ -817,17 +822,24 @@ function clear_playresult() {
  * @param {string} timestamp リザルトのタイムスタンプ
  */
 async function display_playresult(timestamp) {
-  if(selected_musicname == null || selected_playmode == null || selected_difficulty == null) {
-    clear_playresult();
+  clear_playresult();
+  
+  if(selected_musicname == null || selected_playmode == null || selected_difficulty == null)
     return;
-  }
 
   if(timestamp.length == 0) return;
 
   selected_timestamp = timestamp;
 
-  const encodedimage = JSON.parse(await webui.get_resultimage(selected_musicname, selected_playmode, selected_difficulty, timestamp));
-  display_encodedimage(encodedimage, 'image_screenshot');
+  let encodedimage = null;
+  console.log(setting.resultimage_filtered);
+  if(!setting.resultimage_filtered)
+    encodedimage = JSON.parse(await webui.get_resultimage(selected_musicname, selected_playmode, selected_difficulty, timestamp));
+  else
+    encodedimage = JSON.parse(await webui.get_resultimage_filtered(selected_musicname, selected_playmode, selected_difficulty, timestamp));
+
+  if(encodedimage !== null)
+    display_encodedimage(encodedimage, 'image_screenshot');
 
   const playresult = JSON.parse(await webui.get_playresult(selected_musicname, selected_playmode, selected_difficulty, timestamp));
 
@@ -924,7 +936,7 @@ async function onclick_save_scoreinformationimage(e) {
   if(selected_playmode == null || selected_musicname == null || selected_difficulty == null) return;
   
   if(!await webui.save_scoreinformationimage(selected_playmode, selected_musicname, selected_difficulty))
-    $('dialog#dialog_message_imagesavefailed')[0].showModal();
+    display_errormessage(['画像の保存に失敗しました。']);
 }
 
 /**
@@ -935,7 +947,7 @@ async function onclick_save_scoregraphimage(e) {
   if(selected_playmode == null || selected_musicname == null || selected_difficulty == null) return;
 
   if(!await webui.save_scoregraphimage(selected_playmode, selected_musicname, selected_difficulty))
-    $('dialog#dialog_message_imagesavefailed')[0].showModal();
+    display_errormessage(['画像の保存に失敗しました。']);
 }
 
 /**
@@ -1023,7 +1035,7 @@ function onclick_post_scoreinformation(e) {
  */
 async function onclick_openfolder_export(e) {
   if(!await webui.openfolder_export())
-    $('dialog#dialog_message_openfolderfailed')[0].showModal();
+    display_errormessage(['フォルダのオープンに失敗しました。']);
 }
 
 /**
@@ -1032,7 +1044,7 @@ async function onclick_openfolder_export(e) {
  */
 async function onclick_openfolder_results(e) {
   if(!await webui.openfolder_results())
-    $('dialog#dialog_message_openfolderfailed')[0].showModal();
+    display_errormessage(['フォルダのオープンに失敗しました。']);
 }
 
 /**
@@ -1041,7 +1053,7 @@ async function onclick_openfolder_results(e) {
  */
 async function onclick_openfolder_filtereds(e) {
   if(!await webui.openfolder_filtereds())
-    $('dialog#dialog_message_openfolderfailed')[0].showModal();
+    display_errormessage(['フォルダのオープンに失敗しました。']);
 }
 
 /**
@@ -1050,7 +1062,7 @@ async function onclick_openfolder_filtereds(e) {
  */
 async function onclick_openfolder_scoreinformations(e) {
   if(!await webui.openfolder_scoreinformations())
-    $('dialog#dialog_message_openfolderfailed')[0].showModal();
+    display_errormessage(['フォルダのオープンに失敗しました。']);
 }
 
 /**
@@ -1059,7 +1071,7 @@ async function onclick_openfolder_scoreinformations(e) {
  */
 async function onclick_openfolder_scorecharts(e) {
   if(!await webui.openfolder_scorecharts())
-    $('dialog#dialog_message_openfolderfailed')[0].showModal();
+    display_errormessage(['フォルダのオープンに失敗しました。']);
 }
 
 /**
@@ -1087,8 +1099,8 @@ async function onclick_recents_save_resultimages_filtered(e) {
 
   await webui.recents_save_resultimages_filtered(JSON.stringify(timestamps));
 
-  const item = $('tr.recentresultitem.select_first').first();
-  const encodedimage = JSON.parse(await webui.get_resultimage_filtered(item.children('td.recentresult_cell_timestamp').text()));
+  const encodedimage = JSON.parse(await webui.get_resultimage_filtered(selected_musicname, selected_playmode, selected_difficulty, selected_timestamp));
+
   display_encodedimage(encodedimage, 'image_screenshot');
 }
 
@@ -1103,6 +1115,18 @@ function onclick_recents_post_results(e) {
   });
 
   webui.recents_post_results(JSON.stringify(timestamps));
+}
+
+/**
+ * ライバルぼかし切替ボタンを押す
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_displayresultimage_switch(e) {
+  await webui.switch_displayresultimage();
+
+  await load_setting();
+
+  display_playresult(selected_timestamp);
 }
 
 /**
@@ -1880,6 +1904,21 @@ async function display_notesradar_ranking() {
       $('table#table_notesradar_ranking').append(tr);
     });
   }
+}
+
+/**
+ * エラーメッセージを表示する
+ * @params {Array<string>} messages メッセージのリスト
+ */
+function display_errormessage(messages) {
+  $('ul#list_errormessages').empty();
+
+  messages.forEach(message => {
+    const li = $('<li>').text(message);
+    $('ul#list_errormessages').append(li);
+  });
+
+  $('dialog#dialog_errormessage')[0].showModal();
 }
 
 /**

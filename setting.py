@@ -19,6 +19,7 @@ default = {
     },
     'summary_countmethod_only': False,
     'display_result': False,
+    'resultimage_filtered': False,
     'imagesave_path': getcwd(),
     'startup_image': 'notesradar',
     'hashtags': '#IIDX #infinitas573 #infnotebook',
@@ -48,7 +49,7 @@ default = {
     'port': {
         'main': 52374,
         'socket': 57328,
-    }
+    },
 }
 
 class Setting():
@@ -204,6 +205,16 @@ class Setting():
     def display_result(self, value: bool):
         self.set_value('display_result', value)
     
+    @property
+    def resultimage_filtered(self):
+        '''表示リザルト画像のフィルター
+        '''
+        return self.get_value('resultimage_filtered')
+
+    @resultimage_filtered.setter
+    def resultimage_filtered(self, value):
+        self.set_value('resultimage_filtered', value)
+
     @property
     def imagesave_path(self):
         '''リザルト画像等のファイルの保存先のフォルダパス

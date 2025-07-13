@@ -41,6 +41,8 @@ async function initialize() {
     $('#radio_summary_countmethod_only').prop('checked', true);
 
   $('#check_display_result').prop('checked', setting['display_result']);
+  $('#check_resultimage_filtered').prop('checked', setting['resultimage_filtered']);
+
   $('#text_imagesave_path').val(setting['imagesave_path']);
 
   $('#radio_startup_image_notesradar').prop('checked', setting['startup_image'] == 'notesradar');
@@ -164,6 +166,7 @@ async function onclick_button_save(e) {
     },
     'summary_countmethod_only': $('#radio_summary_countmethod_only').prop('checked'),
     'display_result': $('#check_display_result').prop('checked'),
+    'resultimage_filtered': $('#check_resultimage_filtered').prop('checked'),
     'imagesave_path': $('#text_imagesave_path').val(),
     'startup_image': startup_image,
     'hashtags': $('#text_hashtags').val(),

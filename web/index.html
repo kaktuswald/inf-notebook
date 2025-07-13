@@ -63,6 +63,7 @@
               <div class="buttons">
                 <button id="button_openfolder_results">リザルトフォルダを開く</button>
                 <button id="button_openfolder_filtereds">ライバル隠しフォルダを開く</button>
+                <button id="button_displayresultimage_switch">ライバル隠し 切替</button>
                 <span id="path_screenshot" class="filepath"></span>
               </div>
             </div>
@@ -311,22 +312,6 @@
         </div>
       </div>
     </dialog>
-    <dialog id="dialog_message_openfolderfailed">
-      <div>
-        <div>フォルダのオープンに失敗しました。</div>
-        <div class="buttons_in_dialog">
-          <button class="dialogclose">OK</button>
-        </div>
-      </div>
-    </dialog>
-    <dialog id="dialog_message_imagesavefailed">
-      <div>
-        <div>画像の保存に失敗しました。</div>
-        <div class="buttons_in_dialog">
-          <button class="dialogclose">OK</button>
-        </div>
-      </div>
-    </dialog>
     <dialog id="dialog_confirm_outputcsv">
       <div>
         <div>各種CSVファイルをexportフォルダに出力しますか？</div>
@@ -420,6 +405,15 @@
       <div>
         <div>新着のイベントが見つかりました。</div>
         <ul id="list_newdiscordwebhookevents"></ul>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">OK</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_errormessage">
+      <div>
+        <div>エラーが発生しました。</div>
+        <ul id="list_errormessages"></ul>
         <div class="buttons_in_dialog">
           <button class="dialogclose">OK</button>
         </div>

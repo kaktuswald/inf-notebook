@@ -395,6 +395,7 @@ class GuiApi():
         window.bind('get_notesradar_total', self.get_notesradar_total)
         window.bind('get_notesradar_ranking', self.get_notesradar_ranking)
 
+        window.bind('switch_displayresultimage', self.switch_displayresultimage)
         window.bind('switch_summarycountmethod', self.switch_summarycountmethod)
 
         window.bind('get_resultimage', self.get_resultimage)
@@ -438,6 +439,7 @@ class GuiApi():
 
         setting.summary_countmethod_only = values['summary_countmethod_only']
         setting.display_result = values['display_result']
+        setting.resultimage_filtered = values['resultimage_filtered']
         setting.imagesave_path = values['imagesave_path']
         setting.startup_image = values['startup_image']
         setting.hashtags = values['hashtags']
@@ -820,6 +822,12 @@ class GuiApi():
         
         event.return_string(dumps(ret))
     
+    def switch_displayresultimage(self, event: webui.Event):
+        '''表示するリザルト画像のライバルぼかし設定を切り替える
+        '''
+        setting.resultimage_filtered = not setting.resultimage_filtered
+        setting.save()
+
     def switch_summarycountmethod(self, event: webui.Event):
         '''統計のカウント方式を切り替える
         
@@ -847,21 +855,8 @@ class GuiApi():
         difficulty = event.get_string_at(2)
         timestamp = event.get_string_at(3)
 
-        if len(musicname) == 0:
-            musicname = None
-        if len(playmode) == 0:
-            playmode = None
-        if len(difficulty) == 0:
-            difficulty = None
-        
         if not timestamp in images_result.keys():
-            load_resultimages(
-                timestamp,
-                musicname,
-                playmode,
-                difficulty,
-                timestamp in notebook_recent.timestamps
-            )
+            load_resultimages(playmode, musicname, difficulty, timestamp, timestamp in notebook_recent.timestamps)
         
         if not timestamp in imagevalues_result:
             if images_result[timestamp] is not None:
@@ -894,13 +889,33 @@ class GuiApi():
         '''ぼかしの入ったリザルト画像を表示する
 
         Args:
+            musicname(str): 曲名
+            playmode(str): プレイモード(SP or DP)
+            difficulty(str): 難易度
             timestamp(str): タイムスタンプ
         Returns:
             str: デコードされた画像データ
         '''
-        timestamp = event.get_string_at(0)
+        musicname = event.get_string_at(0)
+        playmode = event.get_string_at(1)
+        difficulty = event.get_string_at(2)
+        timestamp = event.get_string_at(3)
 
+        if not timestamp in images_result.keys():
+            load_resultimages(playmode, musicname, difficulty, timestamp, timestamp in notebook_recent.timestamps)
+        
         if not timestamp in imagevalues_filtered.keys():
+            if not timestamp in images_filtered.keys() and timestamp in images_result.keys():
+                target = notebook_recent.get_result(timestamp)
+                if target is not None:
+                    images_filtered[timestamp] = filter_result(
+                        images_result[timestamp],
+                        target['play_side'],
+                        target['has_loveletter'],
+                        target['has_graphtargetname'],
+                        setting.filter_compact,
+                    )
+
             if images_filtered[timestamp] is not None:
                 imagevalue = get_imagevalue(images_filtered[timestamp])
             else:
@@ -911,13 +926,14 @@ class GuiApi():
             imagevalue = imagevalues_filtered[timestamp]
 
         if imagevalue is not None:
+            socket_server.update_screenshot(imagevalue)
             decorded_data = b64encode(imagevalue).decode('utf-8')
             event.return_string(dumps(decorded_data))
             return
 
         socket_server.update_screenshot(None)
         event.return_string(dumps(None))
-    
+
     def get_scoreresult(self, event: webui.Event):
         '''対象の譜面の記録を返す
 
@@ -1007,22 +1023,28 @@ class GuiApi():
             if not timestamp in images_result.keys():
                 load_resultimages(timestamp, target['music'], target['play_mode'], target['difficulty'], True)
 
-            if images_result[timestamp] is not None and not timestamp in images_filtered.keys():
-                save_filtered(
-                    images_result[timestamp],
-                    timestamp,
-                    target['music'],
-                    target['play_mode'],
-                    target['difficulty'],
-                    target['play_side'],
-                    target['has_loveletter'],
-                    target['has_graphtargetname']
-                )
-                target['filtered'] = True
+            if images_result[timestamp] is not None:
+                if not timestamp in images_filtered.keys():
+                    images_filtered[timestamp] = filter_result(
+                        images_result[timestamp],
+                        target['play_side'],
+                        target['has_loveletter'],
+                        target['has_graphtargetname'],
+                        setting.filter_compact,
+                    )
+                if images_filtered[timestamp] is not None and not timestamp in timestamps_filteredsaved:
+                    save_filtered(
+                        images_filtered[timestamp],
+                        timestamp,
+                        target['music'],
+                        target['play_mode'],
+                        target['difficulty'],
+                    )
+                    target['filtered'] = True
 
-                new_filtereds.append(timestamp)
+                    new_filtereds.append(timestamp)
 
-                updated = True
+                    updated = True
 
         if updated:
             notebook_recent.save()
@@ -1339,6 +1361,13 @@ def result_process(screen: Screen):
     if result is None:
         return
 
+    if setting.play_sound:
+        play_sound_result()
+    
+    resultimage = screen.original
+
+    images_result[result.timestamp] = resultimage
+
     musicname = result.informations.music
     playmode = result.informations.play_mode
     difficulty = result.informations.difficulty
@@ -1349,23 +1378,73 @@ def result_process(screen: Screen):
         else:
             scoreselection = None
 
-    resultimage = screen.original
     if setting.data_collection or force_upload_enable:
         if storage.start_uploadcollection(result, resultimage, force_upload_enable):
             timestamps_uploaded.append(result.timestamp)
 
+    filteredimage = None
+    filteredimage_whole = None
+    filteredimage_compact = None
+    if setting.autosave_filtered:
+        if not setting.filter_compact:
+            filteredimage_whole = filter_result(
+                resultimage,
+                result.play_side,
+                result.rival,
+                result.details.graphtarget == 'rival',
+                False,
+            )
+            filteredimage = filteredimage_whole
+            images_filtered[result.timestamp] = filteredimage_whole
+        else:
+            filteredimage_compact = filter_result(
+                resultimage,
+                result.play_side,
+                result.rival,
+                result.details.graphtarget == 'rival',
+                True,
+            )
+            filteredimage = filteredimage_compact
+            images_filtered[result.timestamp] = filteredimage_compact
+
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
         if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
-            Thread(target=post_discord_webhooks, args=(result, resultimage, queue_multimessages)).start()
+            imagevalue_discordwebhook = None
+            if setting.discord_webhook['filter'] == discordwebhook_filtereds.NONE:
+                imagevalue_discordwebhook = get_imagevalue(resultimage)
+                imagevalues_result[result.timestamp] = imagevalue_discordwebhook
+            if setting.discord_webhook['filter'] == discordwebhook_filtereds.WHOLE:
+                if filteredimage_whole is None:
+                    filteredimage_whole = filter_result(
+                        resultimage,
+                        result.play_side,
+                        result.rival,
+                        result.details.graphtarget == 'rival',
+                        False,
+                    )
+                filteredimagevalue_whole = get_imagevalue(filteredimage_whole)
+                if not setting.filter_compact:
+                    imagevalues_filtered[result.timestamp] = filteredimagevalue_whole
+                imagevalue_discordwebhook = filteredimagevalue_whole
+            if setting.discord_webhook['filter'] == discordwebhook_filtereds.COMPACT:
+                if filteredimage_compact is None:
+                    filteredimage_compact = filter_result(
+                        resultimage,
+                        result.play_side,
+                        result.rival,
+                        result.details.graphtarget == 'rival',
+                        True,
+                    )
+                filteredimagevalue_compact = get_imagevalue(filteredimage_compact)
+                if setting.filter_compact:
+                    imagevalues_filtered[result.timestamp] = filteredimagevalue_compact
+                imagevalue_discordwebhook = filteredimagevalue_compact
+            
+            Thread(target=post_discord_webhooks, args=(result, imagevalue_discordwebhook)).start()
     
     if setting.newrecord_only and not result.has_new_record():
         return
     
-    if setting.play_sound:
-        play_sound_result()
-    
-    images_result[result.timestamp] = resultimage
-
     saved = False
     if setting.autosave:
         save_result(result, resultimage)
@@ -1374,19 +1453,21 @@ def result_process(screen: Screen):
     filtered = False
     if setting.autosave_filtered:
         save_filtered(
-            resultimage,
+            filteredimage,
             result.timestamp,
             result.informations.music,
             result.informations.play_mode,
             result.informations.difficulty,
-            result.play_side,
-            result.rival,
-            result.details.graphtarget == 'rival'
         )
         filtered = True
     
     notebook_recent.append(result, saved, filtered)
     notebook_recent.save()
+
+    if not result.dead or result.has_new_record():
+        recent.insert(result)
+
+    insert_results(result)
 
     if musicname is not None:
         notebook = notebooks_music.get_notebook(musicname)
@@ -1407,11 +1488,6 @@ def result_process(screen: Screen):
                     notebook_summary.json['musics']
                 ):
                     api.send_message('update_notesradar')
-
-    if not result.dead or result.has_new_record():
-        recent.insert(result)
-
-    insert_results(result)
 
 def musicselect_process(np_value):
     '''選曲画面で譜面を認識したときの処理をする
@@ -1485,8 +1561,7 @@ def musicselect_process(np_value):
     
     api.send_message('scoreselect', {'playmode': playmode, 'musicname': musicname, 'difficulty': difficulty})
 
-def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
-    imagevalue = None
+def post_discord_webhooks(result: Result, imagevalue: bytes):
     setting_updated = False
     posttargets = []
     deletetargets = []
@@ -1508,26 +1583,6 @@ def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
             del setting.discord_webhook['joinedevents'][key]
 
     if len(posttargets):
-        if setting.discord_webhook['filter'] == discordwebhook_filtereds.NONE:
-            imagevalue = get_imagevalue(resultimage)
-        else:
-            if webhooksetting['filter'] == discordwebhook_filtereds.WHOLE:
-                imagevalue = get_imagevalue(filter_result(
-                    resultimage,
-                    result.play_side,
-                    result.rival,
-                    result.details.graphtarget == 'rival',
-                    False
-                ))
-            if webhooksetting['filter'] == discordwebhook_filtereds.COMPACT:
-                imagevalue = get_imagevalue(filter_result(
-                    resultimage,
-                    result.play_side,
-                    result.rival,
-                    result.details.graphtarget == 'rival',
-                    True
-                ))
-
         dt = datetime.now().strftime('%H:%M')
         
         for webhooksetting in posttargets:
@@ -1563,7 +1618,7 @@ def post_discord_webhooks(result: Result, resultimage: Image, queue: Queue):
     
     api.send_message('discordwebhook_append_log', logs)
 
-def save_result(result, image):
+def save_result(result: Result, image: Image.Image):
     if result.timestamp in timestamps_saved:
         return
     
@@ -1574,41 +1629,40 @@ def save_result(result, image):
         ret = save_resultimage(image, music, result.timestamp, setting.imagesave_path, scoretype, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
-        gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
+        api.send_message('error', ['リザルト画像の保存に失敗しました。'])
         return
 
     if ret:
         timestamps_saved.append(result.timestamp)
 
-def save_filtered(resultimage, timestamp, music, play_mode, difficulty, play_side, loveletter, rivalname):
+def save_filtered(filteredimage: Image.Image, timestamp: str, music: str, play_mode: str, difficulty: str):
     '''リザルト画像にぼかしを入れて保存する
 
     Args:
-        image (Image): 対象の画像(PIL)
+        filteredimage (Image): 対象の画像(PIL)
         timestamp (str): リザルトのタイムスタンプ
         music (str): 曲名
         play_mode (str): プレイモード
         difficulty (str): 譜面難易度
-        play_side (str): 1P or 2P
-        loveletter (bool): ライバル挑戦状の有無
-        rivalname (bool): グラフターゲットのライバル名の有無
 
     Returns:
         Image: ぼかしを入れた画像
     '''
-    filteredimage = filter_result(resultimage, play_side, loveletter, rivalname, setting.filter_compact)
-
+    if timestamp in timestamps_filteredsaved:
+        return
+    
     ret = None
     try:
         scoretype = {'playmode': play_mode, 'difficulty': difficulty}
         ret = save_resultimage_filtered(filteredimage, music, timestamp, setting.imagesave_path, scoretype, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
-        gui.error_message(u'保存の失敗', u'リザルトの保存に失敗しました。', ex)
+        api.send_message('error', ['リザルト画像の保存に失敗しました。'])
         return
 
     if ret:
         images_filtered[timestamp] = filteredimage
+        timestamps_filteredsaved.append(timestamp)
 
 def insert_recentnotebook_results():
     for timestamp in notebook_recent.timestamps:
@@ -1823,7 +1877,7 @@ def check_resource():
 
     api.send_message('append_log', 'complete check resources')
 
-def load_resultimages(timestamp, music, playmode, difficulty, recent=False):
+def load_resultimages(playmode: str, musicname: str, difficulty: str, timestamp: str, recent=False):
     '''リザルト画像をファイルからロードする
     
     対象のリザルトが起動中に記録したリザルトでない場合は実行する。
@@ -1834,14 +1888,21 @@ def load_resultimages(timestamp, music, playmode, difficulty, recent=False):
         difficulty(str): 譜面難易度
         recent(bool): 最近のプレイにある
     '''
+    if len(playmode) == 0:
+        playmode = None
+    if len(musicname) == 0:
+        musicname = None
+    if len(difficulty) == 0:
+        difficulty = None
+    
     scoretype = {'playmode': playmode, 'difficulty': difficulty}
 
-    image_result = get_resultimage(music, timestamp, setting.imagesave_path, scoretype)
+    image_result = get_resultimage(musicname, timestamp, setting.imagesave_path, scoretype)
     images_result[timestamp] = image_result
     if image_result is not None:
         timestamps_saved.append(timestamp)
 
-    image_filtered = get_resultimage_filtered(music, timestamp, setting.imagesave_path, scoretype)
+    image_filtered = get_resultimage_filtered(musicname, timestamp, setting.imagesave_path, scoretype)
     if not recent or image_result is None or image_filtered is not None:
         images_filtered[timestamp] = image_filtered
 
@@ -1876,6 +1937,7 @@ if __name__ == '__main__':
 
     results_today = {}
     timestamps_saved = []
+    timestamps_filteredsaved = []
     timestamps_uploaded = []
 
     images_result = {}
@@ -1883,7 +1945,7 @@ if __name__ == '__main__':
     imagevalues_result = {}
     imagevalues_filtered = {}
 
-    scoreselection = None
+    scoreselection: ScoreSelection = None
 
     recent = Recent()
 
@@ -1924,7 +1986,6 @@ if __name__ == '__main__':
     newwindow.set_public(True)
 
     url = newwindow.get_url()
-    print(url)
 
     api = GuiApi(newwindow, notebooks_music)
     api_export = GuiApiExport(newwindow)
