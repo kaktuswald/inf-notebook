@@ -49,6 +49,7 @@ class DrawerScoregraph {
             showLine: true,
             lineTension: 0,
             fill: false,
+            pointRadius: 8,
             borderColor: DrawerScoregraph.scorecolor_data,
             borderWidth: 2,
             data: values[0],
@@ -60,6 +61,7 @@ class DrawerScoregraph {
             showLine: true,
             lineTension: 0,
             fill: false,
+            pointRadius: 8,
             borderColor: DrawerScoregraph.misscountcolor_data,
             borderWidth: 2,
             data: values[1],
@@ -90,7 +92,7 @@ class DrawerScoregraph {
             max: xrange[1],
             ticks: {
               font: {
-                size: 22,
+                size: 30,
               },
               maxTicksLimit: 6,
               color: DrawerScoregraph.textcolor,
@@ -106,7 +108,7 @@ class DrawerScoregraph {
             max: notes * 2,
             ticks: {
               font: {
-                size: 22,
+                size: 30,
               },
               color: DrawerScoregraph.textcolor,
               textStrokeColor: DrawerScoregraph.scorecolor,
@@ -124,7 +126,7 @@ class DrawerScoregraph {
             max: Math.floor(notes / 10),
             ticks: {
               font: {
-                size: 22,
+                size: 30,
               },
               color: DrawerScoregraph.textcolor,
               textStrokeColor: DrawerScoregraph.misscountcolor,
@@ -140,7 +142,7 @@ class DrawerScoregraph {
             display: true,
             text: `${musicname}[${scoretype}]`,
             font: {
-              size: 40,
+              size: 50,
             },
             color: DrawerScoregraph.textcolor,
           },

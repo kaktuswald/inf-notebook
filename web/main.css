@@ -161,7 +161,7 @@ div#scroll_discordwebhook_events {
 table#table_discordwebhooks th:nth-child(2),
 table#table_discordwebhooks td:nth-child(2) {
     text-align: center;
-    width: 85px;
+    width: 100px;
 }
 
 div#scroll_discordwebhook_logs {
