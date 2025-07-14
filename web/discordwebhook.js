@@ -58,15 +58,27 @@ async function get_publics() {
     td_mode.addClass('publicitem_cell_mode');
     tr.append(td_mode);
 
-    const localdt = new Date(target.limit);
-    const year = localdt.getFullYear();
-    const month = localdt.getMonth() + 1;
-    const day = localdt.getDate();
-    const hour = localdt.getHours();
-    const minute = localdt.getMinutes();
-    const td_limit = $('<td>').text(`${year}/${month}/${day} ${hour}:${minute}`);
-    td_limit.addClass('publicitem_cell_limit');
-    tr.append(td_limit);
+    {
+      const localdt = new Date(target.startdatetime);
+      const month = (localdt.getMonth() + 1).toString().padStart(2, '0');
+      const day = localdt.getDate().toString().padStart(2, '0');
+      const hour = localdt.getHours().toString().padStart(2, '0');
+      const minute = localdt.getMinutes().toString().padStart(2, '0');
+      const td = $('<td>').text(`${month}/${day} ${hour}:${minute}`);
+      td.addClass('publicitem_cell_startdatetime');
+      tr.append(td);
+    }
+
+    {
+      const localdt = new Date(target.enddatetime);
+      const month = (localdt.getMonth() + 1).toString().padStart(2, '0');
+      const day = localdt.getDate().toString().padStart(2, '0');
+      const hour = localdt.getHours().toString().padStart(2, '0');
+      const minute = localdt.getMinutes().toString().padStart(2, '0');
+      const td = $('<td>').text(`${month}/${day} ${hour}:${minute}`);
+      td.addClass('publicitem_cell_enddatetime');
+      tr.append(td);
+    }
 
     const td_targetscore = $('<td>');
     if(target.mode != 'battle') {
@@ -114,15 +126,27 @@ async function get_joineds() {
     td_mode.addClass('joineditem_cell_mode');
     tr.append(td_mode);
 
-    const localdt = new Date(target.limit);
-    const year = localdt.getFullYear();
-    const month = localdt.getMonth() + 1;
-    const day = localdt.getDate();
-    const hour = localdt.getHours();
-    const minute = localdt.getMinutes();
-    const td_limit = $('<td>').text(`${year}/${month}/${day} ${hour}:${minute}`);
-    td_limit.addClass('publicitem_cell_limit');
-    tr.append(td_limit);
+    {
+      const localdt = new Date(target.startdatetime);
+      const month = (localdt.getMonth() + 1).toString().padStart(2, '0');
+      const day = localdt.getDate().toString().padStart(2, '0');
+      const hour = localdt.getHours().toString().padStart(2, '0');
+      const minute = localdt.getMinutes().toString().padStart(2, '0');
+      const td = $('<td>').text(`${month}/${day} ${hour}:${minute}`);
+      td.addClass('publicitem_cell_startdatetime');
+      tr.append(td);
+    }
+
+    {
+      const localdt = new Date(target.enddatetime);
+      const month = (localdt.getMonth() + 1).toString().padStart(2, '0');
+      const day = localdt.getDate().toString().padStart(2, '0');
+      const hour = localdt.getHours().toString().padStart(2, '0');
+      const minute = localdt.getMinutes().toString().padStart(2, '0');
+      const td = $('<td>').text(`${month}/${day} ${hour}:${minute}`);
+      td.addClass('publicitem_cell_enddatetime');
+      tr.append(td);
+    }
 
     const td_targetscore = $('<td>');
     if(target.mode != 'battle') {

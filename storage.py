@@ -306,11 +306,10 @@ class StorageAccessor():
             blob: Blob = blob
             content = loads(blob.download_as_string())
 
-            limit = datetime.strptime(content['limit'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+            enddt = datetime.strptime(content['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
             nowdt = datetime.now(timezone.utc)
-            daydifference = (limit - nowdt).total_seconds() / (60 * 60 * 24)
 
-            if daydifference >= 0:
+            if nowdt < enddt:
                 list[splitext(blob.name)[0]] = content
             else:
                 # 終了日時を過ぎたファイルは削除する

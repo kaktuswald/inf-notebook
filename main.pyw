@@ -1216,6 +1216,7 @@ class GuiApiDiscordWebhook():
     def get_newpublics(self, event: webui.Event):
         self.events = storage.download_discordwebhooks()
 
+        setting.discord_webhook['seenevents'] = [item for item in setting.discord_webhook['seenevents'] if item in self.events.keys()]
         newpublics = {}
         for key, value in self.events.items():
             if not value['private'] and not key in setting.discord_webhook['seenevents']:
@@ -1255,7 +1256,8 @@ class GuiApiDiscordWebhook():
             'name': target['name'],
             'url': target['url'],
             'mode': target['mode'],
-            'limit': target['limit'],
+            'startdatetime': target['startdatetime'],
+            'enddatetime': target['enddatetime'],
             'targetscore': target['targetscore'],
             'mybest': None,
         }
@@ -1297,7 +1299,8 @@ class GuiApiDiscordWebhook():
                 'private': values['private'],
                 'url': values['url'],
                 'mode': values['mode'],
-                'limit': values['limit'],
+                'startdatetime': values['startdatetime'],
+                'enddatetime': values['enddatetime'],
                 'targetscore': targetscore,
             }
 
@@ -1568,14 +1571,16 @@ def post_discord_webhooks(result: Result, imagevalue: bytes):
     logs = []
 
     for key, webhooksetting in setting.discord_webhook['joinedevents'].items():
-        limit = datetime.strptime(webhooksetting['limit'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
         nowdt = datetime.now(timezone.utc)
-        daydifference = (limit - nowdt).total_seconds() / (60 * 60 * 24)
-        if daydifference < 0:
+        startdt = datetime.strptime(webhooksetting['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        enddt = datetime.strptime(webhooksetting['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        
+        if nowdt > enddt:
             deletetargets.append(key)
             continue
 
-        posttargets.append(webhooksetting)
+        if nowdt >= startdt:
+            posttargets.append(webhooksetting)
 
     if len(deletetargets):
         setting_updated = True

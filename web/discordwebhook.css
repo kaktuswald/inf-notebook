@@ -22,60 +22,49 @@ div.buttons {
     text-align: right;
 }
 
-div#scroll_publics {
-    height: 95px;
-}
-
-table#table_publics th:nth-child(1),
-table#table_publics td:nth-child(1) {
-    display: none;
-}
-
-table#table_publics th:nth-child(2),
-table#table_publics td:nth-child(2) {
-    width: 100px;
-}
-
-table#table_publics th:nth-child(3),
-table#table_publics td:nth-child(3) {
-    text-align: center;
-    width: 80px;
-}
-
-table#table_publics th:nth-child(4),
-table#table_publics td:nth-child(4) {
-    text-align: center;
-    width: 100px;
-}
-
+div#scroll_publics,
 div#scroll_joineds {
     height: 95px;
 }
 
+table#table_publics th:nth-child(1),
+table#table_publics td:nth-child(1),
 table#table_joineds th:nth-child(1),
 table#table_joineds td:nth-child(1) {
     display: none;
 }
 
+table#table_publics th:nth-child(2),
+table#table_publics td:nth-child(2),
+td.publicitem_cell_name,
 table#table_joineds th:nth-child(2),
-table#table_joineds td:nth-child(2) {
+table#table_joineds td:nth-child(2),
+td.joineditem_cell_name {
     width: 100px;
 }
 
-table#table_joineds th:nth-child(3),
-table#table_joineds td:nth-child(3) {
+table#table_publics th:nth-child(3),
+table#table_publics td:nth-child(3),
+table#table_publics th:nth-child(3),
+table#table_publics td:nth-child(3) {
     text-align: center;
-    width: 80px;
+    width: 85px;
 }
 
+table#table_publics th:nth-child(4),
+table#table_publics td:nth-child(4),
+table#table_publics th:nth-child(5),
+table#table_publics td:nth-child(5),
 table#table_joineds th:nth-child(4),
-table#table_joineds td:nth-child(4) {
+table#table_joineds td:nth-child(4),
+table#table_joineds th:nth-child(5),
+table#table_joineds td:nth-child(5) {
     text-align: center;
-    width: 100px;
+    width: 65px;
 }
 
-table#table_joineds th:nth-child(6),
-table#table_joineds td:nth-child(6) {
+table#table_joineds th:nth-child(7),
+table#table_joineds td:nth-child(7) {
     text-align: center;
     width: 40px;
 }
@@ -94,7 +83,7 @@ input#text_url {
 }
 
 div.scroll_musicnames {
-    height: 123px;
+    height: 98px;
 }
 
 td.musicname_cell_version {

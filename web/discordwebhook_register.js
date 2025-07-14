@@ -6,13 +6,15 @@ $(function() {
     if(e == webui.event.DISCONNECTED) console.log('disconnect.');
   });
 
-  const defaultlimit = new Date();
-  defaultlimit.setHours(defaultlimit.getHours() + 8);
-  defaultlimit.setMinutes(defaultlimit.getMinutes() - defaultlimit.getTimezoneOffset());
+  const startdtstring = new Date().toISOString().slice(0, 16);
+  $('input#date_start').val(startdtstring);
 
-  const limitstring = defaultlimit.toISOString().slice(0, 16);
-  $('input#date_limit').attr('min', limitstring);
-  $('input#date_limit').val(limitstring);
+  const defaultenddt = new Date();
+  defaultenddt.setHours(defaultenddt.getHours() + 8);
+  defaultenddt.setMinutes(defaultenddt.getMinutes() - defaultenddt.getTimezoneOffset());
+  const enddtstring = defaultenddt.toISOString().slice(0, 16);
+  $('input#date_end').attr('min', enddtstring);
+  $('input#date_end').val(enddtstring);
 
   $('button.dialogclose').on('click', onclick_dialogclose);
 
@@ -297,7 +299,11 @@ function get_input() {
     return null;
   }
 
-  if(settingname.length > 256) {
+  const canvas = new OffscreenCanvas(1000, 1000);
+  const ctx = canvas.getContext('2d');
+  ctx.font = $('table').css('font');
+  const textwidth = ctx.measureText(settingname).width;
+  if(textwidth > 100) {
     $('span#message').text('名称を短くしてください。');
     return null;
   }
@@ -308,11 +314,6 @@ function get_input() {
 
   if(url.length == 0) {
     $('span#message').text('URLを入力してください。');
-    return null;
-  }
-
-  if(url.length > 256) {
-    $('span#message').text('URLを短くしてください。');
     return null;
   }
 
@@ -328,9 +329,11 @@ function get_input() {
     return null;
   }
 
-  const limit = new Date($('input#date_limit').val());
-  const now = new Date();
-  const daydifference = (limit - now) / (1000 * 60 * 60 * 24);
+  const startdtstring = new Date($('input#date_start').val()).toISOString();
+
+  const enddt = new Date($('input#date_end').val());
+  const nowdt = new Date();
+  const daydifference = (enddt - nowdt) / (1000 * 60 * 60 * 24);
   if(mode == 'battle' && daydifference >= 1) {
     $('span#message').text('バトルイベントは1日以上の期間は設定できません。');
     return null;
@@ -340,7 +343,7 @@ function get_input() {
     return null;
   }
 
-  const limitstring = limit.toISOString();
+  const enddtstring = enddt.toISOString();
 
   let targetscore = null;
   if(mode != 'battle') {
@@ -373,7 +376,8 @@ function get_input() {
     'private': private,
     'url': url,
     'mode': mode,
-    'limit': limitstring,
+    'startdatetime': startdtstring,
+    'enddatetime': enddtstring,
     'targetscore': targetscore,
   };
 }

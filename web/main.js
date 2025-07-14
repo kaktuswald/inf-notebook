@@ -221,14 +221,21 @@ async function initialize() {
     ids.forEach(id => {
       const target = newpublicwebhooks[id];
 
-      const localdt = new Date(target.limit);
-      const month = localdt.getMonth() + 1;
-      const day = localdt.getDate();
-      const hour = localdt.getHours();
-      const minute = localdt.getMinutes();
-      const formatted_limit = `${month}/${day} ${hour}:${minute}`;
+      const start_localdt = new Date(target.startdatetime);
+      const start_month = start_localdt.getMonth() + 1;
+      const start_day = start_localdt.getDate();
+      const start_hour = start_localdt.getHours();
+      const start_minute = start_localdt.getMinutes();
+      const formatted_startdt = `${start_month}/${start_day} ${start_hour}:${start_minute}`;
 
-      const li = $('<li>').text(`${target.name} ${formatted_limit} まで`);
+      const end_localdt = new Date(target.enddatetime);
+      const end_month = end_localdt.getMonth() + 1;
+      const end_day = end_localdt.getDate();
+      const end_hour = end_localdt.getHours();
+      const end_minute = end_localdt.getMinutes();
+      const formatted_enddt = `${end_month}/${end_day} ${end_hour}:${end_minute}`;
+
+      const li = $('<li>').text(`${target.name} ${formatted_startdt} から ${formatted_enddt} まで`);
       $('ul#list_newdiscordwebhookevents').append(li);
     });
 
@@ -1591,15 +1598,23 @@ function refresh_discordwebhook_settings(settings) {
     td_name.addClass('discordwebhook_cell_name');
     tr.append(td_name);
 
-    const localdt = new Date(target.limit);
-    const year = localdt.getFullYear();
-    const month = localdt.getMonth() + 1;
-    const day = localdt.getDate();
-    const hour = localdt.getHours();
-    const minute = localdt.getMinutes();
-    const td_limit = $('<td>').text(`${year}/${month}/${day} ${hour}:${minute}`);
-    td_limit.addClass('discordwebhook_cell_limit');
-    tr.append(td_limit);
+    const start_localdt = new Date(target.startdatetime);
+    const start_month = (start_localdt.getMonth() + 1).toString().padStart(2, '0');
+    const start_day = start_localdt.getDate().toString().padStart(2, '0');
+    const start_hour = start_localdt.getHours().toString().padStart(2, '0');
+    const start_minute = start_localdt.getMinutes().toString().padStart(2, '0');
+    const td_startdt = $('<td>').text(`${start_month}/${start_day} ${start_hour}:${start_minute}`);
+    td_startdt.addClass('discordwebhook_cell_startdatetime');
+    tr.append(td_startdt);
+
+    const end_localdt = new Date(target.enddatetime);
+    const end_month = (end_localdt.getMonth() + 1).toString().padStart(2, '0');
+    const end_day = end_localdt.getDate().toString().padStart(2, '0');
+    const end_hour = end_localdt.getHours().toString().padStart(2, '0');
+    const end_minute = end_localdt.getMinutes().toString().padStart(2, '0');
+    const td_enddt = $('<td>').text(`${end_month}/${end_day} ${end_hour}:${end_minute}`);
+    td_enddt.addClass('discordwebhook_cell_enddatetime');
+    tr.append(td_enddt);
 
     $('#table_discordwebhooks').append(tr);
   });

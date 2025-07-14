@@ -87,6 +87,7 @@ table {
     table-layout: fixed;
     border-collapse: collapse;
     font-family: "Meiryo";
+    font-size: xx-small;
 }
 
 tr.tableheader {
@@ -127,12 +128,6 @@ span.toggle_on {
     color: darkorange;
 }
 
-table {
-    border-collapse: collapse;
-    font-size: small;
-    width: 100%;
-}
-
 .tableheader {
     font-size: x-small;
 }
@@ -146,7 +141,6 @@ tr:first-of-type {
 }
 
 tr.tableitem {
-    font-size: xx-small;
     user-select: none;
 }
 

@@ -159,9 +159,11 @@ div#scroll_discordwebhook_events {
 }
 
 table#table_discordwebhooks th:nth-child(2),
-table#table_discordwebhooks td:nth-child(2) {
+table#table_discordwebhooks td:nth-child(2),
+table#table_discordwebhooks th:nth-child(3),
+table#table_discordwebhooks td:nth-child(3) {
     text-align: center;
-    width: 100px;
+    width: 65px;
 }
 
 div#scroll_discordwebhook_logs {
