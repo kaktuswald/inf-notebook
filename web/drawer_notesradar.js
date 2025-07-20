@@ -4,20 +4,20 @@
 class DrawerNotesradar {
   static chart_notesradar_labels = ['NOTES', 'PEAK', 'SCRATCH', 'SOF-LAN', 'CHARGE', 'CHORD'];
   static chart_notesradar_bordercolors = [
+    'rgba(237, 60, 189, 1)',
     'rgba(253, 107, 0, 1)',
-    'rgba(237, 60, 189, 1)',
-    'rgba(112, 204, 0, 1)',
-    'rgba(136, 86, 219, 1)',
-    'rgba(237, 60, 189, 1)',
+    'rgba(255, 30, 96, 1)',
     'rgba(1, 125, 213, 1)',
+    'rgba(136, 86, 219, 1)',
+    'rgba(112, 204, 0, 1)',
   ];
   static chart_notesradar_backgroundcolors = [
+    'rgba(237, 60, 189, 0.5)',
     'rgba(253, 107, 0, 0.5)',
-    'rgba(237, 60, 189, 0.5)',
-    'rgba(132, 224, 0, 0.5)',
-    'rgba(136, 86, 219, 0.5)',
-    'rgba(237, 60, 189, 0.5)',
+    'rgba(255, 30, 96, 0.5)',
     'rgba(1, 125, 213, 0.5)',
+    'rgba(136, 86, 219, 0.5)',
+    'rgba(132, 224, 0, 0.5)',
   ];
 
   canvas = null;
