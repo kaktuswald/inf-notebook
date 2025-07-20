@@ -1342,7 +1342,7 @@ def mainloop():
             if queuemessage == 'hotkey_start':
                 start_hotkeys()
             if queuemessage == 'hotkey_stop':
-                keyboard.clear_all_hotkeys()
+                stop_hotkeys()
             if queuemessage in ['detect_loading', 'escape_loading']:
                 api.send_message(queuemessage)
         if not queue_callfunction.empty():
@@ -1919,6 +1919,13 @@ def start_hotkeys():
         keyboard.add_hotkey(setting.hotkeys['active_screenshot'], active_screenshot)
     if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
         keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
+
+def stop_hotkeys():
+    for target in [active_screenshot, upload_musicselect]:
+        try:
+            keyboard.remove_hotkey(target)
+        except Exception as ex:
+            api.send_message('append_log', '\n'.join(('failed stop hotkey.', str(ex))))
 
 if __name__ == '__main__':
     if gethandle(windowtitle) is not None:
