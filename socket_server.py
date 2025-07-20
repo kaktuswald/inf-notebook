@@ -23,7 +23,6 @@ class SocketServer(Thread):
         def handler(connection: ServerConnection):
             self.clients[connection.id] = connection
 
-            print('websocket connection open', connection.id)
 
             try:
                 for message in connection:
@@ -46,7 +45,6 @@ class SocketServer(Thread):
                         connection.send(self.imagevalue_imagenothing)
             finally:
                 del self.clients[connection.id]
-                print('websocket connection close', connection.id)
         
         try:
             self.server = serve(handler, '0.0.0.0', self.port)
@@ -89,7 +87,6 @@ class SocketServer(Thread):
         for id in deletetargets:
             del self.clients[id]
 
-        print('broadcast', message, len(self.clients))
 
     def stop(self):
         self.server.shutdown()
