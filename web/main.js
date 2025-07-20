@@ -91,8 +91,6 @@ $(function() {
   $('button#button_confirm_clearrecent').on('click', onclick_confirm_clearrecent);
   $('button#button_execute_clearrecent').on('click', onclick_execute_clearrecent);
 
-  $('#button_switch_background').on('click', onclick_switch_background);
-
   $('button#button_recents_save_resultimages').on('click', onclick_recents_save_resultimages);
   $('button#button_recents_save_resultimages_filtered').on('click', onclick_recents_save_resultimages_filtered);
   $('button#button_recents_post_results').on('click', onclick_recents_post_results);
@@ -1230,17 +1228,6 @@ function onclick_execute_clearrecent(e) {
   webui.clear_recent();
 
   $(this).closest('dialog')[0].close();
-}
-
-/**
- * メインタブの背景色を切り替える
- * @param {ce.Event} e イベントハンドラ
- */
-function onclick_switch_background(e) {
-  if($('.tabpage_main').css('background-color') == 'rgb(0, 0, 0)')
-    $('.tabpage_main').css('background-color', 'white')
-  else
-    $('.tabpage_main').css('background-color', 'black')
 }
 
 /**

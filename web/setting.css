@@ -1,9 +1,9 @@
 div.tabpage {
-    height: 370px;
+    height: 340px;
 }
 
 div#setting_contents {
-    border: 2px solid gainsboro;
+    border: 2px solid var(--toggle-message-color);
     flex: 1;
 }
 
@@ -22,7 +22,7 @@ div.summary_playmode {
 }
 
 div.summary_levelblock {
-    background-color: antiquewhite;
+    background-color: var(--highlight-background-color);
     padding: 1px 5px;
 }
 
@@ -33,7 +33,7 @@ div.summary_level {
 
 div.summary_itemblock {
     display: flex;
-    background-color: white;
+    background-color: var(--background-color);
     align-items: center;
 }
 
@@ -48,7 +48,7 @@ div.lineblock {
     display: inline-block;
     width: 2px;
     height: 20px;
-    background-color: antiquewhite;
+    background-color: var(--highlight-background-color);
     align-self: center;
 }
 

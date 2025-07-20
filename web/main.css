@@ -33,7 +33,6 @@ div#tabbody_detail {
 }
 
 div.tabpage_main {
-    /* background-color: black; */
     height: 400px;
 }
 
@@ -120,14 +119,18 @@ div.label_scoreinformation {
     width: 100px;
 }
 
+div.best_useoptions,
+div.best_timestamps {
+    font-size: small;
+
+}
+
 .best_useoptions {
     display: inline-block;
-    font-size: small;
 }
 
 .best_timestamps {
     display: none;
-    font-size: small;
 }
 
 .label_playresult {
@@ -222,12 +225,12 @@ dialog.insidewindow {
 
 iframe#inner_setting {
     width: 600px;
-    height: 440px;
+    height: 420px;
 }
 
 iframe#inner_export {
     width: 800px;
-    height: 440px;
+    height: 480px;
 }
 
 iframe#inner_discordwebhook {

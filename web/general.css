@@ -1,6 +1,41 @@
+:root {
+    --color: rgb(255, 255, 255);
+    --shadow-color: rgb(0, 0, 0);
+    --background-color: rgb(5, 5, 44);
+    --input-color: rgb(255, 255, 255);
+    --input-disabled-color: rgb(128, 128, 128);
+    --input-placeholder-color: rgb(192, 192, 192);
+    --input-background-color: rgb(0, 0, 0);
+    --input-border-color: rgb(144, 144, 144);
+    --button-background-color: rgb(15, 15, 15);
+    --button-hover-background-color: rgb(30, 30, 30);
+    --select-tabpage-background-color: rgb(28, 28, 125);
+    --select-tabpage-selected-background-color: rgb(0, 0, 0);
+    --tabpage-border-color: rgb(128, 128, 128);
+    --tabpage-background-color: rgb(0, 0, 0);
+    --scroll-border-color: rgb(105, 105, 105);
+    --scroll-background-color: rgb(0, 0, 0);
+    --highlight-background-color: rgb(67, 39, 19);
+    --highlight-border-color: rgb(105, 105, 105);
+    --toggle-message-color: rgb(88, 88, 88);
+    --toggle-on-color: rgb(135, 184, 200);
+    --th-background-color: rgb(68, 68, 68);
+    --td-background-color-odd: rgb(15, 15, 116);
+    --td-background-color-even: rgb(47, 47, 156);
+    --td-background-color-hover: rgb(56, 33, 17);
+    --td-background-color-selected: rgb(7, 90, 7);
+    --message-color: rgb(200, 98, 98);
+}
+
 body {
     font-family: "Yu Mincho Demibold";
-    background-color: lightgoldenrodyellow;
+    color: var(--color);
+    background-color: var(--background-color);
+}
+
+dialog {
+    color: var(--color);
+    background-color: var(--background-color);
 }
 
 .unusable {
@@ -26,10 +61,10 @@ div.label {
 }
 
 div.highlight {
-    background-color: antiquewhite;
+    background-color: var(--highlight-background-color);
     border-style: dashed;
     border-width: 1px;
-    border-color: lightgray;
+    border-color: var(--highlight-border-color);
 }
 
 p.tabcontrol {
@@ -37,10 +72,45 @@ p.tabcontrol {
 }
 
 button {
-    height: 20px;
+    height: 22px;
     margin: 1px;
     padding: 0px 4px;
     font-size: x-small;
+    background-color: var(--button-background-color);
+}
+
+button:hover {
+    background-color: var(--button-hover-background-color);
+}
+
+button,
+input,
+select,
+textarea {
+    color: var(--input-color);
+    background-color: var(--input-background-color);
+    border: 1px solid var(--input-border-color);
+    margin: 1px;
+}
+
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    color: var(--input-color);
+    background-color: var(--input-background-color);
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+    color: var(--input-disabled-color);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--input-placeholder-color);
 }
 
 button.select_tabpage {
@@ -49,10 +119,11 @@ button.select_tabpage {
     border-width: 1px 1px 0px 1px;
     vertical-align: bottom;
     font-size: small;
+    background-color: var(--select-tabpage-background-color);
 }
 
 button.select_tabpage_selected {
-    background-color: white;
+    background-color: var(--select-tabpage-selected-background-color);
 }
 
 div.tabpage {
@@ -60,8 +131,8 @@ div.tabpage {
     flex-direction: column;
     position: relative;
     z-index: 0;
-    border: 1px solid black;
-    background-color: white;
+    border: 1px solid var(--tabpage-border-color);
+    background-color: var(--tabpage-background-color);
     padding: 0px;
 }
 
@@ -78,8 +149,8 @@ div.split_horizontal {
 
 div.scroll {
     overflow-y: scroll;
-    border: 1px solid lightgrey;
-    background-color: white;
+    border: 1px solid var(--scroll-border-color);
+    background-color: var(--scroll-background-color);
 }
 
 table {
@@ -96,7 +167,6 @@ tr.tableheader {
     left: 0px;
     user-select: none;
 }
-
 tr.hidden {
     display: none;
 }
@@ -113,19 +183,19 @@ span {
 
 span.filepath {
     font-size: small;
-    color: white;
+    color: var(--color);
     text-shadow:
-        0px 0px 2px black,
-        1px 1px 2px black;
+        0px 0px 2px var(--shadow-color),
+        1px 1px 2px var(--shadow-color);
 }
 
 span.toggle_message {
     font-size: small;
-    color: gainsboro;
+    color: var(--toggle-message-color);
 }
 
 span.toggle_on {
-    color: darkorange;
+    color: var(--toggle-on-color);
 }
 
 .tableheader {
@@ -137,7 +207,7 @@ th {
 }
 
 tr:first-of-type {
-    background-color: aliceblue;
+    background-color: var(--th-background-color);
 }
 
 tr.tableitem {
@@ -145,19 +215,19 @@ tr.tableitem {
 }
 
 tr.tableitem:nth-of-type(odd) {
-    background-color: lightgreen;
+    background-color: var(--td-background-color-odd);
 }
 
 tr.tableitem:nth-of-type(even) {
-    background-color: palegreen;
+    background-color: var(--td-background-color-even);
 }
 
 tr.tableitem.selected {
-    background-color: lightblue;
+    background-color: var(--td-background-color-selected);
 }
 
 tr.tableitem:hover {
-    background-color: lightpink;
+    background-color: var(--td-background-color-hover);
 }
 
 td {

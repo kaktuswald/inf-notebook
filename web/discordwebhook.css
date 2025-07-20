@@ -8,7 +8,6 @@ div {
 
 div.box {
     border-style: solid;
-    border-color: black;
     border-width: 1px;
 }
 
@@ -24,7 +23,7 @@ div.buttons {
 
 div#scroll_publics,
 div#scroll_joineds {
-    height: 95px;
+    height: 94px;
 }
 
 table#table_publics th:nth-child(1),
@@ -79,11 +78,11 @@ table#table_musicnames td:nth-child(2) {
 }
 
 input#text_url {
-    width :480px;
+    width :460px;
 }
 
 div.scroll_musicnames {
-    height: 98px;
+    height: 96px;
 }
 
 td.musicname_cell_version {
@@ -100,7 +99,7 @@ textarea#faildtestpostmessage {
 }
 
 span#message {
-    color: darkred;
+    color: var(--message-color);
 }
 
 dialog#dialog_confirmregister {
@@ -108,6 +107,6 @@ dialog#dialog_confirmregister {
 }
 
 div.warning {
-    color: darkred;
+    color: var(--message-color);
     font-size: small;
 }

@@ -3,7 +3,7 @@ body {
 }
 
 div.tabpage {
-    height: 300px;
+    height: 320px;
     padding: 5px;
 }
 
@@ -18,7 +18,7 @@ div.item {
 
 div.itemblock {
     display: flex;
-    background-color: antiquewhite;
+    background-color: var(--highlight-background-color);
     padding: 1px 5px;
     margin: 2px 0px;
     align-items: center;
@@ -32,7 +32,7 @@ div.obs_itemlabel {
 
 div.contentblock {
     margin: 0px 5px;
-    background-color: white;
+    background-color: var(--background-color);
 }
 
 div.summary_itemblock {
@@ -43,7 +43,8 @@ div#exportpath {
     width: 400px;
     border-style: solid;
     border-width: 1px;
-    background-color: antiquewhite;
+    color: var(--input-color);
+    background-color: var(--input-background-color);
 }
 
 div.recent_itemlabel {
