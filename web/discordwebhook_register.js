@@ -37,7 +37,7 @@ $(function() {
 async function initialize() {
   document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
 
-  const musictable = JSON.parse(await webui.get_musictable());
+  const musictable = JSON.parse(await webui.getresource_musictable());
 
   for(const version in musictable['versions']) {
     $('#select_versions').append($('<option>')

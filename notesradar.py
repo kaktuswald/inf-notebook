@@ -109,6 +109,8 @@ class NotesRadar():
                         continue
                     if summary[musicname][playmode][difficulty]['score'] is None:
                         continue
+                    if summary[musicname][playmode][difficulty]['score'] == 0:
+                        continue
                     
                     target = resource.notesradar[playmode]['musics'][musicname][difficulty]
                     notes = target['notes']

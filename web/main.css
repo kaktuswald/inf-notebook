@@ -107,7 +107,7 @@ div.musicnameblock {
 }
 
 div.label_scoreinformation {
-    width: 100px;
+    width: 70px;
 }
 
 .label_best {
@@ -181,16 +181,30 @@ ul#list_discordwebhook_logs {
 
 table#table_notesradar_ranking th:nth-child(1),
 table#table_notesradar_ranking td:nth-child(1) {
-    width: 25px;
+    width: 20px;
 }
 
 table#table_notesradar_ranking th:nth-child(3),
 table#table_notesradar_ranking td:nth-child(3) {
-    width: 20px;
+    width: 10px;
 }
+
 table#table_notesradar_ranking th:nth-child(4),
-table#table_notesradar_ranking td:nth-child(4) {
+table#table_notesradar_ranking td:nth-child(4),
+table#table_notesradar_ranking th:nth-child(5),
+table#table_notesradar_ranking td:nth-child(5) {
     width: 40px;
+}
+
+table#table_notesradar_ranking td:nth-child(1),
+table#table_notesradar_ranking td:nth-child(3),
+table#table_notesradar_ranking td:nth-child(4),
+table#table_notesradar_ranking td:nth-child(5) {
+    text-align: right;
+}
+
+table#table_notesradar_ranking td:nth-child(3) {
+    text-align: center;
 }
 
 ul#list_errormessages {

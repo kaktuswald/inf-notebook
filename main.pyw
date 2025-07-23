@@ -334,8 +334,12 @@ class GuiApi():
             thread.start()
 
     @staticmethod
-    def get_musictable(event: webui.Event):
+    def get_resource_musictable(event: webui.Event):
         event.return_string(dumps(resource.musictable))
+    
+    @staticmethod
+    def get_resource_notesradar(event: webui.Event):
+        event.return_string(dumps(resource.notesradar))
     
     def __init__(self, window: webui.Window, notebooks: Notebooks):
         self.window = window
@@ -356,7 +360,8 @@ class GuiApi():
         window.bind('execute_records_processing', GuiApi.execute_records_processing)
         window.bind('execute_generate_notesradar', GuiApi.execute_generate_notesradar)
         window.bind('start_capturing', GuiApi.start_capturing)
-        window.bind('get_musictable', GuiApi.get_musictable)
+        window.bind('getresource_musictable', GuiApi.get_resource_musictable)
+        window.bind('getresource_notesradar', GuiApi.get_resource_notesradar)
 
         window.bind('get_setting', self.get_setting)
         window.bind('save_setting', self.save_setting)
@@ -1997,7 +2002,6 @@ if __name__ == '__main__':
     newwindow.set_port(setting.port['main'])
     newwindow.set_public(True)
 
-    url = newwindow.get_url()
 
     api = GuiApi(newwindow, notebooks_music)
     api_export = GuiApiExport(newwindow)

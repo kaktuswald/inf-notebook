@@ -2,6 +2,7 @@
 setting = null;
 
 musictable = null;
+notesradar = null;
 
 drawer_imagenothing = null;
 drawer_simpletext = null;
@@ -189,7 +190,8 @@ async function initialize() {
 
   await webui.checkresource();
 
-  await load_musictable();
+  await loadresource_musictable();
+  await loadresource_notesradar();
 
   await webui.execute_records_processing();
   await webui.execute_generate_notesradar();
@@ -422,10 +424,10 @@ function request_imagereload(tagid, filename) {
 }
 
 /**
- * 全曲データを読み出す
+ * リソース全曲データを読み出す
  */
-async function load_musictable() {
-  musictable = JSON.parse(await webui.get_musictable());
+async function loadresource_musictable() {
+  musictable = JSON.parse(await webui.getresource_musictable());
 
   for(const version in musictable['versions']) {
     $('#select_versions').append($('<option>')
@@ -435,6 +437,13 @@ async function load_musictable() {
   }
 
   set_musicnames();
+}
+
+/**
+ * ノーツレーダーリソースデータを読み出す
+ */
+async function loadresource_notesradar() {
+  notesradar = JSON.parse(await webui.getresource_notesradar());
 }
 
 /**
@@ -638,6 +647,27 @@ function display_scoreresult_from_scoresearch() {
 }
 
 /**
+ * ノーツレーダータブから選択された譜面の記録を表示する
+ */
+function display_scoreresult_from_notesradar() {
+  const selected_playmode_id = $('input[name="notesradar_playmode"]:checked').attr('id');
+  playmode = $(`label[for="${selected_playmode_id}"]`).text();
+  
+  musicname = $('tr.notesradaritem.selected .notesradar_cell_musicname').first().text();
+  difficulty = $('tr.notesradaritem.selected .notesradar_cell_difficulty').first().text();
+
+  selected_musicname = musicname.length > 0 ? musicname : null;
+  selected_playmode = playmode.length > 0 ? playmode : null;
+  selected_difficulty = difficulty.length > 0 ? difficulty : null;
+
+  display_scoreresult();
+
+  selected_timestamp = null;
+  
+  clear_playresult();
+}
+
+/**
  * 対象の譜面を選択状態にする
  * @param {string} musicname 曲名
  * @param {string} playmode プレイモード(SP or DP)
@@ -689,7 +719,7 @@ async function display_scoreresult() {
   $('tr.timestampitem').off('click', onclick_timestampitem);
   $('table#table_timestamps tr.timestampitem').remove();
 
-  $('span#musicname').text('');
+  $('span#selectscore').text('');
   $('#score_played_count').text('');
   clear_bests();
 
@@ -707,7 +737,8 @@ async function display_scoreresult() {
     return;
   }
 
-  $('span#musicname').text(selected_musicname);
+  const scoretype = `${selected_playmode}${selected_difficulty[0]}`;
+  $('span#selectscore').text(`[${scoretype}]${selected_musicname}`);
 
   const blob_scoreinformation = await drawer_scoreinformation.draw(
     scoreresult,
@@ -1493,6 +1524,18 @@ function onchange_notesradar_tablemode(e) {
 }
 
 /**
+ * ノーツレーダーを選択
+ * @param {ce.Event} e イベントハンドラ
+ * @returns 
+ */
+function onclick_notesradaritem(e) {
+  $('tr.notesradaritem.selected').removeClass('selected');
+  $(this).addClass('selected');
+
+  display_scoreresult_from_notesradar();
+}
+
+/**
  * タイムスタンプを選択
  * @param {} e 
  */
@@ -1883,26 +1926,42 @@ async function display_notesradar_ranking() {
     const values = JSON.parse(await webui.get_notesradar_ranking(playmode, attribute, tablemode));
     if(values == null) return;
 
+  $('tr.notesradaritem').off('click', onclick_notesradaritem);
+  $('tr.notesradaritem').remove();
+
     values.forEach((value) => {
       const tr = $('<tr>');
       tr.addClass('tableitem notesradaritem');
   
       const td_latest = $('<td>').text(value['rank']);
-      td_latest.addClass('right notesradar_cell_rank');
+      td_latest.addClass('notesradar_cell_rank');
       tr.append(td_latest);
   
-      const td_saved = $('<td>').text(value['musicname']);
-      td_saved.addClass('notesradar_cell_musicname');
-      tr.append(td_saved);
+      const td_musicname = $('<td>').text(value['musicname']);
+      td_musicname.addClass('notesradar_cell_musicname');
+      tr.append(td_musicname);
   
-      const td_filtered = $('<td>').text(value['difficulty'][0]);
-      td_filtered.addClass('center notesradar_cell_difficulty');
-      tr.append(td_filtered);
+      const td_displaydifficulty = $('<td>').text(value['difficulty'][0]);
+      td_displaydifficulty.addClass('notesradar_cell_displaydifficulty');
+      tr.append(td_displaydifficulty);
   
-      const td_timestamp = $('<td>').text(value['value'].toFixed(2));
-      td_timestamp.addClass('right notesradar_cell_value');
-      tr.append(td_timestamp);
+      const td_value = $('<td>').text(value['value'].toFixed(2));
+      td_value.addClass('notesradar_cell_value');
+      tr.append(td_value);
+
+      const notesradar_musics = notesradar[playmode].musics;
+      const notesradar_score = notesradar_musics[value['musicname']][value['difficulty']];
+      const notesradar_target = notesradar_score.radars[attribute];
+      const td_max = $('<td>').text(notesradar_target.toFixed(2));
+      td_max.addClass('notesradar_cell_max');
+      tr.append(td_max);
   
+      const td_difficulty = $('<td>').text(value['difficulty']);
+      td_difficulty.addClass('notesradar_cell_difficulty cell_hidden');
+      tr.append(td_difficulty);
+  
+      tr.on('click', onclick_notesradaritem);
+
       $('table#table_notesradar_ranking').append(tr);
     });
   }
