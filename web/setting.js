@@ -33,6 +33,11 @@ async function initialize() {
   $('#check_savefilemusicname_right').prop('checked', setting['savefilemusicname_right']);
 
   $('#text_hotkey_active_screenshot').val(setting['hotkeys']['active_screenshot']);
+  $('#text_hotkey_select_summary').val(setting['hotkeys']['select_summary']);
+  $('#text_hotkey_select_notesradar').val(setting['hotkeys']['select_notesradar']);
+  $('#text_hotkey_select_screenshot').val(setting['hotkeys']['select_screenshot']);
+  $('#text_hotkey_select_scoreinformation').val(setting['hotkeys']['select_scoreinformation']);
+  $('#text_hotkey_select_scoregraph').val(setting['hotkeys']['select_scoregraph']);
   $('#text_hotkey_upload_musicselect').val(setting['hotkeys']['upload_musicselect']);
 
   if(!setting['summary_countmethod_only'])
@@ -162,6 +167,11 @@ async function onclick_button_save(e) {
     'savefilemusicname_right': $('#check_savefilemusicname_right').prop('checked'),
     'hotkeys': {
       'active_screenshot': $('#text_hotkey_active_screenshot').val(),
+      'select_summary': $('#text_hotkey_select_summary').val(),
+      'select_notesradar': $('#text_hotkey_select_notesradar').val(),
+      'select_screenshot': $('#text_hotkey_select_screenshot').val(),
+      'select_scoreinformation': $('#text_hotkey_select_scoreinformation').val(),
+      'select_scoregraph': $('#text_hotkey_select_scoregraph').val(),
       'upload_musicselect': $('#text_hotkey_upload_musicselect').val(),
     },
     'summary_countmethod_only': $('#radio_summary_countmethod_only').prop('checked'),

@@ -441,6 +441,11 @@ class GuiApi():
 
         setting.hotkeys['active_screenshot'] = values['hotkeys']['active_screenshot']
         setting.hotkeys['upload_musicselect'] = values['hotkeys']['upload_musicselect']
+        setting.hotkeys['select_summary'] = values['hotkeys']['select_summary']
+        setting.hotkeys['select_notesradar'] = values['hotkeys']['select_notesradar']
+        setting.hotkeys['select_screenshot'] = values['hotkeys']['select_screenshot']
+        setting.hotkeys['select_scoreinformation'] = values['hotkeys']['select_scoreinformation']
+        setting.hotkeys['select_scoregraph'] = values['hotkeys']['select_scoregraph']
 
         setting.summary_countmethod_only = values['summary_countmethod_only']
         setting.display_result = values['display_result']
@@ -1743,6 +1748,21 @@ def active_screenshot():
 
     socket_server.update_screenshot(get_imagevalue(image))
 
+def select_summary():
+    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'summary'})
+
+def select_notesradar():
+    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'notesradar'})
+
+def select_screenshot():
+    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'screenshot'})
+
+def select_scoreinformation():
+    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'scoreinformation'})
+
+def select_scoregraph():
+    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'chartscoreresult'})
+
 def upload_musicselect():
     '''
     選曲画面の一部を学習用にアップロードする
@@ -1922,11 +1942,21 @@ def start_hotkeys():
     
     if 'active_screenshot' in setting.hotkeys.keys() and setting.hotkeys['active_screenshot'] != '':
         keyboard.add_hotkey(setting.hotkeys['active_screenshot'], active_screenshot)
+    if 'select_summary' in setting.hotkeys.keys() and setting.hotkeys['select_summary'] != '':
+        keyboard.add_hotkey(setting.hotkeys['select_summary'], select_summary)
+    if 'select_notesradar' in setting.hotkeys.keys() and setting.hotkeys['select_notesradar'] != '':
+        keyboard.add_hotkey(setting.hotkeys['select_notesradar'], select_notesradar)
+    if 'select_screenshot' in setting.hotkeys.keys() and setting.hotkeys['select_screenshot'] != '':
+        keyboard.add_hotkey(setting.hotkeys['select_screenshot'], select_screenshot)
+    if 'select_scoreinformation' in setting.hotkeys.keys() and setting.hotkeys['select_scoreinformation'] != '':
+        keyboard.add_hotkey(setting.hotkeys['select_scoreinformation'], select_scoreinformation)
+    if 'select_scoregraph' in setting.hotkeys.keys() and setting.hotkeys['select_scoregraph'] != '':
+        keyboard.add_hotkey(setting.hotkeys['select_scoregraph'], select_scoregraph)
     if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
         keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
 
 def stop_hotkeys():
-    for target in [active_screenshot, upload_musicselect]:
+    for target in [active_screenshot, upload_musicselect, select_summary, select_notesradar, select_screenshot, select_scoreinformation, select_scoregraph]:
         try:
             keyboard.remove_hotkey(target)
         except Exception as ex:

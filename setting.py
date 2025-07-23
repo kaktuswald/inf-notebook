@@ -15,6 +15,11 @@ default = {
     'savefilemusicname_right': False,
     'hotkeys': {
         'active_screenshot': 'alt+F10',
+        'select_summary': 'alt+M',
+        'select_notesradar': 'alt+N',
+        'select_screenshot': 'alt+S',
+        'select_scoreinformation': 'alt+I',
+        'select_scoregraph': 'alt+G',
         'upload_musicselect': 'alt+F8',
     },
     'summary_countmethod_only': False,
@@ -91,6 +96,16 @@ class Setting():
             self.json['discord_webhook']['seenevents'] = []
         if not 'joinedevents' in self.json['discord_webhook'].keys():
             self.json['discord_webhook']['joinedevents'] = {}
+        if not 'select_summary' in self.json['hotkeys'].keys():
+            self.json['hotkeys']['select_summary'] = default['hotkeys']['select_summary']
+        if not 'select_notesradar' in self.json['hotkeys'].keys():
+            self.json['hotkeys']['select_notesradar'] = default['hotkeys']['select_notesradar']
+        if not 'select_screenshot' in self.json['hotkeys'].keys():
+            self.json['hotkeys']['select_screenshot'] = default['hotkeys']['select_screenshot']
+        if not 'select_scoreinformation' in self.json['hotkeys'].keys():
+            self.json['hotkeys']['select_scoreinformation'] = default['hotkeys']['select_scoreinformation']
+        if not 'select_scoregraph' in self.json['hotkeys'].keys():
+            self.json['hotkeys']['select_scoregraph'] = default['hotkeys']['select_scoregraph']
 
         self.save()
 

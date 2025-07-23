@@ -61,7 +61,7 @@ div.setting_item {
 
 div.hotkey_label {
     display: inline-block;
-    width: 150px;
+    width: 170px;
 }
 
 div.port_label {
@@ -73,7 +73,7 @@ input.port_input {
     width: 80px;
 }
 
-span.setting_annotation {
+div.setting_annotation {
     font-size: xx-small;
     user-select: none;
 }
