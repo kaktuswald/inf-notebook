@@ -65,7 +65,8 @@ class NotebookRecent(Notebook):
         if result.details.options is None:
             option = None
         else:
-            option = ','.join([v for v in [result.details.options.arrange, result.details.options.flip] if v is not None])
+            battle = 'BATTLE' if result.details.options.battle else None
+            option = ','.join([v for v in [battle, result.details.options.arrange, result.details.options.flip, result.details.options.assist] if v is not None])
         self.json['results'][result.timestamp] = {
             'play_mode': result.informations.play_mode,
             'difficulty': result.informations.difficulty,
