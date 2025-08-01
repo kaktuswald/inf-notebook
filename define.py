@@ -24,7 +24,7 @@ class Define():
         'loading': {
             'left': 380,
             'top': 120,
-            'width': 4,
+            'width': 8,
             'height': 2
         },
         'result': {
