@@ -40,7 +40,7 @@ logger.debug('mode: manage')
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
-from define import define
+from define import Playmodes,define
 from resources import resource,play_sound_result,check_latest
 from screenshot import Screen,Screenshot
 from recog import Recognition as recog
@@ -291,7 +291,7 @@ class GuiApi():
 
     @staticmethod
     def get_playmodes(event: Event):
-        event.return_string(dumps(define.value_list['play_modes']))
+        event.return_string(dumps(Playmodes.values))
 
     @staticmethod
     def get_difficulties(event: Event):

@@ -2,7 +2,7 @@ from datetime import datetime
 from webbrowser import open
 from urllib.parse import quote
 
-from define import define
+from define import Playmodes
 from resources import resource
 from record import NotebookSummary
 from notesradar import NotesRadar,NotesRadarAttribute
@@ -24,11 +24,11 @@ def timestamp_format(timestamp: str):
 
 def post_summary(notebook: NotebookSummary, hashtags: str):
     counts = {}
-    for playmode in define.value_list['play_modes']:
+    for playmode in Playmodes.values:
         counts[playmode] = {'TOTAL': 0, 'F-COMBO': 0, 'AAA': 0, 'NO DATA': 0}
     
     for musicname, value1 in resource.musictable['musics'].items():
-        for playmode in define.value_list['play_modes']:
+        for playmode in Playmodes.values:
             for difficulty in value1[playmode].keys():
                 counts[playmode]['TOTAL'] += 1
                 if musicname in notebook.json['musics'].keys() and difficulty in notebook.json['musics'][musicname][playmode].keys():

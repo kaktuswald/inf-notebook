@@ -4,7 +4,7 @@ from os import mkdir
 from os.path import join,basename,exists
 from glob import glob
 
-from define import define
+from define import Playmodes,define
 from image import generate_filename
 from data_collection import collection_basepath
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
@@ -34,8 +34,8 @@ categorycount_levels_filepath = join(registries_dirname, categorycount_levels_fi
 categorycount_difficulties_filepath = join(registries_dirname, categorycount_difficulties_filename)
 
 arcade_scorefile_dirpaths = {
-    'SP': join(registries_dirname, 'originalscoredata_sp'),
-    'DP': join(registries_dirname, 'originalscoredata_dp')
+    Playmodes.SP: join(registries_dirname, 'originalscoredata_sp'),
+    Playmodes.DP: join(registries_dirname, 'originalscoredata_dp'),
 }
 
 def load_arcade_scorefiles(report):
@@ -44,7 +44,7 @@ def load_arcade_scorefiles(report):
         'NORMAL': 12,
         'HYPER': 19,
         'ANOTHER': 26,
-        'LEGGENDARIA': 33
+        'LEGGENDARIA': 33,
     }
 
     report.append_log(f'load arcade scorefiles')
@@ -70,7 +70,7 @@ def load_arcade_scorefiles(report):
 
                 if not musicname in arcadedata.keys():
                     arcadedata[musicname] = {'version': []}
-                    for pm in define.value_list['play_modes']:
+                    for pm in Playmodes.values:
                         arcadedata[musicname][pm] = {}
                         for key in check_values.keys():
                             arcadedata[musicname][pm][key] = []
@@ -132,8 +132,8 @@ def load_musiclist(report, table, versions):
         
         table['versions'][version].append(music)
         table['musics'][music] = {'version': version}
-        for play_mode in define.value_list['play_modes']:
-            table['musics'][music][play_mode] = {}
+        for playmode in Playmodes.values:
+            table['musics'][music][playmode] = {}
 
 def reflect_collections(report, table):
     try:
@@ -202,7 +202,7 @@ def reflect_collections(report, table):
             f.write('\n'.join(output))
 
     table['levels'] = {}
-    for playmode in define.value_list['play_modes']:
+    for playmode in Playmodes.values:
         table['levels'][playmode] = {}
         for level in define.value_list['levels']:
             table['levels'][playmode][level] = []
@@ -210,12 +210,12 @@ def reflect_collections(report, table):
     table['beginners'] = []
 
     table['leggendarias'] = {}
-    for playmode in define.value_list['play_modes']:
+    for playmode in Playmodes.values:
         table['leggendarias'][playmode] = []
 
     musics = table['musics']
     for musicname in musics.keys():
-        for playmode in define.value_list['play_modes']:
+        for playmode in Playmodes.values:
             for difficulty, level in musics[musicname][playmode].items():
                 table['levels'][playmode][level].append({'music': musicname, 'difficulty': difficulty})
                 if playmode == 'SP' and difficulty == 'BEGINNER':
@@ -279,7 +279,7 @@ def evaluate_scoredata(report, table, arcadedata):
             report.error(f"Wrong version {musicname}: {target['version']}")
             continue
 
-        for playmode in define.value_list['play_modes']:
+        for playmode in Playmodes.values:
             for difficulty in define.value_list['difficulties']:
                 if difficulty in target[playmode].keys():
                     if len(arcadedata[musicname][playmode][difficulty]) > 0:
@@ -343,7 +343,7 @@ def evaluate_categories(report, table):
                 count_levels[playmode][level] = int(value)
     
     levels = table['levels']
-    for playmode in define.value_list['play_modes']:
+    for playmode in Playmodes.values:
         for level in define.value_list['levels']:
             if len(levels[playmode][level]) == count_levels[playmode][level]:
                 report.append_log(f"{playmode} {level} count: {len(levels[playmode][level])}")
@@ -363,7 +363,7 @@ def evaluate_categories(report, table):
     
     beginners = table['beginners']
     if len(beginners) == count_difficulties['SPB']:
-        report.append_log(f'SP BEGINER count: {len(beginners)}')
+        report.append_log(f'SP BEGINNER count: {len(beginners)}')
     else:
         report.error(f"SP BEGINNER count NG: {len(beginners)}, {count_difficulties['SPB']}")
     filename = f'category-beginner.txt'

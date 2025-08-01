@@ -1,9 +1,8 @@
-from define import define
+from define import Playmodes,define
 from resources import resource
 
 ranking_count = 50
 
-playmodes = define.value_list['play_modes']
 difficulties = define.value_list['difficulties']
 attributes = define.value_list['notesradar_attributes']
 
@@ -85,7 +84,7 @@ class NotesRadar():
         self.items: dict[str, NotesRadarItem] = {}
         '''プレイモードごとのアイテム'''
 
-        for playmode in playmodes:
+        for playmode in Playmodes.values:
             self.items[playmode] = NotesRadarItem()
     
     def generate(self, summary: dict[str, dict[str, dict[str, dict[str, str | int]]]]):

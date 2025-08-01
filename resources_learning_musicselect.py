@@ -4,7 +4,7 @@ from sys import exit
 from os.path import join,isfile
 import numpy as np
 
-from define import define
+from define import Playmodes,define
 from data_collection import collection_basepath
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
@@ -955,7 +955,7 @@ def evaluate():
             if not 'version' in evaluate_musictable[musicname].keys():
                 report.error(f'Not registered version {musicname}')
             
-            for playmode in define.value_list['play_modes']:
+            for playmode in Playmodes.values:
                 if playmode in evaluate_musictable[musicname].keys():
                     for difficulty in define.value_list['difficulties']:
                         resultlevel = None

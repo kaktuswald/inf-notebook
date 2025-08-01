@@ -2,7 +2,7 @@ from os.path import join,exists
 import json
 import pandas as pd
 
-from define import define
+from define import Playmodes,define
 from resources import resource
 from resources_generate import Report,save_resource_serialized,registries_dirname
 
@@ -11,7 +11,7 @@ resource_filename = f'notesradar{define.notesradar_version}.res'
 radardata_dirpath = join(registries_dirname, 'notesradars')
 
 filenames = {}
-for playmode in define.value_list['play_modes']:
+for playmode in Playmodes.values:
     filenames[playmode] = {}
     for attribute in define.value_list['notesradar_attributes']:
         filenames[playmode][attribute] = join(radardata_dirpath, f'{playmode} {attribute}.csv')
@@ -61,7 +61,7 @@ def output_not_in_notesradar(added: dict, musics: dict, output_dirpath: str):
     output.append('Music')
     output.append('\n'.join([f'- {musicname}' for musicname in musics.keys() if not musicname in added.keys()]))
     output.append('')
-    for playmode in define.value_list['play_modes']:
+    for playmode in Playmodes.values:
         output.append(f'Difficulty {playmode}')
         for musicname in musics.keys():
             if musicname in added.keys() and playmode in added[musicname].keys():

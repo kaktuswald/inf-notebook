@@ -6,6 +6,16 @@ logger_child_name = 'define'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded define.py')
 
+class Playmodes():
+    SP: str = 'SP'
+    '''SINGLE PLAY'''
+
+    DP: str = 'DP'
+    '''DOUBLE PLAY'''
+
+    values: list[str] = [SP, DP]
+    '''プレイモードのリスト'''
+
 class Define():
     width = 1920
     height = 1080
@@ -37,7 +47,6 @@ class Define():
     }
 
     value_list = {
-        'play_modes': ('SP', 'DP',),
         'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA',),
         'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',),
         'dj_levels': ('F', 'E', 'D', 'C', 'B', 'A', 'AA', 'AAA',),

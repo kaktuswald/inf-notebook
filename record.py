@@ -11,7 +11,7 @@ logger.debug(f'loaded record.py')
 
 from version import version
 from resources import resource,resources_dirname
-from define import define
+from define import Playmodes,define
 from result import Result
 
 records_basepath = 'records'
@@ -55,7 +55,7 @@ class NotebookRecent(Notebook):
             self.save()
             return
     
-    def append(self, result: Result, saved, filtered):
+    def append(self, result: Result, saved: bool, filtered: bool):
         if not 'timestamps' in self.json.keys():
             self.json['timestamps'] = []
         self.json['timestamps'].append(result.timestamp)
@@ -502,9 +502,13 @@ class NotebookSummary(Notebook):
         '''
         if not 'musics' in self.json.keys():
             self.json['musics'] = {}
-        self.json['musics'][musicname] = {'SP': {}, 'DP': {}}
+
+        self.json['musics'][musicname] = {}
+
         music_item = resource.musictable['musics'][musicname]
-        for playmode in define.value_list['play_modes']:
+        for playmode in Playmodes.values:
+            self.json['musics'][musicname][playmode] = {}
+
             for difficulty in define.value_list['difficulties']:
                 if not difficulty in music_item[playmode].keys() or music_item[playmode][difficulty] is None:
                     continue
@@ -556,7 +560,7 @@ class NotebookSummary(Notebook):
             return
 
         result = {}
-        for playmode in define.value_list['play_modes']:
+        for playmode in Playmodes.values:
             result[playmode] = {}
             for difficulty in define.value_list['difficulties']:
                 result[playmode][difficulty] = {'total': 0, 'datacount': 0}
@@ -572,7 +576,7 @@ class NotebookSummary(Notebook):
                     result[playmode][level][djlevel] = 0
             
         for musicname in resource.musictable['musics'].keys():
-            for playmode in define.value_list['play_modes']:
+            for playmode in Playmodes.values:
                 for difficulty, level in resource.musictable['musics'][musicname][playmode].items():
                     result[playmode][difficulty]['total'] += 1
                     result[playmode][level]['total'] += 1

@@ -1,7 +1,7 @@
 import json
 from os import getcwd
-from datetime import datetime,timezone
 
+from define import Playmodes
 from discord_webhook import filtereds
 
 setting_filepath = 'setting.json'
@@ -30,14 +30,14 @@ default = {
     'hashtags': '#IIDX #infinitas573 #infnotebook',
     'data_collection': False,
     'summaries' : {
-        'SP': {
+        Playmodes.SP: {
             '8': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '9': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '10': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '11': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '12': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
         },
-        'DP': {
+        Playmodes.DP: {
             '8': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '9': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
             '10': {'cleartypes': ['F-COMBO'], 'djlevels': ['AAA']},
