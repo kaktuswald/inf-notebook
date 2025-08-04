@@ -12,11 +12,8 @@ span.version {
     padding: 0px;
 }
 
-span#detect_infinitas {
-    user-select: none;
-}
-
-div#capturable {
+span#detect_infinitas,
+span#capturable {
     user-select: none;
 }
 
