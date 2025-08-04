@@ -1217,21 +1217,27 @@ class GuiApiDiscordWebhook():
     def get_publics(self, event: webui.Event):
         self.events = storage.download_discordwebhooks()
 
+        if self.events is None:
+            event.return_string(dumps(None))
+            return
+            
         publics = {}
         for key, value in self.events.items():
             if not value['private']:
                 publics[key] = value
+        
         event.return_string(dumps(publics))
 
     def get_newpublics(self, event: webui.Event):
         self.events = storage.download_discordwebhooks()
-
-        setting.discord_webhook['seenevents'] = [item for item in setting.discord_webhook['seenevents'] if item in self.events.keys()]
         newpublics = {}
-        for key, value in self.events.items():
-            if not value['private'] and not key in setting.discord_webhook['seenevents']:
-                newpublics[key] = value
-                setting.discord_webhook['seenevents'].append(key)
+
+        if self.events is not None:
+            setting.discord_webhook['seenevents'] = [item for item in setting.discord_webhook['seenevents'] if item in self.events.keys()]
+            for key, value in self.events.items():
+                if not value['private'] and not key in setting.discord_webhook['seenevents']:
+                    newpublics[key] = value
+                    setting.discord_webhook['seenevents'].append(key)
         
         event.return_string(dumps(newpublics))
 

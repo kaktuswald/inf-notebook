@@ -33,7 +33,19 @@ async function get_publics() {
   $('tr.publicitem').off('click', onclick_publicitem);
   $('tr.publicitem').remove();
 
+  $('span#text_geteventsstatus').text('イベントリスト読込中...');
+
   const publics = JSON.parse(await webui.discordwebhook_getpublics());
+
+  if(publics === null) {
+    $('span#text_geteventsstatus').text('読込に失敗しました');
+    return;
+  }
+
+  $('span#text_geteventsstatus')
+    .text('')
+    .removeClass('message');
+  
   Object.keys(publics).forEach(id => {
     const target = publics[id];
 

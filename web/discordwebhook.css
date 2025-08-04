@@ -98,8 +98,9 @@ textarea#faildtestpostmessage {
     height: 70px;
 }
 
-span#message {
+span.message {
     color: var(--message-color);
+    user-select: none;
 }
 
 dialog#dialog_confirmregister {
@@ -109,4 +110,11 @@ dialog#dialog_confirmregister {
 div.warning {
     color: var(--message-color);
     font-size: small;
+}
+
+div#box_geteventsstatus {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    user-select: none;
 }
