@@ -152,6 +152,9 @@ def generate(musics, csv):
     for playmode in mismatch_notes.keys():
         if len(mismatch_notes[playmode]):
             report.append_log(f'Mismatch notes count: {playmode} {len(mismatch_notes[playmode])}')
+            for musicname in mismatch_notes[playmode].keys():
+                for difficulty, value in mismatch_notes[playmode][musicname].items():
+                    report.append_log(f'  {musicname}({difficulty}): {value}')
 
     report.report()
 
