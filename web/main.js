@@ -1312,7 +1312,7 @@ function onclick_recents_execute_uploadcollectionimages(e) {
     timestamps.push($(this).find('td.recentresult_cell_timestamp').text());
   });
 
-  webui.recents_upload_collectionimages(timestamps);
+  webui.recents_upload_collectionimages(JSON.stringify(timestamps));
 
   $(this).closest('dialog')[0].close();
 }

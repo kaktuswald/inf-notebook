@@ -1083,8 +1083,13 @@ class GuiApi():
 
         for timestamp in timestamps:
             if timestamp in results_today.keys() and not timestamp in timestamps_uploaded:
-                if storage.start_uploadcollection(results_today[timestamp], images_result[timestamp], True):
+                uploaded_informations, uploaded_details = storage.start_uploadcollection(results_today[timestamp], images_result[timestamp], True)
+                if uploaded_informations and uploaded_details:
                     timestamps_uploaded.append(timestamp)
+                if uploaded_informations:
+                    api.send_message('append_log', f'upload informations collection: {timestamp}')
+                if uploaded_details:
+                    api.send_message('append_log', f'upload details collection: {timestamp}')
 
     def delete_musicresult(self, event: webui.Event):
         '''指定した曲の記録データを全て削除する
@@ -1398,8 +1403,13 @@ def result_process(screen: Screen):
             scoreselection = None
 
     if setting.data_collection or force_upload_enable:
-        if storage.start_uploadcollection(result, resultimage, force_upload_enable):
+        uploaded_informations, uploaded_details = storage.start_uploadcollection(result, resultimage, force_upload_enable)
+        if uploaded_informations and uploaded_details:
             timestamps_uploaded.append(result.timestamp)
+        if uploaded_informations:
+            api.send_message('append_log', f'upload informations collection: {result.timestamp}')
+        if uploaded_details:
+            api.send_message('append_log', f'upload details collection: {result.timestamp}')
 
     filteredimage = None
     filteredimage_whole = None
