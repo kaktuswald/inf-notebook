@@ -57,6 +57,7 @@ table#table_recents td:nth-child(3) {
 
 table#table_recents th:nth-child(5),
 table#table_recents td:nth-child(5) {
+    text-align: center;
     width: 25px;
 }
 

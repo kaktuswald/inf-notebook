@@ -134,16 +134,28 @@ class NotesRadar():
             
             targetitem.calculate_total()
 
-    def insert(self, playmode: str, musicname: str, difficulty: str, score: int, summary: dict[str, dict[str, dict[str, dict[str, str | int]]]]):
+    def insert(self, playmode: str, musicname: str, difficulty: str, summary: dict[str, dict[str, dict[str, dict[str, str | int]]]]):
         if not musicname in resource.notesradar[playmode]['musics'].keys():
             return False
         if not difficulty in resource.notesradar[playmode]['musics'][musicname].keys():
             return False
+        if not 'notes' in resource.notesradar[playmode]['musics'][musicname][difficulty].keys():
+            return False
+
+        notes = resource.notesradar[playmode]['musics'][musicname][difficulty]['notes']
+
+        if not musicname in summary.keys():
+            return
+        if not playmode in summary[musicname].keys():
+            return
+        if not difficulty in summary[musicname][playmode].keys():
+            return
+        if not 'score' in summary[musicname][playmode][difficulty].keys():
+            return
+        
+        score = summary[musicname][playmode][difficulty]['score']
 
         targetitem = self.items[playmode]
-
-        score = summary[musicname][playmode][difficulty]['score']
-        notes = resource.notesradar[playmode]['musics'][musicname][difficulty]['notes']
 
         updated = False
         for attribute, targetattribute in targetitem.attributes.items():

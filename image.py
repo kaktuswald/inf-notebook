@@ -2,12 +2,11 @@ from os import mkdir
 from os.path import join,exists,isfile
 from PIL import Image
 from datetime import datetime
-from pathlib import Path
 import re
 
+from define import Playtypes
 from export import export_dirname
 from windows import openfolder
-from general import get_imagevalue
 
 dirname_results = 'results'
 dirname_filtereds = 'filtered'
@@ -19,130 +18,102 @@ export_filename_musicinformation = 'musicinformation.png'
 
 adjust_length = 94
 
-class ResultImages():
-    destination_path: Path = None
-    resultimages: dict[str, bytes]
-    filteredimages: dict[str, bytes]
-
-    def get_resultimage(self, musicname: str, difficulty: str, playmode: str, timestamp: str):
-        scoretype = {'playmode': playmode, 'difficulty': difficulty}
-        if self.destination_path is not None and not timestamp in self.resultimages.keys():
-            image = get_resultimage(musicname, timestamp, self.destination_path, scoretype)
-            self.resultimages[timestamp] = get_imagevalue(image)
-            del image
-        if timestamp in self.resultimages.keys() and self.resultimages[timestamp] is not None:
-            return self.resultimages[timestamp]
-        if self.destination_path is not None and not timestamp in self.filteredimages.keys():
-            image = get_resultimage_filtered(musicname, timestamp, self.destination_path, scoretype)
-            self.filteredimages[timestamp] = get_imagevalue(image)
-            del image
-
-def generate_filename(music, timestamp, scoretype=None, musicname_right=False, imgtype='jpg'):
-    '''保存ファイル名を作る
+def generate_scoretype(playtype: str | None, difficulty: str | None):
+    '''プレイの種類と譜面難易度を複合した3文字を作る
 
     Args:
-        music (str): 曲名
-        timestamp (str): リザルトを記録したときのタイムスタンプ
-        musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
+        playtype (str): プレイの種類
+        difficulty (str): 譜面難易度
 
     Returns:
-        str: ファイル名
+        str: プレイの種類と譜面難易度を複合した3文字
     '''
-    if scoretype is not None and scoretype['playmode'] is not None and scoretype['difficulty'] is not None:
-        st = f"[{scoretype['playmode']}{scoretype['difficulty'][0]}]"
+    if playtype is not None and difficulty is not None:
+        if playtype != Playtypes.DPBATTLE:
+            return f'{playtype}{difficulty[0]}'
+        else:
+            return f'DB{difficulty[0]}'
     else:
-        st = ''
+        return None
 
-    if music is None:
-        return f'{timestamp}{st}.{imgtype}'
-
-    music_convert=re.sub(r'[\\|/|:|*|?|.|"|<|>|/|]', '', music)
-    adjustmented = music_convert if len(music_convert) < adjust_length else f'{music_convert[:adjust_length]}..'
-    if not musicname_right:
-        return f'{adjustmented}{st}_{timestamp}.{imgtype}'
-    else:
-        return f'{timestamp}_{adjustmented}{st}.{imgtype}'
-
-def generate_filename2(
-        playmode: str,
-        musicname: str,
-        difficulty: str,
+def generate_filename(
+        scoretype: str | None,
+        musicname: str | None,
         timestamp: str,
         musicname_right: bool = False,
-        imgtype: str = 'jpg',
+        filetype: str = 'jpg',
     ):
     '''保存ファイル名を作る
 
     Args:
-        playmode (str): プレイモード(SP or DP)
+        scoretype (str): プレイの種類と譜面難易度
         musicname (str): 曲名
-        difficulty (str): 譜面難易度
         timestamp (str): リザルトを記録したときのタイムスタンプ
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
+        filetype (str, optional): ファイルの拡張子
 
     Returns:
         str: ファイル名
     '''
-    if playmode is not None and difficulty is not None:
-        st = f"[{playmode}{difficulty[0]}]"
-    else:
-        st = ''
+    scoretype_str = f'[{scoretype}]' if scoretype is not None else ''
 
     if musicname is None:
-        return f'{timestamp}{st}.{imgtype}'
+        return f'{timestamp}{scoretype_str}.{filetype}'
 
     music_convert = re.sub(r'[\\|/|:|*|?|.|"|<|>|/|]', '', musicname)
     adjustmented = music_convert if len(music_convert) < adjust_length else f'{music_convert[:adjust_length]}..'
 
     if not musicname_right:
-        return f'{adjustmented}{st}_{timestamp}.{imgtype}'
+        return f'{adjustmented}{scoretype_str}_{timestamp}.{filetype}'
     else:
-        return f'{timestamp}_{adjustmented}{st}.{imgtype}'
+        return f'{timestamp}_{adjustmented}{scoretype_str}.{filetype}'
 
-def save_resultimage(image, music, timestamp, destination_dirpath, scoretype, musicname_right=False):
+def save_resultimage(image, playtype, musicname, difficulty, timestamp, destination_dirpath, musicname_right=False):
     '''リザルト画像をファイル保存する
 
     Args:
         image (Image): 対象の画像(PIL.Image)
-        music (str): 曲名
+        playtype (str): プレイの種類
+        musicname (str): 曲名
+        difficulty (str): 譜面難易度
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
-        scoretype (dict): プレイモードと譜面難易度
+        scoretype (dict): プレイの種類と譜面難易度
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
 
     Returns:
         str: 成功した場合はファイル名を返す
     '''
-    return save_image(image, music, timestamp, destination_dirpath, dirname_results, scoretype, musicname_right)
+    return save_image(image, playtype, musicname, difficulty, timestamp, destination_dirpath, dirname_results, musicname_right)
 
-def save_resultimage_filtered(image, music, timestamp, destination_dirpath, scoretype, musicname_right=False):
+def save_resultimage_filtered(image, playtype, musicname, difficulty, timestamp, destination_dirpath, musicname_right=False):
     '''ライバル欄にぼかしを入れたリザルト画像をファイル保存する
 
     Args:
         image (Image): 対象の画像(PIL.Image)
-        music (str): 曲名
+        playtype (str): プレイの種類
+        musicname (str): 曲名
+        difficulty (str): 譜面難易度
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
-        scoretype (dict): プレイモードと譜面難易度
+        scoretype (dict): プレイの種類と譜面難易度
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
 
     Returns:
         str: 成功した場合はファイル名を返す
     '''
-    return save_image(image, music, timestamp, destination_dirpath, dirname_filtereds, scoretype, musicname_right)
+    return save_image(image, playtype, musicname, difficulty, timestamp, destination_dirpath, dirname_filtereds, musicname_right)
 
 def get_scoreinformationimagepath(
-        playmode: str,
+        scoretype: str,
         musicname: str,
-        difficulty: str,
         destination_dirpath: str,
         musicname_right: bool = False,
     ):
     '''譜面情報の保存先パスを取得する
     Args:
-        playmode (str): プレイモード(SP or DP)
+        scoretype (str): プレイの種類と譜面難易度
         musicname (str): 曲名
-        difficulty (str): 譜面難易度
         destination_dirpath (str): 画像保存先のパス
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
     '''
@@ -150,9 +121,8 @@ def get_scoreinformationimagepath(
     timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
 
     return get_filepath(
-        playmode,
+        scoretype,
         musicname,
-        difficulty,
         timestamp,
         destination_dirpath,
         dirname_scoreinformations,
@@ -161,17 +131,15 @@ def get_scoreinformationimagepath(
     )
 
 def get_scoregraphimagepath(
-        playmode: str,
+        scoretype: str,
         musicname: str,
-        difficulty: str,
         destination_dirpath: str,
         musicname_right: bool = False,
     ):
     '''譜面グラフの保存先パスを取得する
     Args:
-        playmode (str): プレイモード(SP or DP)
+        scoretype (str): プレイの種類と譜面難易度
         musicname (str): 曲名
-        difficulty (str): 譜面難易度
         destination_dirpath (str): 画像保存先のパス
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
     '''
@@ -179,9 +147,8 @@ def get_scoregraphimagepath(
     timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
 
     return get_filepath(
-        playmode,
+        scoretype,
         musicname,
-        difficulty,
         timestamp,
         destination_dirpath,
         dirname_scorecharts,
@@ -189,17 +156,19 @@ def get_scoregraphimagepath(
         imgtype='png',
     )
 
-def save_image(image, music, timestamp, destination_dirpath, target_dirname, scoretype, musicname_right=False, imgtype='jpg'):
+def save_image(image, playtype, musicname, difficulty, timestamp, destination_dirpath, target_dirname, musicname_right=False, imgtype='jpg'):
     '''画像をファイル保存する
 
     Args:
         image (Image): 対象の画像(PIL.Image)
-        music (str): 曲名
+        playtype (str): プレイの種類
+        musicname (str): 曲名
+        difficulty (str): 譜面難易度
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
         target_dirname (str): 保存先の子ディレクトリ名
-        scoretype (dict): プレイモードと譜面難易度
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
+        
     Returns:
         str: 成功した場合はファイル名を返す
     '''
@@ -210,7 +179,8 @@ def save_image(image, music, timestamp, destination_dirpath, target_dirname, sco
     if not exists(dirpath):
         mkdir(dirpath)
 
-    filename = generate_filename(music, timestamp, scoretype, musicname_right, imgtype)
+    scoretype = generate_scoretype(playtype, difficulty)
+    filename = generate_filename(scoretype, musicname, timestamp, musicname_right, imgtype)
     filepath = join(dirpath, filename)
     if exists(filepath):
         return None
@@ -220,9 +190,8 @@ def save_image(image, music, timestamp, destination_dirpath, target_dirname, sco
     return filename
 
 def get_filepath(
-        playmode: str,
+        scoretype: str,
         musicname: str,
-        difficulty: str,
         timestamp: str,
         destination_dirpath: str,
         target_dirname: str,
@@ -232,13 +201,14 @@ def get_filepath(
     '''画像保存先のファイルパスを取得する
 
     Args:
-        playmode (str): プレイモード(SP or DP)
+        scoretype (str): プレイの種類と譜面難易度
         musicname (str): 曲名
-        difficulty (str): 譜面難易度
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
         target_dirname (str): 保存先の子ディレクトリ名
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
+        imgtype (str, optional): 画像の種類(拡張子)
+
     Returns:
         str: 成功した場合はファイルパスを返す
     '''
@@ -249,12 +219,12 @@ def get_filepath(
     if not exists(dirpath):
         mkdir(dirpath)
 
-    filename = generate_filename2(playmode, musicname, difficulty, timestamp, musicname_right, imgtype)
+    filename = generate_filename(scoretype, musicname, timestamp, musicname_right, imgtype)
     filepath = join(dirpath, filename)
     
     return filepath
 
-def get_resultimage(music, timestamp, destination_dirpath, scoretype):
+def get_resultimage(scoretype, musicname, timestamp, destination_dirpath):
     '''リザルト画像をファイルから取得する
 
     最も古い形式はタイムスタンプのみのファイル名。
@@ -262,53 +232,53 @@ def get_resultimage(music, timestamp, destination_dirpath, scoretype):
     全パターンでファイルの有無を確認する。
 
     Args:
-        music (str): 曲名
+        scoretype (str): プレイの種類(SP or DP or DP BATTLE)と譜面難易度
+        musicname (str): 曲名
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
-        scoretype (dict): プレイモードと譜面難易度
 
     Returns:
-        bytes: PySimpleGUIに渡すデータ
+        bytes: フロントエンドに渡すデータ
     '''
-    return load_image(music, timestamp, destination_dirpath, dirname_results, scoretype)
+    return load_image(scoretype, musicname, timestamp, destination_dirpath, dirname_results)
 
-def get_resultimage_filtered(music, timestamp, destination_dirpath, scoretype):
+def get_resultimage_filtered(scoretype, musicname, timestamp, destination_dirpath):
     '''ぼかしの入ったリザルト画像をファイルから取得する
 
     Args:
-        music (str): 曲名
+        scoretype (str): プレイの種類(SP or DP or DP BATTLE)と譜面難易度
+        musicname (str): 曲名
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
-        scoretype (dict): プレイモードと譜面難易度
 
     Returns:
-        bytes: PySimpleGUIに渡すデータ
+        bytes: フロントエンドに渡すデータ
     '''
-    return load_image(music, timestamp, destination_dirpath, dirname_filtereds, scoretype)
+    return load_image(scoretype, musicname, timestamp, destination_dirpath, dirname_filtereds)
 
-def load_image(music, timestamp, destination_dirpath, target_dirname, scoretype):
+def load_image(scoretype, musicname, timestamp, destination_dirpath, target_dirname):
     '''リザルト画像をファイルから取得する
 
     Args:
-        music (str): 曲名
+        scoretype (str): プレイの種類(SP or DP or DP BATTLE)と譜面難易度
+        musicname (str): 曲名
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
         target_dirname (str): 保存先の子ディレクトリ名
-        scoretype (dict): プレイモードと譜面難易度
 
     Returns:
-        bytes: PySimpleGUIに渡すデータ
+        bytes: フロントエンドに渡すデータ
     '''
     dirpath = join(destination_dirpath, target_dirname)
 
     for st in [scoretype, None]:
         for musicname_right in [True, False]:
-            filename = generate_filename(music, timestamp, musicname_right=musicname_right, scoretype=st)
+            filename = generate_filename(st, musicname, timestamp, musicname_right, 'jpg')
             filepath = join(dirpath, filename)
             if isfile(filepath):
                 return Image.open(filepath)
         
-        filename = generate_filename(None, timestamp, scoretype=st)
+        filename = generate_filename(st, None, timestamp, filetype='jpg')
         filepath = join(dirpath, filename)
         if isfile(filepath):
             return Image.open(filepath)

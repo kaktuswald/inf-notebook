@@ -40,7 +40,7 @@ logger.debug('mode: manage')
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
-from define import Playmodes,define
+from define import Playmodes,Playtypes,define
 from resources import resource,play_sound_result,check_latest
 from screenshot import Screen,Screenshot
 from recog import Recognition as recog
@@ -62,6 +62,7 @@ from export import (
 from windows import find_window,get_rect,check_rectsize,gethandle,show_messagebox,change_window_setting
 import image
 from image import (
+    generate_scoretype,
     save_resultimage,
     save_resultimage_filtered,
     get_resultimage,
@@ -294,6 +295,10 @@ class GuiApi():
         event.return_string(dumps(Playmodes.values))
 
     @staticmethod
+    def get_playtypes(event: Event):
+        event.return_string(dumps(Playtypes.values))
+
+    @staticmethod
     def get_difficulties(event: Event):
         event.return_string(dumps(define.value_list['difficulties']))
 
@@ -350,6 +355,7 @@ class GuiApi():
         window.bind('get_imagesize', GuiApi.get_imagesize)
 
         window.bind('get_playmodes', GuiApi.get_playmodes)
+        window.bind('get_playtypes', GuiApi.get_playtypes)
         window.bind('get_difficulties', GuiApi.get_difficulties)
         window.bind('get_levels', GuiApi.get_levels)
         window.bind('get_cleartypes', GuiApi.get_cleartypes)
@@ -561,21 +567,20 @@ class GuiApi():
         ファイルに保存する。Socketサーバを経由して更新する。
         Args:
             data(str): エンコードされた画像データ
-            playmode(str): プレイモード(SP or DP)
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
             musicname(str): 曲名
             difficulty(str): 譜面難易度
         '''
         data = event.get_string_at(0)
-        playmode = event.get_string_at(1)
+        playtype = event.get_string_at(1)
         musicname = event.get_string_at(2)
         difficulty = event.get_string_at(3)
 
         decorded_value = b64decode(data)
 
         self.image_scoreinformation = {
-            'playmode': playmode,
+            'scoretype': generate_scoretype(playtype, difficulty),
             'musicname': musicname,
-            'difficulty': difficulty,
             'imagevalue': decorded_value,
         }
 
@@ -591,21 +596,20 @@ class GuiApi():
         未実装だがファイルに保存しても良いかもしれない。
         Args:
             data(str): エンコードされた画像データ
-            playmode(str): プレイモード(SP or DP)
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
             musicname(str): 曲名
             difficulty(str): 譜面難易度
         '''
         data = event.get_string_at(0)
-        playmode = event.get_string_at(1)
+        playtype = event.get_string_at(1)
         musicname = event.get_string_at(2)
         difficulty = event.get_string_at(3)
 
         decorded_data = b64decode(data)
 
         self.image_scoregraph = {
-            'playmode': playmode,
+            'scoretype': generate_scoretype(playtype, difficulty),
             'musicname': musicname,
-            'difficulty': difficulty,
             'imagevalue': decorded_data,
         }
 
@@ -616,7 +620,7 @@ class GuiApi():
         
         保存ボタンを押したときに実行する。
         '''
-        playmode = event.get_string_at(0)
+        playtype = event.get_string_at(0)
         musicname = event.get_string_at(1)
         difficulty = event.get_string_at(2)
 
@@ -628,20 +632,16 @@ class GuiApi():
             event.return_string(dumps(False))
             return
 
-        if self.image_scoreinformation['playmode'] != playmode:
+        if self.image_scoreinformation['scoretype'] != generate_scoretype(playtype, difficulty):
             event.return_string(dumps(False))
             return
         if self.image_scoreinformation['musicname'] != musicname:
             event.return_string(dumps(False))
             return
-        if self.image_scoreinformation['difficulty'] != difficulty:
-            event.return_string(dumps(False))
-            return
         
         filepath = image.get_scoreinformationimagepath(
-            self.image_scoregraph['playmode'],
-            self.image_scoregraph['musicname'],
-            self.image_scoregraph['difficulty'],
+            self.image_scoreinformation['scoretype'],
+            self.image_scoreinformation['musicname'],
             setting.imagesave_path,
             setting.savefilemusicname_right,
         )
@@ -656,11 +656,11 @@ class GuiApi():
         
         保存ボタンを押したときに実行。
         Args:
-            playmode(str): プレイモード(SP or DP)
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
             musicname(str): 曲名
             difficulty(str): 譜面難易度
         '''
-        playmode = event.get_string_at(0)
+        playtype = event.get_string_at(0)
         musicname = event.get_string_at(1)
         difficulty = event.get_string_at(2)
 
@@ -668,20 +668,16 @@ class GuiApi():
             event.return_string(dumps(False))
             return
 
-        if self.image_scoregraph['playmode'] != playmode:
+        if self.image_scoregraph['scoretype'] != generate_scoretype(playtype, difficulty):
             event.return_string(dumps(False))
             return
         if self.image_scoregraph['musicname'] != musicname:
             event.return_string(dumps(False))
             return
-        if self.image_scoregraph['difficulty'] != difficulty:
-            event.return_string(dumps(False))
-            return
         
         filepath = image.get_scoregraphimagepath(
-            self.image_scoregraph['playmode'],
+            self.image_scoregraph['scoretype'],
             self.image_scoregraph['musicname'],
-            self.image_scoregraph['difficulty'],
             setting.imagesave_path,
             setting.savefilemusicname_right,
         )
@@ -702,20 +698,20 @@ class GuiApi():
 
         Args:
             musicname(str): 曲名
-            playmode(str): プレイモード(SP or DP)
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
             difficulty(str): 難易度
             timestamp(str): タイムスタンプ
         '''
-        playmode = event.get_string_at(0)
+        playtype = event.get_string_at(0)
         musicname = event.get_string_at(1)
         difficulty = event.get_string_at(2)
 
-        targetrecord = notebooks_music.get_notebook(musicname).get_scoreresult(playmode, difficulty)
+        targetrecord = notebooks_music.get_notebook(musicname).get_scoreresult(playtype, difficulty)
 
         if targetrecord is None:
             return
 
-        twitter.post_scoreinformation(playmode, difficulty, musicname, targetrecord, setting.hashtags)
+        twitter.post_scoreinformation(playtype, difficulty, musicname, targetrecord, setting.hashtags)
 
     def openfolder_export(self, event: webui.Event):
         '''エクスポートフォルダを開く
@@ -854,19 +850,19 @@ class GuiApi():
         リザルト画像データがあるならそれを表示する、なければぼかしつきリザルト画像データの有無を確認し、表示する。
         Args:
             musicname(str): 曲名
-            playmode(str): プレイモード(SP or DP)
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
             difficulty(str): 難易度
             timestamp(str): タイムスタンプ
         Returns:
             str: デコードされた画像データ
         '''
         musicname = event.get_string_at(0)
-        playmode = event.get_string_at(1)
+        playtype = event.get_string_at(1)
         difficulty = event.get_string_at(2)
         timestamp = event.get_string_at(3)
 
         if not timestamp in images_result.keys():
-            load_resultimages(playmode, musicname, difficulty, timestamp, timestamp in notebook_recent.timestamps)
+            load_resultimages(playtype, musicname, difficulty, timestamp, timestamp in notebook_recent.timestamps)
         
         if not timestamp in imagevalues_result:
             if images_result[timestamp] is not None:
@@ -900,19 +896,19 @@ class GuiApi():
 
         Args:
             musicname(str): 曲名
-            playmode(str): プレイモード(SP or DP)
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
             difficulty(str): 難易度
             timestamp(str): タイムスタンプ
         Returns:
             str: デコードされた画像データ
         '''
         musicname = event.get_string_at(0)
-        playmode = event.get_string_at(1)
+        playtype = event.get_string_at(1)
         difficulty = event.get_string_at(2)
         timestamp = event.get_string_at(3)
 
         if not timestamp in images_result.keys():
-            load_resultimages(playmode, musicname, difficulty, timestamp, timestamp in notebook_recent.timestamps)
+            load_resultimages(playtype, musicname, difficulty, timestamp, timestamp in notebook_recent.timestamps)
         
         if not timestamp in imagevalues_filtered.keys():
             if not timestamp in images_filtered.keys() and timestamp in images_result.keys():
@@ -949,12 +945,12 @@ class GuiApi():
 
         Args:
             musicname(str): 曲名
-            playmode(str): プレイモード(SP or DP)
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
             difficulty(str): 難易度
             timestamp(str): タイムスタンプ
         '''
         musicname = event.get_string_at(0)
-        playmode = event.get_string_at(1)
+        playtype = event.get_string_at(1)
         difficulty = event.get_string_at(2)
 
         notebook = self.notebooks.get_notebook(musicname)
@@ -962,7 +958,7 @@ class GuiApi():
             event.return_string(dumps(None))
             return
 
-        event.return_string(dumps(notebook.get_scoreresult(playmode, difficulty)))
+        event.return_string(dumps(notebook.get_scoreresult(playtype, difficulty)))
 
     def get_playresult(self, event: webui.Event):
         '''対象のリザルトの記録を返す
@@ -1031,7 +1027,7 @@ class GuiApi():
             target = notebook_recent.get_result(timestamp)
 
             if not timestamp in images_result.keys():
-                load_resultimages(timestamp, target['music'], target['play_mode'], target['difficulty'], True)
+                load_resultimages(target['playtype'], target['music'], timestamp, target['difficulty'], True)
 
             if images_result[timestamp] is not None:
                 if not timestamp in images_filtered.keys():
@@ -1045,10 +1041,10 @@ class GuiApi():
                 if images_filtered[timestamp] is not None and not timestamp in timestamps_filteredsaved:
                     save_filtered(
                         images_filtered[timestamp],
-                        timestamp,
+                        target['playtype'],
                         target['music'],
-                        target['play_mode'],
                         target['difficulty'],
+                        timestamp,
                     )
                     target['filtered'] = True
 
@@ -1337,17 +1333,17 @@ class GuiApiDiscordWebhook():
 class ScoreSelection():
     '''選択中の譜面
 
-    曲名・プレイモード・譜面難易度を持つ。
+    プレイの種類・曲名・譜面難易度を持つ。
     '''
-    def __init__(self, musicname: str, playmode: str, difficulty: str):
+    def __init__(self, playtype: str, musicname: str, difficulty: str):
         '''
         Args:
+            playtype(str): プレイモード(SP or DP or DP BATTLE)
             musicname(str): 曲名
-            playmode(str): プレイモード(SP or DP)
             difficulty(str): 譜面難易度
         '''
+        self.playtype = playtype
         self.musicname = musicname
-        self.playmode = playmode
         self.difficulty = difficulty
 
 def mainloop():
@@ -1392,13 +1388,14 @@ def result_process(screen: Screen):
 
     images_result[result.timestamp] = resultimage
 
+    playtype = result.playtype
+
     musicname = result.informations.music
-    playmode = result.informations.play_mode
     difficulty = result.informations.difficulty
 
     if setting.display_result:
-        if(musicname is not None and playmode is not None and difficulty is not None):
-            scoreselection = ScoreSelection(musicname, playmode, difficulty)
+        if(playtype is not None and musicname is not None and difficulty is not None):
+            scoreselection = ScoreSelection(playtype, musicname, difficulty)
         else:
             scoreselection = None
 
@@ -1483,13 +1480,13 @@ def result_process(screen: Screen):
     if setting.autosave_filtered:
         save_filtered(
             filteredimage,
-            result.timestamp,
+            result.playtype,
             result.informations.music,
-            result.informations.play_mode,
             result.informations.difficulty,
+            result.timestamp,
         )
         filtered = True
-    
+
     notebook_recent.append(result, saved, filtered)
     notebook_recent.save()
 
@@ -1508,12 +1505,11 @@ def result_process(screen: Screen):
         if result.has_new_record():
             api.send_message('update_summary')
 
-            if result.details.score.new:
+            if playtype in Playmodes.values and result.details.score.new:
                 if notesradar.insert(
-                    playmode,
+                    playtype,
                     musicname,
                     difficulty,
-                    result.details.score.current,
                     notebook_summary.json['musics']
                 ):
                     api.send_message('update_notesradar')
@@ -1526,12 +1522,13 @@ def musicselect_process(np_value):
     '''
     global scoreselection
 
-    api.send_message('append_log', 'musicselect process')
 
     playmode = recog.MusicSelect.get_playmode(np_value)
     if playmode is None:
         return
     
+    playtype = playmode
+
     difficulty = recog.MusicSelect.get_difficulty(np_value)
     if difficulty is None:
         return
@@ -1541,12 +1538,12 @@ def musicselect_process(np_value):
         return
     
     if scoreselection is not None:
-        if scoreselection.musicname == musicname and scoreselection.playmode == playmode and scoreselection.difficulty == difficulty:
+        if scoreselection.playtype == playtype and scoreselection.musicname == musicname and scoreselection.difficulty == difficulty:
             return
     
-    scoreselection = ScoreSelection(musicname, playmode, difficulty)
+    scoreselection = ScoreSelection(playtype, musicname, difficulty)
 
-    api.send_message('append_log', f'musicselect: {playmode}, {musicname}, {difficulty}')
+    api.send_message('append_log', f'musicselect: {playtype}, {musicname}, {difficulty}')
 
     music_information = resource.musictable['musics'][musicname]
     version = recog.MusicSelect.get_version(np_value)
@@ -1564,13 +1561,12 @@ def musicselect_process(np_value):
     
     notebook = notebooks_music.get_notebook(musicname)
     
-    score = recog.MusicSelect.get_score(np_value)
     if notebook.update_best_musicselect({
-        'playmode': playmode,
+        'playtype': playtype,
         'difficulty': difficulty,
         'cleartype': recog.MusicSelect.get_cleartype(np_value),
         'djlevel': recog.MusicSelect.get_djlevel(np_value),
-        'score': score,
+        'score': recog.MusicSelect.get_score(np_value),
         'misscount': recog.MusicSelect.get_misscount(np_value),
         'levels': recog.MusicSelect.get_levels(np_value)
     }):
@@ -1583,12 +1579,11 @@ def musicselect_process(np_value):
                 playmode,
                 musicname,
                 difficulty,
-                score,
                 notebook_summary.json['musics']
             ):
             api.send_message('update_notesradar')
     
-    api.send_message('scoreselect', {'playmode': playmode, 'musicname': musicname, 'difficulty': difficulty})
+    api.send_message('scoreselect', {'playtype': playtype, 'musicname': musicname, 'difficulty': difficulty})
 
 def post_discord_webhooks(result: Result, imagevalue: bytes):
     setting_updated = False
@@ -1655,9 +1650,10 @@ def save_result(result: Result, image: Image.Image):
     
     ret = None
     try:
-        music = result.informations.music
-        scoretype = {'playmode': result.informations.play_mode, 'difficulty': result.informations.difficulty}
-        ret = save_resultimage(image, music, result.timestamp, setting.imagesave_path, scoretype, setting.savefilemusicname_right)
+        playtype = result.playtype
+        musicname = result.informations.music
+        difficulty = result.informations.difficulty
+        ret = save_resultimage(image, playtype, musicname, difficulty, result.timestamp, setting.imagesave_path, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         api.send_message('error', ['リザルト画像の保存に失敗しました。'])
@@ -1666,15 +1662,15 @@ def save_result(result: Result, image: Image.Image):
     if ret:
         timestamps_saved.append(result.timestamp)
 
-def save_filtered(filteredimage: Image.Image, timestamp: str, music: str, play_mode: str, difficulty: str):
+def save_filtered(filteredimage: Image.Image, playtype: str, musicname: str, difficulty: str, timestamp: str):
     '''リザルト画像にぼかしを入れて保存する
 
     Args:
         filteredimage (Image): 対象の画像(PIL)
-        timestamp (str): リザルトのタイムスタンプ
-        music (str): 曲名
-        play_mode (str): プレイモード
+        playtype (str): プレイの種類
+        musicname (str): 曲名
         difficulty (str): 譜面難易度
+        timestamp (str): リザルトのタイムスタンプ
 
     Returns:
         Image: ぼかしを入れた画像
@@ -1684,8 +1680,7 @@ def save_filtered(filteredimage: Image.Image, timestamp: str, music: str, play_m
     
     ret = None
     try:
-        scoretype = {'playmode': play_mode, 'difficulty': difficulty}
-        ret = save_resultimage_filtered(filteredimage, music, timestamp, setting.imagesave_path, scoretype, setting.savefilemusicname_right)
+        ret = save_resultimage_filtered(filteredimage, playtype, musicname, difficulty, timestamp, setting.imagesave_path, setting.savefilemusicname_right)
     except Exception as ex:
         logger.exception(ex)
         api.send_message('error', ['リザルト画像の保存に失敗しました。'])
@@ -1697,14 +1692,14 @@ def save_filtered(filteredimage: Image.Image, timestamp: str, music: str, play_m
 
 def insert_recentnotebook_results():
     for timestamp in notebook_recent.timestamps:
-        target = notebook_recent.get_result(timestamp)
+        target: dict[str, str | bool | None] = notebook_recent.get_result(timestamp)
         if target is None:
             continue
         
         newresult = RecentResult(timestamp)
 
+        newresult.playtype = target['playtype']
         newresult.musicname = target['music']
-        newresult.playmode = target['play_mode']
         newresult.difficulty = target['difficulty']
         newresult.news.cleartype = target['clear_type_new']
         newresult.news.djlevel = target['dj_level_new']
@@ -1720,8 +1715,8 @@ def insert_results(result: Result):
 
     newresult = RecentResult(result.timestamp)
 
+    newresult.playtype = result.playtype
     newresult.musicname = result.informations.music
-    newresult.playmode = result.informations.play_mode
     newresult.difficulty = result.informations.difficulty
     newresult.news.cleartype = result.details.clear_type.new
     newresult.news.djlevel = result.details.dj_level.new
@@ -1923,32 +1918,32 @@ def check_resource():
 
     api.send_message('append_log', 'complete check resources')
 
-def load_resultimages(playmode: str, musicname: str, difficulty: str, timestamp: str, recent=False):
+def load_resultimages(playtype: str, musicname: str, difficulty: str, timestamp: str, recent=False):
     '''リザルト画像をファイルからロードする
     
     対象のリザルトが起動中に記録したリザルトでない場合は実行する。
     Args:
-        timestamp(str): 対象のリザルトのタイムスタンプ
-        music(str): 曲名
-        playmode(str): プレイモード(SP or DP)
+        playtype(str): プレイの種類(SP or DP or DP BATTLE)
+        musicname(str): 曲名
         difficulty(str): 譜面難易度
+        timestamp(str): 対象のリザルトのタイムスタンプ
         recent(bool): 最近のプレイにある
     '''
-    if len(playmode) == 0:
-        playmode = None
+    if len(playtype) == 0:
+        playtype = None
     if len(musicname) == 0:
         musicname = None
     if len(difficulty) == 0:
         difficulty = None
     
-    scoretype = {'playmode': playmode, 'difficulty': difficulty}
+    scoretype: str = generate_scoretype(playtype, difficulty)
 
-    image_result = get_resultimage(musicname, timestamp, setting.imagesave_path, scoretype)
+    image_result = get_resultimage(scoretype, musicname, timestamp, setting.imagesave_path)
     images_result[timestamp] = image_result
     if image_result is not None:
         timestamps_saved.append(timestamp)
 
-    image_filtered = get_resultimage_filtered(musicname, timestamp, setting.imagesave_path, scoretype)
+    image_filtered = get_resultimage_filtered(scoretype, musicname, timestamp, setting.imagesave_path)
     if not recent or image_result is None or image_filtered is not None:
         images_filtered[timestamp] = image_filtered
 

@@ -48,12 +48,12 @@ class NotebookRecent(Notebook):
     def __init__(self, maxcount: int):
         self.filename = recent_filename
         self.maxcount = maxcount
+
         super().__init__()
 
         if not 'version' in self.json.keys() or self.json['version'] != version:
             self.json = {'version': version}
             self.save()
-            return
     
     def append(self, result: Result, saved: bool, filtered: bool):
         if not 'timestamps' in self.json.keys():
@@ -62,13 +62,19 @@ class NotebookRecent(Notebook):
 
         if not 'results' in self.json.keys():
             self.json['results'] = {}
+
         if result.details.options is None:
             option = None
         else:
-            battle = 'BATTLE' if result.details.options.battle else None
-            option = ','.join([v for v in [battle, result.details.options.arrange, result.details.options.flip, result.details.options.assist] if v is not None])
+            optionvalues = [
+                result.details.options.arrange,
+                result.details.options.flip,
+                result.details.options.assist
+            ]
+            option = ','.join([v for v in optionvalues if v is not None])
+        
         self.json['results'][result.timestamp] = {
-            'play_mode': result.informations.play_mode,
+            'playtype': result.playtype,
             'difficulty': result.informations.difficulty,
             'music': result.informations.music,
             'clear_type_new': result.details.clear_type is not None and result.details.clear_type.new,
@@ -84,7 +90,7 @@ class NotebookRecent(Notebook):
             'has_loveletter': result.rival,
             'has_graphtargetname': result.details.graphtarget == 'rival',
             'saved': saved,
-            'filtered': filtered
+            'filtered': filtered,
         }
 
         while len(self.json['timestamps']) > self.maxcount:
@@ -107,7 +113,6 @@ class NotebookMusic(Notebook):
     achievement_default = {
         'fixed': {'clear_type': None, 'dj_level': None},
         'S-RANDOM': {'clear_type': None, 'dj_level': None},
-        'DBM': {'clear_type': None, 'dj_level': None}
     }
 
     def __init__(self, musicname: str):
@@ -122,21 +127,21 @@ class NotebookMusic(Notebook):
         self.filename = f"{musicname.encode('UTF-8').hex()}.json"
         super().__init__()
     
-    def get_scoreresult(self, play_mode, difficulty):
+    def get_scoreresult(self, playtype: str, difficulty: str):
         '''対象のプレイモード・難易度の記録を取得する
 
         Args:
-            play_mode (str): SP か DP
+            playtype (str): SP か DP か DP BATTLE
             difficulty (str): NORMAL か HYPER か ANOTHER か BEGINNER か LEGGENDARIA
         Returns:
             list: レコードのリスト
         '''
-        if not play_mode in self.json.keys():
+        if not playtype in self.json.keys():
             return None
-        if not difficulty in self.json[play_mode].keys():
+        if not difficulty in self.json[playtype].keys():
             return None
         
-        target = self.json[play_mode][difficulty]
+        target = self.json[playtype][difficulty]
         if 'timestamps' in target.keys() and len(target['timestamps']) > 0 and not 'achievement' in target.keys():
             self.generate_achievement_from_histories(target)
             self.save()
@@ -246,18 +251,14 @@ class NotebookMusic(Notebook):
 
             if not 'options' in record.keys() or record['options'] is None:
                 continue
-            if not 'special' in record.keys() or record['options'].keys():
+            if not 'arrange' in record['options'].keys() or 'H-RAN' in record['options']['arrange']:
                 continue
 
             achievement_key = None
-            if not record['options']['special']:
-                if record['options']['arrange'] in [None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR']:
-                    achievement_key = 'fixed'
-                if record['options']['arrange'] in ['S-RANDOM', 'S-RAN/S-RAN']:
-                    achievement_key = 'S-RANDOM'
-            else:
-                if record['options']['battle'] and record['options']['arrange'] == 'OFF/MIR' and record['options']['assist'] == 'A-SCR':
-                    achievement_key = 'DBM'
+            if record['options']['arrange'] in (None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR',):
+                achievement_key = 'fixed'
+            if record['options']['arrange'] in ('S-RANDOM', 'S-RAN/S-RAN',):
+                achievement_key = 'S-RANDOM'
             if achievement_key is None:
                 continue
 
@@ -286,17 +287,17 @@ class NotebookMusic(Notebook):
             target['achievement'] = deepcopy(self.achievement_default)
         
         details = result.details
-        options = details.options
+        if details.options is None:
+            return False
+
+        arrange = details.options.arrange
 
         achievement_key = None
-        if not options.special:
-            if options.arrange in [None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR']:
-                achievement_key = 'fixed'
-            if options.arrange in ['S-RANDOM', 'S-RAN/S-RAN']:
-                achievement_key = 'S-RANDOM'
-        else:
-            if options.battle and options.arrange == 'OFF/MIR' and options.assist == 'A-SCR':
-                achievement_key = 'DBM'
+        if arrange in [None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR']:
+            achievement_key = 'fixed'
+        if arrange in ['S-RANDOM', 'S-RAN/S-RAN']:
+            achievement_key = 'S-RANDOM'
+
         if achievement_key is None:
             return False
         
@@ -324,33 +325,32 @@ class NotebookMusic(Notebook):
         Args:
             result (Result): 追加対象のリザルト
         '''
-        if result.informations.play_mode is None:
-            return
-        if result.informations.difficulty is None:
+        if result.playtype is None:
             return
         if result.informations.notes is None:
             return
         
         target = self.json
 
-        if not result.informations.play_mode in target.keys():
-            target[result.informations.play_mode] = {}
-        target = target[result.informations.play_mode]
+        playtype = result.playtype
+        if not playtype in target.keys():
+            target[playtype] = {}
+        target = target[playtype]
 
-        if not result.informations.difficulty in target.keys():
-            target[result.informations.difficulty] = {}
-        target = target[result.informations.difficulty]
+        difficulty = result.informations.difficulty
+        if not difficulty in target.keys():
+            target[difficulty] = {}
+        target = target[difficulty]
 
         target['notes'] = result.informations.notes
 
-        options = result.details.options
-        if options is not None:
+        if result.details is not None and result.details.options is not None:
             options_value = {
-                'arrange': options.arrange,
-                'flip': options.flip,
-                'assist': options.assist,
-                'battle': options.battle,
-                'special': options.special
+                'arrange': result.details.options.arrange,
+                'flip': result.details.options.flip,
+                'assist': result.details.options.assist,
+                'battle': result.details.options.battle,
+                'special': result.details.options.special,
             }
         else:
             options_value = None

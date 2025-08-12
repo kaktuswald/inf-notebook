@@ -389,7 +389,7 @@ def filenametest(table):
         mkdir(musicfilenametest_basedir)
 
     for music in musics:
-        filename = generate_filename(music, '').replace('jpg', 'txt')
+        filename = generate_filename(None, music, 'filenametest', filetype='txt')
         filepath = join(musicfilenametest_basedir, filename)
         if not exists(filepath):
             with open(filepath, 'w', encoding='UTF-8') as f:

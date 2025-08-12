@@ -7,6 +7,10 @@ logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded define.py')
 
 class Playmodes():
+    '''プレイモード
+
+    SP と DP
+    '''
     SP: str = 'SP'
     '''SINGLE PLAY'''
 
@@ -15,6 +19,17 @@ class Playmodes():
 
     values: list[str] = [SP, DP]
     '''プレイモードのリスト'''
+
+class Playtypes():
+    '''プレイの種類
+
+    プレイモードにDP BATTLEを加えたもの
+    '''
+    DPBATTLE: str = 'DP BATTLE'
+    '''DOUBLE PLAY BATTLE'''
+
+    values: list[str] = [Playmodes.SP, Playmodes.DP, DPBATTLE]
+    '''プレイの種類のリスト'''
 
 class Define():
     width = 1920
@@ -51,8 +66,8 @@ class Define():
         'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',),
         'dj_levels': ('F', 'E', 'D', 'C', 'B', 'A', 'AA', 'AAA',),
         'play_sides': ('1P', '2P',),
-        'options_arrange': ('RANDOM', 'S-RANDOM', 'R-RANDOM', 'MIRROR', 'H-RANDOM',),
-        'options_arrange_dp': ('OFF', 'RAN', 'S-RAN', 'R-RAN', 'MIR', 'H-RAN',),
+        'options_arrange': ('RANDOM', 'R-RANDOM', 'S-RANDOM', 'MIRROR', 'H-RANDOM',),
+        'options_arrange_dp': ('OFF', 'RAN', 'R-RAN', 'S-RAN', 'MIR', 'H-RAN',),
         'options_arrange_sync': ('SYNC-RAN', 'SYMM-RAN',),
         'options_flip': ('FLIP',),
         'options_assist': ('A-SCR', 'LEGACY',),
@@ -91,7 +106,7 @@ class Define():
         'notes': (268, 59, 324, 61)
     }
 
-    details_recognition_version = '2.0'
+    details_recognition_version = '3.0'
 
     details_trimpos = {
         '1P': (10, 64),

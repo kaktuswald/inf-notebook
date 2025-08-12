@@ -53,14 +53,12 @@ def post_result(djname: str, setting: dict, result: Result, imagevalue: bytes):
     informations: ResultInformations = result.informations
     details: ResultDetails = result.details
 
-    if details is None:
+    if details is None or informations is None:
         return None, None
 
     contexts = [f'プレイヤー名: **{djname}**']
 
     if setting['mode'] != 'battle':
-        if informations is None:
-            return None, None
         if setting['targetscore']['musicname'] != informations.music:
             return None, None
         if setting['targetscore']['playmode'] != informations.play_mode:

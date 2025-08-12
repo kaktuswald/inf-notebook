@@ -1,6 +1,8 @@
 from datetime import datetime
 from logging import getLogger
 
+from define import Playmodes,Playtypes
+
 logger_child_name = 'result'
 
 logger = getLogger().getChild(logger_child_name)
@@ -25,11 +27,20 @@ class ResultValues():
 
 class ResultOptions():
     def __init__(self, arrange: str, flip: str, assist: str, battle: bool):
-        self.arrange = arrange
-        self.flip = flip
-        self.assist = assist
-        self.battle = battle
-        self.special = (arrange is not None and 'H-RAN' in arrange) or self.battle
+        self.arrange: str = arrange
+        '''配置オプション'''
+
+        self.flip: str = flip
+        '''DPオンリー 左右の譜面が入れ替わる'''
+
+        self.assist: str = assist
+        '''A-SCR or LEGACY'''
+
+        self.battle: bool = battle
+        '''DP時にBATTLEがON 両サイドがSP譜面になる'''
+
+        self.special: bool = (arrange is not None and 'H-RAN' in arrange) or self.battle
+        '''H-RAN or BATTLE'''
 
 class ResultDetails():
     def __init__(self, graphtype: str, options: ResultOptions, clear_type: ResultValues, dj_level: ResultValues, score: ResultValues, miss_count: ResultValues, graphtarget: str):
@@ -42,16 +53,47 @@ class ResultDetails():
         self.graphtarget = graphtarget
 
 class Result():
-    def __init__(self, informations: ResultInformations, play_side: str, rival: bool, dead: bool, details: ResultDetails):
+    def __init__(self, play_side: str, rival: bool, dead: bool, informations: ResultInformations, details: ResultDetails):
+        self.play_side: str = play_side
+        self.rival: bool = rival
+        self.dead: bool = dead
+
         self.informations: ResultInformations = informations
-        self.play_side = play_side
-        self.rival = rival
-        self.dead = dead
         self.details: ResultDetails = details
 
+        self.set_playtype()
+
         now = datetime.now()
-        self.timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
+        self.timestamp = f'{now.strftime('%Y%m%d-%H%M%S')}'
     
+    def set_playtype(self):
+        '''プレイの種類をセットする
+        
+        DPでなおかつBATTLEの場合は'DP BATTLE'とする
+        '''
+        self.playtype = None
+
+        if self.informations is None:
+            return
+        if self.informations.play_mode is None:
+            return
+        if self.informations.difficulty is None:
+            return
+        
+        if self.informations.play_mode == Playmodes.SP:
+            self.playtype = Playmodes.SP
+            return
+        
+        if self.details is None:
+            return
+        if self.details.options is None:
+            return
+        
+        if not self.details.options.battle:
+            self.playtype = Playmodes.DP
+        else:
+            self.playtype = Playtypes.DPBATTLE
+        
     def has_new_record(self):
         return any([
             self.details.clear_type is not None and self.details.clear_type.new,
@@ -69,7 +111,7 @@ class RecentResult():
     
     timestamp: str
     musicname: str = None
-    playmode: str = None
+    playtype: str = None
     difficulty: str = None
     news: NewFlags = None
     latest: bool = False
@@ -84,7 +126,7 @@ class RecentResult():
         return {
             'timestamp': self.timestamp,
             'musicname': self.musicname,
-            'playmode': self.playmode,
+            'playtype': self.playtype,
             'difficulty': self.difficulty,
             'news_cleartype': self.news.cleartype,
             'news_djlevel': self.news.djlevel,

@@ -9,6 +9,7 @@ logger.debug('loaded recog.py')
 from define import define
 from resources import resource
 from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,Result
+from screenshot import Screen
 
 class Recognition():
     class Result():
@@ -181,49 +182,38 @@ class Recognition():
                 return None
 
             playside = define.details_get_playside(np_value)
-            trimmed = np_value[resource.details['define']['option']['trim'][playside]]
 
-            def generatekey(np_value):
-                bins = np.where(np_value[:, ::4]==resource.details['define']['option']['maskvalue'], 1, 0).T
-                hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
-                return ''.join([format(v, '0x') for v in hexs.flatten()])
+            useoptiontrimmed = np_value[resource.details['define']['useoption']['trim'][playside]]
+            useoptioncount = np.count_nonzero(useoptiontrimmed==resource.details['define']['useoption']['maskvalue'])
+            if useoptioncount != resource.details['option']['useoption']:
+                return ResultOptions(None, None, None, False)
+            trimmed = np_value[resource.details['define']['option']['trim'][playside]]
+            bins = np.where(trimmed[:, ::4]==resource.details['define']['option']['maskvalue'], 1, 0).T
+            hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
+
+            if not tablekey in resource.details['option']['option']:
+                return None
+            
+            values = resource.details['option']['option'][tablekey]
+            if values is None:
+                return None
+            
+            values_splitted = values.split(',')
 
             arrange = None
             flip = None
             assist = None
             battle = False
-            while True:
-                tablekey = generatekey(trimmed[:, :resource.details['option']['lengths'][0]*2])
-                value = None
-                for length in resource.details['option']['lengths']:
-                    if tablekey[:length] in resource.details['option'].keys():
-                        value = resource.details['option'][tablekey[:length]]
-                        break
-                
-                if value is None:
-                    break
-
-                arrange_dp_left = False
-                if value in define.value_list['options_arrange']:
-                    arrange = value
-                if value in define.value_list['options_arrange_dp']:
-                    if arrange is None:
-                        arrange = f'{value}/'
-                        arrange_dp_left = True
-                    else:
-                        arrange += value
-                if value in define.value_list['options_arrange_sync']:
-                    arrange = value
-                if value in define.value_list['options_flip']:
-                    flip = value
-                if value in define.value_list['options_assist']:
-                    assist = value
-                if value == 'BATTLE':
+            for v in values_splitted:
+                if v in define.value_list['options_arrange'] or '/' in v or v in define.value_list['options_arrange_sync']:
+                    arrange = v
+                if v in define.value_list['options_flip']:
+                    flip = v
+                if v in define.value_list['options_assist']:
+                    assist = v
+                if v == 'BATTLE':
                     battle = True
-                if not arrange_dp_left:
-                    trimmed = trimmed[:, resource.details['define']['option']['width'][value] + resource.details['define']['option']['width'][',']:]
-                else:
-                    trimmed = trimmed[:, resource.details['define']['option']['width'][value] + resource.details['define']['option']['width']['/']:]
             
             return ResultOptions(arrange, flip, assist, battle)
 
@@ -628,17 +618,17 @@ class Recognition():
         return True
         
     @classmethod
-    def get_result(cls, screen):
+    def get_result(cls, screen: Screen):
         play_side = cls.Result.get_play_side(screen.np_value)
         if play_side == None:
             return None
 
         result = Result(
-            cls.Result.get_informations(screen.np_value[define.areas_np['informations']]),
             play_side,
             cls.Result.get_has_rival(screen.np_value),
             cls.Result.get_has_dead(screen.np_value, play_side),
-            cls.Result.get_details(screen.np_value[define.areas_np['details'][play_side]])
+            cls.Result.get_informations(screen.np_value[define.areas_np['informations']]),
+            cls.Result.get_details(screen.np_value[define.areas_np['details'][play_side]]),
         )
     
         return result

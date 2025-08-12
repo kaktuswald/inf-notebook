@@ -21,8 +21,9 @@ class DrawerScoreinformation {
   static musicname_y = 10;
 
   static scoretype_y = 100;
-  static playmode_x = 80;
-  static difficulty_x = 180;
+  static playtype_x = 80;
+  static difficulty_x = 190;
+  static difficulty_x_battle = 480;
 
   static playedcount_xpositions = {'label': 40, 'value': 700};
   static playedcount_ypositions = {'label': 180, 'value': 175};
@@ -57,11 +58,6 @@ class DrawerScoreinformation {
       'label': {'text': 'S-RANDOM', 'x': 620, 'y': 640},
       'clear_type': {'x': 640, 'y': 680},
       'dj_level': {'x': 730, 'y': 680},
-    },
-    'DBM': {
-      'label': {'text': 'DBM', 'x': 1000, 'y': 640},
-      'clear_type': {'x': 1020, 'y': 680},
-      'dj_level': {'x': 1110, 'y': 680},
     },
   };
 
@@ -108,10 +104,14 @@ class DrawerScoreinformation {
 
   /**
    * 画像を描画する
-   * @param {} vaues 譜面記録データ
+   * @param {} values 譜面記録データ
+   * @param {string} playtype プレイの種類
+   * @param {string} musicname 曲名
+   * @param {string} difficulty 譜面難易度
+   * @param {boolean} battle バトルモード
    * @returns {blob} 画像データ
    */
-  async draw(values, playmode, musicname, difficulty) {
+  async draw(values, playtype, musicname, difficulty, battle) {
     const ctx = this.canvas.getContext('2d');
 
     const args_difficulty = {
@@ -139,15 +139,15 @@ class DrawerScoreinformation {
 
     this.drawtext_left(
       ctx,
-      playmode,
-      DrawerScoreinformation.playmode_x,
+      playtype,
+      DrawerScoreinformation.playtype_x,
       DrawerScoreinformation.scoretype_y,
       DrawerScoreinformation.drawtextargs_value,
     );
     this.drawtext_left(
       ctx,
       difficulty,
-      DrawerScoreinformation.difficulty_x,
+      !battle ? DrawerScoreinformation.difficulty_x : DrawerScoreinformation.difficulty_x_battle,
       DrawerScoreinformation.scoretype_y,
       args_difficulty,
     );
@@ -251,7 +251,6 @@ class DrawerScoreinformation {
       );
 
       Object.keys(DrawerScoreinformation.achievementkeys).forEach(key => {
-        if(playmode == 'SP' && key == 'DBM') return;
         if(!values.achievement.hasOwnProperty(key) || values.achievement[key] == null) return;
         
         ctx.font = `${DrawerScoreinformation.fontsize_small}px ${this.fontfamily}`;

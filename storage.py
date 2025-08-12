@@ -185,7 +185,7 @@ class StorageAccessor():
             force (bool): 強制アップロード
 
         Returns:
-            bool: informationsとdetails両方アップロードした
+            bool, bool: informationsをアップロードした、detailsをアップロードした
         '''
         self.connect_client()
         if self.client is None:
@@ -219,6 +219,8 @@ class StorageAccessor():
                 details_trim = True
             if result.details.graphtarget is None:
                 details_trim = True
+            if result.details.graphtype == 'gauge' and result.details.options is None:
+                details_trim = True
 
         if informations_trim:
             trim = image.crop(define.informations_trimarea)
@@ -230,7 +232,7 @@ class StorageAccessor():
             image_draw.rectangle(result_rivalname_fillbox, fill=0)
             Thread(target=self.upload_details, args=(object_name, trim,)).start()
         
-        return informations_trim and details_trim
+        return informations_trim, details_trim
     
     def start_uploadmusicselect(self, image):
         '''選曲画面の収集画像をアップロードする

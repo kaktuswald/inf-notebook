@@ -30,15 +30,12 @@ class DrawerScoregraph {
    * @param {Array<Array<Object.<string, Date|Bigint>} values グラフデータ
    * @param {Array<string} xrange X軸の範囲
    * @param {Bigint} notes スコアの最大値
+   * @param {string} scoretype プレイの種類と譜面難易度の3文字
    * @param {string} musicname 曲名
-   * @param {string} playmode プレイモード(SP or DP)
-   * @param {string} difficulty 譜面難易度
    * @returns {blob} 画像データ
    */
-  async draw(values, xrange, notes, musicname, playmode, difficulty) {
+  async draw(values, xrange, notes, scoretype, musicname) {
     if(this.chart) this.chart.destroy();
-
-    const scoretype = `${playmode}${difficulty.substring(0, 1)}`;
 
     this.chart = new Chart(this.canvas.getContext('2d'), {
       type: 'scatter',
