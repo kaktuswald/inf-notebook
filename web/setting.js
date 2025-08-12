@@ -8,6 +8,8 @@ $(function() {
 
   $('button.select_tabpage').on('click', onclick_tab);
 
+  $('button#button_browse_imagesave_path').on('click', onclick_browse_imagesave_path);
+  
   $('button#button_save').on('click', onclick_button_save);
   $('button#button_close').on('click', onclick_button_close);
 
@@ -120,6 +122,18 @@ function onclick_tab(e) {
   const splitted = extracted.split('_');
 
   switch_displaytab(splitted[0]);
+}
+
+/**
+ * 画像の保存先フォルダを選択する
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_browse_imagesave_path(e) {
+  const selected = JSON.parse(await webui.browse_directory());
+  if(selected == null) return;
+
+  const normalized = selected.replaceAll('/', '\\');
+  $('#text_imagesave_path').val(normalized);
 }
 
 /**

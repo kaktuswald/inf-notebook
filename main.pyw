@@ -16,6 +16,7 @@ from uuid import uuid1
 from base64 import b64decode,b64encode
 from webui import webui
 from sys import exit
+from tkinter import Tk, filedialog
 
 from setting import Setting
 
@@ -429,6 +430,8 @@ class GuiApi():
 
         window.bind('output_csv', self.output_csv)
         window.bind('clear_recent', self.clear_recent)
+
+        window.bind('browse_directory', self.browse_directory)
 
     def get_setting(self, event: webui.Event):
         '''現在の設定の取得
@@ -1149,6 +1152,32 @@ class GuiApi():
 
     def clear_recent(self, event: webui.Event):
         recent.clear()
+    
+    def browse_directory(self, event: webui.Event):
+        """フォルダ選択ダイアログを開き、選択パスを返す
+
+        Returns:
+            str | None: 選択されたディレクトリの絶対パス。未選択時は None
+        """
+        root = Tk()
+        try:
+            root.withdraw()
+            try:
+                root.attributes('-topmost', True)
+            except Exception:
+                pass
+            directorypath = filedialog.askdirectory(title='フォルダを選択')
+        finally:
+            try:
+                root.destroy()
+            except Exception:
+                pass
+
+        if not directorypath or len(directorypath) == 0:
+            event.return_string(dumps(None))
+            return
+
+        event.return_string(dumps(directorypath))
     
     def send_message(self, message: str, data:object = None):
         if data is None:
