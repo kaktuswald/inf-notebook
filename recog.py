@@ -187,6 +187,7 @@ class Recognition():
             useoptioncount = np.count_nonzero(useoptiontrimmed==resource.details['define']['useoption']['maskvalue'])
             if useoptioncount != resource.details['option']['useoption']:
                 return ResultOptions(None, None, None, False)
+
             trimmed = np_value[resource.details['define']['option']['trim'][playside]]
             bins = np.where(trimmed[:, ::4]==resource.details['define']['option']['maskvalue'], 1, 0).T
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
