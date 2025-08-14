@@ -1108,11 +1108,11 @@ class GuiApi():
             musicname(str): 対象の曲名
             difficulty(str): 譜面難易度
         '''
-        playmode = event.get_string_at(0)
+        playtype = event.get_string_at(0)
         musicname = event.get_string_at(1)
         difficulty = event.get_string_at(2)
 
-        notebooks_music.get_notebook(musicname).delete_scoreresult(playmode, difficulty)
+        notebooks_music.get_notebook(musicname).delete_scoreresult(playtype, difficulty)
         # 統計やノーツレーダーの再計算
         # 譜面記録を再表示する
     
@@ -1125,13 +1125,13 @@ class GuiApi():
             difficulty(str): 譜面難易度
             timestamp(str): 選択したタイムスタンプ
         '''
-        playmode = event.get_string_at(0)
+        playtype = event.get_string_at(0)
         musicname = event.get_string_at(1)
         difficulty = event.get_string_at(2)
         timestamp = event.get_string_at(3)
 
         notebooks_music.get_notebook(musicname).delete_playresult(
-            playmode,
+            playtype,
             difficulty,
             timestamp,
         )

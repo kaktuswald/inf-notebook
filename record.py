@@ -379,18 +379,18 @@ class NotebookMusic(Notebook):
         '''
         updated = False
 
-        playmode = values['playmode']
+        playtype = values['playtype']
         difficulty = values['difficulty']
-        if not playmode in self.json.keys():
-            self.json[playmode] = {}
+        if not playtype in self.json.keys():
+            self.json[playtype] = {}
             updated = True
-        if not difficulty in self.json[playmode].keys():
-            self.json[playmode][difficulty] = {'timestamps': [], 'history': {}, 'best': {}}
+        if not difficulty in self.json[playtype].keys():
+            self.json[playtype][difficulty] = {'timestamps': [], 'history': {}, 'best': {}}
             updated = True
-        if not 'best' in self.json[playmode][difficulty].keys():
-            self.json[playmode][difficulty]['best'] = {}
+        if not 'best' in self.json[playtype][difficulty].keys():
+            self.json[playtype][difficulty]['best'] = {}
             updated = True
-        target = self.json[playmode][difficulty]['best']
+        target = self.json[playtype][difficulty]['best']
         for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
             selfkey = key.replace('_', '')
             if values[selfkey] is not None:
@@ -403,23 +403,23 @@ class NotebookMusic(Notebook):
                     updated = True
         return updated
     
-    def delete_scoreresult(self, play_mode: str, difficulty: str):
+    def delete_scoreresult(self, playtype: str, difficulty: str):
         '''指定の譜面記録を削除する
 
         Args:
-            play_mode: プレイモード(SP or DP)
+            playtype: プレイの種類(SP or DP or DP BATTLE)
             difficulty: 難易度(NORMAL - LEGGENDARIA)
         '''
-        if not play_mode in self.json.keys():
+        if not playtype in self.json.keys():
             return
-        if not difficulty in self.json[play_mode].keys():
+        if not difficulty in self.json[playtype].keys():
             return
         
-        del self.json[play_mode][difficulty]
+        del self.json[playtype][difficulty]
 
         self.save()
     
-    def delete_playresult(self, play_mode: str, difficulty: str, timestamp: str):
+    def delete_playresult(self, playtype: str, difficulty: str, timestamp: str):
         '''指定のプレイ記録を削除する
 
         対象の記録が現在のベスト記録の場合はベストから削除して
@@ -427,16 +427,16 @@ class NotebookMusic(Notebook):
         見つかった場合はそれにする。
 
         Args:
-            play_mode: プレイモード(SP or DP)
+            playtype: プレイの種類(SP or DP or DP BATTLE)
             difficulty: 難易度(NORMAL - LEGGENDARIA)
             timestamp: 削除対象のタイムスタンプ
         '''
-        if not play_mode in self.json.keys():
+        if not playtype in self.json.keys():
             return
-        if not difficulty in self.json[play_mode].keys():
+        if not difficulty in self.json[playtype].keys():
             return
         
-        target: dict[str, int | str | list[str] | dict[str, str | dict]] = self.json[play_mode][difficulty]
+        target: dict[str, int | str | list[str] | dict[str, str | dict]] = self.json[playtype][difficulty]
 
         if not 'best' in target.keys():
             target['best'] = {}
