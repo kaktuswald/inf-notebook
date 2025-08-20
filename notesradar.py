@@ -155,6 +155,9 @@ class NotesRadar():
         
         score = summary[musicname][playmode][difficulty]['score']
 
+        if score is None:
+            return
+
         targetitem = self.items[playmode]
 
         updated = False
