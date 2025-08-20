@@ -18,7 +18,7 @@ class Details():
         self.label = label
 
 def load_details(labels):
-    keys = [key for key in labels.keys() if labels[key]['details'] is not None]
+    keys = [key for key in labels.keys() if 'details' in labels[key].keys() and labels[key]['details'] is not None]
 
     details = {}
     for key in keys:
@@ -204,40 +204,37 @@ def learning_option(details: dict[str, Details]):
     report = Report(resourcename)
     
     values = [None]
-    for sp_arrange in define.value_list['options_arrange']:
-        for assist in (None, *define.value_list['options_assist']):
+
+    for assist in (None, *define.value_list['options_assist']):
+        for sp_arrange in define.value_list['options_arrange']:
             values.append(','.join(v for v in (sp_arrange, assist, ) if v is not None))
 
     for battle in (None, 'BATTLE'):
-        for left_arrange in define.value_list['options_arrange_dp']:
-            for right_arrange in define.value_list['options_arrange_dp']:
-                if left_arrange == 'S-RAN' and right_arrange == 'H-RAN':
-                    continue
-                if left_arrange == 'H-RAN' and right_arrange == 'S-RAN':
-                    continue
+        for flip in (None, *define.value_list['options_flip']):
+            if battle is not None and flip is not None:
+                continue
 
-                arrange = None
-                if left_arrange != 'OFF' or right_arrange != 'OFF':
-                    arrange = f'{left_arrange}/{right_arrange}'
+            for assist in (None, *define.value_list['options_assist']):
+                for left_arrange in define.value_list['options_arrange_dp']:
+                    for right_arrange in define.value_list['options_arrange_dp']:
+                        if left_arrange == 'S-RAN' and right_arrange == 'H-RAN':
+                            continue
+                        if left_arrange == 'H-RAN' and right_arrange == 'S-RAN':
+                            continue
 
-                if battle is None and arrange is None:
-                    continue
+                        arrange = None
+                        if left_arrange != 'OFF' or right_arrange != 'OFF':
+                            arrange = f'{left_arrange}/{right_arrange}'
 
-                for flip in (None, *define.value_list['options_flip']):
-                    for assist in (None, *define.value_list['options_assist']):
+                        if battle is None and arrange is None and flip is None and assist is None:
+                            continue
+
                         values.append(','.join(v for v in (battle, arrange, flip, assist, ) if v is not None))
 
-    for sync_arrange in define.value_list['options_arrange_sync']:
-        for assist in (None, *define.value_list['options_assist']):
-            values.append(','.join(v for v in ('BATTLE', sync_arrange, assist, ) if v is not None))
-
-    for flip in define.value_list['options_flip']:
-        for assist in (None, *define.value_list['options_assist']):
-            values.append(','.join(v for v in (flip, assist, ) if v is not None))
-
-    for assist in define.value_list['options_assist']:
-        values.append(assist)
-
+                if battle is not None and flip is None:
+                    for sync_arrange in define.value_list['options_arrange_sync']:
+                        values.append(','.join(v for v in (battle, sync_arrange, flip, assist, ) if v is not None))
+    
     useoptioncounts = []
     table = {}
     valuekeys = {}
@@ -354,7 +351,7 @@ def learning_option(details: dict[str, Details]):
 
     if len(notkeys):
         report.error(f'Not key value count: {len(notkeys)}')
-        report.append_log('Not key values:')
+        report.append_log(f'Not key values: {len(notkeys)}')
         for notkeyvalue in notkeys:
             report.append_log(f'  {notkeyvalue}')
 
