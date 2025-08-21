@@ -1516,6 +1516,14 @@ def result_process(screen: Screen):
         )
         filtered = True
 
+    notebook = None
+    if musicname is not None:
+        notebook = notebooks_music.get_notebook(musicname)
+
+    if notebook is not None:
+        if result.playtype == 'DP BATTLE':
+            notebook.check_new_of_battle(result)
+
     notebook_recent.append(result, saved, filtered)
     notebook_recent.save()
 
@@ -1524,9 +1532,7 @@ def result_process(screen: Screen):
 
     insert_results(result)
 
-    if musicname is not None:
-        notebook = notebooks_music.get_notebook(musicname)
-
+    if notebook is not None:
         notebook.insert(result)
         notebook_summary.import_targetmusic(musicname, notebook)
         notebook_summary.save()
@@ -1740,6 +1746,12 @@ def insert_recentnotebook_results():
         recentresults.insert(0, newresult)
 
 def insert_results(result: Result):
+    '''
+    最近のリザルトに新しいリザルトを追加する
+
+    Args:
+        result(Result): 新しいリザルト
+    '''
     results_today[result.timestamp] = result
 
     newresult = RecentResult(result.timestamp)

@@ -73,6 +73,16 @@ class NotebookRecent(Notebook):
             ]
             option = ','.join([v for v in optionvalues if v is not None])
         
+        update_score = None
+        if result.details.score is not None and result.details.score.new:
+            if result.details.score.current is not None and result.details.score.best is not None:
+                update_score = result.details.score.current - result.details.score.best
+        
+        update_miss_count = None
+        if result.details.miss_count is not None and result.details.miss_count.new:
+            if result.details.miss_count.current is not None and result.details.miss_count.best is not None:
+                update_miss_count = result.details.miss_count.current - result.details.miss_count.best
+        
         self.json['results'][result.timestamp] = {
             'playtype': result.playtype,
             'difficulty': result.informations.difficulty,
@@ -83,8 +93,8 @@ class NotebookRecent(Notebook):
             'miss_count_new': result.details.miss_count is not None and result.details.miss_count.new,
             'update_clear_type': result.details.clear_type.current if result.details.clear_type is not None and result.details.clear_type.new else None,
             'update_dj_level': result.details.dj_level.current if result.details.dj_level is not None and result.details.dj_level.new else None,
-            'update_score': result.details.score.current - result.details.score.best if result.details.score is not None and result.details.score.new else None,
-            'update_miss_count': result.details.miss_count.current - result.details.miss_count.best if result.details.miss_count is not None and result.details.miss_count.new and result.details.miss_count.current is not None and result.details.miss_count.best is not None else None,
+            'update_score': update_score,
+            'update_miss_count': update_miss_count,
             'option': option,
             'play_side': result.play_side,
             'has_loveletter': result.rival,
@@ -201,7 +211,84 @@ class NotebookMusic(Notebook):
             'options': options
         }
 
+    def check_new_of_battle(self, result: Result):
+        '''更新の有無をチェックする
+
+        オプションにBATTLEを含む場合はNewアイコンが出ないため、独自に評価する。
+        ただし配置オプションにH-RANが含まれている場合は評価しない。
+
+        Args:
+            result(Result): 対象のリザルト
+        '''
+        if 'H-RAN' in result.details.options.arrange:
+            return
+
+        update_all = False
+        if not 'DP BATTLE' in self.json.keys():
+            update_all = True
+        else:
+            target = self.json['DP BATTLE']
+
+        if not update_all and not result.informations.difficulty in target.keys():
+            update_all = True
+        else:
+            target = target[result.informations.difficulty]
+
+        if not update_all and not 'best' in target.keys():
+            update_all = True
+        else:
+            target = target['best']
+
+        targets = {
+            'clear_type': result.details.clear_type,
+            'dj_level': result.details.dj_level,
+            'score': result.details.score,
+            'miss_count': result.details.miss_count,
+        }
+        for key, value in targets.items():
+            if value.current is None:
+                continue
+
+            update = update_all
+
+            if not update and target[key]['value'] is None:
+                update = True
+            
+            if not update and not key in target.keys():
+                update = True
+
+            if not update:
+                if key in ['clear_type', 'dj_level']:
+                    if key == 'clear_type':
+                        value_list = define.value_list['clear_types']
+                    if key == 'dj_level':
+                        value_list = define.value_list['dj_levels']
+                    
+                    nowbest_index = value_list.index(target[key]['value'])
+                    current_index = value_list.index(value.current)
+                    if nowbest_index < current_index:
+                        update = True
+                
+                if key in ['score', 'miss_count']:
+                    if value.current > target[key]['value']:
+                        update = True
+
+            if update:
+                value.new = True
+
     def update_best_result(self, target: dict[int | dict[str, dict | list]], result: Result, options: dict[str, str | bool | None]):
+        '''ベスト記録を更新する
+
+        BATTLEの場合はゲームに記録が残らず「New」アイコンが出なため独自に更新の有無を評価する。
+
+        Args:
+            target(dict): 対象の記録テーブル
+            result(Result): 対象のリザルト
+            options(dict): 記録用のオプションdict
+
+        Return:
+            bool: 更新時にTrue
+        '''
         if not 'best' in target.keys() or not 'latest' in target['best'].keys():
             target['best'] = {}
         

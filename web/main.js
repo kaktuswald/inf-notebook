@@ -919,7 +919,6 @@ async function display_playresult(timestamp) {
       playresult.options.arrange != null ? playresult.options.arrange : '',
       playresult.options.flip != null ? playresult.options.flip : '',
       playresult.options.assist != null ? playresult.options.assist : '',
-      (playresult.options.battle != null && playresult.options.battle) ? 'BATTLE' : '',
     ];
     $('#playresult_options').text(options.join(' '));
   }
