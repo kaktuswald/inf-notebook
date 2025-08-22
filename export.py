@@ -229,8 +229,8 @@ def output(notebook: NotebookSummary):
                 try:
                     w.writerow(line)
                 except Exception as ex:
-                    logger.debug('エンコードに失敗', line[0])
-                    logger.debug(ex)
+                    logger.exception('エンコードに失敗', line[0])
+                    logger.exception(ex)
     
     with open(summary_timestamp_filepath, 'w') as f:
         f.write(str(datetime.now()))

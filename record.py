@@ -756,7 +756,7 @@ def rename_changemusicname():
         with open(filepath, encoding='UTF-8')as f:
             convertlist = json.load(f)
     except Exception as ex:
-        logger.debug(ex)
+        logger.exception(ex)
         return
     
     changed = []

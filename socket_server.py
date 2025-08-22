@@ -1,5 +1,11 @@
 from threading import Thread
 from websockets.sync.server import WebSocketServer,ServerConnection,serve
+from logging import getLogger
+
+logger_child_name = 'socket server'
+
+logger = getLogger().getChild(logger_child_name)
+logger.debug(f'loaded socket_server.py')
 
 class SocketServer(Thread):
     port: int = 8765
@@ -49,8 +55,8 @@ class SocketServer(Thread):
         try:
             self.server = serve(handler, '0.0.0.0', self.port)
             self.server.serve_forever()
-        except:
-            pass
+        except Exception as ex:
+            logger.exception(ex)
         
     def update_information(self, imagevalue):
         self.imagevalue_information = imagevalue
@@ -89,7 +95,11 @@ class SocketServer(Thread):
 
 
     def stop(self):
-        self.server.shutdown()
+        if self.server is not None:
+            try:
+                self.server.shutdown()
+            except Exception as ex:
+                logger.exception(ex)
 
 if __name__ == '__main__':
     server = SocketServer(8000)

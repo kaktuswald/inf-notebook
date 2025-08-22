@@ -37,7 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 logger.debug('loaded main.py')
-logger.debug('mode: manage')
+logger.debug('mode: debug')
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
