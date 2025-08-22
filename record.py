@@ -229,15 +229,17 @@ class NotebookMusic(Notebook):
         else:
             target = self.json['DP BATTLE']
 
-        if not update_all and not result.informations.difficulty in target.keys():
-            update_all = True
-        else:
-            target = target[result.informations.difficulty]
+        if not update_all:
+            if not result.informations.difficulty in target.keys():
+                update_all = True
+            else:
+                target = target[result.informations.difficulty]
 
-        if not update_all and not 'best' in target.keys():
-            update_all = True
-        else:
-            target = target['best']
+        if not update_all:
+            if not 'best' in target.keys():
+                update_all = True
+            else:
+                target = target['best']
 
         targets = {
             'clear_type': result.details.clear_type,
