@@ -1557,7 +1557,6 @@ def musicselect_process(np_value):
     '''
     global scoreselection
 
-
     playmode = recog.MusicSelect.get_playmode(np_value)
     if playmode is None:
         return
@@ -1568,6 +1567,14 @@ def musicselect_process(np_value):
     if difficulty is None:
         return
     
+    try:
+        confirm_difficulty = recog.MusicSelect.confirm_difficulty(np_value)
+        if confirm_difficulty is None or difficulty != confirm_difficulty:
+            return
+    except Exception as ex:
+        api.send_message('error', ['選曲画面認識でエラー発生', str(ex)])
+        logger.exception(str(ex))
+
     musicname = recog.MusicSelect.get_musicname(np_value)
     if musicname is None or not musicname in resource.musictable['musics'].keys():
         return

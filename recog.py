@@ -399,6 +399,15 @@ class Recognition():
             return ResultDetails(graphtype, options, clear_type, dj_level, score, miss_count, graphtarget)
 
     class MusicSelect():
+        DIFFICULTY_TRIMAREAS: dict[str, tuple[int, slice]] = {
+            'BEGINNER': (478, slice(161, 247)),
+            'NORMAL': (478, slice(319, 404)),
+            'HYPER': (478, slice(477, 562)),
+            'ANOTHER': (478, slice(635, 720)),
+            'LEGGENDARIA': (478, slice(793, 878)),
+        }
+        DIFFICULTY_MASKVALUE: tuple[int] = (255, 255, 255)
+
         @staticmethod
         def get_playmode(np_value):
             if resource.musicselect is None:
@@ -601,6 +610,17 @@ class Recognition():
                 tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
                 if tablekey in resourcetarget['table'].keys():
                     ret[str.upper(difficulty)] = resourcetarget['table'][tablekey]
+            return ret
+
+        @classmethod
+        def confirm_difficulty(cls, np_value):
+            ret = None
+            for key, trimarea in cls.DIFFICULTY_TRIMAREAS.items():
+                if np.all(np_value[trimarea]==cls.DIFFICULTY_MASKVALUE):
+                    if ret is not None:
+                        raise Exception('confirm difficulty duplicate.')
+                    ret = key
+            
             return ret
 
     @staticmethod
