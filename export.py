@@ -10,7 +10,7 @@ logger_child_name = 'export'
 logger = getLogger().getChild(logger_child_name)
 logger.debug(f'loaded export.py')
 
-from define import Playmodes,define
+from define import Playmodes,Playtypes,define
 from resources import resource
 from record import NotebookSummary
 from notesradar import NotesRadar
@@ -154,17 +154,17 @@ def output(notebook: NotebookSummary):
 
     summary = {}
     csv_output = {}
-    for playmode in Playmodes.values:
-        summary[playmode] = {}
-        csv_output[playmode] = [all_header]
+    for playtype in Playtypes.values:
+        summary[playtype] = {}
+        csv_output[playtype] = [all_header]
         for summary_key1 in summary_keys1:
-            summary[playmode][summary_key1] = {}
+            summary[playtype][summary_key1] = {}
             for key in define.value_list[summary_key1]:
-                summary[playmode][summary_key1][key] = {}
+                summary[playtype][summary_key1][key] = {}
                 for summary_key2 in summary_keys2:
-                    summary[playmode][summary_key1][key][summary_key2] = {}
+                    summary[playtype][summary_key1][key][summary_key2] = {}
                     for value_key in [*define.value_list[summary_key2], 'TOTAL']:
-                        summary[playmode][summary_key1][key][summary_key2][value_key] = 0
+                        summary[playtype][summary_key1][key][summary_key2][value_key] = 0
 
     for musicname, music_item in musictable['musics'].items():
         version = music_item['version']
@@ -172,24 +172,25 @@ def output(notebook: NotebookSummary):
             notebook_target = notebook.json['musics'][musicname]
         else:
             notebook_target = None
-        for playmode in Playmodes.values:
+        for playtype in Playtypes.values:
             for difficulty in define.value_list['difficulties']:
+                playmode = 'SP' if playtype in ('SP', 'DP BATTLE', ) else 'DP'
                 if not difficulty in music_item[playmode].keys() or music_item[playmode][difficulty] is None:
                     continue
 
                 level = music_item[playmode][difficulty]
 
-                summary[playmode]['difficulties'][difficulty]['clear_types']['TOTAL'] += 1
-                summary[playmode]['difficulties'][difficulty]['dj_levels']['TOTAL'] += 1
-                summary[playmode]['levels'][level]['clear_types']['TOTAL'] += 1
-                summary[playmode]['levels'][level]['dj_levels']['TOTAL'] += 1
+                summary[playtype]['difficulties'][difficulty]['clear_types']['TOTAL'] += 1
+                summary[playtype]['difficulties'][difficulty]['dj_levels']['TOTAL'] += 1
+                summary[playtype]['levels'][level]['clear_types']['TOTAL'] += 1
+                summary[playtype]['levels'][level]['dj_levels']['TOTAL'] += 1
 
                 lines = [version, musicname, difficulty, level]
 
-                if notebook_target is None or not playmode in notebook_target.keys() or not difficulty in notebook_target[playmode].keys():
+                if notebook_target is None or not playtype in notebook_target.keys() or not difficulty in notebook_target[playtype].keys():
                     lines.extend(['', '', '', '', '', ''])
                 else:
-                    record = notebook_target[playmode][difficulty]
+                    record = notebook_target[playtype][difficulty]
                     lines.append(record['latest'] if record['latest'] is not None else '')
                     lines.append(record['playcount'] if record['playcount'] is not None else '')
                     lines.append(record['cleartype'] if record['cleartype'] is not None else '')
@@ -197,35 +198,34 @@ def output(notebook: NotebookSummary):
                     lines.append(record['score'] if record['score'] is not None else '')
                     lines.append(record['misscount'] if record['misscount'] is not None else '')
 
-                    level = music_item[playmode][difficulty]
                     if record['cleartype'] is not None:
-                        summary[playmode]['difficulties'][difficulty]['clear_types'][record['cleartype']] += 1
-                        summary[playmode]['levels'][level]['clear_types'][record['cleartype']] += 1
+                        summary[playtype]['difficulties'][difficulty]['clear_types'][record['cleartype']] += 1
+                        summary[playtype]['levels'][level]['clear_types'][record['cleartype']] += 1
                     if record['djlevel'] is not None:
-                        summary[playmode]['difficulties'][difficulty]['dj_levels'][record['djlevel']] += 1
-                        summary[playmode]['levels'][level]['dj_levels'][record['djlevel']] += 1
+                        summary[playtype]['difficulties'][difficulty]['dj_levels'][record['djlevel']] += 1
+                        summary[playtype]['levels'][level]['dj_levels'][record['djlevel']] += 1
                 
-                csv_output[playmode].append(lines)
+                csv_output[playtype].append(lines)
 
-    for playmode in Playmodes.values:
+    for playtype in Playtypes.values:
         for summary_key1 in summary_keys1:
             for summary_key2 in summary_keys2:
                 lines = [['', *define.value_list[summary_key2], 'NO DATA', 'TOTAL']]
                 for key in define.value_list[summary_key1]:
-                    total_count = summary[playmode][summary_key1][key][summary_key2]['TOTAL']
-                    targets = [*summary[playmode][summary_key1][key][summary_key2].values()][:-1]
+                    total_count = summary[playtype][summary_key1][key][summary_key2]['TOTAL']
+                    targets = [*summary[playtype][summary_key1][key][summary_key2].values()][:-1]
                     no_data_count = total_count - sum(targets)
                     lines.append([key, *targets, no_data_count, total_count])
-                filepath = join(export_dirname, f'{playmode}-{summary_filenames[summary_key1][summary_key2]}.csv')
+                filepath = join(export_dirname, f'{playtype}-{summary_filenames[summary_key1][summary_key2]}.csv')
                 with open(filepath, 'w', newline='\n') as f:
                     w = writer(f)
                     w.writerows(lines)
 
-    for playmode in Playmodes.values:
-        filepath = join(export_dirname, f'{playmode}.csv')
+    for playtype in Playtypes.values:
+        filepath = join(export_dirname, f'{playtype}.csv')
         with open(filepath, 'w', encoding='UTF-8', newline='\n') as f:
             w = writer(f)
-            for line in csv_output[playmode]:
+            for line in csv_output[playtype]:
                 try:
                     w.writerow(line)
                 except Exception as ex:

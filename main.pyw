@@ -51,7 +51,6 @@ from record import NotebookRecent,NotebookSummary,Notebooks,rename_allfiles,rena
 from filter import filter as filter_result
 from export import (
     Recent,
-    output,
     output_notesradarcsv,
     generate_exportsettingcss,
     export_dirname,
@@ -60,6 +59,7 @@ from export import (
     exportimage_musicinformation_filepath,
     csssetting_filepath,
 )
+from export import output as output_summary
 from windows import find_window,get_rect,check_rectsize,gethandle,show_messagebox,change_window_setting
 import image
 from image import (
@@ -1147,7 +1147,7 @@ class GuiApi():
         self.findnewestversionaction()
 
     def output_csv(self, event: webui.Event):
-        output(notebook_summary)
+        output_summary(notebook_summary)
         output_notesradarcsv(notesradar)
 
     def clear_recent(self, event: webui.Event):
@@ -2116,5 +2116,5 @@ if __name__ == '__main__':
 
     del screenshot
     
-    output(notebook_summary)
+    output_summary(notebook_summary)
     output_notesradarcsv(notesradar)

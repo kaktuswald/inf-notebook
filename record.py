@@ -11,7 +11,7 @@ logger.debug(f'loaded record.py')
 
 from version import version
 from resources import resource,resources_dirname
-from define import Playmodes,define
+from define import Playmodes,Playtypes,define
 from result import Result
 
 records_basepath = 'records'
@@ -595,19 +595,20 @@ class NotebookSummary(Notebook):
         self.json['musics'][musicname] = {}
 
         music_item = resource.musictable['musics'][musicname]
-        for playmode in Playmodes.values:
-            self.json['musics'][musicname][playmode] = {}
+        for playtype in Playtypes.values:
+            self.json['musics'][musicname][playtype] = {}
 
             for difficulty in define.value_list['difficulties']:
+                playmode = 'SP' if playtype in ('SP', 'DP BATTLE', ) else 'DP'
                 if not difficulty in music_item[playmode].keys() or music_item[playmode][difficulty] is None:
                     continue
 
-                r = notebook.get_scoreresult(playmode, difficulty)
+                r = notebook.get_scoreresult(playtype, difficulty)
                 if r is None:
                     continue
 
-                self.json['musics'][musicname][playmode][difficulty] = {}
-                target = self.json['musics'][musicname][playmode][difficulty]
+                self.json['musics'][musicname][playtype][difficulty] = {}
+                target = self.json['musics'][musicname][playtype][difficulty]
                 if 'latest' in r.keys() and 'timestamp' in r['latest'].keys():
                     target['latest'] = r['latest']['timestamp']
                 else:
