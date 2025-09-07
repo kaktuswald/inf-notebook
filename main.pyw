@@ -92,6 +92,8 @@ thread_time_normal = 0.3        # 通常のスレッド周期
 thread_time_result = 0.12       # リザルトのときのスレッド周期
 thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
 
+allimport_version_threshold = '0.20.0.0dev06'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
+
 gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
 
@@ -1922,7 +1924,29 @@ def initial_records_processing():
 
     api.send_message('start_summaryprocessing')
 
-    if not 'last_allimported' in notebook_summary.json.keys():
+    importing = not 'last_allimported' in notebook_summary.json.keys()
+    if not importing:
+        last = [v for v in notebook_summary.json['last_allimported'].split('.')]
+        if 'dev' in last[-1]:
+            last = [*[int(v) for v in last[:-1]], *[i - 1 + int(v) for i, v in enumerate(last[-1].split('dev'))]]
+        else:
+            last = [*[int(v) for v in last], 0]
+
+        threshold = [v for v in allimport_version_threshold.split('.')]
+        if 'dev' in threshold[-1]:
+            threshold = [*[int(v) for v in threshold[:-1]], *[i - 1 + int(v) for i, v in enumerate(threshold[-1].split('dev'))]]
+        else:
+            threshold = [*[int(v) for v in threshold], 0]
+
+        for i in range(len(last)):
+            if importing or last[i] > threshold[i]:
+                break
+
+            if last[i] < threshold[i]:
+                importing = True
+                break
+
+    if importing:
         notebook_summary.import_allmusics(version)
         notebook_summary.save()
     else:
