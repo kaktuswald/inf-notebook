@@ -160,7 +160,8 @@ def check_latest(storage, filename) -> bool:
         logger.info(f'Download {filename}')
         timestamp.write_timestamp(latest_timestamp)
 
-        remove(filepath_tmp)
+        if exists(filepath_tmp):
+            remove(filepath_tmp)
 
         return True
     else:
