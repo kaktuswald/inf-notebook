@@ -1,4 +1,4 @@
-import keyboard
+from global_hotkeys import register_hotkeys,clear_hotkeys,start_checking_hotkeys
 import time
 from threading import Thread,Event
 from queue import Queue,Full
@@ -154,7 +154,6 @@ class ThreadMain(Thread):
             self.handle = 0
             self.active = False
             screenshot.xy = None
-            self.queues['messages'].put('hotkey_stop')
 
             return
 
@@ -163,7 +162,6 @@ class ThreadMain(Thread):
                 self.sleep_time = thread_time_wait_nonactive
                 self.queues['log'].put(f'infinitas deactivate: {self.sleep_time}')
                 api.send_message('switch_capturable', False)
-                self.queues['messages'].put('hotkey_stop')
 
             self.active = False
             screenshot.xy = None
@@ -176,7 +174,6 @@ class ThreadMain(Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'infinitas activate: {self.sleep_time}')
             api.send_message('switch_capturable', True)
-            self.queues['messages'].put('hotkey_start')
         
         screenshot.xy = (rect.left, rect.top)
         screen = screenshot.get_screen()
@@ -273,6 +270,86 @@ class ThreadMain(Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'processing result screen: {self.sleep_time}')
             self.processed = True
+
+class Hotkeys():
+    def __init__(self):
+        self.bindings = {
+            'active_screenshot': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': active_screenshot,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_summary': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_summary,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_notesradar': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_notesradar,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_screenshot': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_screenshot,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_scoreinformation': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_scoreinformation,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_scoregraph': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_scoregraph,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'upload_musicselect': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': upload_musicselect,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+        }
+    
+    def set_hotkeys(self) -> bool:
+        if setting.hotkeys is None:
+            return False
+        
+        self.bindings['active_screenshot']['hotkey'] = setting.hotkeys['active_screenshot']
+        self.bindings['select_summary']['hotkey'] = setting.hotkeys['select_summary']
+        self.bindings['select_notesradar']['hotkey'] = setting.hotkeys['select_notesradar']
+        self.bindings['select_screenshot']['hotkey'] = setting.hotkeys['select_screenshot']
+        self.bindings['select_scoreinformation']['hotkey'] = setting.hotkeys['select_scoreinformation']
+        self.bindings['select_scoregraph']['hotkey'] = setting.hotkeys['select_scoregraph']
+        self.bindings['upload_musicselect']['hotkey'] = setting.hotkeys['upload_musicselect']
+
+        return True
+    
+    def start(self) -> bool:
+        try:
+            register_hotkeys([*self.bindings.values()])
+        except Exception as ex:
+            messages = [
+                '現在ショートカットキーが全て無効です。',
+                'キー設定に問題があります。',
+                str(ex),
+            ]
+            api.send_message('error', messages)
+            logger.error(ex)
+            return False
+        
+        start_checking_hotkeys()
+        return True
+    
+    def stop(self):
+        clear_hotkeys()
 
 class GuiApi():
     '''メイン画面のAPIクラス
@@ -487,6 +564,10 @@ class GuiApi():
         setting.save()
 
         generate_exportsettingcss(setting.port['socket'])
+        
+        hotkeys.stop()
+        if hotkeys.set_hotkeys():
+            hotkeys.start()
 
     def get_recentnotebooks(self, event: webui.Event):
         ret = [result.encode() for result in recentresults]
@@ -1387,10 +1468,6 @@ def mainloop():
             musicselect_process(queue_musicselect_screen.get_nowait())
         if not queue_messages.empty():
             queuemessage = queue_messages.get_nowait()
-            if queuemessage == 'hotkey_start':
-                start_hotkeys()
-            if queuemessage == 'hotkey_stop':
-                stop_hotkeys()
             if queuemessage in ['detect_loading', 'escape_loading']:
                 api.send_message(queuemessage)
         if not queue_callfunction.empty():
@@ -2032,32 +2109,6 @@ def load_resultimages(playtype: str, musicname: str, difficulty: str, timestamp:
     if not recent or image_result is None or image_filtered is not None:
         images_filtered[timestamp] = image_filtered
 
-def start_hotkeys():
-    if setting.hotkeys is None:
-        return
-    
-    if 'active_screenshot' in setting.hotkeys.keys() and setting.hotkeys['active_screenshot'] != '':
-        keyboard.add_hotkey(setting.hotkeys['active_screenshot'], active_screenshot)
-    if 'select_summary' in setting.hotkeys.keys() and setting.hotkeys['select_summary'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_summary'], select_summary)
-    if 'select_notesradar' in setting.hotkeys.keys() and setting.hotkeys['select_notesradar'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_notesradar'], select_notesradar)
-    if 'select_screenshot' in setting.hotkeys.keys() and setting.hotkeys['select_screenshot'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_screenshot'], select_screenshot)
-    if 'select_scoreinformation' in setting.hotkeys.keys() and setting.hotkeys['select_scoreinformation'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_scoreinformation'], select_scoreinformation)
-    if 'select_scoregraph' in setting.hotkeys.keys() and setting.hotkeys['select_scoregraph'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_scoregraph'], select_scoregraph)
-    if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
-        keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
-
-def stop_hotkeys():
-    for target in [active_screenshot, upload_musicselect, select_summary, select_notesradar, select_screenshot, select_scoreinformation, select_scoregraph]:
-        try:
-            keyboard.remove_hotkey(target)
-        except Exception as ex:
-            api.send_message('append_log', '\n'.join(('failed stop hotkey.', str(ex))))
-
 if __name__ == '__main__':
     if gethandle(windowtitle) is not None:
         show_messagebox('多重起動はできません。', windowtitle)
@@ -2141,7 +2192,13 @@ if __name__ == '__main__':
     
     change_window_setting(handle)
 
+    hotkeys = Hotkeys()
+    if hotkeys.set_hotkeys():
+        hotkeys.start()
+
     mainloop()
+
+    hotkeys.stop()
 
     webui.clean()
 
