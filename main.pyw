@@ -2148,8 +2148,10 @@ if __name__ == '__main__':
     socket_server.stop()
     event_close.set()
 
-    socket_server.join()
-    thread.join()
+    if socket_server is not None and socket_server.is_alive():
+        socket_server.join()
+    if thread is not None and thread.is_alive():
+        thread.join()
 
     del screenshot
     
