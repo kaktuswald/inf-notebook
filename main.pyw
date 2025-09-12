@@ -97,13 +97,7 @@ allimport_version_threshold = '0.20.0.0dev06'    # 全曲の記録のインポ�
 gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
 
-notebooksummary_confirm_message = [
-    u'各曲の記録ファイルから１つのまとめ記録ファイルを作成しています。',
-    u'時間がかかる場合がありますが次回からは実行されません。'
-]
 
-find_latest_version_message_has_installer = u'インストーラを起動しますか？'
-find_latest_version_message_not_has_installer = u'リザルト手帳のページを開きますか？'
 
 base_url = 'https://github.com/kaktuswald/inf-notebook/'
 releases_url = urljoin(base_url, 'releases/')
