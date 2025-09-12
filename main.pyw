@@ -1766,12 +1766,25 @@ def insert_results(result: Result):
     newresult = RecentResult(result.timestamp)
 
     newresult.playtype = result.playtype
-    newresult.musicname = result.informations.music
-    newresult.difficulty = result.informations.difficulty
-    newresult.news.cleartype = result.details.clear_type.new
-    newresult.news.djlevel = result.details.dj_level.new
-    newresult.news.score = result.details.score.new
-    newresult.news.misscount = result.details.miss_count.new
+
+    if result.informations is not None:
+        newresult.musicname = result.informations.music
+        newresult.difficulty = result.informations.difficulty
+    else:
+        newresult.musicname = None
+        newresult.difficulty = None        
+
+    if result.details is not None:
+        newresult.news.cleartype = result.details.clear_type.new
+        newresult.news.djlevel = result.details.dj_level.new
+        newresult.news.score = result.details.score.new
+        newresult.news.misscount = result.details.miss_count.new
+    else:
+        newresult.news.cleartype = False
+        newresult.news.djlevel = False
+        newresult.news.score = False
+        newresult.news.misscount = False
+    
     newresult.latest = True
     newresult.saved = result.timestamp in timestamps_saved
     newresult.filtered = result.timestamp in images_filtered.keys()

@@ -53,13 +53,13 @@ class ResultDetails():
         self.graphtarget = graphtarget
 
 class Result():
-    def __init__(self, play_side: str, rival: bool, dead: bool, informations: ResultInformations, details: ResultDetails):
+    def __init__(self, play_side: str, rival: bool, dead: bool, informations: ResultInformations | None, details: ResultDetails | None):
         self.play_side: str = play_side
         self.rival: bool = rival
         self.dead: bool = dead
 
-        self.informations: ResultInformations = informations
-        self.details: ResultDetails = details
+        self.informations: ResultInformations | None = informations
+        self.details: ResultDetails | None = details
 
         self.set_playtype()
 
