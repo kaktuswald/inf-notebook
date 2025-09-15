@@ -17,6 +17,9 @@ class DrawerScoreinformation {
     'LEGGENDARIA': 'rgb(192, 0, 192)',
   };
 
+  static shadowcolor_fcomboandaaa = 'rgb(240, 200, 80)';
+  static shadowcolor_max = 'rgb(128, 255, 40)';
+  
   static musicname_x = 20;
   static musicname_y = 10;
 
@@ -51,11 +54,13 @@ class DrawerScoreinformation {
   static achievementkeys = {
     'fixed': {
       'label': {'text': 'FIXED', 'x': 220, 'y': 640},
+      'max and fcomboandaaa': {'x': 220, 'y': 680},
       'clear_type': {'x': 240, 'y': 680},
       'dj_level': {'x': 330, 'y': 680},
     },
     'S-RANDOM': {
       'label': {'text': 'S-RANDOM', 'x': 620, 'y': 640},
+      'max and fcomboandaaa': {'x': 620, 'y': 680},
       'clear_type': {'x': 640, 'y': 680},
       'dj_level': {'x': 730, 'y': 680},
     },
@@ -66,25 +71,25 @@ class DrawerScoreinformation {
     'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
     'fontsize': DrawerScoreinformation.fontsize_musicname,
     'maxwidth': 1200,
-  }
+  };
 
   static drawtextargs_basic = {
     'textcolor': DrawerScoreinformation.textcolor,
     'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
     'fontsize': DrawerScoreinformation.fontsize_basic,
-  }
+  };
 
   static drawtextargs_value = {
     'textcolor': DrawerScoreinformation.textcolor,
     'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
     'fontsize': DrawerScoreinformation.fontsize_value,
-  }
+  };
 
   static drawtextargs_small = {
     'textcolor': DrawerScoreinformation.textcolor,
     'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
     'fontsize': DrawerScoreinformation.fontsize_small,
-  }
+  };
 
   canvas = null;
 
@@ -252,8 +257,9 @@ class DrawerScoreinformation {
 
       Object.keys(DrawerScoreinformation.achievementkeys).forEach(key => {
         if(!values.achievement.hasOwnProperty(key) || values.achievement[key] == null) return;
-        
+
         ctx.font = `${DrawerScoreinformation.fontsize_small}px ${this.fontfamily}`;
+
         this.drawtext_center(
           ctx,
           DrawerScoreinformation.achievementkeys[key].label.text,
@@ -262,10 +268,45 @@ class DrawerScoreinformation {
           DrawerScoreinformation.drawtextargs_small,
         );
 
+        if(values.achievement[key]['MAX']) {
+          const drawtextargs = {
+            'textcolor': DrawerScoreinformation.textcolor,
+            'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
+            'fontsize': DrawerScoreinformation.fontsize_small,
+          };
+        
+          this.drawtext_center(
+            ctx,
+            'MAX',
+            DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].x,
+            DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].y,
+            drawtextargs,
+          );
+  
+          return;
+        }
+        
+        if(values.achievement[key]['F-COMBO & AAA']) {
+          const drawtextargs = {
+            'textcolor': DrawerScoreinformation.textcolor,
+            'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
+            'fontsize': DrawerScoreinformation.fontsize_small,
+          };
+        
+          this.drawtext_center(
+            ctx,
+            'F-COMBO & AAA',
+            DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].x,
+            DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].y,
+            drawtextargs,
+          );
+  
+          return;
+        }
+        
         ['clear_type', 'dj_level'].forEach(key2 => {
           if(!values.achievement[key].hasOwnProperty(key2) || values.achievement[key][key2] == null) return;
 
-          ctx.font = `bold ${DrawerScoreinformation.fontsize_small}px ${this.fontfamily}`;
           this.drawtext_right(
             ctx,
             values.achievement[key][key2],

@@ -16,7 +16,8 @@ from uuid import uuid1
 from base64 import b64decode,b64encode
 from webui import webui
 from sys import exit
-from tkinter import Tk, filedialog
+from tkinter import Tk,filedialog
+from re import search
 
 from setting import Setting
 
@@ -92,12 +93,14 @@ thread_time_normal = 0.3        # 通常のスレッド周期
 thread_time_result = 0.12       # リザルトのときのスレッド周期
 thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
 
-allimport_version_threshold = '0.20.0.0dev06'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
+allimport_version_threshold = '0.19.0.1'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
 
 gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
 
 
+find_latest_version_message_has_installer = u'インストーラを起動しますか？'
+find_latest_version_message_not_has_installer = u'リザルト手帳のページを開きますか？'
 
 base_url = 'https://github.com/kaktuswald/inf-notebook/'
 releases_url = urljoin(base_url, 'releases/')
@@ -1479,7 +1482,7 @@ def result_process(screen: Screen):
 
     api.send_message('append_log', 'result process')
 
-    result: Result = recog.get_result(screen)
+    result: Result | None = recog.get_result(screen)
     if result is None:
         return
 
@@ -1933,36 +1936,13 @@ def upload_musicselect():
     socket_server.update_screenshot(get_imagevalue(image))
 
 def check_latest_version():
-    if version == '0.0.0.0':
-        return None, None
-    
     latest_version = get_latest_version()
 
     if latest_version == version:
         return None, None
     
-    dev = 'dev' in version
-    if dev:
-        v = version.split('dev')[0]
-    else:
-        v = version
-
-    splitted_version = [*map(int, v.split('.'))]
-    splitted_latest_version = [*map(int, latest_version.split('.'))]
-    for i in range(len(splitted_latest_version)):
-        if splitted_version[i] > splitted_latest_version[i]:
-            return None, None
-        if splitted_version[i] < splitted_latest_version[i]:
-            break
-        
-    dev = 'dev' in version
-    if dev:
-        v = version.split('dev')[0]
-    else:
-        v = version
-
-    splitted_version = [*map(int, v.split('.'))]
-    splitted_latest_version = [*map(int, latest_version.split('.'))]
+    splitted_version = [int(search(r'\d+', v).group()) for v in version.split('.')]
+    splitted_latest_version = [int(search(r'\d+', v).group()) for v in latest_version.split('.')]
     for i in range(len(splitted_latest_version)):
         if splitted_version[i] > splitted_latest_version[i]:
             return None, None
@@ -2010,24 +1990,13 @@ def initial_records_processing():
 
     importing = not 'last_allimported' in notebook_summary.json.keys()
     if not importing:
-        last = [v for v in notebook_summary.json['last_allimported'].split('.')]
-        if 'dev' in last[-1]:
-            last = [*[int(v) for v in last[:-1]], *[i - 1 + int(v) for i, v in enumerate(last[-1].split('dev'))]]
-        else:
-            last = [*[int(v) for v in last], 0]
-
-        threshold = [v for v in allimport_version_threshold.split('.')]
-        if 'dev' in threshold[-1]:
-            threshold = [*[int(v) for v in threshold[:-1]], *[i - 1 + int(v) for i, v in enumerate(threshold[-1].split('dev'))]]
-        else:
-            threshold = [*[int(v) for v in threshold], 0]
-
-        for i in range(len(last)):
-            if importing or last[i] > threshold[i]:
-                break
-
-            if last[i] < threshold[i]:
+        conditionversion = [int(search(r'\d+', v).group()) for v in allimport_version_threshold.split('.')]
+        lastversion = [int(search(r'\d+', v).group()) for v in notebook_summary.json['last_allimported'].split('.')]
+        for i in range(len(conditionversion)):
+            if conditionversion[i] > lastversion[i]:
                 importing = True
+                break
+            if conditionversion[i] < lastversion[i]:
                 break
 
     if importing:

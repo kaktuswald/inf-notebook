@@ -104,11 +104,13 @@ class NotesRadar():
                         continue
                     if not difficulty in summary[musicname][playmode].keys():
                         continue
-                    if not 'score' in summary[musicname][playmode][difficulty].keys():
+                    if not 'best' in summary[musicname][playmode][difficulty].keys():
                         continue
-                    if summary[musicname][playmode][difficulty]['score'] is None:
+                    if not 'score' in summary[musicname][playmode][difficulty]['best'].keys():
                         continue
-                    if summary[musicname][playmode][difficulty]['score'] == 0:
+                    if summary[musicname][playmode][difficulty]['best']['score'] is None:
+                        continue
+                    if summary[musicname][playmode][difficulty]['best']['score'] == 0:
                         continue
                     
                     target = resource.notesradar[playmode]['musics'][musicname][difficulty]
@@ -118,7 +120,7 @@ class NotesRadar():
                     if len(ranking) == ranking_count and min(ranking).value > max:
                         break
 
-                    score = summary[musicname][playmode][difficulty]['score']
+                    score = summary[musicname][playmode][difficulty]['best']['score']['value']
                     
                     rate = score * 10000 / (notes * 2) // 1
                     calculated = rate * max / 100 // 1 / 100
@@ -150,10 +152,12 @@ class NotesRadar():
             return
         if not difficulty in summary[musicname][playmode].keys():
             return
-        if not 'score' in summary[musicname][playmode][difficulty].keys():
+        if not 'best' in summary[musicname][playmode][difficulty].keys():
+            return
+        if not 'score' in summary[musicname][playmode][difficulty]['best'].keys():
             return
         
-        score = summary[musicname][playmode][difficulty]['score']
+        score = summary[musicname][playmode][difficulty]['best']['score']['value']
 
         if score is None:
             return
