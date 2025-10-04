@@ -273,12 +273,12 @@ class NotebookMusic(Notebook):
 
             update = update_all
 
-            if not update and target[key]['value'] is None:
-                update = True
-            
             if not update and not key in target.keys():
                 update = True
 
+            if not update and target[key]['value'] is None:
+                update = True
+            
             if not update:
                 if key in ['clear_type', 'dj_level']:
                     if key == 'clear_type':
