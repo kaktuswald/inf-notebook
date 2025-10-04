@@ -1707,6 +1707,9 @@ def musicselect_process(np_value):
                 ):
                 api.send_message('update_notesradar')
     
+    socket_server.update_scoreinformation(socket_server.imagevalue_imagenothing)
+    socket_server.update_scoregraph(socket_server.imagevalue_imagenothing)
+
     api.send_message('scoreselect', {'playtype': playtype, 'musicname': musicname, 'difficulty': difficulty})
 
 def post_discord_webhooks(result: Result, imagevalue: bytes):
