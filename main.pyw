@@ -1633,11 +1633,16 @@ def musicselect_process(np_value):
     '''
     global scoreselection
 
+    hasscoredata = recog.MusicSelect.get_hasscoredata(np_value)
+
     playmode = recog.MusicSelect.get_playmode(np_value)
     if playmode is None:
         return
     
-    playtype = playmode
+    if hasscoredata:
+        playtype = playmode
+    else:
+        playtype = 'DP BATTLE'
 
     difficulty = recog.MusicSelect.get_difficulty(np_value)
     if difficulty is None:
@@ -1679,27 +1684,28 @@ def musicselect_process(np_value):
     
     notebook = notebooks_music.get_notebook(musicname)
     
-    if notebook.update_best_musicselect({
-        'playtype': playtype,
-        'difficulty': difficulty,
-        'cleartype': recog.MusicSelect.get_cleartype(np_value),
-        'djlevel': recog.MusicSelect.get_djlevel(np_value),
-        'score': recog.MusicSelect.get_score(np_value),
-        'misscount': recog.MusicSelect.get_misscount(np_value),
-        'levels': recog.MusicSelect.get_levels(np_value)
-    }):
-        notebook.save()
-        notebook_summary.import_targetmusic(musicname, notebook)
-        notebook_summary.save()
-        api.send_message('update_summary')
+    if hasscoredata:
+        if notebook.update_best_musicselect({
+            'playtype': playtype,
+            'difficulty': difficulty,
+            'cleartype': recog.MusicSelect.get_cleartype(np_value),
+            'djlevel': recog.MusicSelect.get_djlevel(np_value),
+            'score': recog.MusicSelect.get_score(np_value),
+            'misscount': recog.MusicSelect.get_misscount(np_value),
+            'levels': recog.MusicSelect.get_levels(np_value)
+        }):
+            notebook.save()
+            notebook_summary.import_targetmusic(musicname, notebook)
+            notebook_summary.save()
+            api.send_message('update_summary')
 
-        if notesradar.insert(
-                playmode,
-                musicname,
-                difficulty,
-                notebook_summary.json['musics']
-            ):
-            api.send_message('update_notesradar')
+            if notesradar.insert(
+                    playmode,
+                    musicname,
+                    difficulty,
+                    notebook_summary.json['musics']
+                ):
+                api.send_message('update_notesradar')
     
     api.send_message('scoreselect', {'playtype': playtype, 'musicname': musicname, 'difficulty': difficulty})
 
