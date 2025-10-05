@@ -57,6 +57,8 @@ reader_scoregraph.onabort = onabort_filereader;
 imageblobs = {};
 imageurls = {};
 
+selecttabname_afterloading = null;
+
 $(function() {
   webui.setEventCallback((e) => {
     if(e == webui.event.CONNECTED) initialize();
@@ -410,8 +412,19 @@ function display_loadingimage() {
   reader_information.readAsDataURL(imageblobs['loading']);
 }
 
+/**
+ * ローディングを認識したときの処理を実行する
+ * 
+ * まず現在選択されているメインタブを取得して
+ */
 function detect_loading() {
-    display_loadingimage();
+  const nowtabs = $('div.tabpage_main').filter(function() {
+    return $(this).css('display') === 'flex';
+  });
+  if(nowtabs.length > 0)
+    selecttabname_afterloading = nowtabs.first().attr('id').split('_')[2];
+
+  display_loadingimage();
 }
 
 function escape_loading() {
@@ -420,7 +433,10 @@ function escape_loading() {
   reader_information.abort();
   reader_information.readAsDataURL(imageblobs['infinitasinformation']);
 
-  switch_displaytab('main', setting.startup_image);
+  if(selecttabname_afterloading)
+    switch_displaytab('main', selecttabname_afterloading);
+  else
+    switch_displaytab('main', setting.startup_image);
 }
 
 /**

@@ -112,8 +112,11 @@ class ThreadMain(Thread):
     active: bool = False
     waiting: bool = False
     musicselect: bool = False
+    confirmed_loading: bool = False
+    findtime_loading: float | None = None
     confirmed_somescreen: bool = False
     confirmed_processable: bool = False
+    findtime_processable: float | None = None
     processed: bool = False
     screen_latest = None
 
@@ -182,14 +185,26 @@ class ThreadMain(Thread):
             self.screen_latest = screen
 
         if screen == 'loading':
-            if not self.waiting:
-                self.waiting = True
-                self.musicselect = False
-                self.sleep_time = thread_time_wait_loading
-                self.queues['log'].put(f'detect loading: start waiting: {self.sleep_time}')
-                self.queues['messages'].put('detect_loading')
+            if self.waiting:
+                return
+            
+            if not self.confirmed_loading:
+                self.confirmed_loading = True
+                self.findtime_loading = time.time()
+                return
+            
+            if time.time() - self.findtime_loading <= thread_time_normal * 2 - 0.1:
+                return
+            
+            self.waiting = True
+            self.musicselect = False
+            self.sleep_time = thread_time_wait_loading
+            self.queues['log'].put(f'detect loading: start waiting: {self.sleep_time}')
+            self.queues['messages'].put('detect_loading')
             return
             
+        self.confirmed_loading = False
+
         if self.waiting:
             self.waiting = False
             self.sleep_time = thread_time_normal
@@ -250,10 +265,10 @@ class ThreadMain(Thread):
         
         if not self.confirmed_processable:
             self.confirmed_processable = True
-            self.find_time = time.time()
+            self.findtime_processable = time.time()
             return
 
-        if time.time() - self.find_time <= thread_time_normal * 2 - 0.1:
+        if time.time() - self.findtime_processable <= thread_time_normal * 2 - 0.1:
             return
 
         if screen == 'result':
