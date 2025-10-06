@@ -82,6 +82,7 @@ from notesradar import NotesRadar
 from appdata import LocalConfig
 import twitter
 from socket_server import SocketServer
+from versioncheck import version_isold
 
 windowtitle = f'インフィニタス リザルト手帳'
 
@@ -93,7 +94,7 @@ thread_time_normal = 0.3        # 通常のスレッド周期
 thread_time_result = 0.12       # リザルトのときのスレッド周期
 thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
 
-allimport_version_threshold = '0.19.0.1'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
+allimport_version_threshold = '0.20.dev1'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
 
 gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
@@ -1962,17 +1963,9 @@ def upload_musicselect():
 def check_latest_version():
     latest_version = get_latest_version()
 
-    if latest_version == version:
+    if not version_isold(version, latest_version):
         return None, None
     
-    splitted_version = [int(search(r'\d+', v).group()) for v in version.split('.')]
-    splitted_latest_version = [int(search(r'\d+', v).group()) for v in latest_version.split('.')]
-    for i in range(len(splitted_latest_version)):
-        if splitted_version[i] > splitted_latest_version[i]:
-            return None, None
-        if splitted_version[i] < splitted_latest_version[i]:
-            break
-
     action = None
     config = LocalConfig()
     if config.installer_filepath is not None:
@@ -2014,14 +2007,10 @@ def initial_records_processing():
 
     importing = not 'last_allimported' in notebook_summary.json.keys()
     if not importing:
-        conditionversion = [int(search(r'\d+', v).group()) for v in allimport_version_threshold.split('.')]
-        lastversion = [int(search(r'\d+', v).group()) for v in notebook_summary.json['last_allimported'].split('.')]
-        for i in range(len(conditionversion)):
-            if conditionversion[i] > lastversion[i]:
-                importing = True
-                break
-            if conditionversion[i] < lastversion[i]:
-                break
+        importing = version_isold(
+            notebook_summary.json['last_allimported'],
+            allimport_version_threshold,
+        )
 
     if importing:
         notebook_summary.import_allmusics(version)

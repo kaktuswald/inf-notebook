@@ -14,6 +14,7 @@ from version import version
 from resources import resource,resources_dirname
 from define import Playmodes,Playtypes,define
 from result import Result
+from versioncheck import version_isold
 
 records_basepath = 'records'
 
@@ -22,7 +23,7 @@ musicnamechanges_filename = 'musicnamechanges.res'
 recent_filename = 'recent.json'
 summary_filename = 'summary.json'
 
-regenerateachievement_fromhistories_version = '0.19.0.1'
+regenerateachievement_fromhistories_version = '0.20.dev1'
 '''履歴から実績の記録を生成する条件のバージョン
 
 履歴から実績の記録を生成する処理を最後に実行したのがこのバージョンより前の場合は
@@ -163,14 +164,10 @@ class NotebookMusic(Notebook):
         if 'timestamps' in target.keys() and len(target['timestamps']) > 0:
             generate = not 'achievement' in target.keys() or not 'fromhistoriesgenerate_lastversion' in target['achievement'].keys()
             if not generate:
-                conditionversion = [int(search(r'\d+', v).group()) for v in regenerateachievement_fromhistories_version.split('.')]
-                lastversion = [int(search(r'\d+', v).group()) for v in target['achievement']['fromhistoriesgenerate_lastversion'].split('.')]
-                for i in range(len(conditionversion)):
-                    if conditionversion[i] > lastversion[i]:
-                        generate = True
-                        break
-                    if conditionversion[i] < lastversion[i]:
-                        break
+                generate = version_isold(
+                    target['achievement']['fromhistoriesgenerate_lastversion'],
+                    regenerateachievement_fromhistories_version,
+                )
 
             if generate:
                 self.generate_achievement_from_histories(target)

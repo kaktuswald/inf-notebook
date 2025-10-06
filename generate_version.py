@@ -1,16 +1,16 @@
-import sys
+from re import search
+from sys import exit
 
-generate_python_filename = 'version.py'
-generate_text_filename = 'version.txt'
+python_filename = 'version.py'
+text_filename = 'version.txt'
 
-if len(sys.argv) != 2:
-    sys.exit()
+with open(python_filename, 'r') as f:
+    match = search(r'[\'"](.*?)[\'"]', f.read())
 
-tag = sys.argv[1]
-version = tag.removeprefix('v')
+if not match:
+    exit()
 
-with open(generate_python_filename, 'w') as f:
-    f.write(f"version = '{version}'")
+version = match.group(1)
 
-with open(generate_text_filename, 'w') as f:
+with open(text_filename, 'w') as f:
     f.write(version)

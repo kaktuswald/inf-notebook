@@ -70,6 +70,7 @@ jobs:
       - name: Build
         run: |
           python generate_service_account_info.py ${{ secrets.KEYINFO }}
+          python generate_version.py
           python setup.py build
   
       - name: Rename
