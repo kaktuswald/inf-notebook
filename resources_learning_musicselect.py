@@ -8,7 +8,7 @@ from define import Playmodes,define
 from data_collection import collection_basepath
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
-from resources_learning import learning_multivalue
+from resources_learning import learning_multivalue,learning
 
 images_musicselect_basepath = join(collection_basepath, 'musicselect')
 label_filepath = join(collection_basepath, 'label_musicselect.json')
@@ -271,6 +271,52 @@ def learning_levels():
                 report.error(f'Mismatch {key} select {selectdifficulty} {target.label["difficulty"]}')
         else:
             report.error(f'Unrecognized {key} {target.label["difficulty"]}')
+
+    report.report()
+
+def learning_hasscoredata():
+    report = Report('musicselect_hasscoredata')
+
+    define_target = musicselect_define['hasscoredata']
+
+    trim = (
+        slice(define_target['trim'][0][0], define_target['trim'][0][1]),
+        slice(define_target['trim'][1][0], define_target['trim'][1][1]),
+        define_target['trim'][2]
+    )
+
+    learning_targets = {}
+    evaluate_targets = {}
+    for key, target in imagevalues.items():
+        if not 'nohasscoredata' in target.label.keys():
+            continue
+
+        trimmed = target.np_value[trim]
+
+        if not target.label['nohasscoredata']:
+            learning_targets[key] = trimmed
+
+        evaluate_targets[key] = {'value': not target.label['nohasscoredata'], 'trimmed': trimmed}
+    
+    report.append_log(f'source count: {len(learning_targets)}')
+
+    result = learning(learning_targets, report)
+    if result is None:
+        report.report()
+        return
+    
+    for key, target in evaluate_targets.items():
+        is_hasscoredata = target['value']
+        recoged = np.all((result==0)|(target['trimmed']==result))
+        if (recoged and is_hasscoredata) or (not recoged and not is_hasscoredata):
+            report.through()
+        else:
+            report.error(f'Mismatch {is_hasscoredata} {key}')
+
+    resource['hasscoredata'] = {
+        'trim': trim,
+        'mask': result
+    }
 
     report.report()
 
@@ -1000,6 +1046,7 @@ if __name__ == '__main__':
 
     learning_playmode()
     learning_levels()
+    learning_hasscoredata()
     learning_cleartype()
     learning_djlevel()
     learning_number()

@@ -1,5 +1,5 @@
 numpy==1.26.4
-keyboard==0.13.5
+global_hotkeys==0.1.7
 pillow==11.3.0
 google-cloud-storage==2.19.0
 websockets==15.0.1

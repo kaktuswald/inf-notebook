@@ -437,6 +437,16 @@ class Recognition():
             return None
 
         @staticmethod
+        def get_hasscoredata(np_value):
+            if resource.musicselect is None:
+                return None
+            
+            cropped = np_value[resource.musicselect['hasscoredata']['trim']]
+            mask = resource.musicselect['hasscoredata']['mask']
+
+            return bool(np.all((cropped==0)|(cropped==mask)))
+
+        @staticmethod
         def get_musicname(np_value):
             if resource.musicselect is None:
                 return None

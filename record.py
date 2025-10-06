@@ -3,6 +3,7 @@ from os import remove,mkdir,rename
 from os.path import join,exists
 from logging import getLogger
 from copy import deepcopy
+from re import search
 
 logger_child_name = 'record'
 
@@ -13,6 +14,7 @@ from version import version
 from resources import resource,resources_dirname
 from define import Playmodes,Playtypes,define
 from result import Result
+from versioncheck import version_isold
 
 records_basepath = 'records'
 
@@ -20,6 +22,13 @@ musicnamechanges_filename = 'musicnamechanges.res'
 
 recent_filename = 'recent.json'
 summary_filename = 'summary.json'
+
+regenerateachievement_fromhistories_version = '0.20.dev1'
+'''履歴から実績の記録を生成する条件のバージョン
+
+履歴から実績の記録を生成する処理を最後に実行したのがこのバージョンより前の場合は
+再生成を実行する。
+'''
 
 if not exists(records_basepath):
     mkdir(records_basepath)
@@ -152,9 +161,17 @@ class NotebookMusic(Notebook):
             return None
         
         target = self.json[playtype][difficulty]
-        if 'timestamps' in target.keys() and len(target['timestamps']) > 0 and not 'achievement' in target.keys():
-            self.generate_achievement_from_histories(target)
-            self.save()
+        if 'timestamps' in target.keys() and len(target['timestamps']) > 0:
+            generate = not 'achievement' in target.keys() or not 'fromhistoriesgenerate_lastversion' in target['achievement'].keys()
+            if not generate:
+                generate = version_isold(
+                    target['achievement']['fromhistoriesgenerate_lastversion'],
+                    regenerateachievement_fromhistories_version,
+                )
+
+            if generate:
+                self.generate_achievement_from_histories(target)
+                self.save()
         
         return target
 
@@ -253,12 +270,12 @@ class NotebookMusic(Notebook):
 
             update = update_all
 
-            if not update and target[key]['value'] is None:
-                update = True
-            
             if not update and not key in target.keys():
                 update = True
 
+            if not update and target[key]['value'] is None:
+                update = True
+            
             if not update:
                 if key in ['clear_type', 'dj_level']:
                     if key == 'clear_type':
@@ -325,6 +342,8 @@ class NotebookMusic(Notebook):
     def generate_achievement_from_histories(self, target):
         '''達成記録を過去の記録データから作成する
 
+        理論値を記録していたら MAX と記録する
+        F-COMBOとAAAの同時記録をしていたら F-COMBO & AAA と記録する
         Args:
             target (dict): 記録の対象部分
         '''
@@ -340,8 +359,6 @@ class NotebookMusic(Notebook):
 
             if not 'options' in record.keys() or record['options'] is None:
                 continue
-            if not 'arrange' in record['options'].keys() or 'H-RAN' in record['options']['arrange']:
-                continue
 
             achievement_key = None
             if record['options']['arrange'] in (None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR',):
@@ -351,18 +368,32 @@ class NotebookMusic(Notebook):
             if achievement_key is None:
                 continue
 
+            if not 'MAX' in achievement[achievement_key].keys():
+                if 'notes' in target.keys() and record['score'] == target['notes'] * 2:
+                    achievement[achievement_key]['MAX'] = True
+
+            if not 'F-COMBO & AAA' in achievement[achievement_key] == 'F-COMBO & AAA':
+                if record['clear_type']['value'] == 'F-COMBO' and record['dj_level']['value'] == 'AAA':
+                    achievement[achievement_key]['F-COMBO & AAA'] = True
+
+            if achievement[achievement_key] is None:
+                achievement[achievement_key] = {'clear_type': None, 'dj_level': None}
+            
             for key, valuelist in targetkeys.items():
                 value = record[key]['value']
+
                 is_updated = achievement[achievement_key][key] is None
                 if not is_updated:
                     index_current = valuelist.index(value)
-                    index_recorded = valuelist.index(achievement[achievement_key][key])
-                    if index_current > index_recorded:
+                    index_recorded = valuelist.index(achievement[achievement_key][key]) if achievement[achievement_key][key] is not None else None
+                    if index_recorded is not None and index_current > index_recorded:
                         is_updated = True
                 if is_updated:
                     achievement[achievement_key][key] = value
         
-    def update_achievement(self, target: dict[int | dict[str, dict | list]], result: Result):
+        achievement['fromhistoriesgenerate_lastversion'] = version
+        
+    def update_achievement(self, target: dict[int | dict[str, dict | list]], result: Result) -> bool:
         '''達成記録を更新する
 
         Args:
@@ -374,8 +405,11 @@ class NotebookMusic(Notebook):
         '''
         if not 'achievement' in target.keys():
             target['achievement'] = deepcopy(self.achievement_default)
+        achievement = target['achievement']
         
+        informations = result.informations
         details = result.details
+
         if details.options is None:
             return False
 
@@ -391,19 +425,30 @@ class NotebookMusic(Notebook):
             return False
         
         updated = False
+
+        if not 'MAX' in achievement[achievement_key].keys():
+            if informations is not None and informations.notes is not None and details.score.current == informations.notes * 2:
+                achievement[achievement_key]['MAX'] = True
+                updated = True
+
+        if not 'F-COMBO & AAA' in achievement[achievement_key].keys():
+            if details.clear_type.current == 'F-COMBO' and details.dj_level.current == 'AAA':
+                achievement[achievement_key]['F-COMBO & AAA'] = True
+                updated = True
+
         results = [
             ('clear_type', define.value_list['clear_types'], details.clear_type.current),
             ('dj_level', define.value_list['dj_levels'], details.dj_level.current)
         ]
         for key, valuelist, value in results:
-            is_updated = target['achievement'][achievement_key][key] is None
+            is_updated = achievement[achievement_key][key] is None
             if not is_updated:
                 index_current = valuelist.index(value)
-                index_recorded = valuelist.index(target['achievement'][achievement_key][key])
-                if index_current > index_recorded:
+                index_recorded = valuelist.index(achievement[achievement_key][key]) if achievement[achievement_key][key] is not None else None
+                if index_recorded is not None and index_current > index_recorded:
                     is_updated = True
             if is_updated:
-                target['achievement'][achievement_key][key] = value
+                achievement[achievement_key][key] = value
                 updated = True
         
         return updated
@@ -453,9 +498,8 @@ class NotebookMusic(Notebook):
         if self.update_best_result(target, result, options_value):
             updated = True
         
-        if result.details.options is not None:
-            if self.update_achievement(target, result):
-                updated = True
+        if self.update_achievement(target, result):
+            updated = True
 
         if updated:
             self.save()
@@ -620,30 +664,29 @@ class NotebookSummary(Notebook):
                     target['playcount'] = None
 
                 if 'best' in r.keys():
-                    if 'clear_type' in r['best'].keys() and r['best']['clear_type'] is not None:
-                        target['cleartype'] = r['best']['clear_type']['value']
-                    else:
-                        target['cleartype'] = None
-                    
-                    if 'dj_level' in r['best'].keys() and r['best']['dj_level'] is not None:
-                        target['djlevel'] = r['best']['dj_level']['value']
-                    else:
-                        target['djlevel'] = None
-
-                    if 'score' in r['best'].keys() and r['best']['score'] is not None:
-                        target['score'] = r['best']['score']['value']
-                    else:
-                        target['score'] = None
-
-                    if 'miss_count' in r['best'].keys() and r['best']['miss_count'] is not None:
-                        target['misscount'] = r['best']['miss_count']['value']
-                    else:
-                        target['misscount'] = None
+                    target['best'] = {}
+                    targets = [
+                        ['cleartype', 'clear_type'],
+                        ['djlevel', 'dj_level'],
+                        ['score', 'score'],
+                        ['misscount', 'miss_count'],
+                    ]
+                    for key1, key2 in targets:
+                        target['best'][key1] = r['best'][key2] if key2 in r['best'].keys() else None
                 else:
-                    target['cleartype'] = None
-                    target['djlevel'] = None
-                    target['score'] = None
-                    target['misscount'] = None
+                    target['best'] = None
+                
+                if 'achievement' in r.keys():
+                    target['achievement'] = {
+                        'fixed': r['achievement']['fixed'],
+                        'S-RANDOM': r['achievement']['S-RANDOM'],
+                    }
+                    if 'MAX' in r['achievement'].keys():
+                        target['achievement']['MAX'] = True
+                    if 'F-COMBO & AAA' in r['achievement'].keys():
+                        target['achievement']['F-COMBO & AAA'] = True
+                else:
+                    target['achievement'] = None
     
     def count(self):
         if not 'musics' in self.json.keys():
@@ -671,25 +714,40 @@ class NotebookSummary(Notebook):
                     result[playmode][difficulty]['total'] += 1
                     result[playmode][level]['total'] += 1
 
-                    if not musicname in self.json['musics'].keys():
-                        continue
-                    if not playmode in self.json['musics'][musicname].keys():
-                        continue
-                    if not difficulty in self.json['musics'][musicname][playmode].keys():
+                    target = self.json['musics']
+                    if not musicname in target.keys():
                         continue
 
-                    if 'cleartype' in self.json['musics'][musicname][playmode][difficulty].keys():
-                        cleartype = self.json['musics'][musicname][playmode][difficulty]['cleartype']
-                        if cleartype is not None:
-                            result[playmode][difficulty][cleartype] += 1
+                    target = target[musicname]
+                    if not playmode in target.keys():
+                        continue
+
+                    target = target[playmode]
+                    if not difficulty in target.keys():
+                        continue
+
+                    target = target[difficulty]
+                    if not 'best' in target.keys():
+                        continue
+
+                    target = target['best']
+
+                    if 'cleartype' in target.keys():
+                        cleartype = target['cleartype']
+                        if cleartype is not None and cleartype['value'] is not None:
                             result[playmode][difficulty]['datacount'] += 1
-                            result[playmode][level][cleartype] += 1
                             result[playmode][level]['datacount'] += 1
-                    if 'djlevel' in self.json['musics'][musicname][playmode][difficulty].keys():
-                        djlevel = self.json['musics'][musicname][playmode][difficulty]['djlevel']
-                        if djlevel is not None:
-                            result[playmode][difficulty][djlevel] += 1
-                            result[playmode][level][djlevel] += 1
+
+                            cleartypevalue = cleartype['value']
+                            result[playmode][difficulty][cleartypevalue] += 1
+                            result[playmode][level][cleartypevalue] += 1
+                    
+                    if 'djlevel' in target.keys():
+                        djlevel = target['djlevel']
+                        if djlevel is not None and djlevel['value'] is not None:
+                            djlevelvalue = djlevel['value']
+                            result[playmode][difficulty][djlevelvalue] += 1
+                            result[playmode][level][djlevelvalue] += 1
         
         return result
 

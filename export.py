@@ -147,7 +147,28 @@ def output(notebook: NotebookSummary):
         }
     }
 
-    all_header = ['バージョン', '曲名', '難易度', 'レベル', '最終プレイ日時', 'プレイ回数', 'クリアタイプ', 'DJレベル', 'スコア', 'ミスカウント']
+    all_header = [
+        'バージョン',
+        '曲名',
+        '難易度',
+        'レベル',
+        '最終プレイ日時',
+        'プレイ回数',
+        'クリアタイプ',
+        'クリアタイプ更新オプション',
+        'DJレベル',
+        'DJレベル更新オプション',
+        'スコア',
+        'スコア更新オプション',
+        'ミスカウント',
+        'ミスカウント更新オプション',
+        '固定配置実績',
+        '固定配置クリアタイプ',
+        '固定配置DJレベル',
+        'S-RANDOM実績',
+        'S-RANDOMクリアタイプ',
+        'S-RANDOMDJレベル',
+    ]
 
     summary_keys1 = ['difficulties', 'levels']
     summary_keys2 = ['clear_types', 'dj_levels']
@@ -188,22 +209,63 @@ def output(notebook: NotebookSummary):
                 lines = [version, musicname, difficulty, level]
 
                 if notebook_target is None or not playtype in notebook_target.keys() or not difficulty in notebook_target[playtype].keys():
-                    lines.extend(['', '', '', '', '', ''])
+                    lines.extend(('', '', '', '', '', '',))
                 else:
                     record = notebook_target[playtype][difficulty]
+
                     lines.append(record['latest'] if record['latest'] is not None else '')
                     lines.append(record['playcount'] if record['playcount'] is not None else '')
-                    lines.append(record['cleartype'] if record['cleartype'] is not None else '')
-                    lines.append(record['djlevel'] if record['djlevel'] is not None else '')
-                    lines.append(record['score'] if record['score'] is not None else '')
-                    lines.append(record['misscount'] if record['misscount'] is not None else '')
 
-                    if record['cleartype'] is not None:
-                        summary[playtype]['difficulties'][difficulty]['clear_types'][record['cleartype']] += 1
-                        summary[playtype]['levels'][level]['clear_types'][record['cleartype']] += 1
-                    if record['djlevel'] is not None:
-                        summary[playtype]['difficulties'][difficulty]['dj_levels'][record['djlevel']] += 1
-                        summary[playtype]['levels'][level]['dj_levels'][record['djlevel']] += 1
+                    if 'best' in record.keys():
+                        for key in ('cleartype', 'djlevel', 'score', 'misscount',):
+                            if record['best'][key] is not None:
+                                value = record['best'][key]['value']
+                                
+                                option = None
+                                if 'options' in record['best'][key].keys() and record['best'][key]['options'] is not None:
+                                    optionvalues = [
+                                        record['best'][key]['options']['arrange'],
+                                        record['best'][key]['options']['flip'],
+                                        record['best'][key]['options']['assist'],
+                                    ]
+                                    option = ','.join([v for v in optionvalues if v is not None])
+                                    if option == '':
+                                        option = '---'
+
+                                lines.append(value if value is not None else '')
+                                lines.append(option if option is not None else '???')
+
+                            else:
+                                lines.extend(('', '',))
+
+                        if record['best']['cleartype'] is not None:
+                            value = record['best']['cleartype']['value']
+                            summary[playtype]['difficulties'][difficulty]['clear_types'][value] += 1
+                            summary[playtype]['levels'][level]['clear_types'][value] += 1
+                        if record['best']['djlevel'] is not None:
+                            value = record['best']['djlevel']['value']
+                            summary[playtype]['difficulties'][difficulty]['dj_levels'][value] += 1
+                            summary[playtype]['levels'][level]['dj_levels'][value] += 1
+                    else:
+                        lines.extend(('', '', '', '', '', '', '', '',))
+                    
+                    if 'achievement' in record.keys() and record['achievement'] is not None:
+                        for key1 in ('fixed', 'S-RANDOM',):
+                            if 'MAX' in record['achievement'][key1].keys() or 'F-COMBO & AAA' in record['achievement'][key1].keys():
+                                if 'MAX' in record['achievement'][key1].keys():
+                                    lines.append('MAX')
+                                else:
+                                    lines.append('F-COMBO & AAA')
+                            else:
+                                lines.append('')
+
+                            if key1 in record['achievement'].keys():
+                                for key2 in ('clear_type', 'dj_level',):
+                                    lines.append(record['achievement'][key1][key2] if record['achievement'][key1][key2] is not None else '')
+                            else:
+                                lines.extend(('', '',))
+                    else:
+                        lines.extend(('', '', '', '', '', '',))
                 
                 csv_output[playtype].append(lines)
 

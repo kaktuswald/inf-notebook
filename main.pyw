@@ -1,4 +1,4 @@
-import keyboard
+from global_hotkeys import register_hotkeys,clear_hotkeys,start_checking_hotkeys
 import time
 from threading import Thread,Event
 from queue import Queue,Full
@@ -16,7 +16,8 @@ from uuid import uuid1
 from base64 import b64decode,b64encode
 from webui import webui
 from sys import exit
-from tkinter import Tk, filedialog
+from tkinter import Tk,filedialog
+from re import search
 
 from setting import Setting
 
@@ -81,6 +82,7 @@ from notesradar import NotesRadar
 from appdata import LocalConfig
 import twitter
 from socket_server import SocketServer
+from versioncheck import version_isold
 
 windowtitle = f'インフィニタス リザルト手帳'
 
@@ -92,15 +94,11 @@ thread_time_normal = 0.3        # 通常のスレッド周期
 thread_time_result = 0.12       # リザルトのときのスレッド周期
 thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
 
-allimport_version_threshold = '0.20.0.0dev06'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
+allimport_version_threshold = '0.20.dev1'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
 
 gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
 
-notebooksummary_confirm_message = [
-    u'各曲の記録ファイルから１つのまとめ記録ファイルを作成しています。',
-    u'時間がかかる場合がありますが次回からは実行されません。'
-]
 
 find_latest_version_message_has_installer = u'インストーラを起動しますか？'
 find_latest_version_message_not_has_installer = u'リザルト手帳のページを開きますか？'
@@ -115,8 +113,11 @@ class ThreadMain(Thread):
     active: bool = False
     waiting: bool = False
     musicselect: bool = False
+    confirmed_loading: bool = False
+    findtime_loading: float | None = None
     confirmed_somescreen: bool = False
     confirmed_processable: bool = False
+    findtime_processable: float | None = None
     processed: bool = False
     screen_latest = None
 
@@ -154,7 +155,6 @@ class ThreadMain(Thread):
             self.handle = 0
             self.active = False
             screenshot.xy = None
-            self.queues['messages'].put('hotkey_stop')
 
             return
 
@@ -163,7 +163,6 @@ class ThreadMain(Thread):
                 self.sleep_time = thread_time_wait_nonactive
                 self.queues['log'].put(f'infinitas deactivate: {self.sleep_time}')
                 api.send_message('switch_capturable', False)
-                self.queues['messages'].put('hotkey_stop')
 
             self.active = False
             screenshot.xy = None
@@ -176,7 +175,6 @@ class ThreadMain(Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'infinitas activate: {self.sleep_time}')
             api.send_message('switch_capturable', True)
-            self.queues['messages'].put('hotkey_start')
         
         screenshot.xy = (rect.left, rect.top)
         screen = screenshot.get_screen()
@@ -188,14 +186,26 @@ class ThreadMain(Thread):
             self.screen_latest = screen
 
         if screen == 'loading':
-            if not self.waiting:
-                self.waiting = True
-                self.musicselect = False
-                self.sleep_time = thread_time_wait_loading
-                self.queues['log'].put(f'detect loading: start waiting: {self.sleep_time}')
-                self.queues['messages'].put('detect_loading')
+            if self.waiting:
+                return
+            
+            if not self.confirmed_loading:
+                self.confirmed_loading = True
+                self.findtime_loading = time.time()
+                return
+            
+            if time.time() - self.findtime_loading <= thread_time_normal * 2 - 0.1:
+                return
+            
+            self.waiting = True
+            self.musicselect = False
+            self.sleep_time = thread_time_wait_loading
+            self.queues['log'].put(f'detect loading: start waiting: {self.sleep_time}')
+            self.queues['messages'].put('detect_loading')
             return
             
+        self.confirmed_loading = False
+
         if self.waiting:
             self.waiting = False
             self.sleep_time = thread_time_normal
@@ -256,10 +266,10 @@ class ThreadMain(Thread):
         
         if not self.confirmed_processable:
             self.confirmed_processable = True
-            self.find_time = time.time()
+            self.findtime_processable = time.time()
             return
 
-        if time.time() - self.find_time <= thread_time_normal * 2 - 0.1:
+        if time.time() - self.findtime_processable <= thread_time_normal * 2 - 0.1:
             return
 
         if screen == 'result':
@@ -273,6 +283,86 @@ class ThreadMain(Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'processing result screen: {self.sleep_time}')
             self.processed = True
+
+class Hotkeys():
+    def __init__(self):
+        self.bindings = {
+            'active_screenshot': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': active_screenshot,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_summary': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_summary,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_notesradar': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_notesradar,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_screenshot': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_screenshot,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_scoreinformation': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_scoreinformation,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'select_scoregraph': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': select_scoregraph,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+            'upload_musicselect': {
+                'hotkey': 'Alt+F1',
+                'on_press_callback': upload_musicselect,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            },
+        }
+    
+    def set_hotkeys(self) -> bool:
+        if setting.hotkeys is None:
+            return False
+        
+        self.bindings['active_screenshot']['hotkey'] = setting.hotkeys['active_screenshot']
+        self.bindings['select_summary']['hotkey'] = setting.hotkeys['select_summary']
+        self.bindings['select_notesradar']['hotkey'] = setting.hotkeys['select_notesradar']
+        self.bindings['select_screenshot']['hotkey'] = setting.hotkeys['select_screenshot']
+        self.bindings['select_scoreinformation']['hotkey'] = setting.hotkeys['select_scoreinformation']
+        self.bindings['select_scoregraph']['hotkey'] = setting.hotkeys['select_scoregraph']
+        self.bindings['upload_musicselect']['hotkey'] = setting.hotkeys['upload_musicselect']
+
+        return True
+    
+    def start(self) -> bool:
+        try:
+            register_hotkeys([*self.bindings.values()])
+        except Exception as ex:
+            messages = [
+                '現在ショートカットキーが全て無効です。',
+                'キー設定に問題があります。',
+                str(ex),
+            ]
+            api.send_message('error', messages)
+            logger.error(ex)
+            return False
+        
+        start_checking_hotkeys()
+        return True
+    
+    def stop(self):
+        clear_hotkeys()
 
 class GuiApi():
     '''メイン画面のAPIクラス
@@ -487,6 +577,10 @@ class GuiApi():
         setting.save()
 
         generate_exportsettingcss(setting.port['socket'])
+        
+        hotkeys.stop()
+        if hotkeys.set_hotkeys():
+            hotkeys.start()
 
     def get_recentnotebooks(self, event: webui.Event):
         ret = [result.encode() for result in recentresults]
@@ -1387,10 +1481,6 @@ def mainloop():
             musicselect_process(queue_musicselect_screen.get_nowait())
         if not queue_messages.empty():
             queuemessage = queue_messages.get_nowait()
-            if queuemessage == 'hotkey_start':
-                start_hotkeys()
-            if queuemessage == 'hotkey_stop':
-                stop_hotkeys()
             if queuemessage in ['detect_loading', 'escape_loading']:
                 api.send_message(queuemessage)
         if not queue_callfunction.empty():
@@ -1408,7 +1498,7 @@ def result_process(screen: Screen):
 
     api.send_message('append_log', 'result process')
 
-    result: Result = recog.get_result(screen)
+    result: Result | None = recog.get_result(screen)
     if result is None:
         return
 
@@ -1559,11 +1649,16 @@ def musicselect_process(np_value):
     '''
     global scoreselection
 
+    hasscoredata = recog.MusicSelect.get_hasscoredata(np_value)
+
     playmode = recog.MusicSelect.get_playmode(np_value)
     if playmode is None:
         return
     
-    playtype = playmode
+    if hasscoredata:
+        playtype = playmode
+    else:
+        playtype = 'DP BATTLE'
 
     difficulty = recog.MusicSelect.get_difficulty(np_value)
     if difficulty is None:
@@ -1605,28 +1700,32 @@ def musicselect_process(np_value):
     
     notebook = notebooks_music.get_notebook(musicname)
     
-    if notebook.update_best_musicselect({
-        'playtype': playtype,
-        'difficulty': difficulty,
-        'cleartype': recog.MusicSelect.get_cleartype(np_value),
-        'djlevel': recog.MusicSelect.get_djlevel(np_value),
-        'score': recog.MusicSelect.get_score(np_value),
-        'misscount': recog.MusicSelect.get_misscount(np_value),
-        'levels': recog.MusicSelect.get_levels(np_value)
-    }):
-        notebook.save()
-        notebook_summary.import_targetmusic(musicname, notebook)
-        notebook_summary.save()
-        api.send_message('update_summary')
+    if hasscoredata:
+        if notebook.update_best_musicselect({
+            'playtype': playtype,
+            'difficulty': difficulty,
+            'cleartype': recog.MusicSelect.get_cleartype(np_value),
+            'djlevel': recog.MusicSelect.get_djlevel(np_value),
+            'score': recog.MusicSelect.get_score(np_value),
+            'misscount': recog.MusicSelect.get_misscount(np_value),
+            'levels': recog.MusicSelect.get_levels(np_value)
+        }):
+            notebook.save()
+            notebook_summary.import_targetmusic(musicname, notebook)
+            notebook_summary.save()
+            api.send_message('update_summary')
 
-        if notesradar.insert(
-                playmode,
-                musicname,
-                difficulty,
-                notebook_summary.json['musics']
-            ):
-            api.send_message('update_notesradar')
+            if notesradar.insert(
+                    playmode,
+                    musicname,
+                    difficulty,
+                    notebook_summary.json['musics']
+                ):
+                api.send_message('update_notesradar')
     
+    socket_server.update_scoreinformation(socket_server.imagevalue_imagenothing)
+    socket_server.update_scoregraph(socket_server.imagevalue_imagenothing)
+
     api.send_message('scoreselect', {'playtype': playtype, 'musicname': musicname, 'difficulty': difficulty})
 
 def post_discord_webhooks(result: Result, imagevalue: bytes):
@@ -1766,12 +1865,25 @@ def insert_results(result: Result):
     newresult = RecentResult(result.timestamp)
 
     newresult.playtype = result.playtype
-    newresult.musicname = result.informations.music
-    newresult.difficulty = result.informations.difficulty
-    newresult.news.cleartype = result.details.clear_type.new
-    newresult.news.djlevel = result.details.dj_level.new
-    newresult.news.score = result.details.score.new
-    newresult.news.misscount = result.details.miss_count.new
+
+    if result.informations is not None:
+        newresult.musicname = result.informations.music
+        newresult.difficulty = result.informations.difficulty
+    else:
+        newresult.musicname = None
+        newresult.difficulty = None        
+
+    if result.details is not None:
+        newresult.news.cleartype = result.details.clear_type.new
+        newresult.news.djlevel = result.details.dj_level.new
+        newresult.news.score = result.details.score.new
+        newresult.news.misscount = result.details.miss_count.new
+    else:
+        newresult.news.cleartype = False
+        newresult.news.djlevel = False
+        newresult.news.score = False
+        newresult.news.misscount = False
+    
     newresult.latest = True
     newresult.saved = result.timestamp in timestamps_saved
     newresult.filtered = result.timestamp in images_filtered.keys()
@@ -1849,42 +1961,11 @@ def upload_musicselect():
     socket_server.update_screenshot(get_imagevalue(image))
 
 def check_latest_version():
-    if version == '0.0.0.0':
-        return None, None
-    
     latest_version = get_latest_version()
 
-    if latest_version == version:
+    if not version_isold(version, latest_version):
         return None, None
     
-    dev = 'dev' in version
-    if dev:
-        v = version.split('dev')[0]
-    else:
-        v = version
-
-    splitted_version = [*map(int, v.split('.'))]
-    splitted_latest_version = [*map(int, latest_version.split('.'))]
-    for i in range(len(splitted_latest_version)):
-        if splitted_version[i] > splitted_latest_version[i]:
-            return None, None
-        if splitted_version[i] < splitted_latest_version[i]:
-            break
-        
-    dev = 'dev' in version
-    if dev:
-        v = version.split('dev')[0]
-    else:
-        v = version
-
-    splitted_version = [*map(int, v.split('.'))]
-    splitted_latest_version = [*map(int, latest_version.split('.'))]
-    for i in range(len(splitted_latest_version)):
-        if splitted_version[i] > splitted_latest_version[i]:
-            return None, None
-        if splitted_version[i] < splitted_latest_version[i]:
-            break
-
     action = None
     config = LocalConfig()
     if config.installer_filepath is not None:
@@ -1926,25 +2007,10 @@ def initial_records_processing():
 
     importing = not 'last_allimported' in notebook_summary.json.keys()
     if not importing:
-        last = [v for v in notebook_summary.json['last_allimported'].split('.')]
-        if 'dev' in last[-1]:
-            last = [*[int(v) for v in last[:-1]], *[i - 1 + int(v) for i, v in enumerate(last[-1].split('dev'))]]
-        else:
-            last = [*[int(v) for v in last], 0]
-
-        threshold = [v for v in allimport_version_threshold.split('.')]
-        if 'dev' in threshold[-1]:
-            threshold = [*[int(v) for v in threshold[:-1]], *[i - 1 + int(v) for i, v in enumerate(threshold[-1].split('dev'))]]
-        else:
-            threshold = [*[int(v) for v in threshold], 0]
-
-        for i in range(len(last)):
-            if importing or last[i] > threshold[i]:
-                break
-
-            if last[i] < threshold[i]:
-                importing = True
-                break
+        importing = version_isold(
+            notebook_summary.json['last_allimported'],
+            allimport_version_threshold,
+        )
 
     if importing:
         notebook_summary.import_allmusics(version)
@@ -2018,32 +2084,6 @@ def load_resultimages(playtype: str, musicname: str, difficulty: str, timestamp:
     image_filtered = get_resultimage_filtered(scoretype, musicname, timestamp, setting.imagesave_path)
     if not recent or image_result is None or image_filtered is not None:
         images_filtered[timestamp] = image_filtered
-
-def start_hotkeys():
-    if setting.hotkeys is None:
-        return
-    
-    if 'active_screenshot' in setting.hotkeys.keys() and setting.hotkeys['active_screenshot'] != '':
-        keyboard.add_hotkey(setting.hotkeys['active_screenshot'], active_screenshot)
-    if 'select_summary' in setting.hotkeys.keys() and setting.hotkeys['select_summary'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_summary'], select_summary)
-    if 'select_notesradar' in setting.hotkeys.keys() and setting.hotkeys['select_notesradar'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_notesradar'], select_notesradar)
-    if 'select_screenshot' in setting.hotkeys.keys() and setting.hotkeys['select_screenshot'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_screenshot'], select_screenshot)
-    if 'select_scoreinformation' in setting.hotkeys.keys() and setting.hotkeys['select_scoreinformation'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_scoreinformation'], select_scoreinformation)
-    if 'select_scoregraph' in setting.hotkeys.keys() and setting.hotkeys['select_scoregraph'] != '':
-        keyboard.add_hotkey(setting.hotkeys['select_scoregraph'], select_scoregraph)
-    if 'upload_musicselect' in setting.hotkeys.keys() and setting.hotkeys['upload_musicselect'] != '':
-        keyboard.add_hotkey(setting.hotkeys['upload_musicselect'], upload_musicselect)
-
-def stop_hotkeys():
-    for target in [active_screenshot, upload_musicselect, select_summary, select_notesradar, select_screenshot, select_scoreinformation, select_scoregraph]:
-        try:
-            keyboard.remove_hotkey(target)
-        except Exception as ex:
-            api.send_message('append_log', '\n'.join(('failed stop hotkey.', str(ex))))
 
 if __name__ == '__main__':
     if gethandle(windowtitle) is not None:
@@ -2128,15 +2168,23 @@ if __name__ == '__main__':
     
     change_window_setting(handle)
 
+    hotkeys = Hotkeys()
+    if hotkeys.set_hotkeys():
+        hotkeys.start()
+
     mainloop()
+
+    hotkeys.stop()
 
     webui.clean()
 
     socket_server.stop()
     event_close.set()
 
-    socket_server.join()
-    thread.join()
+    if socket_server is not None and socket_server.is_alive():
+        socket_server.join()
+    if thread is not None and thread.is_alive():
+        thread.join()
 
     del screenshot
     

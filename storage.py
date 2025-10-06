@@ -268,10 +268,13 @@ class StorageAccessor():
         if self.bucket_resources is None:
             self.connect_bucket_resources()
         if self.bucket_resources is None:
-            return False
+            return None
 
         try:
             blob = self.bucket_resources.get_blob(resourcename)
+            if blob is None:
+                return None
+            
             return str(blob.updated)
         except Exception as ex:
             logger.exception(ex)
