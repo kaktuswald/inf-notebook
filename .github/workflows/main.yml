@@ -65,7 +65,7 @@ jobs:
         run: pip install -r requirements.txt
     
       - name: Install cx_Freeze
-        run: pip install cx_Freeze==8.4.0
+        run: pip install cx_Freeze==8.4.1
     
       - name: Build
         run: |
@@ -77,6 +77,10 @@ jobs:
         working-directory: build/
         run: mv exe.win-amd64-3.12 inf-notebook
   
+      - name: Delete no use file
+        working-directory: build/inf-notebook/PIL
+        run: del _avif.cp312-win_amd64.pyd
+      
       - name: Upload
         uses: actions/upload-artifact@v4
         with:

@@ -14,7 +14,8 @@ build_exe_options = {
         'unittest',
         'test',
         'zipp',
-        'fontTools'
+        'fontTools',
+        'PIL.AvifImagePlugin',
     ],
     'include_msvcr': True,
     'include_files': [
@@ -24,7 +25,7 @@ build_exe_options = {
         'web/lib/',
         'readme.txt',
         'version.txt',
-        icon_filename
+        icon_filename,
     ]
 }
 
@@ -42,7 +43,7 @@ executables = (
             shortcut_name=u'ビートマニアリザルト手帳',
             shortcut_dir=u'ビートマニアリザルト手帳',
             icon=icon_filename,
-            target_name='infnotebook'
+            target_name='infnotebook',
         )
     ]
 )
@@ -52,5 +53,5 @@ setup(
     version=version,
     description=u'INF NOTEBOOK',
     options={'build_exe': build_exe_options},
-    executables=executables
+    executables=executables,
 )

@@ -39,13 +39,18 @@ python main.pyw
 WindowsのPowerShellで操作する
 
 ### バージョンの更新
+- version.pyを書き換える
+```python
+version = '0.20.dev2'
+```
+- version.txtを生成する
 ```shell
-python generate_version.py v0.0.0.0
+python generate_version.py
 ```
 
 ### 実行ファイル化
 ```shell
-pip install cx_Freeze==8.3.0
+pip install cx_Freeze==8.4.1
 python setup.py build
 ```
 
