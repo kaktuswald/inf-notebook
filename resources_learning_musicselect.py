@@ -16,6 +16,8 @@ label_filepath = join(collection_basepath, 'label_musicselect.json')
 recognition_define_filename = 'define_recognition_musicselect.json'
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
 
+versions_filepath = join(registries_dirname, 'versions.txt')
+
 report_basedir_musicrecog = join(report_dirname, 'musicrecog')
 
 musicname_output_dirpath = join(report_dirname, 'musicselect_musicname')
@@ -863,42 +865,15 @@ def learning_version():
 
     define_target = musicselect_define['version']
 
-    versions = [
-        '1st',
-        'substream',
-        '2nd style',
-        '3rd style',
-        '4th style',
-        '5th style',
-        '6th style',
-        '7th style',
-        '8th style',
-        '9th style',
-        '10th style',
-        'IIDX RED',
-        'HAPPY SKY',
-        'DistorteD',
-        'GOLD',
-        'DJ TROOPERS',
-        'EMPRESS',
-        'SIRIUS',
-        'Resort Anthem',
-        'Lincle',
-        'tricoro',
-        'SPADA',
-        'PENDUAL',
-        'copula',
-        'SINOBUZ',
-        'CANNON BALLERS',
-        'Rootage',
-        'HEROIC VERSE',
-        'BISTROVER',
-        'CastHour',
-        'RESIDENT',
-        'EPOLIS',
-        'INFINITAS',
-    ]
-
+    versions = []
+    try:
+        with open(versions_filepath, 'r', encoding='UTF-8') as f:
+            for line in f.read().splitlines():
+                versions.extend(line.strip().split('&'))
+    except Exception:
+        print(f"{versions_filepath}を読み込めませんでした。")
+        return
+    
     tables = []
     for part in define_target:
         tables.append({
