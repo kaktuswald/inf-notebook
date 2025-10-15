@@ -74,11 +74,11 @@ jobs:
           python setup.py build
   
       - name: Rename
-        working-directory: build/
+        working-directory: build
         run: mv exe.win-amd64-3.12 inf-notebook
   
       - name: Delete no use file
-        working-directory: build/inf-notebook/PIL
+        working-directory: build\inf-notebook\PIL
         run: del _avif.cp312-win_amd64.pyd
       
       - name: Upload
