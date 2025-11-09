@@ -15,9 +15,9 @@ default = {
     'savefilemusicname_right': False,
     'hotkeys': {
         'active_screenshot': 'alt+F10',
-        'select_summary': 'alt+M',
-        'select_notesradar': 'alt+N',
-        'select_screenshot': 'alt+S',
+        'select_summary': 'alt+U',
+        'select_notesradar': 'alt+R',
+        'select_screenshot': 'alt+T',
         'select_scoreinformation': 'alt+I',
         'select_scoregraph': 'alt+G',
         'upload_musicselect': 'alt+F8',
