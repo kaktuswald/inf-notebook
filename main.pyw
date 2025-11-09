@@ -1691,12 +1691,18 @@ def musicselect_process(np_value):
 
     if not playmode in music_information.keys():
         return
-    if not difficulty in music_information[playmode].keys():
-        return
     
     levels = recog.MusicSelect.get_levels(np_value)
-    if not difficulty in levels.keys() or levels[difficulty] != music_information[playmode][difficulty]:
-        return
+    if scoreselection.playtype != 'DP BATTLE':
+        if not difficulty in music_information[playmode].keys():
+            return
+        if not difficulty in levels.keys() or levels[difficulty] != music_information[playmode][difficulty]:
+            return
+    else:
+        if not difficulty in music_information['SP'].keys():
+            return
+        if not difficulty in levels.keys() or levels[difficulty] != music_information['SP'][difficulty]:
+            return
     
     notebook = notebooks_music.get_notebook(musicname)
     
