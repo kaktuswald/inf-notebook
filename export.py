@@ -209,7 +209,7 @@ def output(notebook: NotebookSummary):
                 lines = [version, musicname, difficulty, level]
 
                 if notebook_target is None or not playtype in notebook_target.keys() or not difficulty in notebook_target[playtype].keys():
-                    lines.extend(('', '', '', '', '', '',))
+                    lines.extend(('', '', '', '', '', '', '', '', '', '', '', '','', '', '', '',))
                 else:
                     record = notebook_target[playtype][difficulty]
 
