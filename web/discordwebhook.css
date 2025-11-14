@@ -13,17 +13,40 @@ div.box {
 
 div.label {
     margin: 1px 5px;
-    width: 80px;
+    width: 155px;
+}
+
+div.label_register_date,
+div.label_register_publishing,
+div.label_register_filtering {
+    display: inline-block;
+    text-align: right;
+    font-size: small;
+    margin: 0px 5px;
+}
+
+div.label_register_publishing {
+    width: 96px;
+}
+
+div.label_register_filtering {
+    width: 68px;
 }
 
 div.buttons {
     display: block;
     text-align: right;
+    align-self: end;
 }
 
 div#scroll_publics,
 div#scroll_joineds {
-    height: 94px;
+    height: 120px;
+}
+
+label {
+    font-size: small;
+    align-self: center;
 }
 
 table#table_publics th:nth-child(1),
@@ -39,31 +62,40 @@ td.publicitem_cell_name,
 table#table_joineds th:nth-child(2),
 table#table_joineds td:nth-child(2),
 td.joineditem_cell_name {
-    width: 100px;
+    width: 128px;
 }
 
 table#table_publics th:nth-child(3),
 table#table_publics td:nth-child(3),
-table#table_publics th:nth-child(3),
-table#table_publics td:nth-child(3) {
-    text-align: center;
-    width: 85px;
+td.publicitem_cell_siteurl,
+table#table_joineds th:nth-child(3),
+table#table_joineds td:nth-child(3),
+td.joineditem_cell_siteurl {
+    display: none;
 }
 
 table#table_publics th:nth-child(4),
 table#table_publics td:nth-child(4),
+table#table_joineds th:nth-child(4),
+table#table_joineds td:nth-child(4) {
+    text-align: center;
+    width: 85px;
+}
+
 table#table_publics th:nth-child(5),
 table#table_publics td:nth-child(5),
-table#table_joineds th:nth-child(4),
-table#table_joineds td:nth-child(4),
+table#table_publics th:nth-child(6),
+table#table_publics td:nth-child(6),
 table#table_joineds th:nth-child(5),
-table#table_joineds td:nth-child(5) {
+table#table_joineds td:nth-child(5),
+table#table_joineds th:nth-child(6),
+table#table_joineds td:nth-child(6) {
     text-align: center;
     width: 65px;
 }
 
-table#table_joineds th:nth-child(7),
-table#table_joineds td:nth-child(7) {
+table#table_joineds th:nth-child(8),
+table#table_joineds td:nth-child(8) {
     text-align: center;
     width: 40px;
 }
@@ -77,12 +109,28 @@ table#table_musicnames td:nth-child(2) {
     display: none;
 }
 
-input#text_url {
+input#text_eventname {
+    width: 160px;
+}
+
+input#text_authorname {
+    width: 100px;
+}
+
+input#text_comment {
+    width: 400px;
+}
+
+input.url {
     width :460px;
 }
 
+input[type="datetime-local"] {
+    width: 135px;
+}
+
 div.scroll_musicnames {
-    height: 96px;
+    height: 80px;
 }
 
 td.musicname_cell_version {
@@ -100,7 +148,6 @@ textarea#faildtestpostmessage {
 
 span.message {
     color: var(--message-color);
-    user-select: none;
 }
 
 dialog#dialog_confirmregister {

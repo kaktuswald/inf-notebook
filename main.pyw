@@ -75,7 +75,6 @@ from image import (
     openfolder_scoreinformations,
     openfolder_export,
 )
-from discord_webhook import filtereds as discordwebhook_filtereds
 from discord_webhook import post_test,post_registered,post_result
 from result import Result,RecentResult
 from notesradar import NotesRadar
@@ -1337,6 +1336,7 @@ class GuiApiDiscordWebhook():
         window.bind('discordwebhook_savesetting', self.save_setting)
         window.bind('discordwebhook_joinevent', self.join_event)
         window.bind('discordwebhook_leaveevent', self.leave_event)
+        window.bind('discordwebhook_openurl', self.openurl)
         window.bind('discordwebhook_testpost', self.testpost)
         window.bind('discordwebhook_register', self.register)
 
@@ -1376,7 +1376,6 @@ class GuiApiDiscordWebhook():
         discordwebhooksetting = loads(event.get_string_at(0))
 
         setting.discord_webhook['playername'] = discordwebhooksetting['playername']
-        setting.discord_webhook['filter'] = discordwebhooksetting['filter']
 
         setting.save()
 
@@ -1394,15 +1393,31 @@ class GuiApiDiscordWebhook():
         
         target = self.events[id]
 
-        setting.discord_webhook['joinedevents'][id] = {
+        webhook = {
             'name': target['name'],
-            'url': target['url'],
-            'mode': target['mode'],
-            'startdatetime': target['startdatetime'],
-            'enddatetime': target['enddatetime'],
-            'targetscore': target['targetscore'],
-            'mybest': None,
         }
+
+        # v0.20系以降のみ
+        for key in ['authorname', 'comment', 'siteurl']:
+            if key in target.keys():
+                webhook[key] = target[key]
+        
+        if 'posturl' in target.keys():
+            # v0.20系以降用
+            webhook['url'] = target['posturl']
+            webhook['posturl'] = target['posturl']
+        else:
+            # v0.17～0.19系用
+            webhook['url'] = target['url']
+            webhook['posturl'] = target['url']
+
+        webhook['mode'] = target['mode']
+        webhook['startdatetime'] = target['startdatetime']
+        webhook['enddatetime'] = target['enddatetime']
+        webhook['targetscore'] = target['targetscore']
+        webhook['mybest'] = None
+
+        setting.discord_webhook['joinedevents'][id] = webhook
 
         setting.save()
         api.send_message('discordwebhook_refresh')
@@ -1417,10 +1432,15 @@ class GuiApiDiscordWebhook():
         setting.save()
         api.send_message('discordwebhook_refresh')
 
+    def openurl(self, event: webui.Event):
+        url = event.get_string_at(0)
+
+        webbrowser.open(url)
+
     def testpost(self, event: webui.Event):
         values = loads(event.get_string_at(0))
 
-        ret = post_test(values['url'], values)
+        ret = post_test(values['posturl'], values)
 
         event.return_string(dumps(ret))
     
@@ -1438,18 +1458,24 @@ class GuiApiDiscordWebhook():
             
             discordwebhook = {
                 'name': values['name'],
-                'private': values['private'],
-                'url': values['url'],
+                'authorname': values['authorname'],
+                'comment': values['comment'],
+                'siteurl': values['siteurl'],
+                'url': values['posturl'],   # v0.17～0.19系互換性の為に残しておく
+                'posturl': values['posturl'],
                 'mode': values['mode'],
                 'startdatetime': values['startdatetime'],
                 'enddatetime': values['enddatetime'],
+                'private': values['private'],
+                'publishdatetime': values['publishdatetime'],
                 'targetscore': targetscore,
             }
 
             id = str(uuid1())
             if(storage.upload_discordwebhook(f'{id}.json', discordwebhook)):
                 event.return_string(dumps(id))
-                ret = post_registered(values['url'], id)
+                url = values['posturl'] if 'posturl' in values.keys() else values['url']
+                ret = post_registered(url, id)
             else:
                 event.return_string(dumps(None))
         except Exception as ex:
@@ -1556,37 +1582,8 @@ def result_process(screen: Screen):
 
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
         if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
-            imagevalue_discordwebhook = None
-            if setting.discord_webhook['filter'] == discordwebhook_filtereds.NONE:
-                imagevalue_discordwebhook = get_imagevalue(resultimage)
-                imagevalues_result[result.timestamp] = imagevalue_discordwebhook
-            if setting.discord_webhook['filter'] == discordwebhook_filtereds.WHOLE:
-                if filteredimage_whole is None:
-                    filteredimage_whole = filter_result(
-                        resultimage,
-                        result.play_side,
-                        result.rival,
-                        result.details.graphtarget == 'rival',
-                        False,
-                    )
-                filteredimagevalue_whole = get_imagevalue(filteredimage_whole)
-                if not setting.filter_compact:
-                    imagevalues_filtered[result.timestamp] = filteredimagevalue_whole
-                imagevalue_discordwebhook = filteredimagevalue_whole
-            if setting.discord_webhook['filter'] == discordwebhook_filtereds.COMPACT:
-                if filteredimage_compact is None:
-                    filteredimage_compact = filter_result(
-                        resultimage,
-                        result.play_side,
-                        result.rival,
-                        result.details.graphtarget == 'rival',
-                        True,
-                    )
-                filteredimagevalue_compact = get_imagevalue(filteredimage_compact)
-                if setting.filter_compact:
-                    imagevalues_filtered[result.timestamp] = filteredimagevalue_compact
-                imagevalue_discordwebhook = filteredimagevalue_compact
-            
+            imagevalue_discordwebhook = get_imagevalue(resultimage)
+            imagevalues_result[result.timestamp] = imagevalue_discordwebhook
             Thread(target=post_discord_webhooks, args=(result, imagevalue_discordwebhook)).start()
     
     if setting.newrecord_only and not result.has_new_record():

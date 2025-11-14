@@ -3,16 +3,15 @@ import requests
 
 from result import Result,ResultInformations,ResultDetails
 
-class filtereds():
-    NONE: str = 'none'
-    WHOLE: str = 'whole'
-    COMPACT: str = 'compact'
-
 def post_test(url: str, values):
     if not values['private']:
         contexts = [f'{values['name']}']
     else:
         contexts = [f'{values['name']}(非公開)']
+
+    contexts.append(f'開催者: {values['authorname']}')
+    contexts.append(f'コメント: {values['comment']}')
+    contexts.append(f'サイトURL: {values['siteurl']}')
 
     if values['mode'] == 'battle':
         contexts.append('モード: バトル')
@@ -50,8 +49,8 @@ def post_registered(url: str, id: str):
         pass
     
 def post_result(djname: str, setting: dict, result: Result, imagevalue: bytes):
-    informations: ResultInformations = result.informations
-    details: ResultDetails = result.details
+    informations: ResultInformations | None = result.informations
+    details: ResultDetails | None = result.details
 
     if details is None or informations is None:
         return None, None
@@ -90,10 +89,13 @@ def post_result(djname: str, setting: dict, result: Result, imagevalue: bytes):
     
     try:
         data = {'content': '\n'.join(contexts)}
-        response = requests.post(setting['url'], data=json.dumps(data), headers={"Content-Type": "application/json"})
+
+        url = setting['posturl'] if 'posturl' in setting.keys() else setting['url']
+
+        response = requests.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"})
         if response.status_code != 204:
             return False, f'Error {response.status_code}'
-        response = requests.post(setting['url'], files={'file': ('result.png', imagevalue)})
+        response = requests.post(url, files={'file': ('result.png', imagevalue)})
         if response.status_code != 200:
             return False, f'Error {response.status_code}'
     except Exception as ex:

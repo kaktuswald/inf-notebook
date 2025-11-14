@@ -15,21 +15,16 @@
     </div>
     <div>プレイヤー設定</div>
     <div class="box">
-      <div class="split_horizontal">
-        <div class="label highlight">プレイヤー名</div>
-        <input type="text" id="text_playername"></select>
-      </div>
-      <div class="split_horizontal">
-        <div class="label highlight">ライバル名</div>
-        <input type="radio" name="filter" id="radio_filter_none" checked/>
-        <label class="filter" for="radio_filter_none">なし</label>
-        <input type="radio" name="filter" id="radio_filter_whole" />
-        <label class="filter" for="radio_filter_whole">全体をぼかす</label>
-        <input type="radio" name="filter" id="radio_filter_compact" />
-        <label class="filter" for="radio_filter_compact">DJ NAMEのみぼかす</label>
-      </div>
-      <div class="buttons">
-        <button id="button_save">設定保存</button>
+      <div class="spacebetween">
+        <div>
+          <div class="split_horizontal">
+            <div class="label highlight">プレイヤー名</div>
+            <input type="text" id="text_playername"></select>
+          </div>
+        </div>
+        <div class="buttons">
+          <button id="button_save">設定保存</button>
+        </div>
       </div>
     </div>
     <div>公開中のイベント</div>
@@ -38,7 +33,8 @@
         <table id="table_publics">
           <tr class="tableheader">
             <th>ID</th>
-            <th>名称</th>
+            <th>イベント</th>
+            <th>サイトURL</th>
             <th>モード</th>
             <th>開始日時</th>
             <th>終了日時</th>
@@ -47,8 +43,9 @@
         </table>
       </div>
       <div class="buttons">
+        <button id="button_opensitepublic">選択したイベントのサイトURLを開く</button>
         <button id="button_joinevent">リストから選択して参加する</button>
-        <button id="button_joineventinputid">ID指定で参加する</button>
+        <button id="button_joineventinputid">ID入力で参加する</button>
       </div>
     </div>
     <div>参加中のイベント</div>
@@ -57,7 +54,8 @@
         <table id="table_joineds">
           <tr class="tableheader">
             <th>ID</th>
-            <th>名称</th>
+            <th>イベント</th>
+            <th>サイトURL</th>
             <th>モード</th>
             <th>開始日時</th>
             <th>終了日時</th>
@@ -67,6 +65,7 @@
         </table>
       </div>
       <div class="buttons">
+        <button id="button_opensitejoined">選択したイベントのサイトURLを開く</button>
         <button id="button_leaveevent">選択したイベントを辞退する</button>
       </div>
     </div>

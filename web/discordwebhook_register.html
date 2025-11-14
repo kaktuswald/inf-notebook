@@ -11,12 +11,24 @@
   </head>
   <body>
     <div class="split_horizontal">
-      <div class="label highlight">名称</div>
-      <input type="text" id="text_settingname"></select>
+      <div class="label highlight">イベント名</div>
+      <input type="text" id="text_eventname"></select>
     </div>
     <div class="split_horizontal">
-      <div class="label highlight">URL</div>
-      <input type="text" id="text_url" placeholder="DiscordのウェブフックのURLをペーストしてください"></select>
+      <div class="label highlight">開催者名</div>
+      <input type="text" id="text_authorname"></select>
+    </div>
+    <div class="split_horizontal">
+      <div class="label highlight">コメント</div>
+      <input type="text" id="text_comment"></select>
+    </div>
+    <div class="split_horizontal">
+      <div class="label highlight">サイトURL</div>
+      <input type="text" id="text_siteurl" class="url" placeholder="イベントサイトや告知ポストのURL"></select>
+    </div>
+    <div class="split_horizontal">
+      <div class="label highlight">DiscordウェブフックURL</div>
+      <input type="text" id="text_posturl" class="url" placeholder="DiscordのウェブフックのURLをペーストしてください"></select>
     </div>
     <div class="split_horizontal">
       <div class="label highlight">モード</div>
@@ -28,17 +40,20 @@
       <label class="mode" for="radio_mode_misscount">ミスカウント大会</label>
     </div>
     <div class="split_horizontal">
+      <div class="label highlight">開催期間</div>
+      <div>
+        <div class="label_register_date">開始</div>
+        <input type="datetime-local" id="date_start"/>
+        <div class="label_register_date">終了</div>
+        <input type="datetime-local" id="date_end"/>
+      </div>
+    </div>
+    <div class="split_horizontal">
       <div class="label highlight">公開設定</div>
       <input type="checkbox" id="check_private"/>
       <label for="check_private">非公開</label>
-    </div>
-    <div class="split_horizontal">
-      <div class="label highlight">開始日時</div>
-      <input type="datetime-local" id="date_start">
-    </div>
-    <div class="split_horizontal">
-      <div class="label highlight">終了日時</div>
-      <input type="datetime-local" id="date_end">
+      <div class="label_register_publishing">公開開始日時</div>
+      <input type="datetime-local" id="date_publish">
     </div>
     <div class="split_horizontal">
       <div class="label highlight">対象譜面</div>
@@ -47,13 +62,13 @@
           <div class="label highlight">絞り込み</div>
           <div>
             <div>
-              <div class="label">バージョン</div>
+              <div class="label_register_filtering">バージョン</div>
               <select id="select_versions">
                 <option value="ALL">ALL</option>
               </select>
             </div>
             <div>
-              <div class="label">曲名</div>
+              <div class="label_register_filtering">曲名</div>
               <input type="text" id="text_musicname_search"></select>
             </div>
             </div>
@@ -80,14 +95,16 @@
         </div>
       </div>
     </div>
-    <div>
-      <input type="checkbox" id="check_downloadid" checked/>
-      <label for="check_downloadid">イベントIDをファイルに保存する</label>
-    </div>
-    <div class="buttons">
-      <button id="button_test">投稿テスト</button>
-      <button id="button_register" disabled>登録</button>
-      <button id="button_close">閉じる</button>
+    <div class="spacebetween">
+      <div>
+        <input type="checkbox" id="check_downloadid" checked/>
+        <label for="check_downloadid">イベントIDをファイルに保存する</label>
+      </div>
+      <div class="buttons">
+        <button id="button_test">投稿テスト</button>
+        <button id="button_register" disabled>登録</button>
+        <button id="button_close">閉じる</button>
+      </div>
     </div>
     <dialog id="dialog_failedtestpost">
       <div>
