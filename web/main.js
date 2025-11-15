@@ -220,40 +220,59 @@ async function initialize() {
 
   webui.start_capturing();
 
-  const result = JSON.parse(await webui.check_latestversion());
-  if(result) {
+  const versionresult = JSON.parse(await webui.check_latestversion());
+  if(versionresult) {
     $('div#findnewestversion_message').text(result);
     $('dialog#dialog_findnewestversion')[0].showModal();
 
     return;
   }
 
-  const newpublicwebhooks = JSON.parse(await webui.discordwebhook_getnewpublics());
-  const ids = Object.keys(newpublicwebhooks);
-  if(ids.length) {
-    ids.forEach(id => {
-      const target = newpublicwebhooks[id];
+  const eventmessages = [];
+  const deletedevents = JSON.parse(await webui.discordwebhook_deleteendedjoineds());
+  for(const target in deletedevents)
+    eventmessages.push(`${deletedevents[target].name} が終了しました！`);
 
-      const start_localdt = new Date(target.startdatetime);
-      const start_month = start_localdt.getMonth() + 1;
-      const start_day = start_localdt.getDate();
-      const start_hour = start_localdt.getHours();
-      const start_minute = start_localdt.getMinutes();
-      const formatted_startdt = `${start_month}/${start_day} ${start_hour}:${start_minute}`;
-
-      const end_localdt = new Date(target.enddatetime);
-      const end_month = end_localdt.getMonth() + 1;
-      const end_day = end_localdt.getDate();
-      const end_hour = end_localdt.getHours();
-      const end_minute = end_localdt.getMinutes();
-      const formatted_enddt = `${end_month}/${end_day} ${end_hour}:${end_minute}`;
-
-      const li = $('<li>').text(`${target.name} ${formatted_startdt} から ${formatted_enddt} まで`);
-      $('ul#list_newdiscordwebhookevents').append(li);
-    });
-
-    $('dialog#dialog_newdiscordwebhookevents')[0].showModal();
+  const eventresult = JSON.parse(await webui.discordwebhook_downloadevents());
+  if(eventresult) {
+    const newpublicwebhooks = JSON.parse(await webui.discordwebhook_getpublishednewpublics());
+    const ids = Object.keys(newpublicwebhooks);
+    if(ids.length) {
+      ids.forEach(id => {
+        const target = newpublicwebhooks[id];
+  
+        const start_localdt = new Date(target.startdatetime);
+        const start_month = String(start_localdt.getMonth() + 1).padStart(2, '0');
+        const start_day = String(start_localdt.getDate()).padStart(2, '0');
+        const start_hour = String(start_localdt.getHours()).padStart(2, '0');
+        const start_minute = String(start_localdt.getMinutes()).padStart(2, '0');
+        const formatted_startdt = `${start_month}/${start_day} ${start_hour}:${start_minute}`;
+  
+        const end_localdt = new Date(target.enddatetime);
+        const end_month = String(end_localdt.getMonth() + 1).padStart(2, '0');
+        const end_day = String(end_localdt.getDate()).padStart(2, '0');
+        const end_hour = String(end_localdt.getHours()).padStart(2, '0');
+        const end_minute = String(end_localdt.getMinutes()).padStart(2, '0');
+        const formatted_enddt = `${end_month}/${end_day} ${end_hour}:${end_minute}`;
+  
+        eventmessages.push(`新着イベント ${target.name}(${formatted_startdt}～${formatted_enddt})`);
+      });
+    }
   }
+  else {
+    eventmessages.push('イベント情報のダウンロードに失敗しました。');
+  }
+
+  if(eventmessages.length > 0) {
+    eventmessages.forEach(message => {
+      const li = $('<li>').text(message);
+      $('ul#list_discordwebhookeventmessage').append(li);
+
+      $('dialog#dialog_discordwebhookeventsnotify')[0].showModal();
+    });
+  }
+
+  reload_discordwebhook_settings();
 }
 
 async function load_setting() {
@@ -267,8 +286,6 @@ async function load_setting() {
     $('#button_recents_confirm_uploadcollectionimages').css('display', 'block');
   else
     $('#button_recents_confirm_uploadcollectionimages').css('display', 'none');
-
-  refresh_discordwebhook_settings(setting['discord_webhook']['joinedevents']);
 }
 
 async function generate_imagenothingimage() {
@@ -1650,8 +1667,20 @@ function refresh_discordwebhook_settings(settings) {
   Object.keys(settings).forEach(function(key) {
     const target = settings[key];
 
+    const targetscore = target.targetscore;
+
+    const tips = [
+      `[${targetscore.playmode}${targetscore.difficulty[0]}]${targetscore.musicname}`,
+      '',
+      `開催者: ${target.authorname}`,
+      `サイトURL: ${target.siteurl}`,
+      '',
+      target.comment,
+    ];
+  
     const tr = $('<tr>');
     tr.addClass('tableitem discordwebhookitem');
+    tr.attr('title', tips.join('\n'));
 
     const td_name = $('<td>').text(target['name']);
     td_name.addClass('discordwebhook_cell_name');

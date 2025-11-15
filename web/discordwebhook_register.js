@@ -6,17 +6,25 @@ $(function() {
     if(e == webui.event.DISCONNECTED) console.log('disconnect.');
   });
 
-  const startdtstring = new Date().toISOString().slice(0, 16);
+  const defaultstartdt = new Date();
+  defaultstartdt.setMinutes(defaultstartdt.getMinutes() - defaultstartdt.getTimezoneOffset());
+  const startdtstring = defaultstartdt.toISOString().slice(0, 16);
 
   const defaultenddt = new Date();
-  defaultenddt.setHours(defaultenddt.getHours() + 8);
   defaultenddt.setMinutes(defaultenddt.getMinutes() - defaultenddt.getTimezoneOffset());
+  defaultenddt.setHours(defaultenddt.getHours() + 8);
   const enddtstring = defaultenddt.toISOString().slice(0, 16);
 
+  const defaultpublishdt = new Date();
+  defaultpublishdt.setMinutes(defaultpublishdt.getMinutes() - defaultpublishdt.getTimezoneOffset());
+  const publishdtstring = defaultpublishdt.toISOString().slice(0, 16);
+
+  $('input#date_start').attr('min', startdtstring);
   $('input#date_start').val(startdtstring);
   $('input#date_end').attr('min', enddtstring);
   $('input#date_end').val(enddtstring);
-  $('input#date_publish').val(startdtstring);
+  $('input#date_publish').attr('max', startdtstring);
+  $('input#date_publish').val(publishdtstring);
 
   $('button.dialogclose').on('click', onclick_dialogclose);
 
@@ -121,10 +129,16 @@ function onchange_datestart(e) {
   const startdt = new Date($('input#date_start').val());
   startdt.setMinutes(startdt.getMinutes() - startdt.getTimezoneOffset());
 
-  const string = startdt.toISOString().slice(0, 16);
+  const publishdtmax = startdt.toISOString().slice(0, 16);
 
-  $('input#date_publish').attr('min', string);
-  $('input#date_publish').val(string);
+  startdt.setHours(startdt.getHours() + 8);
+  const enddt = startdt.toISOString().slice(0, 16);
+
+  $('input#date_end').attr('min', enddt);
+  $('input#date_end').val(enddt);
+
+  $('input#date_publish').attr('max', publishdtmax);
+  // $('input#date_publish').val(string);
 }
 
 /**
@@ -353,7 +367,7 @@ function get_input() {
   }
 
   const posturl = $('input#text_posturl').val();
-  if(!checkinput('サイトURL', comment, 800, false))
+  if(!checkinput('DiscordウェブフックURL', posturl, 800, false))
     return null;
 
   if(!posturl.startsWith('https://discord.com/api/webhooks/')) {

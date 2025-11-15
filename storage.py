@@ -3,7 +3,6 @@ from os.path import join,exists,splitext
 import io
 from google.cloud import storage
 from google.cloud.storage import Blob
-import uuid
 from PIL import Image,ImageDraw
 from json import loads,dumps
 from uuid import uuid1
@@ -191,7 +190,7 @@ class StorageAccessor():
         if self.client is None:
             return
         
-        object_name = f'{uuid.uuid1()}.png'
+        object_name = f'{uuid1()}.png'
 
         informations_trim = force
         details_trim = force
@@ -244,7 +243,7 @@ class StorageAccessor():
         if self.client is None:
             return
         
-        object_name = f'{uuid.uuid1()}.png'
+        object_name = f'{uuid1()}.png'
 
         trim = image.crop(define.musicselect_trimarea)
         image_draw = ImageDraw.Draw(trim)
@@ -298,7 +297,7 @@ class StorageAccessor():
         
         return True
     
-    def download_discordwebhooks(self) -> dict[dict]:
+    def download_discordwebhooks(self) -> dict[dict] | None:
         if self.bucket_discordwebhooks is None:
             self.connect_bucket_discordwebhooks()
         if self.bucket_discordwebhooks is None:

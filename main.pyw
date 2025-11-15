@@ -1325,13 +1325,16 @@ class GuiApiExport():
             dump(self.csssetting, f, indent=2)
 
 class GuiApiDiscordWebhook():
-    events: dict = {}
+    events: dict[dict] | None = None
+    publicevents: dict[dict] | None = None
 
     def __init__(self, window: webui.Window):
         self.window = window
 
-        window.bind('discordwebhook_getpublics', self.get_publics)
-        window.bind('discordwebhook_getnewpublics', self.get_newpublics)
+        window.bind('discordwebhook_downloadevents', self.download_events)
+        window.bind('discordwebhook_deleteendedjoineds', self.delete_endedjoineds)
+        window.bind('discordwebhook_getpublishednewpublics', self.get_publishednewpublics)
+        window.bind('discordwebhook_getpublishedpublics', self.get_publishedpublics)
         window.bind('discordwebhook_getjoineds', self.get_joineds)
         window.bind('discordwebhook_savesetting', self.save_setting)
         window.bind('discordwebhook_joinevent', self.join_event)
@@ -1340,34 +1343,106 @@ class GuiApiDiscordWebhook():
         window.bind('discordwebhook_testpost', self.testpost)
         window.bind('discordwebhook_register', self.register)
 
-    def get_publics(self, event: webui.Event):
+    def download_events(self, event: webui.Event):
+        '''イベントデータをダウンロードする
+        
+        GCPからイベントデータを取得する。
+        取得に成功すればフロントエンドにTrueを返す。
+
+        Args:
+            event(webui.Event): イベント
+        '''
         self.events = storage.download_discordwebhooks()
 
-        if self.events is None:
+        event.return_string(dumps(self.events is not None))
+
+        self.publicevents = {}
+        if self.events is not None:
+            for key, value in self.events.items():
+                if not value['private']:
+                    self.publicevents[key] = value
+
+    def delete_endedjoineds(self, event: webui.Event):
+        '''終了済みの参加イベントを削除する
+
+        削除するイベントは設定から取り除く。
+        削除したイベントデータをフロントエンドに返す。
+
+        Args:
+            event(webui.Event): イベント
+        '''
+        nowdt = datetime.now(timezone.utc)
+
+        targets = {}
+        for key, value in setting.discord_webhook['joinedevents'].items():
+            enddt = datetime.strptime(value['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+            if nowdt > enddt:
+                targets[key] = value
+
+        if len(targets):
+            for id in targets.keys():
+                del setting.discord_webhook['joinedevents'][id]
+            
+            setting.save()
+
+        event.return_string(dumps(targets))
+
+    def get_publishednewpublics(self, event: webui.Event):
+        '''始めて表示する公開済みの公開イベントを返す
+        
+        フロントエンドに返したイベントのIDは設定ファイルに控えておく。
+
+        Args:
+            event(webui.Event): イベント
+        '''
+        publishedpublics = self.pick_publishedpublics()
+
+        if publishedpublics is None:
             event.return_string(dumps(None))
             return
-            
-        publics = {}
-        for key, value in self.events.items():
-            if not value['private']:
-                publics[key] = value
         
-        event.return_string(dumps(publics))
+        setting.discord_webhook['seenevents'] = [id for id in setting.discord_webhook['seenevents'] if id in publishedpublics.keys()]
 
-    def get_newpublics(self, event: webui.Event):
-        self.events = storage.download_discordwebhooks()
-        newpublics = {}
-
-        if self.events is not None:
-            setting.discord_webhook['seenevents'] = [item for item in setting.discord_webhook['seenevents'] if item in self.events.keys()]
-            for key, value in self.events.items():
-                if not value['private'] and not key in setting.discord_webhook['seenevents']:
-                    newpublics[key] = value
-                    setting.discord_webhook['seenevents'].append(key)
+        returns = {}
+        for key, value in publishedpublics.items():
+            if not value['private'] and not key in setting.discord_webhook['seenevents']:
+                returns[key] = value
+                setting.discord_webhook['seenevents'].append(key)
         
-        event.return_string(dumps(newpublics))
+        event.return_string(dumps(returns))
 
         setting.save()
+
+    def get_publishedpublics(self, event: webui.Event):
+        '''公開済みの公開イベントを返す
+        
+        Args:
+            event(webui.Event): イベント
+        '''
+        event.return_string(dumps(self.pick_publishedpublics()))
+
+    def pick_publishedpublics(self):
+        '''全ての公開イベントから公開日時を過ぎたのものをピックする
+
+        Returns:
+            dict[dict] | None: 公開の始まった公開イベント群
+        '''
+        if self.publicevents is None:
+            return None
+        
+        nowdt = datetime.now(timezone.utc)
+
+        returns: dict[dict] = {}
+        for key, value in self.publicevents.items():
+            published = not 'publishdatetime' in value.keys()
+            if not published:
+                publishdt = datetime.strptime(value['publishdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+                published = publishdt < nowdt
+
+            if published:
+                returns[key] = value
+        
+        return returns
 
     def get_joineds(self, event: webui.Event):
         event.return_string(dumps(setting.discord_webhook['joinedevents']))
@@ -1734,25 +1809,16 @@ def musicselect_process(np_value):
 def post_discord_webhooks(result: Result, imagevalue: bytes):
     setting_updated = False
     posttargets = []
-    deletetargets = []
     logs = []
 
+    nowdt = datetime.now(timezone.utc)
+    
     for key, webhooksetting in setting.discord_webhook['joinedevents'].items():
-        nowdt = datetime.now(timezone.utc)
         startdt = datetime.strptime(webhooksetting['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
         enddt = datetime.strptime(webhooksetting['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
         
-        if nowdt > enddt:
-            deletetargets.append(key)
-            continue
-
-        if nowdt >= startdt:
+        if startdt <= nowdt and nowdt < enddt:
             posttargets.append(webhooksetting)
-
-    if len(deletetargets):
-        setting_updated = True
-        for key in deletetargets:
-            del setting.discord_webhook['joinedevents'][key]
 
     if len(posttargets):
         dt = datetime.now().strftime('%H:%M')

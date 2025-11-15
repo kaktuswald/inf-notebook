@@ -37,12 +37,13 @@ async function get_publics() {
 
   $('span#text_geteventsstatus').text('イベントリスト読込中...');
 
-  const publics = JSON.parse(await webui.discordwebhook_getpublics());
-
-  if(publics === null) {
+  const eventresult = JSON.parse(await webui.discordwebhook_downloadevents());
+  if(!eventresult) {
     $('span#text_geteventsstatus').text('読込に失敗しました');
     return;
   }
+
+  const publics = JSON.parse(await webui.discordwebhook_getpublishedpublics());
 
   $('span#text_geteventsstatus')
     .text('')
