@@ -119,6 +119,18 @@ class ThreadMain(Thread):
     findtime_processable: float | None = None
     processed: bool = False
     screen_latest = None
+    capturing_successful: bool | None = None
+    '''キャプチャーの成否
+    
+    None: 評価が終わっていない
+    True: キャプチャーできている
+    False: キャプチャーできていない
+    '''
+    capturing_checkstarttime = None
+    '''キャプチャーチェックの開始時間
+
+    一定時間真っ暗が続いた場合はキャプチャー不可とする。
+    '''
 
     def __init__(self, event_close: Event, queues: dict[str, Queue]):
         self.event_close = event_close
@@ -169,6 +181,8 @@ class ThreadMain(Thread):
         
         if not self.active:
             self.active = True
+            self.capturing_successful = None
+            self.capturing_checkstarttime = time.time()
             self.waiting = False
             self.musicselect = False
             self.sleep_time = thread_time_normal
@@ -178,6 +192,26 @@ class ThreadMain(Thread):
         screenshot.xy = (rect.left, rect.top)
         screen = screenshot.get_screen()
 
+        shotted = False
+        if self.capturing_successful is None:
+            screenshot.shot()
+            shotted = True
+
+            if not screenshot.is_black():
+                self.capturing_successful = True
+            else:
+                if time.time() - self.capturing_checkstarttime >= 60:
+                    self.capturing_successful = False
+                    messages = [
+                        'キャプチャー画面がずっと真っ黒です。',
+                        '',
+                        'ゲーム実行ファイル(\\beatmania IIDX INFINITAS\\games\\app\\bm2dx.exe)のプロパティから「全画面表示の最適化を無効にする」のチェックを外すと正常化する可能性があります。',
+                    ]
+                    api.send_message('error', messages)
+
+        if not self.capturing_successful:
+            return
+        
         if screen != self.screen_latest:
             self.confirmed_somescreen = False
             self.confirmed_processable = False
@@ -219,7 +253,6 @@ class ThreadMain(Thread):
             self.sleep_time = thread_time_normal
             self.queues['log'].put(f'screen out music select: {self.sleep_time}')
 
-        shotted = False
         if screen == 'music_select':
             if not self.musicselect:
                 # 画面が選曲に入ったとき
@@ -227,8 +260,9 @@ class ThreadMain(Thread):
                 self.sleep_time = thread_time_musicselect
                 self.queues['log'].put(f'screen in music select: {self.sleep_time}')
 
-            screenshot.shot()
-            shotted = True
+            if not shotted:
+                screenshot.shot()
+                shotted = True
 
             trimmed = screenshot.np_value[define.musicselect_trimarea_np]
             if recog.MusicSelect.get_version(trimmed) is not None:
