@@ -222,10 +222,8 @@ async function initialize() {
 
   const versionresult = JSON.parse(await webui.check_latestversion());
   if(versionresult) {
-    $('div#findnewestversion_message').text(result);
+    $('div#findnewestversion_message').text(versionresult);
     $('dialog#dialog_findnewestversion')[0].showModal();
-
-    return;
   }
 
   const eventmessages = [];
