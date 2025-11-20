@@ -10,7 +10,7 @@ from PIL import Image
 from urllib.parse import urljoin
 from subprocess import Popen
 from http.client import HTTPResponse
-from os.path import abspath,isfile
+from os.path import abspath,isfile,isdir
 from json import dump,dumps,load,loads
 from uuid import uuid1
 from base64 import b64decode,b64encode
@@ -438,6 +438,10 @@ class GuiApi():
     def get_resource_notesradar(event: webui.Event):
         event.return_string(dumps(resource.notesradar))
     
+    @staticmethod
+    def check_imagesavepath(event: webui.Event):
+        event.return_string(dumps(isdir(setting.imagesave_path)))
+
     def __init__(self, window: webui.Window, notebooks: Notebooks):
         self.window = window
         self.notebooks = notebooks
@@ -460,6 +464,7 @@ class GuiApi():
         window.bind('start_capturing', GuiApi.start_capturing)
         window.bind('getresource_musictable', GuiApi.get_resource_musictable)
         window.bind('getresource_notesradar', GuiApi.get_resource_notesradar)
+        window.bind('check_imagesavepath', GuiApi.check_imagesavepath)
 
         window.bind('get_setting', self.get_setting)
         window.bind('save_setting', self.save_setting)

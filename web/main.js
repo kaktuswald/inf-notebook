@@ -226,6 +226,10 @@ async function initialize() {
     $('dialog#dialog_findnewestversion')[0].showModal();
   }
 
+  const imagesavepathresult = JSON.parse(await webui.check_imagesavepath());
+  if(!imagesavepathresult)
+    display_errormessage(['画像ファイル保存先のパスが見つかりません。']);
+
   const eventmessages = [];
   const deletedevents = JSON.parse(await webui.discordwebhook_deleteendedjoineds());
   for(const target in deletedevents)
