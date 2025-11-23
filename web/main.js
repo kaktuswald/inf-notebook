@@ -774,14 +774,6 @@ async function display_scoreresult() {
     return;
   }
 
-  const scoreresult = JSON.parse(await webui.get_scoreresult(selected_musicname, selected_playtype, selected_difficulty));
-
-  if(scoreresult == null) {
-    $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
-    $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
-    return;
-  }
-
   const battle = !playmodes.includes(selected_playtype);
   let scoretype;
   if(!battle)
@@ -789,6 +781,15 @@ async function display_scoreresult() {
   else
     scoretype = `DB${selected_difficulty[0]}`;
   $('span#selectscore').text(`[${scoretype}]${selected_musicname}`);
+
+  const scoreresult = JSON.parse(await webui.get_scoreresult(selected_musicname, selected_playtype, selected_difficulty));
+  if(scoreresult == null) {
+    $('#score_played_count').text(0);
+
+    $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
+    $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+    return;
+  }
 
   const blob_scoreinformation = await drawer_scoreinformation.draw(
     scoreresult,
