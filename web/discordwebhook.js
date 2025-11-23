@@ -5,6 +5,7 @@ $(function() {
   });
 
   $('button.dialogclose').on('click', onclick_dialogclose);
+  $('button#button_playernameinputok').on('click', onclick_playernameinputok);
   $('button#button_save').on('click', onclick_save);
   $('button#button_opensitepublic').on('click', onclick_opensitepublic);
   $('button#button_joinevent').on('click', onclick_joinevent);
@@ -25,7 +26,11 @@ async function initialize() {
 
   const setting = JSON.parse(await webui.get_setting());
   $('input#text_playername').val(setting.discord_webhook.playername);
-  $(`input#radio_filter_${setting.discord_webhook.filter}`).prop('checked', true);
+
+  if(['', 'NO NAME'].includes(setting.discord_webhook.playername)) {
+    $('input#text_dialogplayername').val(setting.discord_webhook.playername);
+    $('dialog#dialog_playernameinput')[0].showModal();
+  }
 
   await get_joineds();
   await get_publics();
@@ -217,6 +222,19 @@ function communication_message(message, data = null) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_dialogclose(e) {
+  $(this).closest('dialog')[0].close();
+}
+
+/**
+ * ダイアログのプレイヤー名保存ボタンを押す
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_playernameinputok(e) {
+  webui.discordwebhook_savesetting(JSON.stringify({
+    playername: $('input#text_dialogplayername').val(),
+  }));
+
+  $('input#text_playername').val($('input#text_dialogplayername').val());
   $(this).closest('dialog')[0].close();
 }
 
