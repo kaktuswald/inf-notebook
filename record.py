@@ -237,7 +237,7 @@ class NotebookMusic(Notebook):
         Args:
             result(Result): 対象のリザルト
         '''
-        if 'H-RAN' in result.details.options.arrange:
+        if result.details.options.arrange is not None and 'H-RAN' in result.details.options.arrange:
             return
 
         update_all = False
