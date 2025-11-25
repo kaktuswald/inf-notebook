@@ -1075,22 +1075,13 @@ class GuiApi():
             if not timestamp in images_filtered.keys() and timestamp in images_result.keys():
                 target = notebook_recent.get_result(timestamp)
                 if target is not None:
-                    if not setting.filter_overlay['use']:
-                        images_filtered[timestamp] = filter_result(
-                            images_result[timestamp],
-                            target['play_side'],
-                            target['has_loveletter'],
-                            target['has_graphtargetname'],
-                            setting.filter_compact,
-                        )
-                    else:
-                        images_filtered[timestamp] = filter_overlay(
-                            images_result[timestamp],
-                            target['play_side'],
-                            target['has_loveletter'],
-                            target['has_graphtargetname'],
-                            overlaysettings,
-                        )
+                    images_filtered[timestamp] = filter_resultimage(
+                        images_result[timestamp],
+                        target['play_side'],
+                        target['has_loveletter'],
+                        target['has_graphtargetname'],
+                    )
+            
             if images_filtered[timestamp] is not None:
                 imagevalue = get_imagevalue(images_filtered[timestamp])
             else:
@@ -1200,13 +1191,13 @@ class GuiApi():
 
             if images_result[timestamp] is not None:
                 if not timestamp in images_filtered.keys():
-                    images_filtered[timestamp] = filter_result(
+                    images_filtered[timestamp] = filter_resultimage(
                         images_result[timestamp],
                         target['play_side'],
                         target['has_loveletter'],
                         target['has_graphtargetname'],
-                        setting.filter_compact,
                     )
+                
                 if images_filtered[timestamp] is not None and not timestamp in timestamps_filteredsaved:
                     save_filtered(
                         images_filtered[timestamp],
@@ -1742,31 +1733,6 @@ def result_process(screen: Screen):
         if uploaded_details:
             api.send_message('append_log', f'upload details collection: {result.timestamp}')
 
-    filteredimage = None
-    filteredimage_whole = None
-    filteredimage_compact = None
-    if setting.autosave_filtered:
-        if not setting.filter_compact:
-            filteredimage_whole = filter_result(
-                resultimage,
-                result.play_side,
-                result.rival,
-                result.details.graphtarget == 'rival',
-                False,
-            )
-            filteredimage = filteredimage_whole
-            images_filtered[result.timestamp] = filteredimage_whole
-        else:
-            filteredimage_compact = filter_result(
-                resultimage,
-                result.play_side,
-                result.rival,
-                result.details.graphtarget == 'rival',
-                True,
-            )
-            filteredimage = filteredimage_compact
-            images_filtered[result.timestamp] = filteredimage_compact
-
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
         if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
             imagevalue_discordwebhook = get_imagevalue(stamp(resultimage, result.play_side))
@@ -1782,6 +1748,14 @@ def result_process(screen: Screen):
     
     filtered = False
     if setting.autosave_filtered:
+        filteredimage = filter_resultimage(
+            resultimage,
+            result.play_side,
+            result.rival,
+            result.details.graphtarget == 'rival',
+        )
+        images_filtered[result.timestamp] = filteredimage
+        
         save_filtered(
             filteredimage,
             result.playtype,
@@ -1916,6 +1890,35 @@ def musicselect_process(np_value):
     socket_server.update_scoregraph(socket_server.imagevalue_imagenothing)
 
     api.send_message('scoreselect', {'playtype': playtype, 'musicname': musicname, 'difficulty': difficulty})
+
+def filter_resultimage(resultimage: Image.Image, playside: str, has_loveletter: bool, has_graphtargetname: bool) -> Image.Image:
+    '''リザルト画像にフィルター加工をする
+
+    Args:
+        timestamp(str): 対象リザルトのタイムスタンプ
+        playside(str): プレイサイド(1P or 2P)
+        has_loveletter(bool): ライバル挑戦状の有無
+        has_graphtargetname(bool): グラフターゲットのライバル名の有無
+    
+    Returns:
+        (Image): 加工されたリザルト画像
+    '''
+    if not setting.filter_overlay['use']:
+        return filter_result(
+            resultimage,
+            playside,
+            has_loveletter,
+            has_graphtargetname,
+            setting.filter_compact,
+        )
+    else:
+        return filter_overlay(
+            resultimage,
+            playside,
+            has_loveletter,
+            has_graphtargetname,
+            overlaysettings,
+        )
 
 def post_discord_webhooks(result: Result, imagevalue: bytes):
     setting_updated = False

@@ -119,7 +119,7 @@ def filter_overlay(image: Image, play_side: str, loveletter: bool, rivalname: bo
         )
 
     if play_side == '':
-        return ret
+        return ret.convert('RGB')
     
     if 'rival' in settings.keys():
         position = (
@@ -143,4 +143,4 @@ def filter_overlay(image: Image, play_side: str, loveletter: bool, rivalname: bo
             settings['rivalname']['image'],
         )
     
-    return ret
+    return ret.convert('RGB')
