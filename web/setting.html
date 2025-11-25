@@ -42,6 +42,67 @@
             <label for="check_filter_compact">ライバルのフィルターを最小限にする</label>
           </div>
           <div class="setting_item">
+            <input type="checkbox" id="check_filter_overlay" />
+            <label for="check_filter_overlay">ライバル隠しに画像の貼り付けを使用する</label>
+            <div class="box_filter_overlay">
+              <div class="label filter_overlay_title">ライバル欄</div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">画像ファイル</div>
+                <input type="text" id="text_overlayimagerival_path" class="text_filepath" />
+                <button id="button_browse_overlayimagerival_path" class="button_browse_file">...</button>
+              </div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">貼り付け座標調整</div>
+                <div class="label filter_overlay_xy">X</div>
+                <input type="text" id="text_overlayimagerival_offsetx" class="number default0" />
+                <div class="label filter_overlay_xy">Y</div>
+                <input type="text" id="text_overlayimagerival_offsety" class="number default0" />
+              </div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">画像拡大率</div>
+                <input type="text" id="text_overlayimagerival_scalefactor" class="number default1" />
+              </div>
+            </div>
+            <div class="box_filter_overlay">
+              <div class="label filter_overlay_title">ライバル挑戦状</div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">画像ファイル</div>
+                <input type="text" id="text_overlayimageloveletter_path" class="text_filepath" />
+                <button id="button_browse_overlayimageloveletter_path" class="button_browse_file">...</button>
+              </div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">貼り付け座標調整</div>
+                <div class="label filter_overlay_xy">X</div>
+                <input type="text" id="text_overlayimageloveletter_offsetx" class="number default0" />
+                <div class="label filter_overlay_xy">Y</div>
+                <input type="text" id="text_overlayimageloveletter_offsety" class="number default0" />
+              </div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">画像拡大率</div>
+                <input type="text" id="text_overlayimageloveletter_scalefactor" class="number default1" />
+              </div>
+            </div>
+            <div class="box_filter_overlay">
+              <div class="label filter_overlay_title">グラフターゲットのライバル名</div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">画像ファイル</div>
+                <input type="text" id="text_overlayimagerivalname_path" class="text_filepath" />
+                <button id="button_browse_overlayimagerivalname_path" class="button_browse_file">...</button>
+              </div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">貼り付け座標調整</div>
+                <div class="label filter_overlay_xy">X</div>
+                <input type="text" id="text_overlayimagerivalname_offsetx" class="number default0" />
+                <div class="label filter_overlay_xy">Y</div>
+                <input type="text" id="text_overlayimagerivalname_offsety" class="number default0" />
+              </div>
+              <div class="setting_item">
+                <div class="label filter_overlay_label">画像拡大率</div>
+                <input type="text" id="text_overlayimagerivalname_scalefactor" class="number default1" />
+              </div>
+            </div>
+          </div>
+          <div class="setting_item">
             <input type="checkbox" id="check_savefilemusicname_right" />
             <label for="check_savefilemusicname_right">ファイル名の後尾に曲名をつける</label>
           </div>
@@ -93,8 +154,8 @@
           </div>
           <div class="label highlight">画像の保存先のパス</div>
           <div class="setting_item">
-            <input type="text" id="text_imagesave_path" class="text_imagesave_path" />
-            <button id="button_browse_imagesave_path">...</button>
+            <input type="text" id="text_imagesave_path" class="text_filepath" />
+            <button id="button_browse_imagesave_path" class="button_browse_directory">...</button>
           </div>
           <div class="label highlight">起動時の表示画像</div>
           <div class="setting_item">
@@ -113,11 +174,11 @@
           <div class="label highlight">ポート</div>
           <div class="setting_item">
             <div class="port_label">メインサーバ</div>
-            <input type="text" id="text_portmain" class="port_input" />
+            <input type="text" id="text_portmain" class="number" />
           </div>
           <div class="setting_item">
             <div class="port_label">ソケットサーバ</div>
-            <input type="text" id="text_portsocket" class="port_input" />
+            <input type="text" id="text_portsocket" class="number" />
           </div>
           <div class="setting_item">
             <span class="setting_annotation">リザルト手帳の次回起動時に反映されます。</span>

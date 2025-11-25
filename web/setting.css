@@ -69,8 +69,49 @@ div.port_label {
     width: 150px;
 }
 
-input.port_input {
-    width: 80px;
+div.box_filter_overlay {
+    display: inline-block;
+    margin-left: 30px;
+    border-style: solid;
+    border-width: 1px;
+    div.setting_item {
+        margin-left: 20px;
+    }
+    div.filter_overlay_title {
+        width: 200px;
+    }
+    div.filter_overlay_label {
+        width: 105px;
+    }
+    div.filter_overlay_xy {
+        width: 10px;
+    }
+    input.text_filepath {
+        width: 320px;
+    }
+    input.number {
+        width: 30px;
+    }
+}
+
+/* div.box input.text_filepath {
+    width: 300px;
+} */
+
+input.text_filepath {
+    width: 400px;
+}
+
+input.number {
+    width: 50px;
+}
+
+input.text_hotkey {
+    width: 50px;
+}
+
+input.text_hashtags {
+    width: 400px;
 }
 
 div.setting_annotation {

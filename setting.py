@@ -11,6 +11,24 @@ default = {
     'autosave': False,
     'autosave_filtered': False,
     'filter_compact': False,
+    'filter_overlay': {
+        'use': False,
+        'rival': {
+            'imagefilepath': None,
+            'offset': (0, 0, ),
+            'scalefactor': 1,
+        },
+        'loveletter': {
+            'imagefilepath': None,
+            'offset': (0, 0, ),
+            'scalefactor': 1,
+        },
+        'rivalname': {
+            'imagefilepath': None,
+            'offset': (0, 0, ),
+            'scalefactor': 1,
+        },
+    },
     'savefilemusicname_right': False,
     'hotkeys': {
         'active_screenshot': 'alt+F10',
@@ -102,6 +120,19 @@ class Setting():
             self.json['hotkeys']['select_scoreinformation'] = default['hotkeys']['select_scoreinformation']
         if not 'select_scoregraph' in self.json['hotkeys'].keys():
             self.json['hotkeys']['select_scoregraph'] = default['hotkeys']['select_scoregraph']
+        if not 'filter_overlay' in self.json.keys():
+            self.json['filter_overlay'] = default['filter_overlay']
+        if not 'use' in self.json['filter_overlay'].keys():
+            self.json['filter_overlay']['use'] = default['filter_overlay']['use']
+        for key in ['rival', 'loveletter', 'rivalname']:
+            if not key in self.json['filter_overlay'].keys():
+                self.json['filter_overlay'][key] = default['filter_overlay'][key]
+            if not 'imagefilepath' in self.json['filter_overlay'][key].keys():
+                self.json['filter_overlay'][key]['imagefilepath'] = default['filter_overlay'][key]['imagefilepath']
+            if not 'offset' in self.json['filter_overlay'][key].keys():
+                self.json['filter_overlay'][key]['offset'] = default['filter_overlay'][key]['offset']
+            if not 'scalefactor' in self.json['filter_overlay'][key].keys():
+                self.json['filter_overlay'][key]['scalefactor'] = default['filter_overlay'][key]['scalefactor']
 
         self.save()
 
@@ -173,6 +204,16 @@ class Setting():
     @filter_compact.setter
     def filter_compact(self, value: bool):
         self.set_value('filter_compact', value)
+    
+    @property
+    def filter_overlay(self):
+        '''ライバル隠しに重ねる画像の設定
+        '''
+        return self.get_value('filter_overlay')
+
+    @filter_overlay.setter
+    def filter_overlay(self, value: dict[str, any]):
+        self.set_value('filter_overlay', value)
     
     @property
     def savefilemusicname_right(self):

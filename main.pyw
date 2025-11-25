@@ -10,14 +10,13 @@ from PIL import Image
 from urllib.parse import urljoin
 from subprocess import Popen
 from http.client import HTTPResponse
-from os.path import abspath,isfile,isdir
+from os.path import abspath,isfile,isdir,dirname
 from json import dump,dumps,load,loads
 from uuid import uuid1
 from base64 import b64decode,b64encode
 from webui import webui
 from sys import exit
 from tkinter import Tk,filedialog
-from re import search
 
 from setting import Setting
 
@@ -50,6 +49,7 @@ from raw_image import save_raw
 from storage import StorageAccessor
 from record import NotebookRecent,NotebookSummary,Notebooks,rename_allfiles,rename_changemusicname,musicnamechanges_filename
 from filter import filter as filter_result
+from filter import stamp,filter_overlay
 from export import (
     Recent,
     output_notesradarcsv,
@@ -561,6 +561,7 @@ class GuiApi():
         window.bind('output_csv', self.output_csv)
         window.bind('clear_recent', self.clear_recent)
 
+        window.bind('browse_file', self.browse_file)
         window.bind('browse_directory', self.browse_directory)
 
     def get_setting(self, event: webui.Event):
@@ -571,11 +572,32 @@ class GuiApi():
     def save_setting(self, event: webui.Event):
         values = loads(event.get_string_at(0))
 
+        filteroverlay = {'use': values['filter_overlay']['use']}
+        for key in ['rival', 'loveletter', 'rivalname']:
+            offset = []
+            for v in values['filter_overlay'][key]['offset']:
+                try:
+                    offset.append(int(float(v)))
+                except Exception:
+                    offset.append(0)
+            
+            try:
+                scalefactor = float(values['filter_overlay'][key]['scalefactor'])
+            except Exception:
+                scalefactor = 1
+
+            filteroverlay[key] = {
+                'imagefilepath': values['filter_overlay'][key]['imagefilepath'],
+                'offset': offset,
+                'scalefactor': scalefactor,
+            }
+
         setting.newrecord_only = values['newrecord_only']
         setting.play_sound = values['play_sound']
         setting.autosave = values['autosave']
         setting.autosave_filtered = values['autosave_filtered']
         setting.filter_compact = values['filter_compact']
+        setting.filter_overlay = filteroverlay
         setting.savefilemusicname_right = values['savefilemusicname_right']
 
         setting.hotkeys['active_screenshot'] = values['hotkeys']['active_screenshot']
@@ -615,6 +637,8 @@ class GuiApi():
         setting.save()
 
         generate_exportsettingcss(setting.port['socket'])
+
+        load_overlayimages()
         
         hotkeys.stop()
         if hotkeys.set_hotkeys():
@@ -1051,14 +1075,22 @@ class GuiApi():
             if not timestamp in images_filtered.keys() and timestamp in images_result.keys():
                 target = notebook_recent.get_result(timestamp)
                 if target is not None:
-                    images_filtered[timestamp] = filter_result(
-                        images_result[timestamp],
-                        target['play_side'],
-                        target['has_loveletter'],
-                        target['has_graphtargetname'],
-                        setting.filter_compact,
-                    )
-
+                    if not setting.filter_overlay['use']:
+                        images_filtered[timestamp] = filter_result(
+                            images_result[timestamp],
+                            target['play_side'],
+                            target['has_loveletter'],
+                            target['has_graphtargetname'],
+                            setting.filter_compact,
+                        )
+                    else:
+                        images_filtered[timestamp] = filter_overlay(
+                            images_result[timestamp],
+                            target['play_side'],
+                            target['has_loveletter'],
+                            target['has_graphtargetname'],
+                            overlaysettings,
+                        )
             if images_filtered[timestamp] is not None:
                 imagevalue = get_imagevalue(images_filtered[timestamp])
             else:
@@ -1287,12 +1319,15 @@ class GuiApi():
     def clear_recent(self, event: webui.Event):
         recent.clear()
     
-    def browse_directory(self, event: webui.Event):
-        """フォルダ選択ダイアログを開き、選択パスを返す
+    def browse_file(self, event: webui.Event):
+        """ファイル選択ダイアログを開き、選択パスを返す
 
         Returns:
-            str | None: 選択されたディレクトリの絶対パス。未選択時は None
+            str | None: 選択されたファイルの絶対パス。未選択時は None
         """
+        current = event.get_string_at(0)
+        types = loads(event.get_string_at(1))
+
         root = Tk()
         try:
             root.withdraw()
@@ -1300,7 +1335,45 @@ class GuiApi():
                 root.attributes('-topmost', True)
             except Exception:
                 pass
-            directorypath = filedialog.askdirectory(title='フォルダを選択')
+
+            filepath = filedialog.askopenfilename(
+                initialdir=dirname(current),
+                initialfile=current,
+                filetypes=types,
+                title='ファイルを選択',
+            )
+        finally:
+            try:
+                root.destroy()
+            except Exception:
+                pass
+
+        if not filepath or len(filepath) == 0:
+            event.return_string(dumps(None))
+            return
+
+        event.return_string(dumps(filepath))
+    
+    def browse_directory(self, event: webui.Event):
+        """フォルダ選択ダイアログを開き、選択パスを返す
+
+        Returns:
+            str | None: 選択されたディレクトリの絶対パス。未選択時は None
+        """
+        current = event.get_string_at(0)
+
+        root = Tk()
+        try:
+            root.withdraw()
+            try:
+                root.attributes('-topmost', True)
+            except Exception:
+                pass
+
+            directorypath = filedialog.askdirectory(
+                initialdir=current,
+                title='フォルダを選択',
+            )
         finally:
             try:
                 root.destroy()
@@ -2193,12 +2266,38 @@ def load_resultimages(playtype: str, musicname: str, difficulty: str, timestamp:
     if not recent or image_result is None or image_filtered is not None:
         images_filtered[timestamp] = image_filtered
 
+def load_overlayimages():
+    global overlaysettings
+
+    overlaysettings = {}
+
+    for key in define.overlay.keys():
+        imagefilepath = setting.filter_overlay[key]['imagefilepath']
+        if imagefilepath is None or not isfile(imagefilepath):
+            continue
+
+        image = Image.open(imagefilepath)
+        width = define.overlay[key]['width']
+        height = int(image.width * (width / image.height))
+        offset = setting.filter_overlay[key]['offset']
+        scalefactor = setting.filter_overlay[key]['scalefactor']
+
+        overlaysettings[key] = {
+            'image': image.resize((int(height * scalefactor), int(width * scalefactor))),
+            'offset': (
+                int(offset[0] + (1 - scalefactor) * width / 2),
+                int(offset[1] + (1 - scalefactor) * height / 2),
+            ),
+        }
+
 if __name__ == '__main__':
     if gethandle(windowtitle) is not None:
         show_messagebox('多重起動はできません。', windowtitle)
         exit()
     
     generate_exportsettingcss(setting.port['socket'])
+
+    load_overlayimages()
 
     detect_infinitas: bool = False
     capture_enable: bool = False

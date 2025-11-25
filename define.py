@@ -139,11 +139,11 @@ class Define():
     filter_ranking_compact_size = (97, 20)
     filter_ranking_position = {
         '1P': (1372, 264),
-        '2P': (32, 264)
+        '2P': (32, 264),
     }
     filter_ranking_compact_positions = {
         'left': {'1P': 1494, '2P': 154},
-        'tops': (287, 393, 499, 605, 711, 817, )
+        'tops': (287, 393, 499, 605, 711, 817, ),
     }
 
     filter_areas = {
@@ -151,7 +151,25 @@ class Define():
         'ranking_compact': {},
         'graphtarget_name': {},
         'loveletter': (820, 700, 1102, 912),
-        'loveletter_compact': (880, 777, 978, 800)
+        'loveletter_compact': (880, 777, 978, 800),
+    }
+
+    overlay = {
+        'rival': {
+            'positions': {
+                '1P': (1370, 270),
+                '2P': (30, 270),
+            },
+            'width': 530,
+        },
+        'loveletter': {
+            'position': (820, 700),
+            'width': 280,
+        },
+        'rivalname': {
+            'positions': {},
+            'width': 90,
+        },
     }
 
     def __init__(self):
@@ -195,6 +213,11 @@ class Define():
                 self.details_trimpos[key][1] + self.details_graphtarget_name_area[1],
                 self.details_trimpos[key][0] + self.details_graphtarget_name_area[2],
                 self.details_trimpos[key][1] + self.details_graphtarget_name_area[3]
+            )
+        
+            self.overlay['rivalname']['positions'][key] = (
+                self.details_trimpos[key][0] + self.details_graphtarget_name_area[0],
+                self.details_trimpos[key][1] + self.details_graphtarget_name_area[1],
             )
 
     def details_get_playside(self, np_value):
