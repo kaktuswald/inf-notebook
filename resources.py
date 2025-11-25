@@ -4,6 +4,7 @@ from logging import getLogger
 import pickle
 from os import rename,remove
 from os.path import join,isfile,exists
+from PIL import Image
 
 logger_child_name = 'resources'
 
@@ -27,6 +28,7 @@ images_summaryprocessing_filepath = join(images_dirpath, 'summaryprocessing.png'
 images_imagenothing_filepath = join(images_dirpath, 'imagenothing.png')
 images_graphnogenerate_filepath = join(images_dirpath, 'graphnogenerate.png')
 images_loading_filepath = join(images_dirpath, 'loading.png')
+images_stamp_filepath = join(images_dirpath, 'stamp.png')
 
 class Resource():
     def __init__(self):
@@ -42,6 +44,8 @@ class Resource():
         self.load_resource_notesradar()
 
         self.imagevalue_musictableinformation = None
+
+        self.image_stamp = Image.open(images_stamp_filepath)
     
     def load_resource_informations(self):
         resourcename = f'informations{define.informations_recognition_version}'

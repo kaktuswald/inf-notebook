@@ -1769,8 +1769,7 @@ def result_process(screen: Screen):
 
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
         if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
-            imagevalue_discordwebhook = get_imagevalue(resultimage)
-            imagevalues_result[result.timestamp] = imagevalue_discordwebhook
+            imagevalue_discordwebhook = get_imagevalue(stamp(resultimage, result.play_side))
             Thread(target=post_discord_webhooks, args=(result, imagevalue_discordwebhook)).start()
     
     if setting.newrecord_only and not result.has_new_record():
