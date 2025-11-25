@@ -1672,15 +1672,21 @@ function refresh_discordwebhook_settings(settings) {
 
     const targetscore = target.targetscore;
 
-    const tips = [
-      `[${targetscore.playmode}${targetscore.difficulty[0]}]${targetscore.musicname}`,
-      '',
+    const tips = [];
+    if(target.mode != 'battle') {
+      tips.push(...[
+        `[${targetscore.playmode}${targetscore.difficulty[0]}]${targetscore.musicname}`,
+        '',
+      ]);
+    }
+    
+    tips.push(...[
       `開催者: ${target.authorname}`,
       `サイトURL: ${target.siteurl}`,
       '',
       target.comment,
-    ];
-  
+    ]);
+
     const tr = $('<tr>');
     tr.addClass('tableitem discordwebhookitem');
     tr.attr('title', tips.join('\n'));
