@@ -95,6 +95,7 @@ class NotebookRecent(Notebook):
         self.json['results'][result.timestamp] = {
             'playtype': result.playtype,
             'difficulty': result.informations.difficulty,
+            'playspeed': result.informations.playspeed,
             'music': result.informations.music,
             'clear_type_new': result.details.clear_type is not None and result.details.clear_type.new,
             'dj_level_new': result.details.dj_level is not None and result.details.dj_level.new,
@@ -184,21 +185,22 @@ class NotebookMusic(Notebook):
             'timestamp': result.timestamp,
             'clear_type': {
                 'value': result.details.clear_type.current,
-                'new': result.details.clear_type.new
+                'new': result.details.clear_type.new,
             },
             'dj_level': {
                 'value': result.details.dj_level.current,
-                'new': result.details.dj_level.new
+                'new': result.details.dj_level.new,
             },
             'score': {
                 'value': result.details.score.current,
-                'new': result.details.score.new
+                'new': result.details.score.new,
             },
             'miss_count': {
                 'value': result.details.miss_count.current,
-                'new': result.details.miss_count.new
+                'new': result.details.miss_count.new,
             },
-            'options': options
+            'options': options,
+            'playspeed': result.informations.playspeed,
         }
 
     def insert_history(self, target: dict[int | dict[str, dict | list]], result: Result, options: dict[str, str | bool | None]):
@@ -211,21 +213,22 @@ class NotebookMusic(Notebook):
         target['history'][result.timestamp] = {
             'clear_type': {
                 'value': result.details.clear_type.current,
-                'new': result.details.clear_type.new
+                'new': result.details.clear_type.new,
             },
             'dj_level': {
                 'value': result.details.dj_level.current,
-                'new': result.details.dj_level.new
+                'new': result.details.dj_level.new,
             },
             'score': {
                 'value': result.details.score.current,
-                'new': result.details.score.new
+                'new': result.details.score.new,
             },
             'miss_count': {
                 'value': result.details.miss_count.current,
-                'new': result.details.miss_count.new
+                'new': result.details.miss_count.new,
             },
-            'options': options
+            'options': options,
+            'playspeed': result.informations.playspeed,
         }
 
     def check_new_of_battle(self, result: Result):
@@ -233,10 +236,13 @@ class NotebookMusic(Notebook):
 
         オプションにBATTLEを含む場合はNewアイコンが出ないため、独自に評価する。
         ただし配置オプションにH-RANが含まれている場合は評価しない。
+        等倍以外のプレイ時も評価しない。
 
         Args:
             result(Result): 対象のリザルト
         '''
+        if result.informations.playspeed is not None:
+            return
         if result.details.options.arrange is not None and 'H-RAN' in result.details.options.arrange:
             return
 

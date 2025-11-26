@@ -86,6 +86,8 @@ def post_result(djname: str, setting: dict, result: Result, imagevalue: bytes):
     if details.options is not None:
         option_arrange = details.options.arrange
         contexts.append(f'option: **{option_arrange if option_arrange is not None else "正規"}**')
+    if informations.playspeed is not None:
+        contexts.append(f'play speed: **{informations.playspeed}倍**')
     
     try:
         data = {'content': '\n'.join(contexts)}

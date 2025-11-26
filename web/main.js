@@ -828,52 +828,59 @@ async function display_scoreresult() {
       $('table#table_timestamps').append(tr);
 
       const targetresult = scoreresult['history'][timestamp];
-      
-      const date = timestamp.slice(0, 8);
-      const time = timestamp.slice(9, 15);
+      if(targetresult.playspeed == null) {
+        const date = timestamp.slice(0, 8);
+        const time = timestamp.slice(9, 15);
 
-      const year = date.slice(0, 4);
-      const month = date.slice(4, 6);
-      const day = date.slice(6, 8);
+        const year = date.slice(0, 4);
+        const month = date.slice(4, 6);
+        const day = date.slice(6, 8);
 
-      const hours = time.slice(0, 2);
-      const minutes = time.slice(2, 4);
-      const seconds = time.slice(4, 6);
+        const hours = time.slice(0, 2);
+        const minutes = time.slice(2, 4);
+        const seconds = time.slice(4, 6);
 
-      xvalues.push(new Date(year, month - 1, day, hours, minutes, seconds));
-      scores.push(targetresult['score']['value']);
-      misscounts.push(targetresult.hasOwnProperty('miss_count') ? targetresult['miss_count']['value'] : null);
+        xvalues.push(new Date(year, month - 1, day, hours, minutes, seconds));
+        scores.push(targetresult['score']['value']);
+        misscounts.push(targetresult.hasOwnProperty('miss_count') ? targetresult['miss_count']['value'] : null);
+      }
     });
 
-    const chartdata = [[], []];
-    for(let i = 0; i < xvalues.length; i++) {
-      chartdata[0].push({x: xvalues[i], y: scores[i]});
-      chartdata[1].push({x: xvalues[i], y: misscounts[i]});
+    console.log(xvalues.length);
+    if(xvalues.length) {
+      const chartdata = [[], []];
+      for(let i = 0; i < xvalues.length; i++) {
+        chartdata[0].push({x: xvalues[i], y: scores[i]});
+        chartdata[1].push({x: xvalues[i], y: misscounts[i]});
+      }
+
+      const xvalue_max = new Date(xvalues[0]);
+      const xvalue_min = xvalues[xvalues.length - 1];
+      xvalue_max.setDate(xvalue_max.getDate() + 1);
+
+      const xrange = [
+        `${xvalue_min.getFullYear()}${String(xvalue_min.getMonth()+1).padStart(2, '0')}${String(xvalue_min.getDate()).padStart(2, '0')}`,
+        `${xvalue_max.getFullYear()}${String(xvalue_max.getMonth()+1).padStart(2, '0')}${String(xvalue_max.getDate()).padStart(2, '0')}`,
+      ];
+
+      const blob_scoregraph = await drawer_scoregraph.draw(
+        chartdata,
+        xrange,
+        scoreresult['notes'],
+        scoretype,
+        selected_musicname,
+      );
+
+      const url_scoregraph = URL.createObjectURL(blob_scoregraph);
+
+      update_imageurl('scoregraph', 'image_scoregraph', url_scoregraph);
+
+      reader_scoregraph.abort();
+      reader_scoregraph.readAsDataURL(blob_scoregraph);
     }
-
-    const xvalue_max = new Date(xvalues[0]);
-    const xvalue_min = xvalues[xvalues.length - 1];
-    xvalue_max.setDate(xvalue_max.getDate() + 1);
-
-    const xrange = [
-      `${xvalue_min.getFullYear()}${String(xvalue_min.getMonth()+1).padStart(2, '0')}${String(xvalue_min.getDate()).padStart(2, '0')}`,
-      `${xvalue_max.getFullYear()}${String(xvalue_max.getMonth()+1).padStart(2, '0')}${String(xvalue_max.getDate()).padStart(2, '0')}`,
-    ];
-
-    const blob_scoregraph = await drawer_scoregraph.draw(
-      chartdata,
-      xrange,
-      scoreresult['notes'],
-      scoretype,
-      selected_musicname,
-    );
-
-    const url_scoregraph = URL.createObjectURL(blob_scoregraph);
-
-    update_imageurl('scoregraph', 'image_scoregraph', url_scoregraph);
-
-    reader_scoregraph.abort();
-    reader_scoregraph.readAsDataURL(blob_scoregraph);
+    else {
+      $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+    }
   }
   else {
     $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
@@ -902,6 +909,9 @@ function clear_playresult() {
   $('#playresult_score').text('');
   $('#playresult_misscount').text('');
   $('#playresult_options').text('');
+
+  $('div#moredetailbox').css('display', 'none');
+  $('#playresult_playspeed').text('');
 }
 
 /**
@@ -960,6 +970,11 @@ async function display_playresult(timestamp) {
   }
   else {
     $('#playresult_options').text('不明');
+  }
+
+  if(playresult.playspeed != null) {
+    $('div#moredetailbox').css('display', 'block');
+    $('#playresult_playspeed').text(playresult.playspeed.toFixed(2));
   }
 }
 

@@ -81,16 +81,19 @@ def post_results(values: list[dict], hashtags: str):
 
         line = [score_format(result['playtype'], result['difficulty'], music)]
 
-        if result['update_clear_type'] is not None or result['update_dj_level'] is not None:
-            line.append(' '.join(v for v in [result['update_clear_type'], result['update_dj_level']] if v is not None))
-        else:
-            if result['update_score'] is not None:
-                line.append(f"自己ベスト+{result['update_score']}")
+        if not 'playspeed' in result.keys() or result['playspeed'] is None:
+            if result['update_clear_type'] is not None or result['update_dj_level'] is not None:
+                line.append(' '.join(v for v in [result['update_clear_type'], result['update_dj_level']] if v is not None))
             else:
-                if result['update_miss_count'] is not None:
-                    line.append(f"ミスカウント{result['update_miss_count']}")
+                if result['update_score'] is not None:
+                    line.append(f"自己ベスト+{result['update_score']}")
                 else:
-                    line.append('')
+                    if result['update_miss_count'] is not None:
+                        line.append(f"ミスカウント{result['update_miss_count']}")
+                    else:
+                        line.append('')
+        else:
+            line.append(f"{result['playspeed']:.2f}倍")
 
         if result['option'] is not None:
             if result['option'] == '':

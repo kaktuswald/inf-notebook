@@ -39,7 +39,11 @@ def load_informations(labels):
             continue
 
         image = Image.open(filepath)
-        np_value = np.array(image)
+        if image.height == define.informations_trimsize[1]:
+            np_value = np.array(image)
+        else:
+            np_value = np.zeros((define.informations_trimsize[1], define.informations_trimsize[0], 3), dtype=np.uint8)
+            np_value[define.informations_trimsize[1] - image.height:, :, :] = np.array(image)
         informations[key] = Informations(np_value, labels[key]['informations'])
     
     return informations
@@ -75,6 +79,12 @@ def load_define():
     ret['notes']['trimnumber'] = (
         slice(ret['notes']['trimnumber'][0][0], ret['notes']['trimnumber'][0][1]),
         slice(ret['notes']['trimnumber'][1][0], ret['notes']['trimnumber'][1][1])
+    )
+
+    ret['playspeed']['trim'] = (
+        slice(ret['playspeed']['trim'][0][0], ret['playspeed']['trim'][0][1]),
+        slice(ret['playspeed']['trim'][1][0], ret['playspeed']['trim'][1][1]),
+        ret['playspeed']['trim'][2]
     )
 
     ret['music']['trim'] = (
@@ -382,7 +392,7 @@ def learning_playmode(informations):
         if result == target.label['play_mode']:
             report.through()
         else:
-            report.saveimage_errorvalue(trimmed, key)
+            report.saveimage_errorvalue(trimmed, f'{key}.png')
             report.error(f'Mismatch {result} {key}')
 
     report.report()
@@ -553,6 +563,56 @@ def learning_notes(informations):
         'maskvalue': informations_define['notes']['maskvalue'],
         'digit': informations_define['notes']['digit'],
         'table': table
+    }
+
+def learning_playspeed(informations):
+    resourcename = 'playspeed'
+
+    report = Report(resourcename)
+
+    learning_targets = {}
+    evaluate_targets = {}
+    for key, target in informations.items():
+        if not 'playspeed' in target.label.keys() or target.label['playspeed'] == '':
+            continue
+        
+        value = target.label['playspeed']
+        trimmed = target.np_value[informations_define['playspeed']['trim']]
+        if not value in learning_targets.keys():
+            learning_targets[value] = {}
+        learning_targets[value][key] = trimmed
+
+        evaluate_targets[key] = target
+    
+    report.append_log(f'Source count: {len(learning_targets)}')
+
+    table = learning_multivalue(learning_targets, report, informations_define['playspeed']['maskvalue'])
+    if table is None:
+        report.report()
+        return
+
+    for key, target in evaluate_targets.items():
+        trimmed = target.np_value[informations_define['playspeed']['trim']].flatten()
+        bins = np.where(trimmed==informations_define['playspeed']['maskvalue'], 1, 0)
+        hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+        tablekey = ''.join([format(v, '0x') for v in hexs])
+
+        result = None
+        if tablekey in table.keys():
+            result = table[tablekey]
+        
+        if result == target.label['playspeed']:
+            report.through()
+        else:
+            report.saveimage_errorvalue(trimmed, f'{key}.png')
+            report.error(f'Mismatch {result} {key}')
+
+    report.report()
+
+    return {
+        'trim': informations_define['playspeed']['trim'],
+        'maskvalue': informations_define['playspeed']['maskvalue'],
+        'table': table,
     }
 
 def learning_musics(informations):
@@ -788,7 +848,7 @@ if __name__ == '__main__':
 
     musicshape = (
         informations_define['music']['trim'][0].stop-informations_define['music']['trim'][0].start,
-        informations_define['music']['trim'][1].stop-informations_define['music']['trim'][1].start
+        informations_define['music']['trim'][1].stop-informations_define['music']['trim'][1].start,
     )
 
     informations = load_informations(labels)
@@ -802,6 +862,7 @@ if __name__ == '__main__':
     difficulty = learning_difficulty(informations)
     notes = learning_notes(informations)
     music = learning_musics(informations)
+    playspeed = learning_playspeed(informations)
 
     evaluate_musics(music)
 
@@ -810,5 +871,6 @@ if __name__ == '__main__':
         'play_mode': play_mode,
         'difficulty': difficulty,
         'notes': notes,
-        'music': music
+        'playspeed': playspeed,
+        'music': music,
     })

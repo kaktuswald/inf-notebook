@@ -107,6 +107,19 @@ class Recognition():
             return value
 
         @staticmethod
+        def get_playspeed(np_value_informations):
+            if resource.informations is None:
+                return None
+            
+            trimmed = np_value_informations[resource.informations['playspeed']['trim']].flatten()
+            bins = np.where(trimmed==resource.informations['playspeed']['maskvalue'], 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+            if not tablekey in resource.informations['playspeed']['table'].keys():
+                return None
+            return float(resource.informations['playspeed']['table'][tablekey])
+
+        @staticmethod
         def get_music(np_value_informations):
             '''曲名を取得する
 
@@ -378,9 +391,10 @@ class Recognition():
             play_mode = cls.get_play_mode(np_value)
             difficulty, level = cls.get_difficulty(np_value)
             notes = cls.get_notes(np_value)
+            playspeed = cls.get_playspeed(np_value)
             music = cls.get_music(np_value)
 
-            return ResultInformations(play_mode, difficulty, level, notes, music)
+            return ResultInformations(play_mode, difficulty, level, notes, playspeed, music)
 
         @classmethod
         def get_details(cls, np_value):

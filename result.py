@@ -12,11 +12,12 @@ results_dirname = 'results'
 filtereds_dirname = 'filtered'
 
 class ResultInformations():
-    def __init__(self, play_mode: str, difficulty: str, level: str, notes: int, music: str):
+    def __init__(self, play_mode: str, difficulty: str, level: str, notes: int, playspeed: float | None, music: str):
         self.play_mode = play_mode
         self.difficulty = difficulty
         self.level = level
         self.notes = notes
+        self.playspeed = playspeed
         self.music = music
 
 class ResultValues():

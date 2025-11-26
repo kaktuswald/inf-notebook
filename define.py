@@ -40,25 +40,25 @@ class Define():
             'left': 380,
             'top': 120,
             'width': 8,
-            'height': 2
+            'height': 2,
         },
         'result': {
             'left': 1110,
             'top': 1042,
             'width': 4,
-            'height': 2
+            'height': 2,
         },
         'music_select': {
             'left': 181,
             'top': 84,
             'width': 4,
-            'height': 2
+            'height': 2,
         }
     }
 
     result_check = {
         "horizontalline": (60, slice(156, 390), 1),
-        "verticalline": (slice(550, 760), 788, 1)
+        "verticalline": (slice(550, 760), 788, 1),
     }
 
     value_list = {
@@ -73,38 +73,14 @@ class Define():
         'options_assist': ('A-SCR', 'LEGACY',),
         'clear_types': ('NO PLAY', 'FAILED', 'A-CLEAR', 'E-CLEAR', 'CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO',),
         'graphtargets': ('no graph', 'personal best score only', 'national best', 'national average', 'prefecture best', 'prefecture average', 'same class best', 'same class average', 'rival', 'rival best', 'rival average', 'pacemaker',),
-        'notesradar_attributes': ('NOTES', 'CHORD', 'PEAK', 'CHARGE', 'SCRATCH', 'SOF-LAN',)
+        'notesradar_attributes': ('NOTES', 'CHORD', 'PEAK', 'CHARGE', 'SCRATCH', 'SOF-LAN',),
     }
 
-    areas_np = {
-        'rival': (slice(858, 872), slice(842, 920), 0),
-        'play_side': {
-            '1P': (slice(26, 30), slice(20, 24), 0),
-            '2P': (slice(26, 30), slice(1860, 1864), 0)
-        },
-        'dead': {
-            '1P': (slice(300, 304), slice(573, 576), 0),
-            '2P': (slice(300, 304), slice(1145, 1148), 0)
-        },
-        'informations': (slice(960, 1066), slice(560, 1360)),
-        'details': {
-            '1P': (slice(64, 1016), slice(10, 564)),
-            '2P': (slice(64, 1016), slice(1360, 1914))
-        }
-    }
+    informations_trimpos = (560, 910)
+    informations_trimsize = (800, 156)
 
-    informations_trimpos = (560, 960)
-    informations_trimsize = (800, 166)
-
-    informations_recognition_version = '3.1'
-    informations_trimarea = (560, 960, 1360, 1066)
-
-    informations_areas = {
-        'play_mode': (82, 55, 102, 65),
-        'difficulty': (196, 58, 229, 62),
-        'level': (231, 58, 250, 62),
-        'notes': (268, 59, 324, 61)
-    }
+    informations_recognition_version = '4.0'
+    informations_trimarea = (560, 910, 1360, 1066)
 
     details_recognition_version = '3.0'
 
@@ -169,6 +145,23 @@ class Define():
         'rivalname': {
             'positions': {},
             'width': 90,
+        },
+    }
+
+    areas_np = {
+        'rival': (slice(858, 872), slice(842, 920), 0),
+        'play_side': {
+            '1P': (slice(26, 30), slice(20, 24), 0),
+            '2P': (slice(26, 30), slice(1860, 1864), 0),
+        },
+        'dead': {
+            '1P': (slice(300, 304), slice(573, 576), 0),
+            '2P': (slice(300, 304), slice(1145, 1148), 0),
+        },
+        'informations': (slice(910, 1066), slice(560, 1360)),
+        'details': {
+            '1P': (slice(64, 1016), slice(10, 564)),
+            '2P': (slice(64, 1016), slice(1360, 1914)),
         },
     }
 
