@@ -18,6 +18,7 @@ class SocketServer(Thread):
     imagevalue_screenshot: bytes = None
     imagevalue_scoreinformation: bytes = None
     imagevalue_scoregraph: bytes = None
+    json_musictable: str = None
 
     def __init__(self, port: int = None):
         if port is not None:
@@ -44,6 +45,10 @@ class SocketServer(Thread):
                         target = self.imagevalue_scoreinformation
                     if message == 'get_scoregraphimage':
                         target = self.imagevalue_scoregraph
+                    if message == 'get_musictable':
+                        target = '{}'
+                        if self.json_musictable is not None:
+                            target = self.json_musictable
 
                     if target is not None:
                         connection.send(target)
