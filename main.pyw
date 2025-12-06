@@ -2358,6 +2358,7 @@ if __name__ == '__main__':
 
     socket_server = SocketServer(port=setting.port['socket'])
     socket_server.start()
+    socket_server.json_musictable = dumps(resource.musictable)
 
     webui.set_config(webui.Config.multi_client, True)
     webui.set_default_root_folder('web/')

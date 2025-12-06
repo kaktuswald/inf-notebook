@@ -38,6 +38,9 @@ class Requests():
     GET_SCOREINFORMATIONIMAGE: str = 'get_scoreinformationimage'
     '''譜面記録画像の取得'''
     GET_SCOREGRAPHIMAGE: str = 'get_scoregraphimage'
+    '''グラフ画像の取得'''
+    GET_MUSICTABLE: str = 'get_musictable'
+    '''楽曲テーブルの取得'''
 
 class Statuses():
     '''レスポンス状態の定義
@@ -100,6 +103,8 @@ class SocketServer(Thread):
     encodedimage_scoreinformation: str | None = None
     encodedimage_scoregraph: str | None = None
 
+    json_musictable: str = None
+
     def __init__(self, port: int = None):
         if port is not None:
             self.port = port
@@ -132,7 +137,12 @@ class SocketServer(Thread):
                         payload = self.response_image(self.encodedimage_scoreinformation)
                     if request == Requests.GET_SCOREGRAPHIMAGE:
                         payload = self.response_image(self.encodedimage_scoregraph)
-                        
+                    if request == Requests.GET_MUSICTABLE:
+                        payload = {
+                            't': DataTypes.APP_JSON,
+                            'd': self.json_musictable if self.json_musictable is not None else '{}',
+                        }
+                    
                     if payload is not None:
                         message = {
                             'r': request,
