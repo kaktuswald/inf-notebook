@@ -1,0 +1,119 @@
+body { 
+    background-color: rgba(0, 0, 0, 0.95);
+    font-family:"Meiryo";
+    color: #fff;
+    overflow: visible;
+}
+
+div#setting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    padding: 100px 50px;
+}
+
+div#setting #box {
+    height: 10px;
+}
+
+div#setting span {
+}
+
+div#setting span#url {
+    width: 300px;
+    color: black;
+    background-color: white;
+    padding: 2px 5px;
+    border-style: solid;
+    border-width: 1px;
+    font-size: large;
+}
+
+
+#content{
+    display: none;
+}
+
+#title {
+    color: #aaddff;
+    background-color: rgba(0, 0, 0, 1);
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 5px;
+}
+.plain {
+    color: #ffffff;
+}
+#result {
+    clear: right;
+    display: grid;
+    grid-template-columns: minmax(1px, max-content) auto minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content)
+}
+#result > div {
+    border-bottom: 1px solid #888888;
+    font-weight: bold;
+    padding: 5px 5px 2px 5px;
+    white-space: nowrap;
+}
+#result > .level {
+    color: #ffddaa;
+}
+#result > .title {
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+#result > .score {
+    text-align: right;
+}
+#result > .miss_count {
+    text-align: right;
+    color:#aaaaff;
+}
+
+.NORMAL {
+    color: #8888ff;
+}
+.HYPER {
+    color: #ffff88;
+}
+.ANOTHER {
+    color: #ff8888;
+}
+.LEGGENDARIA {
+    color: #ff88ff;
+}
+
+.lamp.FAILED {
+    color: #ff0000;
+}
+.lamp.A-CLEAR {
+    color: #cc44ff;
+}
+.lamp.E-CLEAR {
+    color: #00ff22;
+}
+.lamp.CLEAR {
+    color: #22aaff;
+}
+.lamp.H-CLEAR {
+    color: #ff2222;
+}
+.lamp.EXH-CLEAR {
+    color: #ffff22;
+}
+.lamp.F-COMBO {
+    color: #ff22ff;
+    animation-name: flashfc;
+    animation-duration: 0.5s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes flashfc {
+    0%   { color: #ff2828; }
+    20%  { color: #d5ff28; }
+    40%  { color: #28ff7e; }
+    60%  { color: #2872ff; }
+    80%  { color: #d528ff; }
+    100% { color: #ff2828; }
+}

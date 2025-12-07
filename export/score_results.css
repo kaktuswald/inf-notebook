@@ -1,0 +1,154 @@
+body {
+  background-color: rgba(0, 0, 0, 0.95);
+  font-family: "Meiryo";
+  color: #fff;
+  overflow: hidden;
+}
+
+div#setting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    padding: 100px 50px;
+}
+
+div#setting #box {
+    height: 10px;
+}
+
+div#setting span {
+}
+
+div#setting span#url {
+    width: 300px;
+    color: black;
+    background-color: white;
+    padding: 2px 5px;
+    border-style: solid;
+    border-width: 1px;
+    font-size: large;
+}
+
+#content{
+    display: none;
+}
+
+#title {
+  color: #aaddff;
+  background-color: rgba(0, 0, 0, 1);
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#best {
+  clear: right;
+  display: grid;
+  grid-template-columns: minmax(1px, max-content) minmax(1px, max-content) auto;
+}
+#result {
+  clear: right;
+  display: grid;
+  grid-template-columns: minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) auto;
+}
+#best > div, #result > div {
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 5px 5px 2px 5px;
+  white-space: nowrap;
+}
+
+.date {
+  color: #ffffaa;
+}
+.value {
+  text-align: right;
+}
+.score {
+  color: #ffffff;
+}
+.bp {
+  color: #ff8888;
+}
+.options {
+  color: #aaffaa;
+}
+
+.NORMAL {
+    color: #8888ff;
+}
+.HYPER {
+    color: #ffff88;
+}
+.ANOTHER {
+    color: #ff8888;
+}
+.LEGGENDARIA {
+    color: #ff88ff;
+}
+
+.AAA {
+  color: #ffff28;
+}
+.AA {
+  color: #c3c3c3;
+}
+.A {
+  color: #2ddf71;
+}
+.B {
+  color: #7777ff;
+}
+.C {
+  color: #7777ff;
+}
+.D {
+  color: #7777ff;
+}
+.E {
+  color: #7777ff;
+}
+.F {
+  color: #7777ff;
+}
+
+.F-COMBO {
+  animation-name: flashfc;
+  animation-duration: 0.2s;
+  animation-iteration-count: infinite;
+}
+@keyframes flashfc {
+  0%   { background-color: #ff2828; }
+  20%  { background-color: #d5ff28; }
+  40%  { background-color: #28ff7e; }
+  60%  { background-color: #2872ff; }
+  80%  { background-color: #d528ff; }
+  100% { background-color: #ff2828; }
+}
+.FAILED {
+  animation-name: flashfailed;
+  animation-duration: 0.08s;
+  animation-iteration-count: infinite;
+}
+@keyframes flashfailed {
+  0%   { background-color: #ff2828; }
+  50%  { background-color: #282828; }
+  100% { background-color: #ff2828; }
+}
+.A-CLEAR { background-color: #ff66ff; }
+.E-CLEAR { background-color: #22ff22; }
+.CLEAR { background-color: #22ccff; }
+.H-CLEAR { background-color: #ffffff; }
+.EXH-CLEAR {
+  animation-name: flashexh;
+  animation-duration: 0.08s;
+  animation-iteration-count: infinite;
+}
+@keyframes flashexh {
+  0%   { background-color: #ff2828; }
+  50%  { background-color: #ffff28; }
+  100% { background-color: #ff2828; }
+}
