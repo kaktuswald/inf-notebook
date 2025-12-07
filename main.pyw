@@ -1116,8 +1116,15 @@ class GuiApi():
         if notebook is None:
             event.return_string(dumps(None))
             return
-
-        event.return_string(dumps(notebook.get_scoreresult(playtype, difficulty)))
+        
+        result = notebook.get_scoreresult(playtype, difficulty)
+        socket_server.scoreresult = result
+        socket_server.scoreresult_music = {
+            'musicname': musicname,
+            'playtype': playtype,
+            'difficulty': difficulty
+        }
+        event.return_string(dumps(result))
 
     def get_playresult(self, event: webui.Event):
         '''対象のリザルトの記録を返す
@@ -2358,7 +2365,7 @@ if __name__ == '__main__':
 
     socket_server = SocketServer(port=setting.port['socket'])
     socket_server.start()
-    socket_server.json_musictable = dumps(resource.musictable)
+    socket_server.musictable = resource.musictable
 
     webui.set_config(webui.Config.multi_client, True)
     webui.set_default_root_folder('web/')
