@@ -1,6 +1,7 @@
 from threading import Thread
 from websockets.sync.server import WebSocketServer,ServerConnection,serve
 from logging import getLogger
+from json import dumps
 
 logger_child_name = 'socket server'
 
@@ -18,7 +19,9 @@ class SocketServer(Thread):
     imagevalue_screenshot: bytes = None
     imagevalue_scoreinformation: bytes = None
     imagevalue_scoregraph: bytes = None
-    json_musictable: str = None
+    musictable = None
+    scoreresult = None
+    scoreresult_music = None
 
     def __init__(self, port: int = None):
         if port is not None:
@@ -46,9 +49,15 @@ class SocketServer(Thread):
                     if message == 'get_scoregraphimage':
                         target = self.imagevalue_scoregraph
                     if message == 'get_musictable':
-                        target = '{}'
-                        if self.json_musictable is not None:
-                            target = self.json_musictable
+                        obj = { "method" : "get_musictable" }
+                        if self.musictable is not None:
+                            obj["result"] = self.musictable
+                        target = dumps(obj)
+                    if message == 'get_scoreresult':
+                        obj = { "method" : "get_scoreresult", "music": self.scoreresult_music }
+                        if self.scoreresult is not None:
+                            obj["result"] = self.scoreresult
+                        target = dumps(obj)
 
                     if target is not None:
                         connection.send(target)
