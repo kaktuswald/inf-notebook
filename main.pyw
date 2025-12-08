@@ -516,6 +516,8 @@ class GuiApi():
         window.bind('upload_scoreinformationimage', self.upload_scoreinformationimage)
         window.bind('upload_scoregraphimage', self.upload_scoregraphimage)
 
+        window.bind('clear_scoregraphimage', self.clear_scoregraphimage)
+
         window.bind('save_scoreinformationimage', self.save_scoreinformationimage)
         window.bind('save_scoregraphimage', self.save_scoregraphimage)
 
@@ -672,10 +674,9 @@ class GuiApi():
         '''
         data = event.get_string_at(0)
 
-        decorded_data = b64decode(data)
 
-        socket_server.imagevalue_imagenothing = decorded_data
-        socket_server.update_information(decorded_data)
+        socket_server.encodedimage_imagenothing = data
+        socket_server.update_information(data)
     
     def upload_informationimage(self, event: webui.Event):
         '''インフォメーション画像のアップロード
@@ -686,9 +687,8 @@ class GuiApi():
         '''
         data = event.get_string_at(0)
 
-        decorded_data = b64decode(data)
 
-        socket_server.update_information(decorded_data)
+        socket_server.update_information(data)
 
     def upload_summaryimage(self, event: webui.Event):
         '''統計画像のアップロード
@@ -699,11 +699,9 @@ class GuiApi():
         '''
         data = event.get_string_at(0)
 
-        decorded_data = b64decode(data)
+        socket_server.update_summary(data)
 
-        socket_server.update_summary(decorded_data)
-
-        save_imagevalue(decorded_data, summary_image_filepath)
+        save_imagevalue(b64decode(data), summary_image_filepath)
         self.send_message('append_log', 'saved summary.png')
 
     def upload_notesradarimage(self, event: webui.Event):
@@ -715,11 +713,9 @@ class GuiApi():
         '''
         data = event.get_string_at(0)
 
-        decorded_data = b64decode(data)
+        socket_server.update_notesradar(data)
 
-        socket_server.update_notesradar(decorded_data)
-
-        save_imagevalue(decorded_data, notesradar_image_filepath)
+        save_imagevalue(b64decode(data), notesradar_image_filepath)
         self.send_message('append_log', 'saved notesradar.png')
 
     def upload_scoreinformationimage(self, event: webui.Event):
@@ -745,7 +741,7 @@ class GuiApi():
             'imagevalue': decorded_value,
         }
 
-        socket_server.update_scoreinformation(decorded_value)
+        socket_server.update_scoreinformation(data)
 
         save_imagevalue(decorded_value, exportimage_musicinformation_filepath)
         self.send_message('append_log', 'saved musicinformation.png')
@@ -774,8 +770,11 @@ class GuiApi():
             'imagevalue': decorded_data,
         }
 
-        socket_server.update_scoregraph(decorded_data)
+        socket_server.update_scoregraph(data)
 
+    def clear_scoregraphimage(self, event: webui.Event):
+        socket_server.update_scoregraph(None)
+    
     def save_scoreinformationimage(self, event: webui.Event):
         '''譜面記録画像をファイルに保存する
         
@@ -1044,8 +1043,8 @@ class GuiApi():
                     imagevalues_filtered[timestamp] = imagevalue
 
         if imagevalue is not None:
-            socket_server.update_screenshot(imagevalue)
             decorded_data = b64encode(imagevalue).decode('utf-8')
+            socket_server.update_screenshot(decorded_data)
             event.return_string(dumps(decorded_data))
             return
         
@@ -1092,8 +1091,8 @@ class GuiApi():
             imagevalue = imagevalues_filtered[timestamp]
 
         if imagevalue is not None:
-            socket_server.update_screenshot(imagevalue)
             decorded_data = b64encode(imagevalue).decode('utf-8')
+            socket_server.update_screenshot(decorded_data)
             event.return_string(dumps(decorded_data))
             return
 
@@ -1886,8 +1885,8 @@ def musicselect_process(np_value):
                 ):
                 api.send_message('update_notesradar')
     
-    socket_server.update_scoreinformation(socket_server.imagevalue_imagenothing)
-    socket_server.update_scoregraph(socket_server.imagevalue_imagenothing)
+    socket_server.update_scoreinformation(None)
+    socket_server.update_scoregraph(None)
 
     api.send_message('scoreselect', {'playtype': playtype, 'musicname': musicname, 'difficulty': difficulty})
 
@@ -2098,11 +2097,13 @@ def active_screenshot():
     timestamp, filepath = save_raw(image)
     api.send_message('append_log', f'save screen: {filepath}')
 
-    api.image_activescreenshot = get_imagevalue(image)
-
+    imagevalue = get_imagevalue(image)
+    
+    api.image_activescreenshot = imagevalue
     api.send_message('activescreenshot', filepath)
 
-    socket_server.update_screenshot(get_imagevalue(image))
+    decorded_data = b64encode(imagevalue).decode('utf-8')
+    socket_server.update_screenshot(decorded_data)
 
 def select_summary():
     api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'summary'})
@@ -2137,11 +2138,13 @@ def upload_musicselect():
 
     api.send_message('append_log', f'upload screen')
 
-    api.image_activescreenshot = get_imagevalue(image)
+    imagevalue = get_imagevalue(image)
 
+    api.image_activescreenshot = imagevalue
     api.send_message('musicselect_upload')
 
-    socket_server.update_screenshot(get_imagevalue(image))
+    decorded_data = b64encode(imagevalue).decode('utf-8')
+    socket_server.update_screenshot(decorded_data)
 
 def check_latest_version():
     latest_version = get_latest_version()

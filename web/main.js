@@ -846,7 +846,6 @@ async function display_scoreresult() {
       }
     });
 
-    console.log(xvalues.length);
     if(xvalues.length) {
       const chartdata = [[], []];
       for(let i = 0; i < xvalues.length; i++) {
@@ -879,10 +878,12 @@ async function display_scoreresult() {
       reader_scoregraph.readAsDataURL(blob_scoregraph);
     }
     else {
+      webui.clear_scoregraphimage();
       $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
     }
   }
   else {
+    webui.clear_scoregraphimage();
     $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
   }
 

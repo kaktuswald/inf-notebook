@@ -1,3 +1,34 @@
+const Events = Object.freeze({
+  UPDATE_INFORMATIONIMAGE: 'update_informationimage',
+  UPDATE_SUMMARYIMAGE: 'update_summaryimage',
+  UPDATE_NOTESRADARIMAGE: 'update_notesradarimage',
+  UPDATE_SCREENSHOTIMAGE: 'update_screenshotimage',
+  UPDATE_SCOREINFORMATIONIMAGE: 'update_scoreinformationimage',
+  UPDATE_SCOREGRAPHIMAGE: 'update_scoregraphimage',
+});
+
+const Requests = Object.freeze({
+  GET_INFORMATIONIMAGE: 'get_informationimage',
+  GET_SUMMARYIMAGE: 'get_summaryimage',
+  GET_NOTESRADARIMAGE: 'get_notesradarimage',
+  GET_SCREENSHOTIMAGE: 'get_screenshotimage',
+  GET_SCOREINFORMATIONIMAGE: 'get_scoreinformationimage',
+  GET_SCOREGRAPHIMAGE: 'get_scoregraphimage',
+});
+
+const Statuses = Object.freeze({
+  SUCCESS: 'success',
+  INVALID: 'invalid',
+  FAILED: 'failed',
+})
+
+const DataTypes = Object.freeze({
+  TEXT_PLAIN: 'text/plain',
+  APP_JSON: 'application/json',
+  IMAGE_PNG: 'image/png',
+  IMAGE_JPG: 'image/jpg',
+})
+
 let url = "ws://localhost:8765"
 
 let socket = null;
@@ -13,43 +44,51 @@ async function connect() {
   });
 
   socket.addEventListener('message', (event) => {
-    if(event.data instanceof Blob) {
-        const blob = new Blob([event.data], {type: 'image/png'});
+    const data = JSON.parse(event.data);
+
+    if('s' in data && data['s'] === Statuses.SUCCESS) {
+      const payload = data['p']
+      if('t' in payload && payload['t'] === DataTypes.IMAGE_PNG) {
+        const binary = atob(payload['d']);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++)
+          bytes[i] = binary.charCodeAt(i);
+
+        const blob = new Blob([bytes], {type: payload['t']});
         const url = URL.createObjectURL(blob);
         $('img#image').attr('src', url);
-
-        return;
+      }
     }
 
-    if(typeof event.data === 'string') {
-      if(event.data == 'update_information') {
+    if('e' in data) {
+      if(data['e'] == Events.UPDATE_INFORMATIONIMAGE) {
         if($('body#information').length)
-          socket.send('get_informationimage');
+          sendmessage(Requests.GET_INFORMATIONIMAGE);
       }
 
-      if(event.data == 'update_summary') {
+      if(data['e'] == Events.UPDATE_SUMMARYIMAGE) {
         if($('body#summary').length)
-          socket.send('get_summaryimage');
+          sendmessage(Requests.GET_SUMMARYIMAGE);
       }
 
-      if(event.data == 'update_notesradar') {
+      if(data['e'] == Events.UPDATE_NOTESRADARIMAGE) {
         if($('body#notesradar').length)
-          socket.send('get_notesradarimage');
+          sendmessage(Requests.GET_NOTESRADARIMAGE);
       }
 
-      if(event.data == 'update_screenshot') {
+      if(data['e'] == Events.UPDATE_SCREENSHOTIMAGE) {
         if($('body#screenshot').length)
-          socket.send('get_screenshotimage');
+          sendmessage(Requests.GET_SCREENSHOTIMAGE);
       }
 
-      if(event.data == 'update_scoreinformation') {
+      if(data['e'] == Events.UPDATE_SCOREINFORMATIONIMAGE) {
         if($('body#scoreinformation').length)
-          socket.send('get_scoreinformationimage');
+          sendmessage(Requests.GET_SCOREINFORMATIONIMAGE);
       }
 
-      if(event.data == 'update_scoregraph') {
+      if(data['e'] == Events.UPDATE_SCOREGRAPHIMAGE) {
         if($('body#scoregraph').length)
-          socket.send('get_scoregraphimage');
+          sendmessage(Requests.GET_SCOREGRAPHIMAGE);
       }
     }
   });
@@ -68,22 +107,40 @@ async function connect() {
 
 function getrequest() {
   if($('body#information').length)
-    socket.send('get_informationimage');
+    sendmessage(Requests.GET_INFORMATIONIMAGE);
   
   if($('body#summary').length)
-    socket.send('get_summaryimage');
+    sendmessage(Requests.GET_SUMMARYIMAGE);
   
   if($('body#notesradar').length)
-    socket.send('get_notesradarimage');
+    sendmessage(Requests.GET_NOTESRADARIMAGE);
   
   if($('body#screenshot').length)
-    socket.send('get_screenshotimage');
+    sendmessage(Requests.GET_SCREENSHOTIMAGE);
   
   if($('body#scoreinformation').length)
-    socket.send('get_scoreinformationimage');
+    sendmessage(Requests.GET_SCOREINFORMATIONIMAGE);
 
   if($('body#scoregraph').length)
-    socket.send('get_scoregraphimage');
+    sendmessage(Requests.GET_SCOREGRAPHIMAGE);
+}
+
+function sendmessage(request, payload = null) {
+  let message = null;
+  
+  if(payload !== null) {
+    message = {
+      'r': request,
+      'p': payload,
+    };
+  }
+  else {
+    message = {
+      'r': request,
+    };
+  }
+
+  socket.send(JSON.stringify(message));
 }
 
 $(function() {
