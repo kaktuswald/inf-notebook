@@ -447,9 +447,15 @@ class GuiApi():
     @staticmethod
     def checkresource(event: webui.Event):
         '''リソースファイルのチェック
+
+        実行するときはTrueを返す。
         '''
-        if not setting.ignore_download:
-            check_resource()
+        if setting.ignore_download:
+            event.return_string(dumps(False))
+            return
+        
+        Thread(target=check_resource).start()
+        event.return_string(dumps(True))
 
     @staticmethod
     def execute_records_processing(event: webui.Event):
@@ -2216,6 +2222,8 @@ def check_resource():
     GCPにアクセスしてリソースファイルの最新状態を確認する。
     最新ファイルがある場合はダウンロードする。
     '''
+    api.send_message('append_log', 'start resource check.')
+
     api.send_message('start_resourcecheck')
 
     informations_filename = f'{define.informations_resourcename}.res'
@@ -2240,7 +2248,7 @@ def check_resource():
 
     check_latest(storage, musicnamechanges_filename)
 
-    api.send_message('append_log', 'complete check resources')
+    api.send_message('complete_resourcecheck')
 
 def load_resultimages(playtype: str, musicname: str, difficulty: str, timestamp: str, recent=False):
     '''リザルト画像をファイルからロードする

@@ -201,8 +201,32 @@ async function initialize() {
   await generate_imagenothingimage();
   await generate_loadingimage();
 
-  await webui.checkresource();
+  if(!JSON.parse(await webui.checkresource()))
+    loadresourceafterprocessing();
 
+  discordwebhook_initialprocessing();
+
+  webui.start_capturing();
+
+  await set_recentnotebook_results(false);
+
+  const versionresult = JSON.parse(await webui.check_latestversion());
+  if(versionresult) {
+    $('div#findnewestversion_message').text(versionresult);
+    $('dialog#dialog_findnewestversion')[0].showModal();
+  }
+
+  const imagesavepathresult = JSON.parse(await webui.check_imagesavepath());
+  if(!imagesavepathresult)
+    display_errormessage(['画像ファイル保存先のパスが見つかりません。']);
+}
+
+/**
+ * リソースデータロード後の処理
+ * 
+ * 最新リソースデータのチェックを実行する場合はその後
+ */
+async function loadresourceafterprocessing() {
   await loadresource_musictable();
   await loadresource_notesradar();
 
@@ -214,21 +238,13 @@ async function initialize() {
   await draw_summary();
   await draw_notesradar();
 
-  switch_displaytab('main', setting.startup_image);
+  switch_displaytab('main', setting['startup_image']);
 
-  await set_recentnotebook_results(false);
+  append_log('complete load resource after processing.');
+}
 
-  webui.start_capturing();
-
-  const versionresult = JSON.parse(await webui.check_latestversion());
-  if(versionresult) {
-    $('div#findnewestversion_message').text(versionresult);
-    $('dialog#dialog_findnewestversion')[0].showModal();
-  }
-
-  const imagesavepathresult = JSON.parse(await webui.check_imagesavepath());
-  if(!imagesavepathresult)
-    display_errormessage(['画像ファイル保存先のパスが見つかりません。']);
+async function discordwebhook_initialprocessing() {
+  append_log('start discord webhook initialize processing.');
 
   const eventmessages = [];
   const deletedevents = JSON.parse(await webui.discordwebhook_deleteendedjoineds());
@@ -274,6 +290,8 @@ async function initialize() {
     });
   }
 
+  append_log('complete discord webhook initialize processing.');
+
   reload_discordwebhook_settings();
 }
 
@@ -299,7 +317,7 @@ async function generate_imagenothingimage() {
 
   $('img#image_information').attr('src', url);
   $('img#image_summary').attr('src', url);
-  $('img#image_notesradar').attr('src', url);
+  $('img#image_chartnotesradar').attr('src', url);
   $('img#image_screenshot').attr('src', url);
   $('img#image_scoregraph').attr('src', url);
   $('img#image_scoreinformation').attr('src', url);
@@ -350,16 +368,6 @@ async function generate_infinitasinformatioinimage() {
 }
 
 /**
- * 初期処理完了時のメインタブ変更
- */
-function selecttab_main_initial() {
-  const startup_tabname = setting['startup_image'];
-
-  $('div.tabpage_main').css('display', 'none');
-  $(`div#tabpage_main_${startup_tabname}`).css('display', 'flex');
-}
-
-/**
  * Python側からのメッセージ処理
 
  * @param {*} message メッセージ本文
@@ -368,6 +376,9 @@ function communication_message(message, data = null) {
   switch(message) {
     case 'start_resourcecheck':
       generate_resourcecheckimage();
+      break;
+    case 'complete_resourcecheck':
+      loadresourceafterprocessing();
       break;
     case 'start_summaryprocessing':
       generate_summaryprocessingimage();
@@ -2105,7 +2116,13 @@ function display_encodedimage(encodedimage, tagid) {
  * @param {string} text 
  */
 function append_log(text) {
-  const li = $('<li>').text(text);
+  const dt = new Date();
+  const hour = String(dt.getHours()).padStart(2, '0');
+  const minute = String(dt.getMinutes()).padStart(2, '0');
+  const second = String(dt.getSeconds()).padStart(2, '0');
+  const timestamp = `${hour}:${minute}:${second}`;
+
+  const li = $('<li>').text(`${timestamp}: ${text}`);
   $('ul#logs').append(li);
 
   if($('ul#logs').children().length > 1000) $('ul#logs').children().first().remove();
