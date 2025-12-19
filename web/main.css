@@ -182,6 +182,12 @@ table#table_discordwebhooks td:nth-child(3) {
     width: 65px;
 }
 
+table#table_discordwebhooks th:nth-child(4),
+table#table_discordwebhooks td:nth-child(4) {
+    text-align: center;
+    width: 32px;
+}
+
 div#scroll_discordwebhook_logs {
     height: 140px;
 }
@@ -262,5 +268,5 @@ iframe#inner_export {
 
 iframe#inner_discordwebhook {
     width: 680px;
-    height: 450px;
+    height: 456px;
 }

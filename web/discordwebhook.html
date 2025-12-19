@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-		<meta charset='utf-8' />
+    <meta charset='utf-8' />
     <title>インフィニタス リザルト手帳 イベントリスト</title>
     <link rel="stylesheet" href="./general.css" />
     <link rel="stylesheet" href="./discordwebhook.css" />
     <script src="./webui.js"></script>
     <script src="./lib/jquery-3.7.1.slim.min.js"></script>
+    <script src="./discordwebhook_constants.js"></script>
     <script src="./discordwebhook.js"></script>
   </head>
   <body>
@@ -38,6 +39,8 @@
             <th>モード</th>
             <th>開始日時</th>
             <th>終了日時</th>
+            <th>状態</th>
+            <th>状態</th>
             <th>対象譜面</th>
           </tr>
         </table>
@@ -59,6 +62,8 @@
             <th>モード</th>
             <th>開始日時</th>
             <th>終了日時</th>
+            <th>状態</th>
+            <th>状態</th>
             <th>対象譜面</th>
             <th>ポイント</th>
           </tr>
@@ -100,11 +105,32 @@
         </div>
       </div>
     </dialog>
-    <dialog id="dialog_idnotfound">
+    <dialog id="dialog_joinerror">
       <div>
-        <div>指定したIDのイベントが見つかりませんでした。</div>
+        <div>指定したIDのイベントは存在しないか終了しています。</div>
         <div class="buttons_in_dialog">
           <button class="dialogclose">OK</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_selecteventended">
+      <div>
+        <div>選択したイベントは終了しています。</div>
+        <div>終了したイベントは終了日時から一週間後にリストから消えます。</div>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">OK</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_confirmleaveevent">
+      <div>
+        <div>本当にイベントへの参加を辞退しますか？</div>
+        <div class="warning">
+          辞退した旨を開催者に通知します。
+        </div>
+        <div class="buttons_in_dialog">
+          <button id="button_confirmleaveevent">OK</button>
+          <button class="dialogclose">キャンセル</button>
         </div>
       </div>
     </dialog>

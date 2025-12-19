@@ -94,8 +94,23 @@ table#table_joineds td:nth-child(6) {
     width: 65px;
 }
 
+table#table_publics th:nth-child(7),
+table#table_publics td:nth-child(7),
+table#table_joineds th:nth-child(7),
+table#table_joineds td:nth-child(7) {
+    display: none;
+}
+
+table#table_publics th:nth-child(8),
+table#table_publics td:nth-child(8),
 table#table_joineds th:nth-child(8),
 table#table_joineds td:nth-child(8) {
+    text-align: center;
+    width: 32px;
+}
+
+table#table_joineds th:nth-child(10),
+table#table_joineds td:nth-child(10) {
     text-align: center;
     width: 40px;
 }
@@ -111,6 +126,10 @@ table#table_musicnames td:nth-child(2) {
 
 input#text_eventname {
     width: 160px;
+}
+
+input#text_deletecode {
+    width: 80px;
 }
 
 input#text_authorname {

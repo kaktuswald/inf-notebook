@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <title>インフィニタス リザルト手帳 イベント削除</title>
+    <link rel="stylesheet" href="./general.css" />
+    <link rel="stylesheet" href="./discordwebhook.css" />
+    <script src="./webui.js"></script>
+    <script src="./lib/jquery-3.7.1.slim.min.js"></script>
+    <script src="./discordwebhook_delete.js"></script>
+  </head>
+  <body>
+    <div>
+      登録されているイベントを削除します。
+    </div>
+    <div>
+      登録時に発行されたIDと、設定した削除コードを入力してください。
+    </div>
+    <div class="split_horizontal">
+      <div class="label highlight">イベントID</div>
+      <input type="text" id="text_eventid"></select>
+    </div>
+    <div class="split_horizontal">
+      <div class="label highlight">削除コード</div>
+      <input type="text" id="text_deletecode"></select>
+    </div>
+    <div>
+      <span id="message" class="message"></span>
+    </div>
+    <div class="spacebetween">
+      <div>
+      </div>
+      <div class="buttons">
+        <button id="button_delete">削除</button>
+        <button id="button_close">閉じる</button>
+      </div>
+    </div>
+    <dialog id="dialog_confirmdelete">
+      <div>
+        <div>削除しますか？</div>
+        <div class="warning">
+          削除を実行すると、取り消すことはできません。
+        </div>
+        <div class="warning">
+          削除されたことは参加者に通知されます。
+        </div>
+        <div class="buttons_in_dialog">
+          <button id="button_confirmdelete">OK</button>
+          <button class="dialogclose">キャンセル</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_faileddelete">
+      <div>
+        <div>
+          削除に失敗しました。
+        </div>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">OK</button>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

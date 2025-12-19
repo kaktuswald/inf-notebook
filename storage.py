@@ -6,7 +6,7 @@ from google.cloud.storage import Blob
 from PIL import Image,ImageDraw
 from json import loads,dumps
 from uuid import uuid1
-from datetime import datetime,timezone
+from datetime import datetime,timezone,timedelta
 from threading import Thread
 from logging import getLogger
 
@@ -16,6 +16,7 @@ logger.debug('loaded storage.py')
 from service_account_info import service_account_info
 from define import define
 from result import Result
+from discord_webhook import DiscordwebhookModes
 
 bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
@@ -313,7 +314,7 @@ class StorageAccessor():
             enddt = datetime.strptime(content['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
             nowdt = datetime.now(timezone.utc)
 
-            if nowdt < enddt:
+            if nowdt <= enddt + timedelta(weeks=1):
                 list[splitext(blob.name)[0]] = content
             else:
                 # 終了日時を過ぎたファイルは削除する
@@ -321,7 +322,6 @@ class StorageAccessor():
                     blob.delete()
                 except Exception as ex:
                     pass
-
         
         return list
 
@@ -344,6 +344,30 @@ class StorageAccessor():
             blob = self.bucket_discordwebhooks.blob(filename)
             blob.upload_from_string(dumps(value))
             logger.debug(f'upload discordwebhooks {filename}')
+        except Exception as ex:
+            logger.exception(ex)
+            return False
+
+        return True
+    
+    def delete_discordwebhook(self, filename: str) -> bool:
+        '''
+        指定のイベント内容ファイルを削除する
+
+        Args:
+            filename(str): ファイル名
+        Returns:
+            bool: 削除の成功
+        '''
+        if self.bucket_discordwebhooks is None:
+            self.connect_bucket_discordwebhooks()
+        if self.bucket_discordwebhooks is None:
+            return False
+        
+        try:
+            blob = self.bucket_discordwebhooks.blob(filename)
+            blob.delete()
+            logger.debug(f'delete discordwebhooks {filename}')
         except Exception as ex:
             logger.exception(ex)
             return False

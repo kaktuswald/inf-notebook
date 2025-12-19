@@ -116,6 +116,7 @@ $(function() {
 
   $('button#button_discordwebhook_open').on('click', onclick_discordwebhook_open);
   $('button#button_discordwebhook_register').on('click', onclick_discordwebhook_register);
+  $('button#button_discordwebhook_delete').on('click', onclick_discordwebhook_delete);
   $('iframe#inner_discordwebhook').on('load', onload_discordwebhook_window);
 
   $('input[name="notesradar_playmode"]').on('change', onchange_notesradar_playmode);
@@ -247,9 +248,11 @@ async function discordwebhook_initialprocessing() {
   append_log('start discord webhook initialize processing.');
 
   const eventmessages = [];
-  const deletedevents = JSON.parse(await webui.discordwebhook_deleteendedjoineds());
-  for(const target in deletedevents)
-    eventmessages.push(`${deletedevents[target].name} が終了しました！`);
+  const ret = JSON.parse(await webui.discordwebhook_checkjoineds());
+  for(const target in ret.endeds)
+    eventmessages.push(`${ret.endeds[target].name} が終了しました！`);
+  for(const target in ret.startteds)
+    eventmessages.push(`${ret.startteds[target].name} が開始しています！`);
 
   const eventresult = JSON.parse(await webui.discordwebhook_downloadevents());
   if(eventresult) {
@@ -1530,11 +1533,20 @@ async function onclick_discordwebhook_open(e) {
 }
 
 /**
- * イベントを登録する
+ * イベントを登録するウィンドウを開く
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_discordwebhook_register(e) {
   $('iframe#inner_discordwebhook').attr('src', './discordwebhook_register.html')
+  $('dialog#dialog_discordwebhook')[0].showModal();
+}
+
+/**
+ * イベントを削除するウィンドウを開く
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_discordwebhook_delete(e) {
+  $('iframe#inner_discordwebhook').attr('src', './discordwebhook_delete.html')
   $('dialog#dialog_discordwebhook')[0].showModal();
 }
 
@@ -1700,7 +1712,7 @@ function refresh_discordwebhook_settings(settings) {
     const targetscore = target.targetscore;
 
     const tips = [];
-    if(target.mode != 'battle') {
+    if(target.mode != DiscordwebhookModes.BATTLE) {
       tips.push(...[
         `[${targetscore.playmode}${targetscore.difficulty[0]}]${targetscore.musicname}`,
         '',
@@ -1739,6 +1751,21 @@ function refresh_discordwebhook_settings(settings) {
     const td_enddt = $('<td>').text(`${end_month}/${end_day} ${end_hour}:${end_minute}`);
     td_enddt.addClass('discordwebhook_cell_enddatetime');
     tr.append(td_enddt);
+
+    const td_status = $('<td>');
+    switch(target.status) {
+      case DiscordwebhookStatuses.UPCOMING:
+        td_status.text('予告');
+        break;
+      case DiscordwebhookStatuses.ONGOING:
+        td_status.text('開催中');
+        break;
+      case DiscordwebhookStatuses.ENDED:
+        td_status.text('終了');
+        break;
+    }
+    td_status.addClass('joineditem_cell_status');
+    tr.append(td_status);
 
     $('#table_discordwebhooks').append(tr);
   });
