@@ -5,7 +5,7 @@ from queue import Queue,Full
 import webbrowser
 import logging
 from urllib import request
-from datetime import datetime,timezone
+from datetime import datetime,timezone,timedelta
 from PIL import Image
 from urllib.parse import urljoin
 from subprocess import Popen
@@ -15,6 +15,7 @@ from json import dump,dumps,load,loads
 from uuid import uuid1
 from base64 import b64decode,b64encode
 from webui import webui
+from hashlib import sha256
 from sys import exit
 from tkinter import Tk,filedialog
 
@@ -75,7 +76,7 @@ from image import (
     openfolder_scoreinformations,
     openfolder_export,
 )
-from discord_webhook import post_test,post_registered,post_result
+from discord_webhook import DiscordwebhookModes,DiscordwebhookStatuses,post_test,post_registered,post_result,post_leave
 from result import Result,RecentResult
 from notesradar import NotesRadar
 from appdata import LocalConfig
@@ -1440,7 +1441,7 @@ class GuiApiDiscordWebhook():
         self.window = window
 
         window.bind('discordwebhook_downloadevents', self.download_events)
-        window.bind('discordwebhook_deleteendedjoineds', self.delete_endedjoineds)
+        window.bind('discordwebhook_checkjoineds', self.checkjoineds)
         window.bind('discordwebhook_getpublishednewpublics', self.get_publishednewpublics)
         window.bind('discordwebhook_getpublishedpublics', self.get_publishedpublics)
         window.bind('discordwebhook_getjoineds', self.get_joineds)
@@ -1450,6 +1451,7 @@ class GuiApiDiscordWebhook():
         window.bind('discordwebhook_openurl', self.openurl)
         window.bind('discordwebhook_testpost', self.testpost)
         window.bind('discordwebhook_register', self.register)
+        window.bind('discordwebhook_delete', self.delete)
 
     def download_events(self, event: webui.Event):
         '''イベントデータをダウンロードする
@@ -1470,9 +1472,11 @@ class GuiApiDiscordWebhook():
                 if not value['private']:
                     self.publicevents[key] = value
 
-    def delete_endedjoineds(self, event: webui.Event):
-        '''終了済みの参加イベントを削除する
+    def checkjoineds(self, event: webui.Event):
+        '''参加イベントのチェックを行う
 
+        終了日時を超えているものは終了フラグを追加する
+        終了日時から一週間以上経過しているものを削除する
         削除するイベントは設定から取り除く。
         削除したイベントデータをフロントエンドに返す。
 
@@ -1481,19 +1485,56 @@ class GuiApiDiscordWebhook():
         '''
         nowdt = datetime.now(timezone.utc)
 
-        targets = {}
+        deletetargets = {}
+        endedtargets = {}
+        starttedtargets = {}
+        setting_updated: bool = False
         for key, value in setting.discord_webhook['joinedevents'].items():
+            if not 'status' in value.keys():
+                value['status'] = DiscordwebhookStatuses.UPCOMING
+            
+            startdt = datetime.strptime(value['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
             enddt = datetime.strptime(value['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
-            if nowdt > enddt:
-                targets[key] = value
 
-        if len(targets):
-            for id in targets.keys():
+            if nowdt > enddt + timedelta(weeks=1) or (value['mode'] == DiscordwebhookModes.BATTLE and nowdt > enddt):
+                deletetargets[key] = value
+            else:
+                if value['mode'] != DiscordwebhookModes.BATTLE:
+                    if not 'end_notified' in value.keys() and nowdt > enddt:
+                        endedtargets[key] = value
+                    else:
+                        if not 'start_notified' in value.keys() and nowdt > startdt:
+                            starttedtargets[key] = value
+            
+            if not key in deletetargets.keys():
+                if value['status'] != DiscordwebhookStatuses.ENDED:
+                    if nowdt >= enddt:
+                        value['status'] = DiscordwebhookStatuses.ENDED
+                        setting_updated = True
+                    else:
+                        if value['status'] != DiscordwebhookStatuses.ONGOING and nowdt >= startdt:
+                            value['status'] = DiscordwebhookStatuses.ONGOING
+                            setting_updated = True
+
+        if len(deletetargets):
+            for id in deletetargets.keys():
                 del setting.discord_webhook['joinedevents'][id]
             
+        if len(endedtargets):
+            for id in endedtargets.keys():
+                setting.discord_webhook['joinedevents'][id]['end_notified'] = True
+
+        if len(starttedtargets):
+            for id in starttedtargets.keys():
+                setting.discord_webhook['joinedevents'][id]['start_notified'] = True
+
+        if setting_updated or len(deletetargets) > 0 or len(endedtargets) > 0 or len(starttedtargets) > 0:
             setting.save()
 
-        event.return_string(dumps(targets))
+        event.return_string(dumps({
+            'endeds': endedtargets,
+            'startteds': starttedtargets,
+        }))
 
     def get_publishednewpublics(self, event: webui.Event):
         '''始めて表示する公開済みの公開イベントを返す
@@ -1548,6 +1589,14 @@ class GuiApiDiscordWebhook():
                 published = publishdt < nowdt
 
             if published:
+                startdt = datetime.strptime(value['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+                enddt = datetime.strptime(value['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+                
+                if nowdt >= enddt:
+                    value['status'] = DiscordwebhookStatuses.ENDED
+                else:
+                    value['status'] = DiscordwebhookStatuses.ONGOING if nowdt >= startdt else DiscordwebhookStatuses.UPCOMING
+                
                 returns[key] = value
         
         return returns
@@ -1566,7 +1615,7 @@ class GuiApiDiscordWebhook():
         '''
         イベントに参加する
 
-        指定されたIDがない場合はFalseを返す。
+        指定されたIDがない場合や開催が終了している場合はFalseを返す。
         '''
         id = event.get_string_at(0)
 
@@ -1598,6 +1647,16 @@ class GuiApiDiscordWebhook():
         webhook['startdatetime'] = target['startdatetime']
         webhook['enddatetime'] = target['enddatetime']
         webhook['targetscore'] = target['targetscore']
+
+        nowdt = datetime.now(timezone.utc)
+        startdt = datetime.strptime(target['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        enddt = datetime.strptime(target['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        
+        if nowdt >= enddt:
+            event.return_string(dumps(False))
+            return
+
+        webhook['status'] = DiscordwebhookStatuses.ONGOING if nowdt >= startdt else DiscordwebhookStatuses.UPCOMING
         webhook['mybest'] = None
 
         setting.discord_webhook['joinedevents'][id] = webhook
@@ -1610,10 +1669,13 @@ class GuiApiDiscordWebhook():
     def leave_event(self, event: webui.Event):
         id = event.get_string_at(0)
 
-        del setting.discord_webhook['joinedevents'][id]
+        if id in setting.discord_webhook['joinedevents'].keys():
+            post_leave(setting.discord_webhook['playername'], setting.discord_webhook['joinedevents'][id])
 
-        setting.save()
-        api.send_message('discordwebhook_refresh')
+            del setting.discord_webhook['joinedevents'][id]
+            setting.save()
+
+            api.send_message('discordwebhook_refresh')
 
     def openurl(self, event: webui.Event):
         url = event.get_string_at(0)
@@ -1632,7 +1694,7 @@ class GuiApiDiscordWebhook():
 
         try:
             targetscore = None
-            if values['mode'] != 'battle':
+            if values['mode'] != DiscordwebhookModes.BATTLE:
                 targetscore = {
                     'musicname': values['targetscore']['musicname'],
                     'playmode': values['targetscore']['playmode'],
@@ -1641,6 +1703,7 @@ class GuiApiDiscordWebhook():
             
             discordwebhook = {
                 'name': values['name'],
+                'deletecode': sha256(values['deletecode'].encode()).hexdigest(),
                 'authorname': values['authorname'],
                 'comment': values['comment'],
                 'siteurl': values['siteurl'],
@@ -1655,14 +1718,40 @@ class GuiApiDiscordWebhook():
             }
 
             id = str(uuid1())
+            ret = {
+                'id': id,
+                'name': values['name'],
+                'deletecode': values['deletecode'],
+            }
             if(storage.upload_discordwebhook(f'{id}.json', discordwebhook)):
-                event.return_string(dumps(id))
+                event.return_string(dumps(ret))
                 url = values['posturl'] if 'posturl' in values.keys() else values['url']
-                ret = post_registered(url, id)
+                post_registered(url, id)
             else:
                 event.return_string(dumps(None))
         except Exception as ex:
             event.return_string(dumps(None))
+    
+    def delete(self, event: webui.Event):
+        id = event.get_string_at(0)
+        deletecode = event.get_string_at(1)
+
+        if not id in self.events.keys():
+            event.return_string(dumps('指定IDのイベントが見つかりません。'))
+            return
+        
+        target = self.events[id]
+        if target['deletecode'] != sha256(deletecode.encode()).hexdigest():
+            event.return_string(dumps('削除コードが誤っています。'))
+            return
+
+        if not storage.delete_discordwebhook(f'{id}.json'):
+            event.return_string(dumps('イベントの削除に失敗しました。'))
+            return
+
+        del self.events[id]
+
+        event.return_string(dumps(None))
 
 class ScoreSelection():
     '''選択中の譜面
@@ -1930,20 +2019,33 @@ def post_discord_webhooks(result: Result, imagevalue: bytes):
     posttargets = []
     logs = []
 
-    nowdt = datetime.now(timezone.utc)
-    
+    nowdt = datetime.now()
+
+    nowdt_utc = nowdt.astimezone(timezone.utc)
     for key, webhooksetting in setting.discord_webhook['joinedevents'].items():
+        if not 'status' in webhooksetting.keys():
+            webhooksetting['status'] = DiscordwebhookStatuses.UPCOMING
+        
         startdt = datetime.strptime(webhooksetting['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
         enddt = datetime.strptime(webhooksetting['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
         
-        if startdt <= nowdt and nowdt < enddt:
+        if webhooksetting['status'] != DiscordwebhookStatuses.ENDED:
+            if nowdt_utc >= enddt:
+                webhooksetting['status'] = DiscordwebhookStatuses.ENDED
+                setting_updated = True
+            else:
+                if webhooksetting['status'] != DiscordwebhookStatuses.ONGOING and nowdt_utc >= startdt:
+                    webhooksetting['status'] = DiscordwebhookStatuses.ONGOING
+                    setting_updated = True
+
+        if startdt <= nowdt_utc and nowdt_utc < enddt:
             posttargets.append(webhooksetting)
 
     if len(posttargets):
-        dt = datetime.now().strftime('%H:%M')
+        dt = nowdt.strftime('%H:%M')
         
         for webhooksetting in posttargets:
-            postresult, resultmessages = post_result(setting.discord_webhook['playername'], webhooksetting, result, imagevalue)
+            postresult, resultmessages = post_result(setting.discord_webhook['playername'], nowdt, webhooksetting, result, imagevalue)
             if postresult is None:
                 continue
 
@@ -1955,10 +2057,10 @@ def post_discord_webhooks(result: Result, imagevalue: bytes):
                 else:
                     logs.append(f'{dt} {settingname}: {resultmessages}')
 
-                if webhooksetting['mode'] != 'battle':
-                    if webhooksetting['mode'] == 'score':
+                if webhooksetting['mode'] != DiscordwebhookModes.BATTLE:
+                    if webhooksetting['mode'] == DiscordwebhookModes.SCORE:
                         webhooksetting['mybest'] = result.details.score.current
-                    if webhooksetting['mode'] == 'misscount':
+                    if webhooksetting['mode'] == DiscordwebhookModes.MISSCOUNT:
                         webhooksetting['mybest'] = result.details.miss_count.current
                     setting_updated = True
             else:

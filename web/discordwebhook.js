@@ -13,6 +13,7 @@ $(function() {
   $('button#button_eventidinputok').on('click', onclick_eventidinputok);
   $('button#button_opensitejoined').on('click', onclick_opensitejoined);
   $('button#button_leaveevent').on('click', onclick_leaveevent);
+  $('button#button_confirmleaveevent').on('click', onclick_confirmleaveevent);
   $('button#button_close').on('click', onclick_close);
 });
 
@@ -74,11 +75,11 @@ async function get_publics() {
     tr.append(td_siteurl);
 
     const td_mode = $('<td>');
-    if(target.mode == 'battle')
+    if(target.mode == DiscordwebhookModes.BATTLE)
       td_mode.text('バトル');
-    if(target.mode == 'score')
+    if(target.mode == DiscordwebhookModes.SCORE)
       td_mode.text('スコア大会');
-    if(target.mode == 'misscount')
+    if(target.mode == DiscordwebhookModes.MISSCOUNT)
       td_mode.text('ミスカウント大会');
     td_mode.addClass('publicitem_cell_mode');
     tr.append(td_mode);
@@ -91,8 +92,27 @@ async function get_publics() {
     td_enddt.addClass('publicitem_cell_enddatetime');
     tr.append(td_enddt);
 
+    const td_status = $('<td>').text(target.status);
+    td_status.addClass('publicitem_cell_status');
+    tr.append(td_status);
+
+    const td_statuslabel = $('<td>');
+    switch(target.status) {
+      case DiscordwebhookStatuses.UPCOMING:
+        td_statuslabel.text('予告');
+        break;
+      case DiscordwebhookStatuses.ONGOING:
+        td_statuslabel.text('開催中');
+        break;
+      case DiscordwebhookStatuses.ENDED:
+        td_statuslabel.text('終了');
+        break;
+    }
+    td_statuslabel.addClass('publicitem_cell_statuslabel');
+    tr.append(td_statuslabel);
+
     const td_targetscore = $('<td>');
-    if(target.mode != 'battle') {
+    if(target.mode != DiscordwebhookModes.BATTLE) {
       const targetscore = target.targetscore;
       const text = `[${targetscore.playmode}${targetscore.difficulty[0]}]${targetscore.musicname}`;
       td_targetscore.text(text);
@@ -133,11 +153,11 @@ async function get_joineds() {
     tr.append(td_siteurl);
 
     const td_mode = $('<td>');
-    if(target.mode == 'battle')
+    if(target.mode == DiscordwebhookModes.BATTLE)
       td_mode.text('バトル');
-    if(target.mode == 'score')
+    if(target.mode == DiscordwebhookModes.SCORE)
       td_mode.text('スコア大会');
-    if(target.mode == 'misscount')
+    if(target.mode == DiscordwebhookModes.MISSCOUNT)
       td_mode.text('ミスカウント大会');
     td_mode.addClass('joineditem_cell_mode');
     tr.append(td_mode);
@@ -150,8 +170,27 @@ async function get_joineds() {
     td_enddt.addClass('joineditem_cell_enddatetime');
     tr.append(td_enddt);
 
+    const td_status = $('<td>').text(target.status);
+    td_status.addClass('joineditem_cell_status');
+    tr.append(td_status);
+
+    const td_statuslabel = $('<td>');
+    switch(target.status) {
+      case DiscordwebhookStatuses.UPCOMING:
+        td_statuslabel.text('予告');
+        break;
+      case DiscordwebhookStatuses.ONGOING:
+        td_statuslabel.text('開催中');
+        break;
+      case DiscordwebhookStatuses.ENDED:
+        td_statuslabel.text('終了');
+        break;
+    }
+    td_statuslabel.addClass('joineditem_cell_statuslabel');
+    tr.append(td_statuslabel);
+
     const td_targetscore = $('<td>');
-    if(target.mode != 'battle') {
+    if(target.mode != DiscordwebhookModes.BATTLE) {
       const targetscore = target.targetscore;
       const text = `[${targetscore.playmode}${targetscore.difficulty[0]}]${targetscore.musicname}`;
       td_targetscore.text(text);
@@ -289,8 +328,17 @@ async function onclick_joinevent(e) {
   const target = $('tr.publicitem.selected');
   if(!target.length) return;
 
+  const a = target.find('td.publicitem_cell_status');
+  const b = target.find('td.publicitem_cell_status').text();
+  if(target.find('td.publicitem_cell_status').text() == DiscordwebhookStatuses.ENDED) {
+    $('dialog#dialog_selecteventended')[0].showModal();
+    return;
+  }
+
   const id = target.find('td.publicitem_cell_id').text();
-  await webui.discordwebhook_joinevent(id);
+  const result = JSON.parse(await webui.discordwebhook_joinevent(id));
+  if(!result)
+    $('dialog#dialog_joinerror')[0].showModal();
 }
 
 /**
@@ -313,10 +361,8 @@ async function onclick_eventidinputok(e) {
   if(!inputid.length) return;
 
   const result = JSON.parse(await webui.discordwebhook_joinevent(inputid));
-  if(!result) {
-    $('dialog#dialog_idnotfound')[0].showModal();
-    return;
-  }
+  if(!result)
+    $('dialog#dialog_joinerror')[0].showModal();
 }
 
 /**
@@ -337,6 +383,24 @@ async function onclick_opensitejoined(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_leaveevent(e) {
+  const target = $('tr.joineditem.selected');
+  if(!target.length) return;
+
+  if(target.find('td.joineditem_cell_status').text() == DiscordwebhookStatuses.ENDED) {
+    $('dialog#dialog_selecteventended')[0].showModal();
+    return;
+  }
+
+  $('dialog#dialog_confirmleaveevent')[0].showModal();
+}
+
+/**
+ * 辞退OKボタンを押す
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_confirmleaveevent(e) {
+  $(this).closest('dialog')[0].close();
+
   const target = $('tr.joineditem.selected');
   if(!target.length) return;
 
