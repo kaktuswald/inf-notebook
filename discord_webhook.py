@@ -78,6 +78,8 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
             return None, None
         if setting['targetscore']['difficulty'] != informations.difficulty:
             return None, None
+        if informations.playspeed is not None:
+            return None, None
         if details is None:
             return None, None
         if setting['mode'] == DiscordwebhookModes.SCORE:
