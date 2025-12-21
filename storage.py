@@ -16,7 +16,7 @@ logger.debug('loaded storage.py')
 from service_account_info import service_account_info
 from define import define
 from result import Result
-from discord_webhook import DiscordwebhookModes
+from cloud_function import callfunction_eventdelete
 
 bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
@@ -307,9 +307,16 @@ class StorageAccessor():
         list = {}
 
         blobs = self.client.list_blobs(bucket_name_discordwebhooks)
+        deletetargets = []
         for blob in blobs:
             blob: Blob = blob
-            content = loads(blob.download_as_string())
+            try:
+                content = loads(blob.download_as_string())
+            except Exception as ex:
+                continue
+
+            if not 'enddatetime' in content.keys():
+                continue
 
             enddt = datetime.strptime(content['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
             nowdt = datetime.now(timezone.utc)
@@ -317,11 +324,10 @@ class StorageAccessor():
             if nowdt <= enddt + timedelta(weeks=1):
                 list[splitext(blob.name)[0]] = content
             else:
-                # 終了日時を過ぎたファイルは削除する
-                try:
-                    blob.delete()
-                except Exception as ex:
-                    pass
+                deletetargets.append(blob.name)
+        
+        if len(deletetargets):
+            callfunction_eventdelete(deletetargets)
         
         return list
 
@@ -344,30 +350,6 @@ class StorageAccessor():
             blob = self.bucket_discordwebhooks.blob(filename)
             blob.upload_from_string(dumps(value))
             logger.debug(f'upload discordwebhooks {filename}')
-        except Exception as ex:
-            logger.exception(ex)
-            return False
-
-        return True
-    
-    def delete_discordwebhook(self, filename: str) -> bool:
-        '''
-        指定のイベント内容ファイルを削除する
-
-        Args:
-            filename(str): ファイル名
-        Returns:
-            bool: 削除の成功
-        '''
-        if self.bucket_discordwebhooks is None:
-            self.connect_bucket_discordwebhooks()
-        if self.bucket_discordwebhooks is None:
-            return False
-        
-        try:
-            blob = self.bucket_discordwebhooks.blob(filename)
-            blob.delete()
-            logger.debug(f'delete discordwebhooks {filename}')
         except Exception as ex:
             logger.exception(ex)
             return False

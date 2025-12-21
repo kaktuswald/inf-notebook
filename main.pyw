@@ -48,6 +48,7 @@ from screenshot import Screen,Screenshot
 from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
+from cloud_function import callfunction_eventdelete
 from record import NotebookRecent,NotebookSummary,Notebooks,rename_allfiles,rename_changemusicname,musicnamechanges_filename
 from filter import filter as filter_result
 from filter import stamp,filter_overlay
@@ -681,7 +682,6 @@ class GuiApi():
         '''
         data = event.get_string_at(0)
 
-
         socket_server.encodedimage_imagenothing = data
         socket_server.update_information(data)
     
@@ -693,7 +693,6 @@ class GuiApi():
             data(str): エンコードされた画像データ
         '''
         data = event.get_string_at(0)
-
 
         socket_server.update_information(data)
 
@@ -1741,11 +1740,16 @@ class GuiApiDiscordWebhook():
             return
         
         target = self.events[id]
+
+        if not 'deletecode' in target.keys():
+            event.return_string(dumps('指定のイベントに削除コードが存在しません。'))
+            return
+
         if target['deletecode'] != sha256(deletecode.encode()).hexdigest():
             event.return_string(dumps('削除コードが誤っています。'))
             return
 
-        if not storage.delete_discordwebhook(f'{id}.json'):
+        if not callfunction_eventdelete([f'{id}.json']):
             event.return_string(dumps('イベントの削除に失敗しました。'))
             return
 

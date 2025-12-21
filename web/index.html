@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-		<meta charset='utf-8' />
+    <meta charset='utf-8' />
     <title>インフィニタス リザルト手帳</title>
     <link rel="stylesheet" href="./general.css" />
     <link rel="stylesheet" href="./main.css" />
@@ -9,6 +9,7 @@
     <script src="./lib/jquery-3.7.1.slim.min.js"></script>
     <script src="./lib/chart4.4.9.min.js"></script>
     <script src="./lib/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="./discordwebhook_constants.js"></script>
     <script src="./main.js"></script>
     <script src="./drawer_simpletext.js"></script>
     <script src="./drawer_information.js"></script>
@@ -180,12 +181,14 @@
                     <th>参加中のイベント</th>
                     <th>開始日時</th>
                     <th>終了日時</th>
+                    <th>状態</th>
                   </tr>
                 </table>
               </div>
               <div class="bottons">
                 <button id="button_discordwebhook_open">イベント閲覧</button>
                 <button id="button_discordwebhook_register">イベント登録</button>
+                <button id="button_discordwebhook_delete">イベント削除</button>
               </div>
               <div id="scroll_discordwebhook_logs" class="scroll">
                 <ul id="list_discordwebhook_logs"></ul>
