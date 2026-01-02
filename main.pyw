@@ -1118,11 +1118,13 @@ class GuiApi():
             return
         
         result = notebook.get_scoreresult(playtype, difficulty)
-        socket_server.scoreresult = result
-        socket_server.scoreresult_music = {
-            'musicname': musicname,
-            'playtype': playtype,
-            'difficulty': difficulty
+        socket_server.scoreresult = {
+            'music': {
+                'musicname': musicname,
+                'playtype': playtype,
+                'difficulty': difficulty,
+            },
+            'result': result,
         }
         event.return_string(dumps(result))
 

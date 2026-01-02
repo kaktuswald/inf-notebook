@@ -105,9 +105,8 @@ class SocketServer(Thread):
     encodedimage_scoreinformation: str | None = None
     encodedimage_scoregraph: str | None = None
 
-    musictable = None
-    scoreresult = None
-    scoreresult_music = None
+    musictable: dict[str, any] | None = None
+    scoreresult: dict[str, any] | None = None
 
     def __init__(self, port: int = None):
         if port is not None:
@@ -144,10 +143,7 @@ class SocketServer(Thread):
                     if request == Requests.GET_MUSICTABLE:
                         payload = self.response_json(self.musictable)
                     if request == Requests.GET_SCORERESULT:
-                        payload = self.response_json({
-                            "music": self.scoreresult_music,
-                            "result": self.scoreresult,
-                        })
+                        payload = self.response_json(self.scoreresult)
                                         
                     if payload is not None:
                         message = {
@@ -177,10 +173,10 @@ class SocketServer(Thread):
             'd': target if target is not None else self.encodedimage_imagenothing,
         }
     
-    def response_json(self, target: any):
+    def response_json(self, target: dict[str, any] | None):
         return {
             't': DataTypes.APP_JSON,
-            'd': target,
+            'd': target if target is not None else {},
         }
 
     def update_information(self, encodedimage: str | None):
