@@ -47,12 +47,12 @@ div#setting span#url {
 #best {
   clear: right;
   display: grid;
-  grid-template-columns: minmax(1px, max-content) minmax(1px, max-content) auto;
+  grid-template-columns: max-content max-content auto;
 }
 #result {
   clear: right;
   display: grid;
-  grid-template-columns: minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) auto;
+  grid-template-columns: max-content max-content max-content max-content max-content max-content auto;
 }
 #best > div, #result > div {
   font-size: 1.2rem;
@@ -75,6 +75,8 @@ div#setting span#url {
 }
 .options {
   color: #aaffaa;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
 }
 
 .NORMAL {

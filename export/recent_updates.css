@@ -48,7 +48,7 @@ div#setting span#url {
 #result {
     clear: right;
     display: grid;
-    grid-template-columns: minmax(1px, max-content) auto minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content)
+    grid-template-columns: max-content auto max-content max-content max-content
 }
 #result > div {
     border-bottom: 1px solid #888888;
