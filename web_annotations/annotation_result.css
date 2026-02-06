@@ -1,0 +1,65 @@
+fieldset {
+    border: none;
+}
+
+div.value_informations,
+div.value_musicname,
+div.value_details,
+div.value_detailsbest,
+div.value_detailscurrent,
+div.value_detailsnew {
+    display: inline-block;
+}
+
+div.value_informations {
+    width: 100px;
+}
+
+div.value_musicname {
+    width: 200px;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+
+div.value_details {
+    width: 150px;
+}
+
+div.value_detailsbest,
+div.value_detailscurrent {
+    width: 90px;
+}
+
+div.value_detailsnew {
+    font-size: x-small;
+    width: 40px;
+}
+
+input.text_musicname {
+    width: 200px;
+}
+
+input.text_scoremisscount {
+    width: 50px;
+}
+
+div#box_image {
+    width: 400px;
+    height: 400px;
+}
+
+div#container_keys {
+    width: 240px;
+    height: 400px;
+}
+
+img#image_informations {
+    width: 400px;
+    height: 78px;
+}
+
+img#image_details {
+    width: 138.5px;
+    height: 238px;
+}

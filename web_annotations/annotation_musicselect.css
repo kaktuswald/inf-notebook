@@ -1,0 +1,43 @@
+div.value_levels,
+div.value_others,
+div.value_musicname {
+    display: inline-block;
+}
+
+div.value_levels {
+    width: 100px;
+}
+
+div.value_musicname {
+    width: 200px;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+
+div.value_others {
+    width: 150px;
+}
+
+input.text_musicname {
+    width: 200px;
+}
+
+input.text_scoremisscount {
+    width: 50px;
+}
+
+div#box_image {
+    width: 570px;
+    height: 421px;
+}
+
+div#container_keys {
+    width: 240px;
+    height: 400px;
+}
+
+img#image {
+    width: 570px;
+    height: 415px;
+}

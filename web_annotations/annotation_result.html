@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>リザルト画像のアノテーション</title>
+    <link rel="stylesheet" href="./web/general.css" />
+    <link rel="stylesheet" href="./web_annotations/annotation.css" />
+    <link rel="stylesheet" href="./web_annotations/annotation_result.css" />
+    <script src="./webui.js"></script>
+    <script src="./web/lib/jquery-3.7.1.slim.min.js"></script>
+    <script src="./web_annotations/annotation_result.js"></script>
+  </head>
+  <body>
+    <div class="split_horizontal">
+      <div class="pane_left" class="pane">
+        <div class="split_horizontal">
+          <div id="box_image">
+            <div>
+              <img id="image_informations" alt="曲情報画像">
+            </div>
+            <div>
+              <img id="image_details" alt="詳細リザルト画像">
+            </div>
+          </div>
+          <div>
+            <div id="container_keys" class="scroll">
+              <table id="table_keys"></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="split_horizontal">
+          <div>
+            <div>
+              <div>
+                <div class="label">プレイモード:</div>
+                <div class="value_informations">
+                  <span id="text_resultplaymode"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">譜面難易度:</div>
+                <div class="value_informations">
+                  <span id="text_resultdifficulty"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">レベル:</div>
+                <div class="value_informations">
+                  <span id="text_resultlevel"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">ノーツ数:</div>
+                <div class="value_informations">
+                  <span id="text_resultnotes"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">曲名:</div>
+              </div>
+              <div class="value_musicname">
+                <span id="text_resultmusicname"></span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div>
+              <div>
+                <div class="label">グラフ表示:</div>
+                <div class="value_details">
+                  <span id="text_resultgraphtype"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">特殊オプション:</div>
+                <div class="value_details">
+                  <span id="text_resultoptionbattle"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">配置オプション:</div>
+                <div class="value_details">
+                  <span id="text_resultoptionarrange"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">FLIPオプション:</div>
+                <div class="value_details">
+                  <span id="text_resultoptionflip"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">アシストオプション:</div>
+                <div class="value_details">
+                  <span id="text_resultoptionassist"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">クリアタイプ:</div>
+                <div class="value_detailsbest">
+                  <span id="text_resultcleartypebest"></span>
+                </div>
+                <div class="value_detailscurrent">
+                  <span id="text_resultcleartypecurrent"></span>
+                </div>
+                <div class="value_detailsnew">
+                  <span id="text_resultcleartypenew"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">DJレベル:</div>
+                <div class="value_detailsbest">
+                  <span id="text_resultdjlevelbest"></span>
+                </div>
+                <div class="value_detailscurrent">
+                  <span id="text_resultdjlevelcurrent"></span>
+                </div>
+                <div class="value_detailsnew">
+                  <span id="text_resultdjlevelnew"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">スコア:</div>
+                <div class="value_detailsbest">
+                  <span id="text_resultscorebest"></span>
+                </div>
+                <div class="value_detailscurrent">
+                  <span id="text_resultscorecurrent"></span>
+                </div>
+                <div class="value_detailsnew">
+                  <span id="text_resultscorenew"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">ミスカウント:</div>
+                <div class="value_detailsbest">
+                  <span id="text_resultmisscountbest"></span>
+                </div>
+                <div class="value_detailscurrent">
+                  <span id="text_resultmisscountcurrent"></span>
+                </div>
+                <div class="value_detailsnew">
+                  <span id="text_resultmisscountnew"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">グラフターゲット:</div>
+                <div class="value_details">
+                  <span id="text_resultgraphtarget"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="pane_right" class="pane">
+        <fieldset id="fieldset_labelinformations" disabled>
+          <div>
+            <div>
+              <span>譜面情報</span>
+            </div>
+            <div>
+              <div class="label">プレイモード:</div>
+              <select id="select_playmode">
+                <option />
+              </select>
+            </div>
+
+            <div>
+              <div class="label">難易度:</div>
+              <select id="select_difficulty">
+                <option />
+              </select>
+              <select id="select_level">
+                <option />
+              </select>
+            </div>
+            
+            <div>
+              <div class="label">ノーツ数:</div>
+              <input type="text" id="text_notes">
+            </div>
+            
+            <div>
+              <div class="label">曲名:</div>
+              <input type="text" id="text_musicname">
+            </div>
+            
+            <div>
+              <div>
+                <div class="label">学習に使用:</div>
+                <label><input type="checkbox" id="check_informationsignore">しない</label>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset id="fieldset_labeldetails" disabled>
+          <div>
+            <span>リザルト詳細</span>
+          </div>
+          <div>
+            <div>
+              <div class="label">表示グラフ:</div>
+              <select id="select_graphtype">
+                <option />
+              </select>
+            </div>
+        
+            <div>
+              <div class="label">特殊オプション:</div>
+              <label><input type="checkbox" id="check_optionbattle">BATTLE</label>
+            </div>
+            
+            <div>
+              <div class="label">SP配置:</div>
+              <select id="select_optionarrange">
+                <option />
+              </select>
+            </div>
+
+            <div>
+              <div class="label">DP配置:</div>
+              <select id="select_optionarrange1p">
+                <option />
+              </select>
+              <span>/</span>
+              <select id="select_optionarrange2p">
+                <option />
+              </select>
+            </div>
+
+            <div>
+              <div class="label">DP同期配置:</div>
+              <select id="select_optionarrangesync">
+                <option />
+              </select>
+            </div>
+
+            <div>
+              <div class="label">フリップ:</div>
+              <select id="select_optionflip">
+                <option />
+              </select>
+            </div>
+
+            <div>
+              <div class="label">アシスト:</div>
+              <select id="select_optionassist">
+                <option />
+              </select>
+            </div>
+            
+            <div>
+              <div class="label">クリアタイプ:</div>
+              <select id="select_cleartypebest">
+                <option />
+              </select>
+              <select id="select_cleartypecurrent">
+                <option />
+              </select>
+              <label><input type="checkbox" id="check_cleartypenew">NEW</label>
+            </div>
+            
+            <div>
+              <div class="label">DJレベル:</div>
+              <select id="select_djlevelbest">
+                <option />
+              </select>
+              <select id="select_djlevelcurrent">
+                <option />
+              </select>
+              <label><input type="checkbox" id="check_djlevelnew">NEW</label>
+            </div>
+            
+            <div>
+              <div class="label">スコア:</div>
+              <input type="text" id="text_scorebest" class="text_scoremisscount">
+              <input type="text" id="text_scorecurrent" class="text_scoremisscount">
+              <label><input type="checkbox" id="check_scorenew">NEW</label>
+            </div>
+            
+            <div>
+              <div class="label">ミスカウント:</div>
+              <input type="text" id="text_misscountbest" class="text_scoremisscount">
+              <input type="text" id="text_misscountcurrent" class="text_scoremisscount">
+              <label><input type="checkbox" id="check_misscountnew">NEW</label>
+            </div>
+            
+            <div>
+              <div class="label">グラフターゲット:</div>
+              <select id="select_graphtarget">
+                <option />
+              </select>
+            </div>
+
+            <div>
+              <div>
+                <div class="label">学習に使用:</div>
+                <label><input type="checkbox" id="check_detailsignore">しない</label>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div>
+          <div>
+            <button id="button_labeloverwrite">アノテーション保存</button>
+            <button id="button_citationrecog">認識結果から引用</button>
+          </div>
+          
+          <div>
+            <div>
+              <label><input type="checkbox" id="check_onlynotannotation">未アノテーションのみ</label>
+            </div>
+            <div>
+              <label><input type="checkbox" id="check_onlyundefinedmusicname">曲名なしのみ</label>
+            </div>
+            <div>
+              <label><input type="checkbox" id="check_onlyfullcombo">F-COMBOのみ</label>
+            </div>
+            <div>
+              <label><input type="checkbox" id="check_onlyignore">学習に使用しないもののみ</label>
+            </div>
+            
+            <div>
+              <label>曲名:</label>
+              <input type="text" id="text_musicnamefilter">
+            </div>
+            <div>
+              <label>キー:</label>
+              <input type="text" id="text_keyfilter">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

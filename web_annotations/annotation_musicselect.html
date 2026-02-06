@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>選曲画像のアノテーション</title>
+    <link rel="stylesheet" href="./web/general.css" />
+    <link rel="stylesheet" href="./web_annotations/annotation.css" />
+    <link rel="stylesheet" href="./web_annotations/annotation_musicselect.css" />
+    <script src="./webui.js"></script>
+    <script src="./web/lib/jquery-3.7.1.slim.min.js"></script>
+    <script src="./web_annotations/annotation_musicselect.js"></script>
+  </head>
+  <body>
+    <div class="split_horizontal">
+      <div class="pane_left" class="pane">
+        <div class="split_horizontal">
+          <div id="box_image">
+            <div>
+              <img id="image" alt="曲情報画像">
+            </div>
+          </div>
+          <div>
+            <div id="container_keys" class="scroll">
+              <table id="table_keys"></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="split_horizontal">
+          <div>
+            <div>
+              <div>
+                <div class="label">ビギナーレベル:</div>
+                <div class="value_levels">
+                  <span id="text_resultlevelbeginner"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">ノーマルレベル:</div>
+                <div class="value_levels">
+                  <span id="text_resultlevelnormal"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">ハイパーレベル:</div>
+                <div class="value_levels">
+                  <span id="text_resultlevelhyper"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">アナザーレベル:</div>
+                <div class="value_levels">
+                  <span id="text_resultlevelanother"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">レジェンダリアレベル:</div>
+                <div class="value_levels">
+                  <span id="text_resultlevelleggendaria"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div>
+              <div>
+                <div class="label">プレイモード:</div>
+                <div class="value_others">
+                  <span id="text_resultplaymode"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">バージョン:</div>
+                <div class="value_others">
+                  <span id="text_resultversion"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">曲名:</div>
+              </div>
+              <div class="value_musicname">
+                <span id="text_resultmusicname"></span>
+              </div>
+              <div>
+                <div class="label">選択難易度:</div>
+                <div class="value_others">
+                  <span id="text_resultdifficulty"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">クリアタイプ:</div>
+                <div class="value_others">
+                  <span id="text_resultcleartype"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">DJレベル:</div>
+                <div class="value_others">
+                  <span id="text_resultdjlevel"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">スコア:</div>
+                <div class="value_others">
+                  <span id="text_resultscore"></span>
+                </div>
+              </div>
+              <div>
+                <div class="label">ミスカウント:</div>
+                <div class="value_others">
+                  <span id="text_resultmisscount"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="pane_right" class="pane">
+        <div>
+          <div>
+            <div class="label">プレイモード:</div>
+            <select id="select_playmode">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">バージョン:</div>
+            <select id="select_version">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">曲名の種別:</div>
+            <select id="select_musictype">
+              <option />
+              <option value="ARCADE">ARCADE</option>
+              <option value="INFINITAS">INFINITAS</option>
+              <option value="LEGGENDARIA">LEGGENDARIA</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="label">曲名:</div>
+            <input type="text" id="text_musicname">
+          </div>
+
+          <div>
+            <div class="label">選択難易度:</div>
+            <select id="select_difficulty">
+              <option />
+            </select>
+          </div>
+          
+          <div>
+            <div class="label">スコアデータ:</div>
+            <label><input type="checkbox" id="check_hasscoredata">表示なし</label>
+          </div>
+
+          <div>
+            <div class="label">クリアタイプ:</div>
+            <select id="select_cleartype">
+              <option />
+            </select>
+          </div>
+          
+          <div>
+            <div class="label">DJレベル:</div>
+            <select id="select_djlevel">
+              <option />
+            </select>
+          </div>
+          
+          <div>
+            <div class="label">スコア:</div>
+            <input type="text" id="text_score" class="text_scoremisscount">
+          </div>
+          
+          <div>
+            <div class="label">ミスカウント:</div>
+            <input type="text" id="text_misscount" class="text_scoremisscount">
+          </div>
+
+          <div>
+            <div class="label">ビギナーレベル:</div>
+            <select id="select_levelbeginner">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">ノーマルレベル:</div>
+            <select id="select_levelnormal">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">ハイパーレベル:</div>
+            <select id="select_levelhyper">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">アナザーレベル:</div>
+            <select id="select_levelanother">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">レジェンダリアレベル:</div>
+            <select id="select_levelleggendaria">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">学習に使用:</div>
+            <label><input type="checkbox" id="check_ignore">しない</label>
+          </div>
+        </div>
+
+        <div>
+          <div>
+            <button id="button_labeloverwrite">アノテーション保存</button>
+            <button id="button_citationrecog">認識結果から引用</button>
+          </div>
+          
+          <div>
+            <div>
+              <label><input type="checkbox" id="check_onlynotannotation">未アノテーションのみ</label>
+            </div>
+            <div>
+              <label><input type="checkbox" id="check_onlyundefinedmusicname">曲名なしのみ</label>
+            </div>
+            <div>
+              <label><input type="checkbox" id="check_onlyundefinedversion">バージョンなしのみ</label>
+            </div>
+            <div>
+              <label><input type="checkbox" id="check_onlyignore">学習に使用しないもののみ</label>
+            </div>
+            
+            <div>
+              <label>曲名:</label>
+              <input type="text" id="text_musicnamefilter">
+            </div>
+            <div>
+              <label>キー:</label>
+              <input type="text" id="text_keyfilter">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+body {
+    font-size: small;
+}
+
+div.pane {
+    margin: 1px;
+}
+
+div.label {
+    display: inline-block;
+    width: 140px;
+    background-color: darkgrey;
+    margin: 1px;
+}
