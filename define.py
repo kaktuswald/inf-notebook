@@ -31,6 +31,21 @@ class Playtypes():
     values: list[str] = [Playmodes.SP, Playmodes.DP, DPBATTLE]
     '''プレイの種類のリスト'''
 
+class Graphtypes():
+    '''リザルトの表示グラフの種類
+    '''
+    GAUGE: str = 'gauge'
+    '''ゲージ推移の折れ線グラフ'''
+
+    LANES: str = 'lanes'
+    '''レーンごとの精度表示'''
+
+    MEASURES: str = 'measures'
+    '''小節ごとの精度の棒グラフ'''
+
+    values: list[str] = [GAUGE, LANES, MEASURES]
+    '''リザルトの表示グラフの種類のリスト'''
+
 class Define():
     width = 1920
     height = 1080

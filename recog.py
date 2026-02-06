@@ -6,7 +6,7 @@ logger_child_name = 'recog'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
-from define import define
+from define import define,Graphtypes
 from resources import resource
 from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,Result
 from screenshot import Screen
@@ -241,7 +241,7 @@ class Recognition():
                 trimmed = np_value[resource.details['define']['graphtype'][playside][key]]
                 if np.all(trimmed==value):
                     return key
-            return 'gauge'
+            return Graphtypes.GAUGE
 
         @staticmethod
         def get_clear_type(np_value):
@@ -399,7 +399,7 @@ class Recognition():
         @classmethod
         def get_details(cls, np_value):
             graphtype = cls.get_graphtype(np_value)
-            if graphtype == 'gauge':
+            if graphtype == Graphtypes.GAUGE:
                 options = cls.get_options(np_value)
             else:
                 options = None

@@ -4,7 +4,7 @@ from sys import exit
 from os.path import join,isfile
 import numpy as np
 
-from define import define
+from define import define,Graphtypes
 import data_collection as dc
 from resources_learning import learning
 from resources_generate import Report,registries_dirname,save_resource_serialized
@@ -168,7 +168,7 @@ def learning_graphtype(details):
         
         playside = define.details_get_playside(target.np_value)
 
-        if target.label['graphtype'] != 'gauge':
+        if target.label['graphtype'] != Graphtypes.GAUGE:
             value = target.label['graphtype']
             trimmed = target.np_value[trimareas[playside][value]]
             if not value in table.keys():
@@ -181,7 +181,7 @@ def learning_graphtype(details):
     for key, target in evaluate_targets.items():
         value = target.label['graphtype']
 
-        recoged = 'gauge'
+        recoged = Graphtypes.GAUGE
         for k, np_value in table.items():
             playside = define.details_get_playside(target.np_value)
             trimmed = target.np_value[trimareas[playside][k]]

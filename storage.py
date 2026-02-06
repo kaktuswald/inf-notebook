@@ -14,7 +14,7 @@ logger = getLogger().getChild('storage')
 logger.debug('loaded storage.py')
 
 from service_account_info import service_account_info
-from define import define
+from define import define,Graphtypes
 from result import Result
 from cloud_function import callfunction_eventdelete
 
@@ -219,7 +219,7 @@ class StorageAccessor():
                 details_trim = True
             if result.details.graphtarget is None:
                 details_trim = True
-            if result.details.graphtype == 'gauge' and result.details.options is None:
+            if result.details.graphtype == Graphtypes.GAUGE and result.details.options is None:
                 details_trim = True
 
         if informations_trim:
