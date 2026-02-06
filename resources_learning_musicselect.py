@@ -32,7 +32,7 @@ def load_images(labels):
 
     imagevaleus = {}
     for filename in keys:
-        if 'ignore' in labels[filename].keys():
+        if 'ignore' in labels[filename].keys() and labels[filename]['ignore']:
             continue
 
         filepath = join(images_musicselect_basepath, filename)

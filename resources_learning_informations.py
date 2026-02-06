@@ -26,13 +26,18 @@ class Informations():
         self.label = label
 
 def load_informations(labels):
-    keys = [key for key in labels.keys() if labels[key]['informations'] is not None]
+    def is_using(key):
+        if not 'informations' in labels[key].keys() or labels[key]['informations'] is None:
+            return False
+        if not 'ignore' in labels[key]['informations']:
+            return True
+        
+        return not labels[key]['informations']['ignore']
+    
+    keys = [key for key in labels.keys() if is_using(key)]
 
     informations = {}
     for key in keys:
-        if 'ignore' in labels[key].keys():
-            continue
-
         filename = f'{key}.png'
         filepath = join(dc.informations_basepath, filename)
         if not isfile(filepath):

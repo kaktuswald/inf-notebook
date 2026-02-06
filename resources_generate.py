@@ -67,6 +67,7 @@ class Report():
             self.log.append(f'Error count: {self.count_error}')
         
         report_filepath = join(self.report_dirpath, 'report.txt')
+
         with open(report_filepath, 'w', encoding='UTF-8') as f:
             f.write('\n'.join(self.log))
             f.write('\n')
@@ -74,7 +75,7 @@ class Report():
                 f.write('Errors:\n')
                 f.write('\n'.join(self.log_error))
         
-        print(self.name)
+        print(f'{self.name} (\033[34m{report_filepath}\033[0m)')
         print('\n'.join(self.log))
         if len(self.log_error) > 0:
             text_startred()

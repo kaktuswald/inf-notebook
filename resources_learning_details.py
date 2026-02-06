@@ -1,16 +1,19 @@
 from PIL import Image
 import json
 from sys import exit
-from os.path import join,isfile
+from os import mkdir
+from os.path import join,isfile,exists
 import numpy as np
 
 from define import define,Graphtypes
 import data_collection as dc
 from resources_learning import learning
-from resources_generate import Report,registries_dirname,save_resource_serialized
+from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 
 recognition_define_filename = 'define_recognition_details.json'
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
+
+report_basedir_option = join(report_dirname, 'option')
 
 class Details():
     def __init__(self, np_value, label):
@@ -18,7 +21,15 @@ class Details():
         self.label = label
 
 def load_details(labels):
-    keys = [key for key in labels.keys() if 'details' in labels[key].keys() and labels[key]['details'] is not None]
+    def is_using(key):
+        if not 'details' in labels[key].keys() or labels[key]['details'] is None:
+            return False
+        if not 'ignore' in labels[key]['details']:
+            return True
+        
+        return not labels[key]['details']['ignore']
+    
+    keys = [key for key in labels.keys() if is_using(key)]
 
     details = {}
     for key in keys:
@@ -235,9 +246,14 @@ def learning_option(details: dict[str, Details]):
                     for sync_arrange in define.value_list['options_arrange_sync']:
                         values.append(','.join(v for v in (battle, sync_arrange, flip, assist, ) if v is not None))
     
+    keyresult = {}
+    for value in values:
+        keyresult[value] = {}
+        for playside in define.value_list['play_sides']:
+            keyresult[value][playside] = {}
+    
     useoptioncounts = []
     table = {}
-    valuekeys = {}
     evaluate_targets = {}
     for key, target in details.items():
         if not 'option_arrange' in target.label.keys():
@@ -265,7 +281,7 @@ def learning_option(details: dict[str, Details]):
             'BATTLE' if target.label['option_battle'] else None,
             target.label['option_arrange'] if len(target.label['option_arrange']) else None,
             target.label['option_arrange_dp'] if target.label['option_arrange_dp'] != '/' else None,
-            target.label['option_arrange_sync'] if len(target.label['option_arrange_sync']) else None,
+            target.label['option_arrange_sync'] if target.label['option_arrange_sync'] is not None and len(target.label['option_arrange_sync']) else None,
             target.label['option_flip'] if len(target.label['option_flip']) else None,
             target.label['option_assist'] if len(target.label['option_assist']) else None,
         )
@@ -285,11 +301,9 @@ def learning_option(details: dict[str, Details]):
 
         if not tablekey in table.keys():
             table[tablekey] = value
-            report.append_log(f'{tablekey}: {value}({key})')
         
-        if not value in valuekeys:
-            valuekeys[value] = {}
-        valuekeys[value][tablekey] = key
+        if not tablekey in keyresult[value][playside].keys():
+            keyresult[value][playside][tablekey] = key
 
         evaluate_targets[key] = target
     
@@ -300,16 +314,6 @@ def learning_option(details: dict[str, Details]):
         report.error(f'Use option value is none')
     if len(useoptioncounts) > 1:
         report.error(f'Use option value is duplicate: {useoptioncounts}')
-
-    notkeys = []
-    for value in values:
-        keys = [k for k, v in table.items() if v == value]
-        if len(keys):
-            report.append_log(f'{value}: {keys}')
-        else:
-            notkeys.append(value)
-
-    report.append_log('')
 
     for key, target in evaluate_targets.items():
         playside = define.details_get_playside(target.np_value)
@@ -327,7 +331,7 @@ def learning_option(details: dict[str, Details]):
             'BATTLE' if target.label['option_battle'] else None,
             target.label['option_arrange'] if len(target.label['option_arrange']) else None,
             target.label['option_arrange_dp'] if target.label['option_arrange_dp'] != '/' else None,
-            target.label['option_arrange_sync'] if len(target.label['option_arrange_sync']) else None,
+            target.label['option_arrange_sync'] if target.label['option_arrange_sync'] is not None and len(target.label['option_arrange_sync']) else None,
             target.label['option_flip'] if len(target.label['option_flip']) else None,
             target.label['option_assist'] if len(target.label['option_assist']) else None,
         )
@@ -339,22 +343,35 @@ def learning_option(details: dict[str, Details]):
         if value == result:
             report.through()
         else:
-            report.saveimage_errorvalue(trimmed, f'{value}-{key}.png')
-            report.error(f'Mismatch {result} {key}({hexs})')
+            report.saveimage_errorvalue(trimmed, f'{value.replace('/', '_')}-{key}.png')
+            report.error(f'Mismatch {result} {key}')
 
-    for value, targets in valuekeys.items():
-        if len(targets.keys()) != 1:
-            report.error(f'Duplicate key: {value}')
-            report.append_log(f'duplicate {value} key: {','.join((targets.values()))}')
+    report_keys = []
+    report_keycompare = []
+    for value in values:
+        report_keys.append(f'{value}:')
+        for playside in define.value_list['play_sides']:
+            keys = [*keyresult[value][playside].keys()]
+            report_keys.append(f'\t{playside}: {keys}')
+            if len(keys) == 0:
+                report.error(f'Not key: {value}({playside})')
+            if len(keys) >= 2:
+                report.error(f'Duplicate key: {value}({playside})')
+        
+        keys1p = [*keyresult[value]['1P'].keys()]
+        keys2p = [*keyresult[value]['2P'].keys()]
+        if len(keys1p) == 1 and len(keys2p) == 1:
+            if keys1p[0] != keys2p[0]:
+                report_keycompare.append(f'Different key {value}')
     
-    report.append_log('')
-
-    if len(notkeys):
-        report.error(f'Not key value count: {len(notkeys)}')
-        report.append_log(f'Not key values: {len(notkeys)}')
-        for notkeyvalue in notkeys:
-            report.append_log(f'  {notkeyvalue}')
-
+    optionkeys_report_filepath = join(report_basedir_option, 'keys.txt')
+    with open(optionkeys_report_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(report_keys))
+    
+    keycompare_report_filepath = join(report_basedir_option, 'keycompare.txt')
+    with open(keycompare_report_filepath, 'w', encoding='UTF-8') as f:
+        f.write('\n'.join(report_keycompare))
+    
     report.report()
 
     return {'useoption': useoptioncount, 'option': table}
@@ -700,7 +717,7 @@ def learning_not_new(details):
 
     for key, target in evaluate_targets.items():
         for k in ['clear_type', 'dj_level', 'score', 'miss_count']:
-            is_new = target.label[f'{k}_new']
+            is_new = f'{k}_new' in target.label.keys() and target.label[f'{k}_new']
             trimmed = target.np_value[trimareas[k]]
             recoged = np.all((result==0)|(trimmed==result))
             if (recoged and not is_new) or (not recoged and is_new):
@@ -791,6 +808,9 @@ if __name__ == '__main__':
 
     details: dict[str, Details] = load_details(labels)
     
+    if not exists(report_basedir_option):
+        mkdir(report_basedir_option)
+
     table_graphtype = learning_graphtype(details)
     table_option = learning_option(details)
     table_clear_type = learning_cleartype(details)
