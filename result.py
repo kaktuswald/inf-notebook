@@ -65,7 +65,7 @@ class Result():
         self.set_playtype()
 
         now = datetime.now()
-        self.timestamp = f'{now.strftime('%Y%m%d-%H%M%S')}'
+        self.timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
     
     def set_playtype(self):
         '''プレイの種類をセットする
