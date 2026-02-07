@@ -80,7 +80,7 @@ class Capture:
         windll.gdi32.BitBlt(self.screen_copy, 0, 0, self.width, self.height, self.screen, left, top, SRCCOPY)
         windll.gdi32.GetDIBits(self.screen_copy, self.bitmap, 0, self.height, ctypes.pointer(self.buffer), ctypes.pointer(self.bmi), DIB_RGB_COLORS)
 
-        return np.array(bytearray(self.buffer)).reshape(self.height, self.width, 3)
+        return np.array(bytearray(self.buffer), dtype=np.uint8).reshape(self.height, self.width, 3)
 
     def __del__(self):
         windll.gdi32.DeleteObject(self.bitmap)
@@ -149,4 +149,5 @@ def open_screenimage(filepath):
     image = Image.open(filepath).convert('RGB')
     filename = basename(filepath)
 
-    return Screen(np.array(image), filename)
+    return Screen(np.array(image, dtype=np.uint8), filename)
+

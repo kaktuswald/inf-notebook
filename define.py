@@ -91,13 +91,16 @@ class Define():
         'notesradar_attributes': ('NOTES', 'CHORD', 'PEAK', 'CHARGE', 'SCRATCH', 'SOF-LAN',),
     }
 
+    musictable_version = '1.2'
+    informations_recognition_version = '4.1'
+    details_recognition_version = '3.1'
+    musicselect_recognition_version = '2.3'
+    notesradar_version = '1.1'
+
     informations_trimpos = (560, 910)
     informations_trimsize = (800, 156)
 
-    informations_recognition_version = '4.0'
     informations_trimarea = (560, 910, 1360, 1066)
-
-    details_recognition_version = '3.0'
 
     details_trimpos = {
         '1P': (10, 64),
@@ -113,9 +116,6 @@ class Define():
     }
     details_graphtarget_name_area = (210, 622, 300, 644)
 
-    musictable_version = '1.1'
-    
-    musicselect_recognition_version = '2.2'
     musicselect_trimarea = (48, 135, 1188, 952)
     musicselect_trimarea_np = (
         (slice(musicselect_trimarea[1], musicselect_trimarea[3])),
@@ -123,8 +123,6 @@ class Define():
     )
 
     musicselect_rivals_name_area = (760, 634, 856, 808)
-
-    notesradar_version = '1.0'
 
     filter_ranking_size = (526, 626)
     filter_ranking_compact_size = (97, 20)

@@ -40,7 +40,7 @@ def load_details(labels):
             if image.mode != 'RGB':
                 continue
 
-            np_value = np.array(image)
+            np_value = np.array(image, dtype=np.uint8)
             details[key] = Details(np_value, labels[key]['details'])
     
     return details
@@ -53,6 +53,10 @@ def load_define():
         print(f"{recognition_define_filepath}を読み込めませんでした。")
         return None
     
+    if not 'resourceversion' in ret.keys() or ret['resourceversion'] != define.details_recognition_version:
+        print(f"{recognition_define_filepath}のリソースバージョンが一致しません。")
+        return None
+
     graphtypes = {}
     for playside in ret['graphtype'].keys():
         graphtypes[playside] = {}
@@ -73,8 +77,15 @@ def load_define():
 
     for playside in ret['option']['trim'].keys():
         ret['option']['trim'][playside] = (
-            slice(ret['option']['trim'][playside][0][0], ret['option']['trim'][playside][0][1]),
-            slice(ret['option']['trim'][playside][1][0], ret['option']['trim'][playside][1][1]),
+            slice(
+                ret['option']['trim'][playside][0][0],
+                ret['option']['trim'][playside][0][1],
+            ),
+            slice(
+                ret['option']['trim'][playside][1][0],
+                ret['option']['trim'][playside][1][1],
+                ret['option']['trim'][playside][1][2],
+            ),
             ret['option']['trim'][playside][2]
         )
 
@@ -279,11 +290,11 @@ def learning_option(details: dict[str, Details]):
 
         options = (
             'BATTLE' if target.label['option_battle'] else None,
-            target.label['option_arrange'] if len(target.label['option_arrange']) else None,
+            target.label['option_arrange'] if target.label['option_arrange'] is not None and len(target.label['option_arrange']) else None,
             target.label['option_arrange_dp'] if target.label['option_arrange_dp'] != '/' else None,
             target.label['option_arrange_sync'] if target.label['option_arrange_sync'] is not None and len(target.label['option_arrange_sync']) else None,
-            target.label['option_flip'] if len(target.label['option_flip']) else None,
-            target.label['option_assist'] if len(target.label['option_assist']) else None,
+            target.label['option_flip'] if target.label['option_flip'] is not None and len(target.label['option_flip']) else None,
+            target.label['option_assist'] if target.label['option_assist'] is not None and len(target.label['option_assist']) else None,
         )
 
         value = ','.join((v for v in options if v is not None and len(v)))
@@ -295,7 +306,7 @@ def learning_option(details: dict[str, Details]):
             continue
 
         trimmed = target.np_value[details_define['option']['trim'][playside]]
-        bins = np.where(trimmed[:, ::4]==details_define['option']['maskvalue'], 1, 0).T
+        bins = np.where(trimmed>=details_define['option']['thresholdlower'], 1, 0)
         hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
         tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
 
@@ -304,6 +315,8 @@ def learning_option(details: dict[str, Details]):
         
         if not tablekey in keyresult[value][playside].keys():
             keyresult[value][playside][tablekey] = key
+            if value is not None:
+                report.saveimage_value(trimmed>=details_define['option']['thresholdlower'], f'{value.replace('/', '_')}-{key}.png')
 
         evaluate_targets[key] = target
     
@@ -319,21 +332,21 @@ def learning_option(details: dict[str, Details]):
         playside = define.details_get_playside(target.np_value)
 
         trimmed = target.np_value[details_define['option']['trim'][playside]]
-        bins = np.where(trimmed[:, ::4]==details_define['option']['maskvalue'], 1, 0).T
+        bins = np.where(trimmed>=details_define['option']['thresholdlower'], 1, 0)
         hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
-        key = ''.join([format(v, '0x') for v in hexs.flatten()])
+        tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
 
         result = None
-        if key in table.keys():
-            result = table[key]
+        if tablekey in table.keys():
+            result = table[tablekey]
         
         options = (
             'BATTLE' if target.label['option_battle'] else None,
-            target.label['option_arrange'] if len(target.label['option_arrange']) else None,
+            target.label['option_arrange'] if target.label['option_arrange'] is not None and len(target.label['option_arrange']) else None,
             target.label['option_arrange_dp'] if target.label['option_arrange_dp'] != '/' else None,
             target.label['option_arrange_sync'] if target.label['option_arrange_sync'] is not None and len(target.label['option_arrange_sync']) else None,
-            target.label['option_flip'] if len(target.label['option_flip']) else None,
-            target.label['option_assist'] if len(target.label['option_assist']) else None,
+            target.label['option_flip'] if target.label['option_flip'] is not None and len(target.label['option_flip']) else None,
+            target.label['option_assist'] if target.label['option_assist'] is not None and len(target.label['option_assist']) else None,
         )
 
         value = ','.join((v for v in options if v is not None))
@@ -343,7 +356,7 @@ def learning_option(details: dict[str, Details]):
         if value == result:
             report.through()
         else:
-            report.saveimage_errorvalue(trimmed, f'{value.replace('/', '_')}-{key}.png')
+            report.saveimage_errorvalue(trimmed, f'[Error]{value.replace('/', '_')}-{key}.png')
             report.error(f'Mismatch {result} {key}')
 
     report_keys = []
@@ -351,11 +364,13 @@ def learning_option(details: dict[str, Details]):
     for value in values:
         report_keys.append(f'{value}:')
         for playside in define.value_list['play_sides']:
-            keys = [*keyresult[value][playside].keys()]
-            report_keys.append(f'\t{playside}: {keys}')
-            if len(keys) == 0:
+            report_keys.append(f'\t{playside}:')
+            tablekeys = [*keyresult[value][playside].keys()]
+            for tablekey in tablekeys:
+                report_keys.append(f'\t\t{tablekey}: {keyresult[value][playside][tablekey]}')
+            if len(tablekeys) == 0:
                 report.error(f'Not key: {value}({playside})')
-            if len(keys) >= 2:
+            if len(tablekeys) >= 2:
                 report.error(f'Duplicate key: {value}({playside})')
         
         keys1p = [*keyresult[value]['1P'].keys()]
@@ -821,7 +836,8 @@ if __name__ == '__main__':
     table_graphtarget = learning_graphtarget(details)
  
     filename = f'details{define.details_recognition_version}.res'
-    save_resource_serialized(filename, {
+
+    data = {
         'define': details_define,
         'graphtype': table_graphtype,
         'option': table_option,
@@ -831,4 +847,6 @@ if __name__ == '__main__':
         'number_current': table_number_current,
         'not_new': mask_not_new,
         'graphtarget': table_graphtarget
-    })
+    }
+    
+    save_resource_serialized(filename, data, True)

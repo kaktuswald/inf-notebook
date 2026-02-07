@@ -39,7 +39,7 @@ def load_images(labels):
         if not isfile(filepath):
             continue
 
-        np_value = np.array(Image.open(filepath))
+        np_value = np.array(Image.open(filepath), dtype=np.uint8)
         imagevaleus[filename] = ImageValues(np_value, labels[filename])
     
     return imagevaleus
@@ -1031,4 +1031,4 @@ if __name__ == '__main__':
     evaluate()
 
     filename = f'musicselect{define.musicselect_recognition_version}.res'
-    save_resource_serialized(filename, resource)
+    save_resource_serialized(filename, resource, True)

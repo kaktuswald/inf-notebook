@@ -2,6 +2,7 @@ import numpy as np
 from winsound import SND_FILENAME,PlaySound
 from logging import getLogger
 import pickle
+import gzip
 from os import rename,remove
 from os.path import join,isfile,exists
 from PIL import Image
@@ -50,27 +51,27 @@ class Resource():
     def load_resource_informations(self):
         resourcename = f'informations{define.informations_recognition_version}'
         
-        self.informations = load_resource_serialized(resourcename)
+        self.informations = load_resource_serialized(resourcename, True)
 
     def load_resource_details(self):
         resourcename = f'details{define.details_recognition_version}'
         
-        self.details = load_resource_serialized(resourcename)
+        self.details = load_resource_serialized(resourcename, True)
 
     def load_resource_musictable(self):
         resourcename = f'musictable{define.musictable_version}'
         
-        self.musictable = load_resource_serialized(resourcename)
+        self.musictable = load_resource_serialized(resourcename, True)
 
     def load_resource_musicselect(self):
         resourcename = f'musicselect{define.musicselect_recognition_version}'
         
-        self.musicselect = load_resource_serialized(resourcename)
+        self.musicselect = load_resource_serialized(resourcename, True)
     
     def load_resource_notesradar(self):
         resourcename = f'notesradar{define.notesradar_version}'
         
-        self.notesradar: dict[str, dict[str, list[dict[str, str | int]]]] = load_resource_serialized(resourcename)
+        self.notesradar: dict[str, dict[str, list[dict[str, str | int]]]] = load_resource_serialized(resourcename, True)
 
 class ResourceTimestamp():
     def __init__(self, resourcename):
@@ -94,7 +95,7 @@ def play_sound_result():
     if exists(sound_result_filepath):
         PlaySound(sound_result_filepath, SND_FILENAME)
 
-def load_resource_serialized(resourcename: str) -> dict | None:
+def load_resource_serialized(resourcename: str, compress: bool = False) -> dict | None:
     '''リソースファイルをロードする
 
     もし一時ファイルが存在したら前回のダウンロードが失敗していたということなので、
@@ -102,6 +103,7 @@ def load_resource_serialized(resourcename: str) -> dict | None:
 
     Args:
         resourcename(str): 対象のリソース名
+        compress(bool): gzip圧縮されている
     Returns:
         dict or None: ロードされたリソースデータ
     '''
@@ -116,8 +118,15 @@ def load_resource_serialized(resourcename: str) -> dict | None:
     if not isfile(filepath):
         return None
     
-    with open(filepath, 'rb') as f:
-        value = pickle.load(f)
+    try:
+        if not compress:
+            with open(filepath, 'rb') as f:
+                value = pickle.load(f)
+        else:
+            with gzip.open(filepath, 'rb') as f:
+                value = pickle.load(f)
+    except Exception as ex:
+        return None
     
     return value
 

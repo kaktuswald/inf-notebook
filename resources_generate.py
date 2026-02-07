@@ -1,7 +1,8 @@
 import numpy as np
 import pickle
+import gzip
 from os import mkdir,remove
-from os.path import join,exists,isfile,isdir
+from os.path import join,exists,isfile
 from shutil import rmtree
 from PIL import Image
 from glob import glob
@@ -108,7 +109,7 @@ def load_raws():
         if not 'screen' in label.keys():
             continue
 
-        raws[filename] = RawData(np.array(Image.open(filepath).convert('RGB')), label)
+        raws[filename] = RawData(np.array(Image.open(filepath).convert('RGB'), dtype=np.uint8), label)
     
     print(f"raw count: {len(raws)}")
 
@@ -126,11 +127,23 @@ def get_report_dir(resource_name):
     
     return report_dirpath
 
-def save_resource_serialized(resourcename, value):
+def save_resource_serialized(resourcename: str, value: object, compress: bool = False):
+    '''リソースファイルをファイルに保存する
+
+    Args:
+        resourcename(str): リソース名
+        value(object): リソースデータ
+        compress(bool): gzip圧縮する
+    '''
     create_resource_directory()
     filepath = join(resources_dirname, resourcename)
-    with open(filepath, 'wb') as f:
-        pickle.dump(value, f)
+
+    if not compress:
+        with open(filepath, 'wb') as f:
+            pickle.dump(value, f)
+    else:
+        with gzip.open(filepath, 'wb') as f:
+            pickle.dump(value, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def save_resource_numpy(resourcename, value):
     create_resource_directory()

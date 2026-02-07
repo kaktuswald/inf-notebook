@@ -5,6 +5,7 @@ import pandas as pd
 from define import Playmodes,define
 from resources import resource
 from resources_generate import Report,save_resource_serialized,registries_dirname
+from resources_generate_musictable import infinitasonlymusics_filepath
 
 resource_filename = f'notesradar{define.notesradar_version}.res'
 
@@ -17,6 +18,7 @@ for playmode in Playmodes.values:
         filenames[playmode][attribute] = join(radardata_dirpath, f'{playmode} {attribute}.csv')
 
 ignore_filepath = join(registries_dirname, 'notesradar_ignore.json')
+convertmusicnames_filepath = join(registries_dirname, 'notesradar_convertmusicnames.json')
 
 report_name = 'notesradar'
 
@@ -33,8 +35,12 @@ def import_csv():
             filename = filenames[playmode][attribute]
             if not exists(filename):
                 continue
-
-            csv[playmode][attribute] = pd.read_csv(filename, encoding='UTF-8')
+            
+            csv[playmode][attribute] = pd.read_csv(
+                filename,
+                keep_default_na=False,
+                encoding='UTF-8'
+            )
 
     return csv
 
@@ -47,7 +53,7 @@ def output_attributevalues(resource: dict, output_dirpath: str):
                 difficulty = target['difficulty']
 
                 value = resource[playmode]['musics'][musicname][difficulty]['radars'][attribute]
-                output.append(f'{value:>6.2f}: {musicname}({difficulty})')
+                output.append(f'{float(value):>6.2f}: {musicname}({difficulty})')
                 
             filename = f'{playmode}_{attribute}.txt'
             filepath = join(output_dirpath, filename)
@@ -55,21 +61,35 @@ def output_attributevalues(resource: dict, output_dirpath: str):
             with open(filepath, 'w', encoding='UTF-8') as f:
                 f.write('\n'.join(output))
 
-def output_not_in_notesradar(added: dict, musics: dict, output_dirpath: str):
-    not_in_notesradar_music_filepath = join(output_dirpath, 'not_in_notesradar.csv')
-    output = []
-    output.append('Music')
-    output.append('\n'.join([f'- {musicname}' for musicname in musics.keys() if not musicname in added.keys()]))
-    output.append('')
-    for playmode in Playmodes.values:
-        output.append(f'Difficulty {playmode}')
-        for musicname in musics.keys():
-            if musicname in added.keys() and playmode in added[musicname].keys():
-                for difficulty in musics[musicname][playmode].keys():
-                    if not difficulty in added[musicname][playmode]:
-                        output.append(f'- {musicname} {difficulty}')
-        output.append('')
+def output_not_in_notesradar(added: dict, musics: dict, ignore: dict, output_dirpath: str):
+    if exists(infinitasonlymusics_filepath):
+        with open(infinitasonlymusics_filepath, 'r', encoding='UTF-8') as f:
+            infinitas_only_musics = [v for v in f.read().split('\n') if v != '']
+    else:
+        infinitas_only_musics = []
 
+    output = []
+    for musicname in musics.keys():
+        if not musicname in added.keys():
+            if not musicname in infinitas_only_musics and not musicname in ignore.keys():
+                output.append(f'{musicname}')
+            continue
+        
+        for playmode in Playmodes.values:
+            if not playmode in added[musicname].keys():
+                if musicname in ignore.keys():
+                    includes = [*musics[musicname][playmode].keys()]
+                    addeds = ignore[musicname][playmode]
+                    if not len(includes) == len(addeds) and all([d in addeds for d in includes]):
+                        output.append(f'{musicname} {playmode}')
+                continue
+
+            for difficulty in musics[musicname][playmode].keys():
+                if not difficulty in added[musicname][playmode].keys():
+                    if musicname in ignore.keys() and not difficulty in ignore[musicname][playmode]:
+                        output.append(f'{musicname} {playmode} {difficulty}')
+
+    not_in_notesradar_music_filepath = join(output_dirpath, 'not_in_notesradar.csv')
     with open(not_in_notesradar_music_filepath, 'w', encoding='UTF-8') as f:
         f.write('\n'.join(output))
 
@@ -82,10 +102,18 @@ def generate(musics, csv):
     else:
         ignore = {}
     
+    if exists(convertmusicnames_filepath):
+        with open(convertmusicnames_filepath, 'r', encoding='UTF-8') as f:
+            convertmusicnames = json.load(f)
+    else:
+        convertmusicnames = []
+    
     resource: dict[str, dict[str, dict[str, dict[str, int | dict[str, float]]]| dict[str, list[dict[str, str | int]]]]] = {}
 
     added = {}
     mismatch_notes = {}
+
+    nas = [music for music in musics if 'n/a' in music]
 
     for playmode in csv.keys():
         resource[playmode] = {'musics': {}, 'attributes': {}}
@@ -99,11 +127,17 @@ def generate(musics, csv):
             df: pd.DataFrame = csv[playmode][attribute]
 
             for row in df.itertuples():
-                musicname = row.タイトル
-                difficulty = row.難易度
-                notes = row.ノーツ数
-                value = row.MAX
+                try:
+                    musicname = str(row.タイトル)
+                    difficulty = str(row.難易度)
+                    notes = int(row.ノーツ数)
+                    value = float(row.MAX)
+                except Exception as ex:
+                    continue
 
+                if musicname in convertmusicnames.keys():
+                    musicname = convertmusicnames[musicname]
+                
                 if not musicname in musics.keys():
                     continue
 
@@ -130,8 +164,10 @@ def generate(musics, csv):
                         continue
                 
                 if not playmode in added[musicname].keys():
-                    added[musicname][playmode] = []
-                added[musicname][playmode].append(difficulty)
+                    added[musicname][playmode] = {}
+                if not difficulty in added[musicname][playmode].keys():
+                    added[musicname][playmode][difficulty] = []
+                added[musicname][playmode][difficulty].append(attribute)
 
                 if not difficulty in notesradar_musics[musicname].keys():
                     notesradar_musics[musicname][difficulty] = {
@@ -159,16 +195,17 @@ def generate(musics, csv):
     report.report()
 
     output_attributevalues(resource, report.report_dirpath)
-    output_not_in_notesradar(added, musics, report.report_dirpath)
+    
+    output_not_in_notesradar(added, musics, ignore, report.report_dirpath)
 
     return resource
 
 def generate_notesradar():
-    musictable = load_musictable()
     csv = import_csv()
-    resource = generate(musictable['musics'], csv)
 
-    save_resource_serialized(resource_filename, resource)
+    data = generate(resource.musictable['musics'], csv)
+
+    save_resource_serialized(resource_filename, data, True)
 
 if __name__ == '__main__':
     generate_notesradar()

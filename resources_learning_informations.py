@@ -45,7 +45,7 @@ def load_informations(labels):
 
         image = Image.open(filepath)
         if image.height == define.informations_trimsize[1]:
-            np_value = np.array(image)
+            np_value = np.array(image, dtype=np.uint8)
         else:
             np_value = np.zeros((define.informations_trimsize[1], define.informations_trimsize[0], 3), dtype=np.uint8)
             np_value[define.informations_trimsize[1] - image.height:, :, :] = np.array(image)
@@ -107,12 +107,12 @@ def filter(targets, report, define):
 
     width = define['trim'][1].stop - define['trim'][1].start
 
-    blue_lower = np.array([np.tile([[v2[0] for v2 in v1]], (width, 1)) for v1 in define['blue_thresholds']])
-    blue_upper = np.array([np.tile([[v2[1] for v2 in v1]], (width, 1)) for v1 in define['blue_thresholds']])
-    red_lower = np.array([np.tile([[v2[0] for v2 in v1]], (width, 1)) for v1 in define['red_thresholds']])
-    red_upper = np.array([np.tile([[v2[1] for v2 in v1]], (width, 1)) for v1 in define['red_thresholds']])
-    gray_lower = np.array([np.tile(v[0], (width, 3)) for v in define['gray_thresholds']])
-    gray_upper = np.array([np.tile(v[1], (width, 3)) for v in define['gray_thresholds']])
+    blue_lower = np.array([np.tile([[v2[0] for v2 in v1]], (width, 1)) for v1 in define['blue_thresholds']], dtype=np.uint8)
+    blue_upper = np.array([np.tile([[v2[1] for v2 in v1]], (width, 1)) for v1 in define['blue_thresholds']], dtype=np.uint8)
+    red_lower = np.array([np.tile([[v2[0] for v2 in v1]], (width, 1)) for v1 in define['red_thresholds']], dtype=np.uint8)
+    red_upper = np.array([np.tile([[v2[1] for v2 in v1]], (width, 1)) for v1 in define['red_thresholds']], dtype=np.uint8)
+    gray_lower = np.array([np.tile(v[0], (width, 3)) for v in define['gray_thresholds']], dtype=np.uint8)
+    gray_upper = np.array([np.tile(v[1], (width, 3)) for v in define['gray_thresholds']], dtype=np.uint8)
 
     for music, values in targets.items():
         result.append(f'{music}: {len(values)}')
@@ -425,7 +425,7 @@ def learning_difficulty(informations):
         difficulty = target.label['difficulty']
         level = target.label['level']
         
-        trimmed = target.np_value[informations_define['difficulty']['trim']]
+        trimmed = target.np_value[informations_define['difficulty']['trim']].astype(np.uint32)
         converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
 
         uniques, counts = np.unique(converted, return_counts=True)
@@ -464,7 +464,7 @@ def learning_difficulty(informations):
     report.append_log(f'Source count: {len(evaluate_targets)}')
 
     for key, target in evaluate_targets.items():
-        trimmed = target.np_value[informations_define['difficulty']['trim']]
+        trimmed = target.np_value[informations_define['difficulty']['trim']].astype(np.uint32)
         converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
 
         uniques, counts = np.unique(converted, return_counts=True)
@@ -872,10 +872,13 @@ if __name__ == '__main__':
     evaluate_musics(music)
 
     filename = f'informations{define.informations_recognition_version}.res'
-    save_resource_serialized(filename, {
+
+    data = {
         'play_mode': play_mode,
         'difficulty': difficulty,
         'notes': notes,
         'playspeed': playspeed,
         'music': music,
-    })
+    }
+
+    save_resource_serialized(filename, data, True)

@@ -8,7 +8,7 @@ logger = getLogger('cloud function')
 
 from service_account_info import service_account_info
 
-URL = 'https://inf-notebook-eventdelete-975441799295.asia-northeast2.run.app'
+URL = 'https://inf-notebook-eventdelete2-975441799295.asia-northeast2.run.app'
 
 def callfunction_eventdelete(filenames: list[str]):
     """イベントファイルを削除する

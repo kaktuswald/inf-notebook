@@ -21,8 +21,8 @@ from cloud_function import callfunction_eventdelete
 bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
 bucket_name_musicselect = 'bucket-inf-notebook-musicselect'
-bucket_name_resources = 'bucket-inf-notebook-resources'
-bucket_name_discordwebhooks = 'bucket-inf-notebook-discordwebhook'
+bucket_name_resources = 'bucket-inf-notebook-resources2'
+bucket_name_discordwebhooks = 'bucket-inf-notebook-discordwebhook2'
 
 informations_dirname = 'informations'
 details_dirname = 'details'

@@ -56,7 +56,7 @@ class Recognition():
             if resource.informations is None:
                 return None, None
             
-            trimmed = np_value_informations[resource.informations['difficulty']['trim']]
+            trimmed = np_value_informations[resource.informations['difficulty']['trim']].astype(np.uint32)
             converted = trimmed[:,:,0]*0x10000+trimmed[:,:,1]*0x100+trimmed[:,:,2]
 
             uniques, counts = np.unique(converted, return_counts=True)
@@ -202,7 +202,7 @@ class Recognition():
                 return ResultOptions(None, None, None, False)
 
             trimmed = np_value[resource.details['define']['option']['trim'][playside]]
-            bins = np.where(trimmed[:, ::4]==resource.details['define']['option']['maskvalue'], 1, 0).T
+            bins = np.where(trimmed>=resource.details['define']['option']['thresholdlower'], 1, 0)
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
 

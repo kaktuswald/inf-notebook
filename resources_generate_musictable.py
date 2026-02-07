@@ -418,7 +418,7 @@ def generate_musictable():
     evaluate_categories(report, table)
     
     filename = f'musictable{define.musictable_version}.res'
-    save_resource_serialized(filename, table)
+    save_resource_serialized(filename, table, True)
 
     report.report()
 
