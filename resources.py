@@ -118,15 +118,12 @@ def load_resource_serialized(resourcename: str, compress: bool = False) -> dict 
     if not isfile(filepath):
         return None
     
-    try:
-        if not compress:
-            with open(filepath, 'rb') as f:
-                value = pickle.load(f)
-        else:
-            with gzip.open(filepath, 'rb') as f:
-                value = pickle.load(f)
-    except Exception as ex:
-        return None
+    if not compress:
+        with open(filepath, 'rb') as f:
+            value = pickle.load(f)
+    else:
+        with gzip.open(filepath, 'rb') as f:
+            value = pickle.load(f)
     
     return value
 

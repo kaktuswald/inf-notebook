@@ -750,7 +750,7 @@ def learning_musics(informations):
 def evaluate_musics(music):
     report = Report('resultmusic_evaluate')
 
-    musictable = load_resource_serialized(f'musictable{define.musictable_version}')
+    musictable = load_resource_serialized(f'musictable{define.musictable_version}', True)
 
     report.append_log(f"Registered count of arcade(gray color): {len(music['tables']['gray'])}")
     report.append_log(f"Registered count of infinitas(blue color): {len(music['tables']['blue'])}")

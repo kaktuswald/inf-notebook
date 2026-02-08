@@ -50,7 +50,7 @@ python generate_version.py
 
 ### 実行ファイル化
 ```shell
-pip install cx_Freeze==8.4.1
+pip install cx_Freeze==8.5.3
 python setup.py build
 ```
 
@@ -86,23 +86,6 @@ resourcesフォルダ内にいくつかのリソースファイルが作成さ�
 - rival.npy
 - play_side.npy
 - dead.npy
-
-### 選曲画面
-- プレイモード(SP or DP)
-- 曲名
-- 選択中の譜面難易度
-- 各譜面難易度のレベル
-- クリアランプ・DJレベル・スコア・ミスカウント
-
-#### GUI上で画像にラベル付けする
-```shell
-python annotation_musicselect.pyw
-```
-
-#### 学習する
-```shell
-python resources_learning_musicselect.py
-```
 
 resourcesフォルダ内にリソースファイルが作成される。
 - musicselect(バージョン).res
@@ -177,7 +160,7 @@ Cloud Storage上の画像を全てcollection_data下に保存し、削除する�
 python download_collections.py
 ```
 
-## 学習する
+## リソースファイルの作成
 
 ### リザルトの詳細と曲リスト
 曲リスト
@@ -202,6 +185,9 @@ python download_collections.py
 - 各譜面のレベル
 - 自己ベストのクリアランプ・DJレベル・スコア・ミスカウント
 
+ノーツレーダー
+- ノーツレーダー値
+
 以上の画像認識の学習と全収録曲のリストの作成を目的とする。
 
 #### 収録曲情報
@@ -211,6 +197,8 @@ registriesフォルダに各種ファイルを作っておく。
 - categorycount_versions.csv バージョンカテゴリの各曲数
 - categorycount_difficulties.csv 難易度カテゴリの各曲数(BEGINNER,LEGGENDARIA)
 - categorycount_levels.csv レベルカテゴリの各曲数
+- notesradarsフォルダ内
+- - SP NOTES.csv
 
 #### GUI上で画像にラベル付けする
 ```shell
@@ -218,7 +206,7 @@ python annotation_musicselect.pyw
 python annotation_result.pyw
 ```
 
-##### 曲リストの作成
+#### 曲リストの作成
 musics.csvから曲リストを作成して、収集した選曲画面のラベルから各譜面のレベルを取り込む。
 アーケードのCSVデータファイルをダウンロードして、
 originalscoredata_sp,originalscoredata_dpフォルダにおいておく。
@@ -236,6 +224,11 @@ python resources_learning_details.py
 python resources_learning_musicselect.py
 ```
 
+#### ノーツレーダーを作る
+```shell
+python resources_generate_notesradar.py
+```
+
 #### 誤った曲名の修正
 記録を保存するファイルのファイル名に「曲名をエンコードした文字列」を使用している。
 
@@ -249,10 +242,11 @@ python resources_learning_musicselect.py
 ```
 
 resourcesフォルダに以下ファイルが作成される。
-- musictable(バージョン).res
-- informations(バージョン).res
-- detailss(バージョン).res
-- musicselect(バージョン).res
+- musictable(リソースバージョン).res
+- informations(リソースバージョン).res
+- detailss(リソースバージョン).res
+- musicselect(リソースバージョン).res
+- notesradar(リソースバージョン).res
 
 #### 学習した曲名認識データをアップロードする
 すべての場合
@@ -266,5 +260,6 @@ python resources_upload.py -musictable
 python resources_upload.py -informations
 python resources_upload.py -details
 python resources_upload.py -musicselect
+python resources_upload.py -notesradar
 python resources_upload.py -musicnamechanges
 ```

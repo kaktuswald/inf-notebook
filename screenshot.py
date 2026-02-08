@@ -95,7 +95,12 @@ class Screenshot:
     np_value = None
 
     def __init__(self):
-        self.checkscreens = [(screen, (areas['left'], areas['top']), Capture(areas['width'], areas['height']), self.screentable[screen]) for screen, areas in define.screens.items()]
+        self.checkscreens = []
+        for screenname, areas in define.screens.items():
+            lefttop = (areas['left'], areas['top'],)
+            capture = Capture(areas['width'], areas['height'])
+            self.checkscreens.append((screenname, lefttop, capture, self.screentable[screenname],))
+        
         self.capture = Capture(define.width, define.height)
 
     def __del__(self):
