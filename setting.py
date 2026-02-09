@@ -71,6 +71,7 @@ default = {
         'main': 52374,
         'socket': 57328,
     },
+    'ignore_resulteffect': False,
 }
 
 class Setting():
@@ -336,6 +337,18 @@ class Setting():
     @port.setter
     def port(self, value):
         self.set_value('port', value)
+
+    @property
+    def ignore_resulteffect(self):
+        '''リザルトのエフェクト無視
+
+        BIT獲得のカットインや、FAILED CLEAR FULL COMBOの表示を無視する
+        '''
+        return self.get_value('ignore_resulteffect')
+
+    @ignore_resulteffect.setter
+    def ignore_resulteffect(self, value: bool):
+        self.set_value('ignore_resulteffect', value)
 
     @property
     def ignore_download(self):

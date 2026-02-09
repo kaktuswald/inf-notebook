@@ -14,7 +14,7 @@ from screenshot import Screen
 class Recognition():
     class Result():
         @staticmethod
-        def get_play_side(np_value):
+        def get_play_side(np_value: np.array):
             for target in define.value_list['play_sides']:
                 trimmed = np_value[define.areas_np['play_side'][target]]
                 if np.all((resource.play_side==0)|(trimmed==resource.play_side)):
@@ -23,7 +23,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_has_dead(np_value, play_side):
+        def get_has_dead(np_value: np.array, play_side: str):
             trimmed = np_value[define.areas_np['dead'][play_side]]
             if np.all((resource.dead==0)|(trimmed==resource.dead)):
                 return True
@@ -31,7 +31,7 @@ class Recognition():
                 return False
         
         @staticmethod
-        def get_has_rival(np_value):
+        def get_has_rival(np_value: np.array):
             trimmed = np_value[define.areas_np['rival']]
             if np.all((resource.rival==0)|(trimmed==resource.rival)):
                 return True
@@ -190,7 +190,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_options(np_value):
+        def get_options(np_value: np.array):
             if resource.details is None:
                 return None
 
@@ -232,7 +232,7 @@ class Recognition():
             return ResultOptions(arrange, flip, assist, battle)
 
         @staticmethod
-        def get_graphtype(np_value):
+        def get_graphtype(np_value: np.array):
             if resource.details is None:
                 return None
 
@@ -244,7 +244,7 @@ class Recognition():
             return Graphtypes.GAUGE
 
         @staticmethod
-        def get_clear_type(np_value):
+        def get_clear_type(np_value: np.array):
             if resource.details is None:
                 return None
 
@@ -265,7 +265,7 @@ class Recognition():
             return ResultValues(result['best'], result['current'], isnew)
 
         @staticmethod
-        def get_dj_level(np_value):
+        def get_dj_level(np_value: np.array):
             if resource.details is None:
                 return None
 
@@ -285,7 +285,7 @@ class Recognition():
             return ResultValues(result['best'], result['current'], isnew)
 
         @staticmethod
-        def get_score(np_value):
+        def get_score(np_value: np.array):
             if resource.details is None:
                 return None
 
@@ -326,7 +326,7 @@ class Recognition():
             return ResultValues(best, current, isnew)
 
         @staticmethod
-        def get_miss_count(np_value):
+        def get_miss_count(np_value: np.array):
             if resource.details is None:
                 return None
 
@@ -367,7 +367,7 @@ class Recognition():
             return ResultValues(best, current, isnew)
         
         @staticmethod
-        def get_graphtarget(np_value):
+        def get_graphtarget(np_value: np.array):
             if resource.details is None:
                 return None
 
@@ -387,7 +387,7 @@ class Recognition():
             return resource.details['graphtarget'][mode][tablekey]
 
         @classmethod
-        def get_informations(cls, np_value):
+        def get_informations(cls, np_value: np.array):
             play_mode = cls.get_play_mode(np_value)
             difficulty, level = cls.get_difficulty(np_value)
             notes = cls.get_notes(np_value)
@@ -397,7 +397,7 @@ class Recognition():
             return ResultInformations(play_mode, difficulty, level, notes, playspeed, music)
 
         @classmethod
-        def get_details(cls, np_value):
+        def get_details(cls, np_value: np.array):
             graphtype = cls.get_graphtype(np_value)
             if graphtype == Graphtypes.GAUGE:
                 options = cls.get_options(np_value)
@@ -423,7 +423,7 @@ class Recognition():
         DIFFICULTY_MASKVALUE: tuple[int] = (255, 255, 255)
 
         @staticmethod
-        def get_playmode(np_value):
+        def get_playmode(np_value: np.array):
             if resource.musicselect is None:
                 return None
             if not 'playmode' in resource.musicselect.keys():
@@ -437,7 +437,7 @@ class Recognition():
             return resource.musicselect['playmode']['table'][tablekey]
         
         @staticmethod
-        def get_version(np_value):
+        def get_version(np_value: np.array):
             if resource.musicselect is None:
                 return None
             for table in resource.musicselect['version']:
@@ -451,7 +451,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_hasscoredata(np_value):
+        def get_hasscoredata(np_value: np.array):
             if resource.musicselect is None:
                 return None
             
@@ -461,7 +461,7 @@ class Recognition():
             return bool(np.all((cropped==0)|(cropped==mask)))
 
         @staticmethod
-        def get_musicname(np_value):
+        def get_musicname(np_value: np.array):
             if resource.musicselect is None:
                 return None
             
@@ -519,7 +519,7 @@ class Recognition():
             return None
         
         @staticmethod
-        def get_difficulty(np_value):
+        def get_difficulty(np_value: np.array):
             if resource.musicselect is None:
                 return None
             targetresource = resource.musicselect['levels']['select']
@@ -538,7 +538,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_cleartype(np_value):
+        def get_cleartype(np_value: np.array):
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['cleartype']['trim']]
@@ -551,7 +551,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_djlevel(np_value):
+        def get_djlevel(np_value: np.array):
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['djlevel']['trim']]
@@ -561,7 +561,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_score(np_value):
+        def get_score(np_value: np.array):
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['score']['trim']]
@@ -581,7 +581,7 @@ class Recognition():
             return score
 
         @staticmethod
-        def get_misscount(np_value):
+        def get_misscount(np_value: np.array):
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['misscount']['trim']]
@@ -601,7 +601,7 @@ class Recognition():
             return score
 
         @staticmethod
-        def get_levels(np_value):
+        def get_levels(np_value: np.array):
             if resource.musicselect is None:
                 return None
             
@@ -637,7 +637,7 @@ class Recognition():
             return ret
 
         @classmethod
-        def confirm_difficulty(cls, np_value):
+        def confirm_difficulty(cls, np_value: np.array):
             ret = None
             for key, trimarea in cls.DIFFICULTY_TRIMAREAS.items():
                 if np.all(np_value[trimarea]==cls.DIFFICULTY_MASKVALUE):
@@ -648,8 +648,19 @@ class Recognition():
             return ret
 
     @staticmethod
-    def get_is_savable(np_value):
-        define_result_check = define.result_check
+    def get_is_savable(np_value: np.array, ignore_effect: bool):
+        '''リザルト画像が保存できるかどうかを返す
+
+        args:
+            np_value: 対象の画面
+            ignore_effect: エフェクトを無視する
+        '''
+        if ignore_effect:
+            typekey = 'quick'
+        else:
+            typekey = 'wait'
+
+        define_result_check = define.result_check[typekey]
 
         pixel = np_value[resource.is_savable['keyposition']]
         background_key = ''.join([format(v, '02x') for v in pixel])
@@ -657,7 +668,8 @@ class Recognition():
             return False
 
         for area_key, area in define_result_check.items():
-            if not np.array_equal(np_value[area], resource.is_savable['areas'][background_key][area_key]):
+            matchvalue = resource.is_savable['areas'][background_key][typekey][area_key]
+            if not np.array_equal(np_value[area], matchvalue):
                 return False
         
         return True

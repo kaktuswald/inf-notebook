@@ -293,7 +293,7 @@ class ThreadMain(Thread):
         if not shotted:
             screenshot.shot()
         
-        if screen == 'result' and not recog.get_is_savable(screenshot.np_value):
+        if screen == 'result' and not recog.get_is_savable(screenshot.np_value, setting.ignore_resulteffect):
             return
         
         if not self.confirmed_processable:
@@ -640,6 +640,8 @@ class GuiApi():
             socketport = int(values['port']['socket'])
             if socketport > 1024:
                 setting.port['socket'] = socketport
+
+        setting.ignore_resulteffect = values['ignore_resulteffect']
 
         setting.save()
 

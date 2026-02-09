@@ -72,9 +72,15 @@ class Define():
     }
 
     result_check = {
-        "horizontalline": (60, slice(156, 390), 1),
-        "verticalline": (slice(550, 760), 788, 1),
+        'wait': {
+            "horizontalline": (60, slice(156, 390), 1),
+            "verticalline": (slice(550, 760), 788, 1),
+        },
+        'quick': {
+            "verticalline": (slice(550, 760), 575, 1),
+        },
     }
+
 
     value_list = {
         'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA',),

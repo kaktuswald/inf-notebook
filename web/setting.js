@@ -31,6 +31,7 @@ async function initialize() {
   
   $('#check_newrecord_only').prop('checked', setting['newrecord_only']);
   $('#check_play_sound').prop('checked', setting['play_sound']);
+  $('#check_ignore_resulteffect').prop('checked', setting['ignore_resulteffect']);
   $('#check_autosave').prop('checked', setting['autosave']);
   $('#check_autosave_filtered').prop('checked', setting['autosave_filtered']);
   $('#check_filter_compact').prop('checked', setting['filter_compact']);
@@ -226,6 +227,7 @@ async function onclick_button_save(e) {
   await webui.save_setting(JSON.stringify({
     'newrecord_only': $('#check_newrecord_only').prop('checked'),
     'play_sound': $('#check_play_sound').prop('checked'),
+    'ignore_resulteffect': $('#check_ignore_resulteffect').prop('checked'),
     'autosave': $('#check_autosave').prop('checked'),
     'autosave_filtered': $('#check_autosave_filtered').prop('checked'),
     'filter_compact': $('#check_filter_compact').prop('checked'),

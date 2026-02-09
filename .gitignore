@@ -149,7 +149,6 @@ env_*/
 export/*.json
 export/*.txt
 export/*.csv
-export/*.png
 export/setting.css
 
 _*.py

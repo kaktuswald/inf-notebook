@@ -136,25 +136,29 @@ def generate_is_savable(raws):
     
     table = {'keyposition': background_key_position, 'areas': {}}
     for background_key, targets in targets2.items():
-        table['areas'][background_key] = {}
         filename, raw = [*targets.items()][0]
 
         image = Image.fromarray(raw.np_value[patternarea])
         image.save(join(append_dirpath, filename))
 
-        for area_key, area in define.result_check.items():
-            value = raw.np_value[area]
-            table['areas'][background_key][area_key] = value
-            report.saveimage_value(value, f'{background_key}-{area_key}-{filename}')
+        table['areas'][background_key] = {}
+        areas = table['areas'][background_key]
+        for typekey, values in define.result_check.items():
+            areas[typekey] = {}
+            for area_key, area in values.items():
+                value = raw.np_value[area]
+                areas[typekey][area_key] = value
+                report.saveimage_value(value, f'{background_key}-{typekey}-{area_key}-{filename}')
 
         for filename, raw in targets.items():
-            for area_key, area in define.result_check.items():
-                value = raw.np_value[area]
-                if np.array_equal(value, table['areas'][background_key][area_key]):
-                    report.through()
-                else:
-                    report.saveimage_errorvalue(value, filename)
-                    report.error(f'Mismatch {background_key} {area_key} {filename}')
+            for typekey, values in define.result_check.items():
+                for area_key, area in values.items():
+                    value = raw.np_value[area]
+                    if np.array_equal(value, areas[typekey][area_key]):
+                        report.through()
+                    else:
+                        report.saveimage_errorvalue(value, filename)
+                        report.error(f'Mismatch {background_key} {typekey} {area_key} {filename}')
 
     save_resource_serialized(resourcename, table)
 
