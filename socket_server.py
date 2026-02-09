@@ -38,6 +38,11 @@ class Requests():
     GET_SCOREINFORMATIONIMAGE: str = 'get_scoreinformationimage'
     '''譜面記録画像の取得'''
     GET_SCOREGRAPHIMAGE: str = 'get_scoregraphimage'
+    '''グラフ画像の取得'''
+    GET_MUSICTABLE: str = 'get_musictable'
+    '''楽曲テーブルの取得'''
+    GET_SCORERESULT: str = 'get_scoreresult'
+    '''楽曲プレイ履歴の取得'''
 
 class Statuses():
     '''レスポンス状態の定義
@@ -100,6 +105,9 @@ class SocketServer(Thread):
     encodedimage_scoreinformation: str | None = None
     encodedimage_scoregraph: str | None = None
 
+    musictable: dict[str, any] | None = None
+    scoreresult: dict[str, any] | None = None
+
     def __init__(self, port: int = None):
         if port is not None:
             self.port = port
@@ -132,7 +140,11 @@ class SocketServer(Thread):
                         payload = self.response_image(self.encodedimage_scoreinformation)
                     if request == Requests.GET_SCOREGRAPHIMAGE:
                         payload = self.response_image(self.encodedimage_scoregraph)
-                        
+                    if request == Requests.GET_MUSICTABLE:
+                        payload = self.response_json(self.musictable)
+                    if request == Requests.GET_SCORERESULT:
+                        payload = self.response_json(self.scoreresult)
+                                        
                     if payload is not None:
                         message = {
                             'r': request,
@@ -159,6 +171,12 @@ class SocketServer(Thread):
         return {
             't': DataTypes.IMAGE_PNG,
             'd': target if target is not None else self.encodedimage_imagenothing,
+        }
+    
+    def response_json(self, target: dict[str, any] | None):
+        return {
+            't': DataTypes.APP_JSON,
+            'd': target if target is not None else {},
         }
 
     def update_information(self, encodedimage: str | None):
