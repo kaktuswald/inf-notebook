@@ -23,6 +23,12 @@ class Events():
     '''譜面記録画像の更新'''
     UPDATE_SCOREGRAPHIMAGE: str = 'update_scoregraphimage'
     '''グラフ画像の更新'''
+    UPDATE_MUSICTABLE: str = 'update_musictable'
+    '''楽曲テーブルの更新'''
+    UPDATE_SCORERESULT: str = 'update_scoreresult'
+    '''楽曲プレイ履歴の更新'''
+    UPDATE_RECENTRECORDS: str = 'update_recentrecords'
+    '''最近のリザルトの更新'''
 
 class Requests():
     '''リクエストの定義
@@ -43,6 +49,8 @@ class Requests():
     '''楽曲テーブルの取得'''
     GET_SCORERESULT: str = 'get_scoreresult'
     '''楽曲プレイ履歴の取得'''
+    GET_RECENTRECORDS: str = 'get_recentrecords'
+    '''最近のリザルトの取得'''
 
 class Statuses():
     '''レスポンス状態の定義
@@ -107,6 +115,7 @@ class SocketServer(Thread):
 
     musictable: dict[str, any] | None = None
     scoreresult: dict[str, any] | None = None
+    recentrecords: dict[str, any] | None = None
 
     def __init__(self, port: int = None):
         if port is not None:
@@ -144,6 +153,8 @@ class SocketServer(Thread):
                         payload = self.response_json(self.musictable)
                     if request == Requests.GET_SCORERESULT:
                         payload = self.response_json(self.scoreresult)
+                    if request == Requests.GET_RECENTRECORDS:
+                        payload = self.response_json(self.recentrecords)
                                         
                     if payload is not None:
                         message = {
@@ -202,6 +213,25 @@ class SocketServer(Thread):
     def update_scoregraph(self, encodedimage: str | None):
         self.encodedimage_scoregraph = encodedimage
         self.broadcast(Events.UPDATE_SCOREGRAPHIMAGE)
+
+    def update_musictable(self, musictable: dict[str, any]):
+        self.musictable = musictable
+        self.broadcast(Events.UPDATE_MUSICTABLE)
+
+    def update_recentrecords(self, notebook_recent):
+        self.recentrecords = notebook_recent.json
+        self.broadcast(Events.UPDATE_RECENTRECORDS)
+
+    def update_scoreresult(self, musicname:str, playtype:str, difficulty:str, result: dict[str, any] | None):
+        self.scoreresult = {
+            'music': {
+                'musicname': musicname,
+                'playtype': playtype,
+                'difficulty': difficulty,
+            },
+            'result': result,
+        }
+        self.broadcast(Events.UPDATE_SCORERESULT)
 
     def broadcast(self, event: str, payload: any = None):
         if payload is not None:

@@ -1,8 +1,18 @@
-// 「最近」として表示する履歴の範囲 (単位:時間)
-const timeWindow = 168;
+const Events = Object.freeze({
+  UPDATE_SCORERESULT: 'update_scoreresult',
+  UPDATE_RECENTRECORDS: 'update_recentrecords',
+});
 
-// 更新のあるリザルトのみに表示を絞るか
-const showUpdatedOnly = false;
+const Requests = Object.freeze({
+  GET_MUSICTABLE: 'get_musictable',
+  GET_SCORERESULT: 'get_scoreresult',
+});
+
+const Statuses = Object.freeze({
+  SUCCESS: 'success',
+  INVALID: 'invalid',
+  FAILED: 'failed',
+})
 
 let url = null;
 let socket = null;
@@ -10,53 +20,45 @@ let musictable = null;
 let looprequest = null;
 
 async function connect() {
-    console.log("connecting...");
     if(socket != null) return;
 
     socket = new WebSocket(url);
 
     socket.addEventListener('open', (event) => {
-        console.log("websocket opened.");
-        socket.send(JSON.stringify({ "r" : "get_musictable" }));
+        sendmessage(Requests.GET_MUSICTABLE);
     });
 
     socket.addEventListener('message', (event) => {
-        console.log("message received.");
         try {
             let data = JSON.parse(event.data);
-            if (data.r == 'get_musictable') {
-                musictable = data.p.d;
-                clearInterval(looprequest);
-                looprequest = setInterval(function(){
-                    try {
-                        socket.send(JSON.stringify({ "r" : "get_scoreresult" }));
-                    } catch(e) {
-                        console.log(e);
-                        $("#setting").css("display", "flex");
-                        $("#content").css("display", "none");
-                        clearInterval(looprequest);
-                        looprequest = setInterval(connect, 1000);
-                    }
-                }, 1000);
-            } else if (data.r == 'get_scoreresult') {
-                // スコアリストをロードできたら、履歴表示を開始
-                $("#setting").css("display", "none");
-                $("#content").css("display", "block");
-                applyData(data.p.d);
+
+            if('e' in data) {
+                if(data['e'] == Events.UPDATE_SCORERESULT || data['e'] == Events.UPDATE_RECENTRECORDS) {
+                    sendmessage(Requests.GET_SCORERESULT);
+                }
+            }
+
+            if('s' in data && data['s'] == Statuses.SUCCESS) {
+                if (data.r == Requests.GET_MUSICTABLE) {
+                    musictable = data.p.d;
+                    $("#setting").css("display", "none");
+                    $("#content").css("display", "block");
+                    sendmessage(Requests.GET_SCORERESULT);
+                } else if (data.r == Requests.GET_SCORERESULT) {
+                    applyData(data.p.d);
+                }
             }
         } catch(e) {
-            console.log(e);
+            console.error(e);
         }
     });
 
     socket.addEventListener('error', (event) => {
-        console.log("websocket error:");
-        console.log(event);
+        console.error(event);
         socket.close();
     });
 
     socket.addEventListener('close', (event) => {
-        console.log("websocket closed.");
         socket = null;
     });
 }
@@ -145,6 +147,24 @@ function applyData(data) {
 
     });
     $('#result').html(out);
+}
+
+function sendmessage(request, payload = null) {
+  let message = null;
+  
+  if(payload !== null) {
+    message = {
+      'r': request,
+      'p': payload,
+    };
+  }
+  else {
+    message = {
+      'r': request,
+    };
+  }
+
+  socket.send(JSON.stringify(message));
 }
 
 window.addEventListener('DOMContentLoaded', function() {

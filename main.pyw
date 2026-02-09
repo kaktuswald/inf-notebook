@@ -1114,14 +1114,7 @@ class GuiApi():
             return
         
         result = notebook.get_scoreresult(playtype, difficulty)
-        socket_server.scoreresult = {
-            'music': {
-                'musicname': musicname,
-                'playtype': playtype,
-                'difficulty': difficulty,
-            },
-            'result': result,
-        }
+        socket_server.update_scoreresult(musicname, playtype, difficulty, result)
         event.return_string(dumps(result))
 
     def get_playresult(self, event: webui.Event):
@@ -1169,6 +1162,7 @@ class GuiApi():
         
         notebook_recent.save()
 
+        socket_server.update_recentrecords(notebook_recent)
         self.send_message('update_recentrecords', False)
 
     def recents_save_resultimages_filtered(self, event: webui.Event):
@@ -1223,6 +1217,7 @@ class GuiApi():
                 if result.timestamp in new_filtereds:
                     result.filtered = True
             
+            socket_server.update_recentrecords(notebook_recent)
             self.send_message('update_recentrecords', False)
 
     def recents_post_results(self, event: webui.Event):
@@ -2186,6 +2181,7 @@ def insert_results(result: Result):
     while len(recentresults) > recent_maxcount:
         del recentresults[-1]
 
+    socket_server.update_recentrecords(notebook_recent)
     api.send_message('update_recentrecords', setting.display_result)
 
 def update_resultflag(row_index, saved=False, filtered=False):
@@ -2471,7 +2467,8 @@ if __name__ == '__main__':
 
     socket_server = SocketServer(port=setting.port['socket'])
     socket_server.start()
-    socket_server.musictable = resource.musictable
+    socket_server.update_musictable(resource.musictable)
+    socket_server.update_recentrecords(notebook_recent)
 
     webui.set_config(webui.Config.multi_client, True)
     webui.set_default_root_folder('web/')
