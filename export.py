@@ -26,16 +26,11 @@ summary_timestamp_filepath = join(export_dirname, 'summary_timestamp.txt')
 recent_htmlpath = join(export_dirname, 'recent.html')
 summary_htmlpath = join(export_dirname, 'summary.html')
 
-summary_image_filepath = join(export_dirname, 'summary.png')
-notesradar_image_filepath = join(export_dirname, 'notesradar.png')
-
 notesradar_csv_filepath = join(export_dirname, 'notesradar.csv')
 notesradar_csv_rankings_filepaths = {
     Playmodes.SP: join(export_dirname, 'notesradar_rankings_sp.csv'),
     Playmodes.DP: join(export_dirname, 'notesradar_rankings_dp.csv')
 }
-
-exportimage_musicinformation_filepath = join(export_dirname, 'musicinformation.png')
 
 settingcss_filepath = join(export_dirname, 'setting.css')
 

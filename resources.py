@@ -24,11 +24,6 @@ images_dirpath = join(resources_dirname, images_dirname)
 
 sound_result_filepath = join(sounds_dirpath, 'result.wav')
 
-images_resourcecheck_filepath = join(images_dirpath, 'resourcecheck.png')
-images_summaryprocessing_filepath = join(images_dirpath, 'summaryprocessing.png')
-images_imagenothing_filepath = join(images_dirpath, 'imagenothing.png')
-images_graphnogenerate_filepath = join(images_dirpath, 'graphnogenerate.png')
-images_loading_filepath = join(images_dirpath, 'loading.png')
 images_stamp_filepath = join(images_dirpath, 'stamp.png')
 
 class Resource():

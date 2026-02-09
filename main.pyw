@@ -57,9 +57,6 @@ from export import (
     output_notesradarcsv,
     generate_exportsettingcss,
     export_dirname,
-    summary_image_filepath,
-    notesradar_image_filepath,
-    exportimage_musicinformation_filepath,
     csssetting_filepath,
 )
 from export import output as output_summary
@@ -707,9 +704,6 @@ class GuiApi():
 
         socket_server.update_summary(data)
 
-        save_imagevalue(b64decode(data), summary_image_filepath)
-        self.send_message('append_log', 'saved summary.png')
-
     def upload_notesradarimage(self, event: webui.Event):
         '''ノーツレーダー画像のアップロード
         
@@ -720,9 +714,6 @@ class GuiApi():
         data = event.get_string_at(0)
 
         socket_server.update_notesradar(data)
-
-        save_imagevalue(b64decode(data), notesradar_image_filepath)
-        self.send_message('append_log', 'saved notesradar.png')
 
     def upload_scoreinformationimage(self, event: webui.Event):
         '''譜面情報画像のアップロード
@@ -748,9 +739,6 @@ class GuiApi():
         }
 
         socket_server.update_scoreinformation(data)
-
-        save_imagevalue(decorded_value, exportimage_musicinformation_filepath)
-        self.send_message('append_log', 'saved musicinformation.png')
 
     def upload_scoregraphimage(self, event: webui.Event):
         '''譜面グラフ画像のアップロード

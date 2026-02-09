@@ -52,22 +52,7 @@
           exportフォルダに含まれるいくつかのファイルは、OBSに追加することができます。
         </div>
         <div>
-          統計データ(summary.png)と選曲情報(musicinformation.png)はソースに画像を追加して、対象の画像ファイルを指定してください。
-        </div>
-        <div>
-          最近のデータ(recent.html)と統計データ(summary.html)はソースにブラウザを追加して、ローカルファイルのチェックを入れて対象のhtmlファイルを指定してください。
-        </div>
-        <div class="item">
-          <div class="itemblock">
-            <div class="obs_itemlabel">summary.png</div>
-            <div class="contentblock">起動時に表示する統計データの画像です。</div>
-          </div>
-        </div>
-        <div class="item">
-          <div class="itemblock">
-            <div class="obs_itemlabel">musicinformation.png</div>
-            <div class="contentblock">選曲中に表示する曲情報の画像です。</div>
-          </div>
+          OBSのソースにブラウザソースを選択し、ローカルファイルのチェックを入れて各種HTMLファイルを指定してください。
         </div>
         <div class="item">
           <div class="itemblock">
@@ -84,9 +69,24 @@
             </div>
           </div>
         </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="obs_itemlabel">recent_updates.html</div>
+            <div class="contentblock">最近プレイの更新記録が表示できます。</div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="itemblock">
+            <div class="obs_itemlabel">score_results.html</div>
+            <div class="contentblock">選択している譜面のベスト記録やプレイ履歴が表示できます。</div>
+          </div>
+        </div>
         <div class="label highlight">カスタムCSS</div>
         <div>
-          「最近のデータ」「統計データ」タブからカスタムCSSを作成できます。
+          「最近のデータ」タブからrecent.htmlのカスタムCSSを作成できます。
+        </div>
+        <div>
+          「統計データ」タブからsummary.htmlのカスタムCSSを作成できます。
         </div>
         <div>
           作成されたCSSをコピーして、OBSのほうのソースのプロパティで「カスタムCSS」に貼り付けてください。

@@ -13,9 +13,6 @@ dirname_filtereds = 'filtered'
 dirname_scorecharts = 'graphs'
 dirname_scoreinformations = 'scoreinformations'
 
-export_filename_summary = 'summary.png'
-export_filename_musicinformation = 'musicinformation.png'
-
 adjust_length = 94
 
 def generate_scoretype(playtype: str | None, difficulty: str | None):
