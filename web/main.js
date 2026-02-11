@@ -57,15 +57,170 @@ reader_scoregraph.onabort = onabort_filereader;
 imageblobs = {};
 imageurls = {};
 
-selecttabname_afterloading = null;
+selectcomponentname_afterloading = null;
+
+var layoutconfig = {
+  settings: {
+    // reorderEnabled: false,
+    showPopoutIcon: false,
+    showMaximiseIcon: false,
+    showCloseIcon: false,
+  },
+  dimensions: {
+    minItemHeight: 80,
+    minItemWidth: 300,
+  },
+  content: [{
+    type: 'column',
+    content: [
+      {
+        type: 'row',
+        content: [
+          {
+            type: 'column',
+            width: 60,
+            content: [
+              {
+                type: 'stack',
+                content: [
+                  {
+                    type: 'component',
+                    componentName: 'information',
+                    title: 'インフォメーション',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'summary',
+                    title: '統計',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'notesradar',
+                    title: 'ノーツレーダー',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'screenshot',
+                    title: 'スクリーンショット',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'scoreinformation',
+                    title: '譜面記録',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'chartscoreresult',
+                    title: 'グラフ',
+                    isClosable: false,
+                  },
+                ],
+                height: 75,
+              },
+              {
+                type: 'stack',
+                content: [
+                  {
+                    type: 'component',
+                    componentName: 'memo',
+                    title: 'メモ',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'log',
+                    title: 'ログ',
+                    isClosable: false,
+                  },
+                ],
+                height: 25,
+              }
+            ],
+          },
+          {
+            type: 'column',
+            width: 40,
+            content: [
+              {
+                type: 'stack',
+                content: [
+                  {
+                    type: 'component',
+                    componentName: 'recents',
+                    title: '最近のリザルト',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'search',
+                    title: '検索',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'discord',
+                    title: 'イベント',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'notesradars',
+                    title: 'レーダー詳細',
+                    isClosable: false,
+                  },
+                ],
+                height: 64,
+              },
+              {
+                type:'stack',
+                height: 35,
+                content: [
+                  {
+                    type: 'component',
+                    componentName: 'scorebest',
+                    title: 'ベスト記録',
+                    isClosable: false,
+                  },
+                  {
+                    type: 'component',
+                    componentName: 'resultdetail',
+                    title: 'リザルト詳細',
+                    isClosable: false,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        height: 85,
+      },
+      {
+        type: 'component',
+        componentName: 'buttons',
+        title: 'コントロール',
+        height: 15,
+        isClosable: false,
+      },
+    ],
+  }],
+};
+
+var allcomponentids = null;
+var layout = null;
+var components = {};
 
 $(function() {
+  allcomponentids = $('#components').children().map(function() { return this.id;}).get();
+
   webui.setEventCallback((e) => {
     if(e == webui.event.CONNECTED) initialize();
     if(e == webui.event.DISCONNECTED) console.log('disconnect.');
   });
-
-  $('button.select_tabpage').on('click', onclick_tab);
 
   $('button#button_save_scoreinformationimage').on('click', onclick_save_scoreinformationimage);
   $('button#button_save_scoregraphimage').on('click', onclick_save_scoregraphimage);
@@ -85,16 +240,17 @@ $(function() {
   $('button#button_summary_switch').on('click', onclick_summary_switch);
   $('button#button_summary_setting').on('click', onclick_summary_setting);
 
+  $('textarea#textarea_memo').on('change', onchange_memo);
+
   $('button#button_setting_open').on('click', onclick_setting_open);
   $('iframe#inner_setting').on('load', onload_setting_window);
-
   $('button#button_export_open').on('click', onclick_export_open);
   $('iframe#inner_export').on('load', onload_export_window);
-
   $('button#button_confirm_outputcsv').on('click', onclick_confirm_outputcsv);
   $('button#button_execute_outputcsv').on('click', onclick_execute_outputcsv);
   $('button#button_confirm_clearrecent').on('click', onclick_confirm_clearrecent);
   $('button#button_execute_clearrecent').on('click', onclick_execute_clearrecent);
+  $('button#button_reset_layout').on('click', onclick_reset_layout);
 
   $('button#button_recents_save_resultimages').on('click', onclick_recents_save_resultimages);
   $('button#button_recents_save_resultimages_filtered').on('click', onclick_recents_save_resultimages_filtered);
@@ -123,18 +279,11 @@ $(function() {
   $('select#select_notesradar_attributes').on('change', onchange_notesradar_attribute);
   $('input[name="notesradar_tablemode"]').on('change', onchange_notesradar_tablemode);
 
-  $('button#button_best_switch_timestamp').on('click', onclick_best_switch_timestamp);
-  $('button#button_best_switch_useoption').on('click', onclick_best_switch_useoption);
-
   $('button#button_execute_findnewestversionaction').on('click', onclick_execute_findnewestversionaction);
 
   $('button.dialogclose').on('click', onclick_button_dialogclose);
 
   $(window).on('message', onmessage_window);
-
-  switch_displaytab('main', 'information');
-  switch_displaytab('control', 'recents');
-  switch_displaytab('detail', 'best');
 });
 
 /**
@@ -183,6 +332,8 @@ async function initialize() {
 
   await load_setting();
 
+  refreshlayout();
+
   drawer_imagenothing = new DrawerSimpletext(width, height, fontfamily);
   drawer_simpletext = new DrawerSimpletext(width, height, fontfamily);
   drawer_information = new DrawerInformation(width, height, fontfamily);
@@ -222,6 +373,42 @@ async function initialize() {
     display_errormessage(['画像ファイル保存先のパスが見つかりません。']);
 }
 
+function refreshlayout() {
+  if(layout !== null) {
+    layout.off('stateChanged');
+
+    allcomponentids.forEach(id => {
+      $('#components').append($(`#${id}`));
+    });
+  
+    layout.destroy();
+  }
+
+  const savedstate = localStorage.getItem('layout');
+  if(savedstate !== null) {
+    layout = new GoldenLayout(JSON.parse(savedstate));
+  }
+  else {
+    layout = new GoldenLayout(layoutconfig);
+  }
+
+  layout.on('stateChanged', onchange_layoutstate);
+
+  allcomponentids.forEach(id => {
+    const componentname = id.replace('component_', '');
+    layout.registerComponent(componentname, function(container, state) {
+      container.getElement().addClass('component');
+      container.getElement().append($(`#${id}`));
+
+      components[componentname] = container.parent;
+    });
+  });
+  
+  layout.init();
+
+  active_component('information');
+}
+
 /**
  * リソースデータロード後の処理
  * 
@@ -239,7 +426,7 @@ async function loadresourceafterprocessing() {
   await draw_summary();
   await draw_notesradar();
 
-  switch_displaytab('main', setting['startup_image']);
+  active_component(setting['startup_image']);
 
   append_log('complete load resource after processing.');
 }
@@ -301,9 +488,6 @@ async function discordwebhook_initialprocessing() {
 async function load_setting() {
   const setting = JSON.parse(await webui.get_setting());
   globalThis.setting = setting;
-
-  if(setting['debug'])
-    $('#display_tabpage_main_log').css('display', 'inline-block');
 
   if(setting['data_collection'])
     $('#button_recents_confirm_uploadcollectionimages').css('display', 'block');
@@ -386,17 +570,17 @@ function communication_message(message, data = null) {
     case 'start_summaryprocessing':
       generate_summaryprocessingimage();
       break;
-    case 'switch_displaytab':
-      switch_displaytab(data.groupname, data.tabname);
+    case 'activate_component':
+      active_component(data);
       break;
     case 'request_imagereload':
       request_imagereload(data.tagid, data.filename);
       break;
     case 'switch_detect_infinitas':
-      switch_detect_infinitas(data);
+      switch_detect_togglemessage('detect_infinitas', data);
       break;
     case 'switch_capturable':
-      switch_capturable(data);
+      switch_detect_togglemessage('capturable', data);
       break;
     case 'detect_loading':
       detect_loading();
@@ -439,7 +623,8 @@ function communication_message(message, data = null) {
 
 function display_loadingimage() {
   $('img#image_information').attr('src', imageurls['loading']);
-  switch_displaytab('main', 'information');
+
+  active_component('information');
 
   reader_information.abort();
   reader_information.readAsDataURL(imageblobs['loading']);
@@ -451,13 +636,11 @@ function display_loadingimage() {
  * まず現在選択されているメインタブを取得して
  */
 function detect_loading() {
-  const nowtabs = $('div.tabpage_main').filter(function() {
-    return $(this).css('display') === 'flex';
-  });
-  if(nowtabs.length > 0)
-    selecttabname_afterloading = nowtabs.first().attr('id').split('_')[2];
+  selectcomponentname_afterloading = components['information'].parent.getActiveContentItem();
 
   display_loadingimage();
+
+  switch_detect_togglemessage('now_loading', true);
 }
 
 function escape_loading() {
@@ -466,10 +649,12 @@ function escape_loading() {
   reader_information.abort();
   reader_information.readAsDataURL(imageblobs['infinitasinformation']);
 
-  if(selecttabname_afterloading)
-    switch_displaytab('main', selecttabname_afterloading);
+  if(selectcomponentname_afterloading)
+    active_component(selectcomponentname_afterloading);
   else
-    switch_displaytab('main', setting.startup_image);
+    active_component(setting.startup_image);
+  
+  switch_detect_togglemessage('now_loading', false);
 }
 
 /**
@@ -778,7 +963,7 @@ async function display_scoreresult() {
   $('tr.timestampitem').off('click', onclick_timestampitem);
   $('table#table_timestamps tr.timestampitem').remove();
 
-  $('span#selectscore').text('');
+  $('div#selectscore').text('');
   $('#score_played_count').text('');
   clear_bests();
 
@@ -794,7 +979,7 @@ async function display_scoreresult() {
     scoretype = `${selected_playtype}${selected_difficulty[0]}`;
   else
     scoretype = `DB${selected_difficulty[0]}`;
-  $('span#selectscore').text(`[${scoretype}]${selected_musicname}`);
+  $('div#selectscore').text(`[${scoretype}]${selected_musicname}`);
 
   const scoreresult = JSON.parse(await webui.get_scoreresult(selected_musicname, selected_playtype, selected_difficulty));
   if(scoreresult == null) {
@@ -802,6 +987,9 @@ async function display_scoreresult() {
 
     $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
     $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+
+    $('textarea#textarea_memo').val('');
+
     return;
   }
 
@@ -910,6 +1098,11 @@ async function display_scoreresult() {
   else {
     clear_bests();
   }
+
+  if(Object.hasOwn(scoreresult, 'memo') && scoreresult.memo !== null)
+    $('textarea#textarea_memo').val(scoreresult.memo);
+  else
+    $('textarea#textarea_memo').val('');
 }
 
 /**
@@ -994,53 +1187,33 @@ async function display_playresult(timestamp) {
 }
 
 /**
+ * 指定のコンポーネントをアクティブ化する
+ * 
+ * タブ化されていて非アクティブの場合はアクティブになる
+ * @param {str} componentname 対象のコンポーネント名
+ */
+function active_component(componentname) {
+  const target = components[componentname];
+  target.parent.setActiveContentItem(target);
+}
+
+/**
  * インフィニタスの発見状態の切り替え
  * @param {boolean} flag 発見状態
  */
-function switch_detect_infinitas(flag) {
+function switch_detect_togglemessage(id, flag) {
   if(flag)
-    $('#detect_infinitas').addClass('toggle_on');
+    $(`#${id}`).addClass('toggle_on');
   else
-    $('#detect_infinitas').removeClass('toggle_on');
+    $(`#${id}`).removeClass('toggle_on');
 }
 
 /**
- * インフィニタスのキャプチャーの可能状態の切り替え
- * @param {boolean} flag キャプチャーの可能状態
- */
-function switch_capturable(flag) {
-  if(flag)
-    $('#capturable').addClass('toggle_on');
-  else
-    $('#capturable').removeClass('toggle_on');
-}
-
-/**
- * タブの切り替え
- * 
- * 対象のタブグループの、選択タブを指定のタブ名にする。
- * @param {str} groupname 対象のタブグループ名
- * @param {str} tabname 対象のタブ名
- */
-function switch_displaytab(groupname, tabname) {
-  $(`div.tabpage_${groupname}`).css('display', 'none');
-  $(`button.select_tabpage_${groupname}`).removeClass('select_tabpage_selected');
-
-  $(`div#tabpage_${groupname}_${tabname}`).css('display', 'flex');
-  $(`button#display_tabpage_${groupname}_${tabname}`).addClass('select_tabpage_selected');
-}
-
-/**
- * タブを選択
+ * レイアウトが変更された
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_tab(e) {
-  const id = e.target.id;
-
-  const extracted = id.match(/(?<=display_tabpage_)(.*)/)[0];
-  const splitted = extracted.split('_');
-
-  switch_displaytab(splitted[0], splitted[1]);
+function onchange_layoutstate(e) {
+  localStorage.setItem('layout', JSON.stringify(layout.toConfig()));
 }
 
 /**
@@ -1267,6 +1440,21 @@ async function onclick_summary_setting(e) {
 }
 
 /**
+ * メモの内容が変更された
+ * 
+ * 設定画面を開いて、統計タブをアクティブにする。
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onchange_memo(e) {
+  webui.save_memo(
+    selected_musicname,
+    selected_playtype,
+    selected_difficulty,
+    this.value
+  );
+}
+
+/**
  * 設定ボタンを押す
  * @param {ce.Event} e イベントハンドラ
  */
@@ -1341,29 +1529,20 @@ function onclick_execute_clearrecent(e) {
 }
 
 /**
+ * レイアウトをリセットする
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onclick_reset_layout(e) {
+  localStorage.removeItem('layout');
+  refreshlayout();
+}
+
+/**
  * 設定の保存かキャンセルボタンを押す
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_setting_close(e) {
   $('#setting').css('display', 'none');
-}
-
-/**
- * ベスト記録の表示を更新日時表示に切り替える
- * @param {ce.Event} e イベントハンドラ
- */
-function onclick_best_switch_timestamp(e) {
-  $('.best_useoptions').css('display', 'none');
-  $('.best_timestamps').css('display', 'inline-block');
-}
-
-/**
- * ベスト記録の表示を使用オプション表示に切り替える
- * @param {ce.Event} e イベントハンドラ
- */
-function onclick_best_switch_useoption(e) {
-  $('.best_timestamps').css('display', 'none');
-  $('.best_useoptions').css('display', 'inline-block');
 }
 
 /**
@@ -2120,7 +2299,6 @@ function discordwebhook_append_logs(texts) {
 async function activescreenshot(filepath) {
   const encodedimage = JSON.parse(await webui.get_activescreenshot());
   display_encodedimage(encodedimage, 'image_screenshot');
-  switch_displaytab('main', 'screenshot');
 
   display_screenshot_filepath(filepath);
 }
@@ -2128,7 +2306,6 @@ async function activescreenshot(filepath) {
 async function musicselect_upload() {
   const encodedimage = JSON.parse(await webui.get_activescreenshot());
   display_encodedimage(encodedimage, 'image_screenshot');
-  switch_displaytab('main', 'screenshot');
 }
 
 function display_encodedimage(encodedimage, tagid) {

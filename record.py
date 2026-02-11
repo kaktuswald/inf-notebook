@@ -613,6 +613,22 @@ class NotebookMusic(Notebook):
             del target['history'][timestamp]
 
         self.save()
+    
+    def get_memo(self, playtype: str, difficulty: str) -> str:
+        if not playtype in self.json.keys():
+            return None
+        if not difficulty in self.json[playtype].keys():
+            return None
+
+    def set_memo(self, playtype: str, difficulty: str, value: str) -> str:
+        if not playtype in self.json.keys():
+            self.json[playtype] = {}
+        if not difficulty in self.json[playtype].keys():
+            self.json[playtype][difficulty] = {}
+        
+        self.json[playtype][difficulty]['memo'] = value
+
+        self.save()
 
 class NotebookSummary(Notebook):
     def __init__(self):

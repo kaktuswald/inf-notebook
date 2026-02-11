@@ -60,7 +60,7 @@ from export import (
     csssetting_filepath,
 )
 from export import output as output_summary
-from windows import find_window,get_rect,check_rectsize,gethandle,show_messagebox,change_window_setting
+from windows import find_window,get_rect,check_rectsize,gethandle,show_messagebox
 import image
 from image import (
     generate_scoretype,
@@ -83,6 +83,8 @@ from socket_server import SocketServer
 from versioncheck import version_isold
 
 windowtitle = f'インフィニタス リザルト手帳'
+windowwidth = 1200
+windowheight = 720
 
 recent_maxcount = 100
 
@@ -106,7 +108,7 @@ releases_url = urljoin(base_url, 'releases/')
 latest_url = urljoin(releases_url, 'latest')
 wiki_url = urljoin(base_url, 'wiki/')
 
-class ThreadMain(Thread):
+class ThreadCapture(Thread):
     handle: int = 0
     active: bool = False
     waiting: bool = False
@@ -139,7 +141,7 @@ class ThreadMain(Thread):
 
     def run(self):
         self.sleep_time = thread_time_wait_nonactive
-        self.queues['log'].put('start thread')
+        self.queues['log'].put('start capture thread.')
         while not self.event_close.wait(timeout=self.sleep_time):
             self.routine()
 
@@ -149,7 +151,7 @@ class ThreadMain(Thread):
             if self.handle == 0:
                 return
 
-            self.queues['log'].put(f'infinitas find')
+            self.queues['log'].put(f'infinitas find.')
             api.send_message('switch_detect_infinitas', True)
             self.active = False
             screenshot.xy = None
@@ -157,7 +159,7 @@ class ThreadMain(Thread):
         rect = get_rect(self.handle)
 
         if rect is None or rect.right - rect.left == 0 or rect.bottom - rect.top == 0:
-            self.queues['log'].put(f'infinitas lost')
+            self.queues['log'].put(f'infinitas lost.')
             api.send_message('switch_detect_infinitas', False)
             api.send_message('switch_capturable', False)
             self.sleep_time = thread_time_wait_nonactive
@@ -232,7 +234,8 @@ class ThreadMain(Thread):
             self.waiting = True
             self.musicselect = False
             self.sleep_time = thread_time_wait_loading
-            self.queues['log'].put(f'detect loading: start waiting: {self.sleep_time}')
+            if setting.debug:
+                self.queues['log'].put(f'detect loading: start waiting: {self.sleep_time}')
             self.queues['messages'].put('detect_loading')
             return
             
@@ -241,7 +244,8 @@ class ThreadMain(Thread):
         if self.waiting:
             self.waiting = False
             self.sleep_time = thread_time_normal
-            self.queues['log'].put(f'escape loading: end waiting: {self.sleep_time}')
+            if setting.debug:
+                self.queues['log'].put(f'escape loading: end waiting: {self.sleep_time}')
             self.queues['messages'].put('escape_loading')
 
         # ここから先はローディング中じゃないときのみ
@@ -250,14 +254,16 @@ class ThreadMain(Thread):
             # 画面が選曲から抜けたとき
             self.musicselect = False
             self.sleep_time = thread_time_normal
-            self.queues['log'].put(f'screen out music select: {self.sleep_time}')
+            if setting.debug:
+                self.queues['log'].put(f'screen out music select: {self.sleep_time}')
 
         if screen == 'music_select':
             if not self.musicselect:
                 # 画面が選曲に入ったとき
                 self.musicselect = True
                 self.sleep_time = thread_time_musicselect
-                self.queues['log'].put(f'screen in music select: {self.sleep_time}')
+                if setting.debug:
+                    self.queues['log'].put(f'screen in music select: {self.sleep_time}')
 
             if not shotted:
                 screenshot.shot()
@@ -285,7 +291,8 @@ class ThreadMain(Thread):
             if screen == 'result':
                 # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
                 self.sleep_time = thread_time_result
-                self.queues['log'].put(f'screen in result: {self.sleep_time}')
+                if setting.debug:
+                    self.queues['log'].put(f'screen in result: {self.sleep_time}')
         
         if self.processed:
             return
@@ -546,6 +553,8 @@ class GuiApi():
 
         window.bind('switch_displayresultimage', self.switch_displayresultimage)
         window.bind('switch_summarycountmethod', self.switch_summarycountmethod)
+
+        window.bind('save_memo', self.save_memo)
 
         window.bind('get_resultimage', self.get_resultimage)
         window.bind('get_resultimage_filtered', self.get_resultimage_filtered)
@@ -995,6 +1004,24 @@ class GuiApi():
         '''
         setting.summary_countmethod_only = not setting.summary_countmethod_only
         setting.save()
+
+    def save_memo(self, event: webui.Event):
+        '''メモを保存する
+        Args:
+            musicname(str): 曲名
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
+            difficulty(str): 難易度
+        '''
+        musicname = event.get_string_at(0)
+        playtype = event.get_string_at(1)
+        difficulty = event.get_string_at(2)
+        value = event.get_string_at(3)
+
+        notebook = self.notebooks.get_notebook(musicname)
+        if notebook is None:
+            return
+        
+        value = notebook.set_memo(playtype, difficulty, value)
 
     def get_resultimage(self, event: webui.Event):
         '''リザルト画像を表示する
@@ -1795,7 +1822,8 @@ def result_process(screen: Screen):
     '''
     global scoreselection
 
-    api.send_message('append_log', 'result process')
+    if setting.debug:
+        api.send_message('append_log', 'result process')
 
     result: Result | None = recog.get_result(screen)
     if result is None:
@@ -1934,7 +1962,8 @@ def musicselect_process(np_value):
     
     scoreselection = ScoreSelection(playtype, musicname, difficulty)
 
-    api.send_message('append_log', f'musicselect: {playtype}, {musicname}, {difficulty}')
+    if setting.debug:
+        api.send_message('append_log', f'musicselect: {playtype}, {musicname}, {difficulty}')
 
     music_information = resource.musictable['musics'][musicname]
     version = recog.MusicSelect.get_version(np_value)
@@ -2215,19 +2244,19 @@ def active_screenshot():
     socket_server.update_screenshot(decorded_data)
 
 def select_summary():
-    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'summary'})
+    api.send_message('activate_component', 'summary')
 
 def select_notesradar():
-    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'notesradar'})
+    api.send_message('activate_component', 'notesradar')
 
 def select_screenshot():
-    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'screenshot'})
+    api.send_message('activate_component', 'screenshot')
 
 def select_scoreinformation():
-    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'scoreinformation'})
+    api.send_message('activate_component', 'scoreinformation')
 
 def select_scoregraph():
-    api.send_message('switch_displaytab', {'groupname': 'main', 'tabname': 'chartscoreresult'})
+    api.send_message('activate_component', 'chartscoreresult')
 
 def upload_musicselect():
     '''
@@ -2278,15 +2307,19 @@ def check_latest_version():
     return message, action
 
 def get_latest_version():
-    with request.urlopen(latest_url) as response:
-        response: HTTPResponse
-        url = response.geturl()
-        version = url.split('/')[-1]
-        api.send_message('append_log', f'released latest version: {version}')
-        if version[0] == 'v':
-            return version.removeprefix('v')
-        else:
-            return None
+    try:
+        with request.urlopen(latest_url) as response:
+            response: HTTPResponse
+            url = response.geturl()
+            version = url.split('/')[-1]
+            api.send_message('append_log', f'released latest version: {version}')
+            if version[0] == 'v':
+                return version.removeprefix('v')
+            else:
+                return None
+    except Exception as ex:
+        logger.error(ex)
+        return None
 
 def initial_records_processing():
     '''起動時一回だけの記録ファイルの処理
@@ -2454,7 +2487,7 @@ if __name__ == '__main__':
     storage = StorageAccessor()
 
     event_close = Event()
-    thread = ThreadMain(
+    thread = ThreadCapture(
         event_close,
         queues = {
             'log': queue_log,
@@ -2475,7 +2508,7 @@ if __name__ == '__main__':
     webui.set_default_root_folder('web/')
 
     newwindow = webui.Window()
-    newwindow.set_size(1000, 600)
+    newwindow.set_size(windowwidth, windowheight)
     newwindow.set_port(setting.port['main'])
     newwindow.set_public(True)
 
@@ -2490,8 +2523,6 @@ if __name__ == '__main__':
         show_messagebox('起動に失敗しました。', windowtitle)
         exit()
     
-    change_window_setting(handle)
-
     hotkeys = Hotkeys()
     if hotkeys.set_hotkeys():
         hotkeys.start()

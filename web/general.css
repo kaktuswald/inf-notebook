@@ -20,8 +20,10 @@
     --scroll-background-color: rgb(0, 0, 0);
     --highlight-background-color: rgb(67, 39, 19);
     --highlight-border-color: rgb(105, 105, 105);
-    --toggle-message-color: rgb(88, 88, 88);
+    --toggle-message-color: rgb(68, 68, 68);
+    --toggle-message-border-color: rgb(64, 64, 64);
     --toggle-on-color: rgb(135, 184, 200);
+    --toggle-on-background-color: rgb(10, 10, 80);
     --th-background-color: rgb(68, 68, 68);
     --td-background-color-odd: rgb(15, 15, 116);
     --td-background-color-even: rgb(47, 47, 156);
@@ -34,6 +36,20 @@ body {
     font-family: "Yu Mincho Demibold";
     color: var(--color);
     background-color: var(--background-color);
+    white-space: nowrap;
+}
+
+div#components {
+    display: none;
+}
+
+div.component {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid #888;
+    box-sizing: border-box;
+    overflow: auto;
 }
 
 dialog {
@@ -217,10 +233,14 @@ span.filepath {
 span.toggle_message {
     font-size: small;
     color: var(--toggle-message-color);
+    user-select: none;
+    border: solid 1px var(--toggle-message-border-color);
+    padding: 1px 10px;
 }
 
 span.toggle_on {
     color: var(--toggle-on-color);
+    background-color: var(--toggle-on-background-color);
 }
 
 .tableheader {

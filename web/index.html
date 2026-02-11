@@ -5,10 +5,13 @@
     <title>インフィニタス リザルト手帳</title>
     <link rel="stylesheet" href="./general.css" />
     <link rel="stylesheet" href="./main.css" />
+    <link rel="stylesheet" href="./lib/goldenlayout-base.css" />
+    <link rel="stylesheet" href="./lib/goldenlayout-dark-theme.css" />
     <script src="./webui.js"></script>
     <script src="./lib/jquery-3.7.1.slim.min.js"></script>
     <script src="./lib/chart4.4.9.min.js"></script>
     <script src="./lib/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="./lib/goldenlayout1.5.9.min.js"></script>
     <script src="./discordwebhook_constants.js"></script>
     <script src="./main.js"></script>
     <script src="./drawer_simpletext.js"></script>
@@ -19,291 +22,257 @@
     <script src="./drawer_scoregraph.js"></script>
   </head>
   <body>
-    <div class="split_horizontal">
-      <div id="pane_left" class="pane">
-        <div>
-          <div class="version">
-            <span class="version">バージョン</span>
-            <span id="version" class="version"></span>
-          </div>
-          <span id="detect_infinitas" class="toggle_message">INFINITASを見つけました</span>
-          <span id="capturable" class="toggle_message">スクリーンショット可能</span>
-        </div>
-        <div id="tab_main">
-          <p id="tabcontrol_main" class="tabcontrol">
-            <button id="display_tabpage_main_information" class="select_tabpage select_tabpage_main">インフォメーション</button>
-            <button id="display_tabpage_main_summary" class="select_tabpage select_tabpage_main">統計</button>
-            <button id="display_tabpage_main_notesradar" class="select_tabpage select_tabpage_main">ノーツレーダー</button>
-            <button id="display_tabpage_main_screenshot" class="select_tabpage select_tabpage_main">スクリーンショット</button>
-            <button id="display_tabpage_main_scoreinformation" class="select_tabpage select_tabpage_main">譜面記録</button>
-            <button id="display_tabpage_main_chartscoreresult" class="select_tabpage select_tabpage_main">グラフ</button>
-            <button id="display_tabpage_main_log" class="select_tabpage select_tabpage_main" style="display: none;">ログ</button>
-          </p>
-          <div id="tabbody_main">
-            <div id="tabpage_main_information" class="tabpage tabpage_main">
-              <img id="image_information" />
-            </div>
-            <div id="tabpage_main_summary" class="tabpage tabpage_main">
-              <img id="image_summary" />
-              <div class="buttons">
-                <button id="button_summary_switch">カウント方式 切替</button>
-                <button id="button_summary_setting">表示内容 設定</button>
-                <button id="button_post_summary">統計のポスト</button>
-                <button class="button_openfolder_export">エクスポートフォルダを開く</button>
-              </div>
-            </div>
-            <div id="tabpage_main_notesradar" class="tabpage tabpage_main">
-              <img id="image_chartnotesradar" />
-              <div class="buttons">
-                <button id="button_post_notesradar">ノーツレーダーのポスト</button>
-                <button class="button_openfolder_export">エクスポートフォルダを開く</button>
-              </div>
-            </div>
-            <div id="tabpage_main_screenshot" class="tabpage tabpage_main">
-              <img id="image_screenshot" />
-              <div class="buttons">
-                <button id="button_openfolder_results">リザルトフォルダを開く</button>
-                <button id="button_openfolder_filtereds">ライバル隠しフォルダを開く</button>
-                <button id="button_displayresultimage_switch">ライバル隠し 切替</button>
-                <span id="path_screenshot" class="filepath"></span>
-              </div>
-            </div>
-            <div id="tabpage_main_scoreinformation" class="tabpage tabpage_main">
-              <img id="image_scoreinformation" />
-              <div class="buttons">
-                <button id="button_save_scoreinformationimage">画像の保存</button>
-                <button class="button_post_scoreinformation">譜面記録のポスト</button>
-                <button id="button_openfolder_scoreinformations">フォルダを開く</button>
-              </div>
-            </div>
-            <div id="tabpage_main_chartscoreresult" class="tabpage tabpage_main">
-              <img id="image_scoregraph" />
-              <div class="buttons">
-                <button id="button_save_scoregraphimage">画像の保存</button>
-                <button class="button_post_scoreinformation">譜面記録のポスト</button>
-                <button id="button_openfolder_scorecharts">フォルダを開く</button>
-              </div>
-            </div>
-            <div id="tabpage_main_log" class="tabpage tabpage_main">
-              <div id="scroll_logs" class="scroll">
-                <ul id="logs"></ul>
-              </div>
-            </div>
-          </div>
-          <div class="buttons">
-            <button id="button_setting_open">設定</button>
-            <button id="button_export_open">エクスポート</button>
-            <button id="button_confirm_outputcsv">CSV出力</button>
-            <button id="button_confirm_clearrecent">最近のデータのリセット</button>
-          </div>
+    <div>
+      <div class="version">
+        <span class="version">バージョン</span>
+        <span id="version" class="version"></span>
+      </div>
+      <span id="detect_infinitas" class="toggle_message">INFINITASを見つけました</span>
+      <span id="capturable" class="toggle_message">スクリーンショット可能</span>
+      <span id="now_loading" class="toggle_message">INFINITASローディング中</span>
+      <button id="button_reset_layout">レイアウトのリセット</button>
+    </div>
+    <div id="container"></div>
+    <div id="components">
+      <div id="component_buttons">
+        <button id="button_setting_open">設定</button>
+        <button id="button_export_open">エクスポート</button>
+        <button id="button_confirm_outputcsv">CSV出力</button>
+        <button id="button_confirm_clearrecent">最近のデータのリセット</button>
+      </div>
+      <div id="component_information">
+        <img id="image_information" />
+      </div>
+      <div id="component_summary">
+        <img id="image_summary" />
+        <div class="buttons">
+          <button id="button_summary_switch">カウント方式 切替</button>
+          <button id="button_summary_setting">表示内容 設定</button>
+          <button id="button_post_summary">統計のポスト</button>
+          <button class="button_openfolder_export">エクスポートフォルダを開く</button>
         </div>
       </div>
-      <div id="pane_right" class="pane">
-        <div id="tab_control">
-          <p id="tabcontrol_control" class="tabcontrol">
-            <button id="display_tabpage_control_recents" class="select_tabpage select_tabpage_control">最近のリザルト</button>
-            <button id="display_tabpage_control_search" class="select_tabpage select_tabpage_control">検索</button>
-            <button id="display_tabpage_control_discord" class="select_tabpage select_tabpage_control">イベント</button>
-            <button id="display_tabpage_control_notesradars" class="select_tabpage select_tabpage_control">レーダー</button>
-          </p>
-          <div id="tabbody_control">
-            <div id="tabpage_control_recents" class="tabpage tabpage_control">
-              <div class="scroll">
-                <table id="table_recents">
-                  <tr class="tableheader">
-                    <th>T</th>
-                    <th>S</th>
-                    <th>F</th>
-                    <th>曲名</th>
-                    <th>譜面</th>
-                    <th>CT</th>
-                    <th>DL</th>
-                    <th>SC</th>
-                    <th>MC</th>
-                  </tr>
-                </table>
-              </div>
-              <div class="buttons">
-                <button id="button_recents_save_resultimages">画像保存</button>
-                <button id="button_recents_save_resultimages_filtered">ライバル隠して保存</button>
-                <button id="button_recents_post_results">ポスト</button>
-                <button id="button_recents_confirm_uploadcollectionimages">誤認識の通報</button>
-                </div>
-            </div>
-            <div id="tabpage_control_search" class="tabpage tabpage_control">
-              <div>
-                <div class="label highlight label_in_musicname_search">バージョン</div>
-                <select id="select_versions">
-                  <option value="ALL">ALL</option>
-                </select>
-              </div>
-              <div>
-                <div class="label highlight label_in_musicname_search">曲名絞り込み</div>
-                <input type="text" id="text_musicname_search"></select>
-              </div>
-              <div class="split_horizontal">
-                <div class="pane_musicname_search_left">
-                  <div class="scroll">
-                    <table id="table_musics">
-                      <tr class="tableheader">
-                        <th>曲名</th>
-                        <th>バージョン</th>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-                <div class="pane_musicname_search_right">
-                  <div>
-                    <select id="select_playtypes"></select>
-                  </div>
-                  <div>
-                    <select id="select_difficulties"></select>
-                  </div>
-                  <div class="scroll">
-                    <table id="table_timestamps">
-                      <tr class="tableheader">
-                        <th>タイムスタンプ</th>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              <div class="buttons">
-                <button id="button_confirm_deletemusicnotebook">選択曲の記録全削除</button>
-                <button id="button_confirm_deletescoreresult">選択譜面の記録全削除</button>
-                <button id="button_confirm_deleteplayresult">選択記録の削除</button>
-              </div>
-            </div>
-            <div id="tabpage_control_discord" class="tabpage tabpage_control">
-              <div id="scroll_discordwebhook_events" class="scroll">
-                <table id="table_discordwebhooks">
-                  <tr class="tableheader">
-                    <th>参加中のイベント</th>
-                    <th>開始日時</th>
-                    <th>終了日時</th>
-                    <th>状態</th>
-                  </tr>
-                </table>
-              </div>
-              <div class="bottons">
-                <button id="button_discordwebhook_open">イベント閲覧</button>
-                <button id="button_discordwebhook_register">イベント登録</button>
-                <button id="button_discordwebhook_delete">イベント削除</button>
-              </div>
-              <div id="scroll_discordwebhook_logs" class="scroll">
-                <ul id="list_discordwebhook_logs"></ul>
-              </div>
-            </div>
-            <div id="tabpage_control_notesradars" class="tabpage tabpage_control">
-              <div>
-                <div class="label highlight label_in_notesradar">プレイモード</div>
-                <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_sp" />
-                <label class="notesradar_playmode" for="radio_notesradar_playmode_sp">SP</label>
-                <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_dp" />
-                <label class="notesradar_playmode" for="radio_notesradar_playmode_dp">DP</label>
-              </div>
-              <div>
-                <div class="label highlight label_in_notesradar">TOTAL</div>
-                <span id="notesradar_total"></span>
-              </div>
-              <div>
-                <select id="select_notesradar_attributes"></select>
-              </div>
-              <div>
-                <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_averagetarget" />
-                <label class="notesradar_tablemode" for="radio_notesradar_tablemode_averagetarget">対象10位</label>
-                <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_tops" />
-                <label class="notesradar_tablemode" for="radio_notesradar_tablemode_tops">上位50曲</label>
-              </div>
-              <div class="scroll">
-                <table id="table_notesradar_ranking">
-                  <tr class="tableheader">
-                    <th>No.</th>
-                    <th>曲名</th>
-                    <th>D</th>
-                    <th>ポイント</th>
-                    <th>最大</th>
-                  </tr>
-                </table>
-              </div>
-            </div>
-          </div>
+      <div id="component_notesradar">
+        <img id="image_chartnotesradar" />
+        <div class="buttons">
+          <button id="button_post_notesradar">ノーツレーダーのポスト</button>
+          <button class="button_openfolder_export">エクスポートフォルダを開く</button>
         </div>
-        <div class="width_fixed musicnameblock">
-          <div class="label highlight label_scoreinformation">譜面</div>
-          <span id="selectscore"></span>
+      </div>
+      <div id="component_screenshot">
+        <img id="image_screenshot" />
+        <div class="buttons">
+          <button id="button_openfolder_results">リザルトフォルダを開く</button>
+          <button id="button_openfolder_filtereds">ライバル隠しフォルダを開く</button>
+          <button id="button_displayresultimage_switch">ライバル隠し 切替</button>
+          <span id="path_screenshot" class="filepath"></span>
+        </div>
+      </div>
+      <div id="component_scoreinformation">
+        <img id="image_scoreinformation" />
+        <div class="buttons">
+          <button id="button_save_scoreinformationimage">画像の保存</button>
+          <button class="button_post_scoreinformation">譜面記録のポスト</button>
+          <button id="button_openfolder_scoreinformations">フォルダを開く</button>
+        </div>
+      </div>
+      <div id="component_chartscoreresult">
+        <img id="image_scoregraph" />
+        <div class="buttons">
+          <button id="button_save_scoregraphimage">画像の保存</button>
+          <button class="button_post_scoreinformation">譜面記録のポスト</button>
+          <button id="button_openfolder_scorecharts">フォルダを開く</button>
+        </div>
+      </div>
+      <div id="component_memo">
+        <textarea id="textarea_memo"></textarea>
+      </div>
+      <div id="component_log">
+        <div id="scroll_logs" class="scroll">
+          <ul id="logs"></ul>
+        </div>
+      </div>
+      <div id="component_recents">
+        <div id="scroll_musics" class="scroll">
+          <table id="table_recents">
+            <tr class="tableheader">
+              <th>T</th>
+              <th>S</th>
+              <th>F</th>
+              <th>曲名</th>
+              <th>譜面</th>
+              <th>CT</th>
+              <th>DL</th>
+              <th>SC</th>
+              <th>MC</th>
+            </tr>
+          </table>
+        </div>
+        <div class="buttons">
+          <button id="button_recents_save_resultimages">画像保存</button>
+          <button id="button_recents_save_resultimages_filtered">ライバル隠して保存</button>
+          <button id="button_recents_post_results">ポスト</button>
+          <button id="button_recents_confirm_uploadcollectionimages">誤認識の通報</button>
+          </div>
+      </div>
+      <div id="component_search">
+        <div>
+          <div class="label highlight label_in_musicname_search">バージョン</div>
+          <select id="select_versions">
+            <option value="ALL">ALL</option>
+          </select>
         </div>
         <div>
-          <div class="label highlight label_scoreinformation">プレイ回数</div>
-          <span id="score_played_count"></span>
+          <div class="label highlight label_in_musicname_search">曲名絞り込み</div>
+          <input type="text" id="text_musicname_search"></select>
         </div>
-        <div id="tab_detail">
-          <p id="tabcontrol_detail" class="tabcontrol">
-            <button id="display_tabpage_detail_best" class="select_tabpage select_tabpage_detail">ベスト</button>
-            <button id="display_tabpage_detail_history" class="select_tabpage select_tabpage_detail">履歴</button>
-          </p>
-          <div id="tabbody_detail">
-            <div id="tabpage_detail_best" class="tabpage tabpage_detail">
-              <div>
-                <div class="label highlight label_best">クリアタイプ</div>
-                <div id="best_cleartype" class="best_value"></div>
-                <div id="best_cleartype_option" class="best_useoptions"></div>
-                <div id="best_cleartype_timestamp" class="best_timestamps"></div>
-              </div>
-              <div>
-                <div class="label highlight label_best">DJレベル</div>
-                <div id="best_djlevel" class="best_value"></div>
-                <div id="best_djlevel_option" class="best_useoptions"></div>
-                <div id="best_djlevel_timestamp" class="best_timestamps"></div>
-              </div>
-              <div>
-                <div class="label highlight label_best">スコア</div>
-                <div id="best_score" class="best_value"></div>
-                <div id="best_score_option" class="best_useoptions"></div>
-                <div id="best_score_timestamp" class="best_timestamps"></div>
-              </div>
-              <div>
-                <div class="label highlight label_best">ミスカウント</div>
-                <div id="best_misscount" class="best_value"></div>
-                <div id="best_misscount_option" class="best_useoptions"></div>
-                <div id="best_misscount_timestamp" class="best_timestamps"></div>
-              </div>
-              <div class="buttons">
-                <button id="button_best_switch_timestamp" class="best_useoptions">使用オプション >> 更新日</button>
-                <button id="button_best_switch_useoption" class="best_timestamps">更新日 >> 使用オプション</button>
-              </div>
-            </div>
-            <div id="tabpage_detail_history" class="tabpage tabpage_detail">
-              <div>
-                <div class="label highlight label_playresult">日時</div>
-                <div id="playresult_datetime" class="playresult_value playresult_datetime"></div>
-              </div>
-              <div>
-                <div class="label highlight label_playresult">クリアタイプ</div>
-                <div id="playresult_cleartype" class="playresult_value"></div>
-              </div>
-              <div>
-                <div class="label highlight label_playresult">DJレベル</div>
-                <div id="playresult_djlevel" class="playresult_value"></div>
-              </div>
-              <div>
-                <div class="label highlight label_playresult">スコア</div>
-                <div id="playresult_score" class="playresult_value"></div>
-              </div>
-              <div>
-                <div class="label highlight label_playresult">ミスカウント</div>
-                <div id="playresult_misscount" class="playresult_value"></div>
-              </div>
-              <div>
-                <div class="label highlight label_playresult">オプション</div>
-                <div id="playresult_options" class="playresult_value playresult_datetime"></div>
-              </div>
-              <div id="moredetailbox">
-                <div class="label highlight">プレイ速度</div>
-                <div id="playresult_playspeed"></div>
-              </div>
+        <div class="split_horizontal">
+          <div class="pane_musicname_search_left">
+            <div class="scroll">
+              <table id="table_musics">
+                <tr class="tableheader">
+                  <th>曲名</th>
+                  <th>バージョン</th>
+                </tr>
+              </table>
             </div>
           </div>
+          <div class="pane_musicname_search_right">
+            <div>
+              <select id="select_playtypes"></select>
+            </div>
+            <div>
+              <select id="select_difficulties"></select>
+            </div>
+            <div id="scroll_timestamps" class="scroll">
+              <table id="table_timestamps">
+                <tr class="tableheader">
+                  <th>タイムスタンプ</th>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="buttons">
+          <button id="button_confirm_deletemusicnotebook">選択曲の記録全削除</button>
+          <button id="button_confirm_deletescoreresult">選択譜面の記録全削除</button>
+          <button id="button_confirm_deleteplayresult">選択記録の削除</button>
+        </div>
+      </div>
+      <div id="component_discord">
+        <div id="scroll_discordwebhook_events" class="scroll">
+          <table id="table_discordwebhooks">
+            <tr class="tableheader">
+              <th>参加中のイベント</th>
+              <th>開始日時</th>
+              <th>終了日時</th>
+              <th>状態</th>
+            </tr>
+          </table>
+        </div>
+        <div class="bottons">
+          <button id="button_discordwebhook_open">イベント閲覧</button>
+          <button id="button_discordwebhook_register">イベント登録</button>
+          <button id="button_discordwebhook_delete">イベント削除</button>
+        </div>
+        <div id="scroll_discordwebhook_logs" class="scroll">
+          <ul id="list_discordwebhook_logs"></ul>
+        </div>
+      </div>
+      <div id="component_notesradars">
+        <div>
+          <div class="label highlight label_in_notesradar">プレイモード</div>
+          <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_sp" />
+          <label class="notesradar_playmode" for="radio_notesradar_playmode_sp">SP</label>
+          <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_dp" />
+          <label class="notesradar_playmode" for="radio_notesradar_playmode_dp">DP</label>
+        </div>
+        <div>
+          <div class="label highlight label_in_notesradar">TOTAL</div>
+          <span id="notesradar_total"></span>
+        </div>
+        <div>
+          <select id="select_notesradar_attributes"></select>
+        </div>
+        <div>
+          <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_averagetarget" />
+          <label class="notesradar_tablemode" for="radio_notesradar_tablemode_averagetarget">対象10位</label>
+          <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_tops" />
+          <label class="notesradar_tablemode" for="radio_notesradar_tablemode_tops">上位50曲</label>
+        </div>
+        <div id="scroll_notesradar_ranking" class="scroll">
+          <table id="table_notesradar_ranking">
+            <tr class="tableheader">
+              <th>No.</th>
+              <th>曲名</th>
+              <th>D</th>
+              <th>ポイント</th>
+              <th>最大</th>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div id="component_scorebest">
+        <div>
+          <div id="selectscore"></div>
+        </div>
+        <div>
+          <div class="label highlight label_best">プレイ回数</div>
+          <div id="score_played_count" class="best_value"></div>
+        </div>
+        <div>
+          <div class="label highlight label_best">クリアタイプ</div>
+          <div id="best_cleartype" class="best_value"></div>
+          <div id="best_cleartype_option" class="best_value"></div>
+          <div id="best_cleartype_timestamp" class="best_value"></div>
+        </div>
+        <div>
+          <div class="label highlight label_best">DJレベル</div>
+          <div id="best_djlevel" class="best_value"></div>
+          <div id="best_djlevel_option" class="best_value"></div>
+          <div id="best_djlevel_timestamp" class="best_value"></div>
+        </div>
+        <div>
+          <div class="label highlight label_best">スコア</div>
+          <div id="best_score" class="best_value"></div>
+          <div id="best_score_option" class="best_value"></div>
+          <div id="best_score_timestamp" class="best_value"></div>
+        </div>
+        <div>
+          <div class="label highlight label_best">ミスカウント</div>
+          <div id="best_misscount" class="best_value"></div>
+          <div id="best_misscount_option" class="best_value"></div>
+          <div id="best_misscount_timestamp" class="best_value"></div>
+        </div>
+      </div>
+      <div id="component_resultdetail">
+        <div>
+          <div class="label highlight label_playresult">日時</div>
+          <div id="playresult_datetime" class="playresult_value playresult_datetime"></div>
+        </div>
+        <div>
+          <div class="label highlight label_playresult">クリアタイプ</div>
+          <div id="playresult_cleartype" class="playresult_value"></div>
+        </div>
+        <div>
+          <div class="label highlight label_playresult">DJレベル</div>
+          <div id="playresult_djlevel" class="playresult_value"></div>
+        </div>
+        <div>
+          <div class="label highlight label_playresult">スコア</div>
+          <div id="playresult_score" class="playresult_value"></div>
+        </div>
+        <div>
+          <div class="label highlight label_playresult">ミスカウント</div>
+          <div id="playresult_misscount" class="playresult_value"></div>
+        </div>
+        <div>
+          <div class="label highlight label_playresult">オプション</div>
+          <div id="playresult_options" class="playresult_value playresult_datetime"></div>
+        </div>
+        <div id="moredetailbox">
+          <div class="label highlight">プレイ速度</div>
+          <div id="playresult_playspeed"></div>
         </div>
       </div>
     </div>

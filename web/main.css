@@ -12,35 +12,6 @@ span.version {
     padding: 0px;
 }
 
-span#detect_infinitas,
-span#capturable {
-    user-select: none;
-}
-
-div#tabbody_main {
-    width: 642px;
-}
-
-div#tabbody_control {
-    width: 318px;
-}
-
-div#tabbody_detail {
-    width: 318px;
-}
-
-div.tabpage_main {
-    height: 400px;
-}
-
-div.tabpage_control {
-    height: 271px;
-}
-
-div.tabpage_detail {
-    height: 157px;
-}
-
 td.cell_hidden {
     display: none;
 }
@@ -73,6 +44,11 @@ table#table_recents td:nth-child(9) {
     width: 15px;
 }
 
+div#scroll_musics {
+    min-height: 200px;
+    flex: 1;
+}
+
 table#table_musics td:nth-child(2),
 table#table_musics th:nth-child(2) {
     display: none;
@@ -92,6 +68,39 @@ div.pane_musicname_search_right {
     flex-direction: column;
 }
 
+div#scroll_timestamps {
+    flex: 1;
+}
+
+div#component_information,
+div#component_summary,
+div#component_notesradar,
+div#component_screenshot,
+div#component_scoreinformation,
+div#component_chartscoreresult,
+div#component_memo,
+div#component_log,
+div#component_recents,
+div#component_search,
+div#component_discord,
+div#component_notesradars,
+div#component_scorebest,
+div#component_resultdetail {
+    flex: 1;
+}
+
+div#component_recents,
+div#component_search,
+div#component_discord,
+div#component_notesradars,
+div#component_memo,
+div#component_log {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+}
+
 div.label_in_musicname_search {
     width: 100px;
 }
@@ -100,35 +109,14 @@ div.label_in_notesradar {
     width: 100px;
 }
 
-div.musicnameblock {
-    width: 300px;
-}
-
-div.label_scoreinformation {
-    width: 70px;
-}
-
 .label_best {
     width: 90px;
 }
 
-.best_value {
+div.best_value {
     display: inline-block;
-    width: 100px;
-}
-
-div.best_useoptions,
-div.best_timestamps {
     font-size: small;
-
-}
-
-.best_useoptions {
-    display: inline-block;
-}
-
-.best_timestamps {
-    display: none;
+    width: 100px;
 }
 
 .label_playresult {
@@ -170,7 +158,7 @@ button#button_recents_confirm_uploadcollectionimages {
 }
 
 div#scroll_discordwebhook_events {
-    height: 100px;
+    min-height: 100px;
     overflow-x: hidden;
 }
 
@@ -189,13 +177,18 @@ table#table_discordwebhooks td:nth-child(4) {
 }
 
 div#scroll_discordwebhook_logs {
-    height: 140px;
+    flex: 1;
 }
 
 ul#list_discordwebhook_logs {
     list-style-type: none;
     padding: 0px;
     font-size: xx-small;
+}
+
+div#scroll_notesradar_ranking {
+    min-height: 165px;
+    flex: 1;
 }
 
 table#table_notesradar_ranking th:nth-child(1),
@@ -236,7 +229,14 @@ ul#list_errormessages {
     border-color: lightgrey;
 }
 
+textarea#textarea_memo {
+    flex: 1;
+    resize: none;
+    font-size: x-large;
+}
+
 div#scroll_logs {
+    flex: 1;
     font-size: large;
     background-color: rgba(0, 0, 0, 0);
 }

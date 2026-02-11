@@ -59,6 +59,11 @@ div.setting_item {
     font-size: small;
 }
 
+div#setting_item_overlay {
+    display: flex;
+    flex-direction: column;
+}
+
 div.hotkey_label {
     display: inline-block;
     width: 170px;
