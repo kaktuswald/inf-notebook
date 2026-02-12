@@ -1,6 +1,6 @@
-numpy==2.4.1
+numpy==2.4.2
 global_hotkeys==0.1.7
-pillow==11.3.0
-google-cloud-storage==2.19.0
-websockets==15.0.1
+pillow==12.1.1
+google-cloud-storage==3.9.0
+websockets==16.0
 webui2==2.5.6
