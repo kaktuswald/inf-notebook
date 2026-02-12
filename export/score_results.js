@@ -1,9 +1,3 @@
-// 「最近」として表示する履歴の範囲 (単位:時間)
-const timeWindow = 168;
-
-// 更新のあるリザルトのみに表示を絞るか
-const showUpdatedOnly = false;
-
 let url = null;
 let socket = null;
 let musictable = null;
@@ -24,26 +18,26 @@ async function connect() {
         console.log("message received.");
         try {
             let data = JSON.parse(event.data);
-            if (data.r == 'get_musictable') {
-                musictable = data.p.d;
-                clearInterval(looprequest);
-                looprequest = setInterval(function(){
-                    try {
-                        socket.send(JSON.stringify({ "r" : "get_scoreresult" }));
-                    } catch(e) {
-                        console.log(e);
-                        $("#setting").css("display", "flex");
-                        $("#content").css("display", "none");
-                        clearInterval(looprequest);
-                        looprequest = setInterval(connect, 1000);
-                    }
-                }, 1000);
-            } else if (data.r == 'get_scoreresult') {
-                // スコアリストをロードできたら、履歴表示を開始
-                $("#setting").css("display", "none");
-                $("#content").css("display", "block");
-                applyData(data.p.d);
+            if (data.s == 'success') {
+                if (data.r == 'get_musictable') {
+                    musictable = data.p.d;
+
+                    // 楽曲リストをロードできたら、履歴表示を開始
+                    $("#setting").css("display", "none");
+                    $("#content").css("display", "block");
+
+                    socket.send(JSON.stringify({ "r" : "get_scoreresult" }));
+                }
+
+                if (data.r == 'get_scoreresult') {
+                    if (musictable === null) return;
+
+                    applyData(data.p.d);
+                }
             }
+
+            if ('e' in data && data.e == 'update_scoreresult')
+                socket.send(JSON.stringify({ "r" : "get_scoreresult" }));
         } catch(e) {
             console.log(e);
         }
@@ -58,6 +52,9 @@ async function connect() {
     socket.addEventListener('close', (event) => {
         console.log("websocket closed.");
         socket = null;
+
+        $('div#content').css('display', 'none');
+        $('div#setting').css('display', 'flex');
     });
 }
 

@@ -1147,6 +1147,8 @@ class GuiApi():
             },
             'result': result,
         }
+        socket_server.update_scoreresult()
+
         event.return_string(dumps(result))
 
     def get_playresult(self, event: webui.Event):
@@ -1898,6 +1900,7 @@ def result_process(screen: Screen):
 
     notebook_recent.append(result, saved, filtered)
     notebook_recent.save()
+    socket_server.update_recents()
 
     if not result.dead or result.has_new_record():
         recent.insert(result)
@@ -2503,6 +2506,7 @@ if __name__ == '__main__':
     socket_server = SocketServer(port=setting.port['socket'])
     socket_server.start()
     socket_server.musictable = resource.musictable
+    socket_server.recents = notebook_recent
 
     webui.set_config(webui.Config.multi_client, True)
     webui.set_default_root_folder('web/')

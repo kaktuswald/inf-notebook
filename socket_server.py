@@ -8,6 +8,8 @@ logger_child_name = 'socket server'
 logger = getLogger().getChild(logger_child_name)
 logger.debug(f'loaded socket_server.py')
 
+from record import NotebookRecent
+
 class Events():
     '''イベントの定義
     '''
@@ -23,6 +25,10 @@ class Events():
     '''譜面記録画像の更新'''
     UPDATE_SCOREGRAPHIMAGE: str = 'update_scoregraphimage'
     '''グラフ画像の更新'''
+    UPDATE_RECENTS: str = 'update_recents'
+    '''最近のリザルトの更新'''
+    UPDATE_SCORERESULT: str = 'update_scoreresult'
+    '''譜面記録の更新'''
 
 class Requests():
     '''リクエストの定義
@@ -43,6 +49,8 @@ class Requests():
     '''楽曲テーブルの取得'''
     GET_SCORERESULT: str = 'get_scoreresult'
     '''楽曲プレイ履歴の取得'''
+    GET_RESENTS: str = 'get_recents'
+    '''最近のリザルトの取得'''
 
 class Statuses():
     '''レスポンス状態の定義
@@ -107,6 +115,7 @@ class SocketServer(Thread):
 
     musictable: dict[str, any] | None = None
     scoreresult: dict[str, any] | None = None
+    recents: NotebookRecent = None
 
     def __init__(self, port: int = None):
         if port is not None:
@@ -144,6 +153,8 @@ class SocketServer(Thread):
                         payload = self.response_json(self.musictable)
                     if request == Requests.GET_SCORERESULT:
                         payload = self.response_json(self.scoreresult)
+                    if request == Requests.GET_RESENTS:
+                        payload = self.response_json(self.recents.json)
                                         
                     if payload is not None:
                         message = {
@@ -202,6 +213,12 @@ class SocketServer(Thread):
     def update_scoregraph(self, encodedimage: str | None):
         self.encodedimage_scoregraph = encodedimage
         self.broadcast(Events.UPDATE_SCOREGRAPHIMAGE)
+
+    def update_recents(self):
+        self.broadcast(Events.UPDATE_RECENTS)
+    
+    def update_scoreresult(self):
+        self.broadcast(Events.UPDATE_SCORERESULT)
 
     def broadcast(self, event: str, payload: any = None):
         if payload is not None:
