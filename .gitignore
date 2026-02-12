@@ -154,3 +154,5 @@ export/setting.css
 
 _*.py
 _*.csv
+
+!web/lib/
