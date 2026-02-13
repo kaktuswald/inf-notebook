@@ -39,6 +39,7 @@
         <button id="button_export_open">エクスポート</button>
         <button id="button_confirm_outputcsv">CSV出力</button>
         <button id="button_confirm_clearrecent">最近のデータのリセット</button>
+        <button id="button_confirm_importarcadecsv">アーケードのCSVをインポート</button>
       </div>
       <div id="component_information">
         <img id="image_information" />
@@ -212,67 +213,111 @@
           </table>
         </div>
       </div>
-      <div id="component_scorebest">
+      <div id="component_scoredata">
         <div>
-          <div id="selectscore"></div>
+          <div id="scoredata_musicname"></div>
         </div>
         <div>
-          <div class="label highlight label_best">プレイ回数</div>
-          <div id="score_played_count" class="best_value"></div>
+          <div class="label highlight">プレイモード</div>
+          <div id="scoredata_playtype"></div>
         </div>
         <div>
-          <div class="label highlight label_best">クリアタイプ</div>
-          <div id="best_cleartype" class="best_value"></div>
-          <div id="best_cleartype_option" class="best_value"></div>
-          <div id="best_cleartype_timestamp" class="best_value"></div>
+          <div class="label highlight">難易度</div>
+          <div id="scoredata_difficulty"></div>
         </div>
         <div>
-          <div class="label highlight label_best">DJレベル</div>
-          <div id="best_djlevel" class="best_value"></div>
-          <div id="best_djlevel_option" class="best_value"></div>
-          <div id="best_djlevel_timestamp" class="best_value"></div>
+          <div class="label highlight">バージョン</div>
+          <div id="scoredata_version"></div>
         </div>
         <div>
-          <div class="label highlight label_best">スコア</div>
-          <div id="best_score" class="best_value"></div>
-          <div id="best_score_option" class="best_value"></div>
-          <div id="best_score_timestamp" class="best_value"></div>
+          <div class="label highlight">レベル</div>
+          <div id="scoredata_level"></div>
         </div>
         <div>
-          <div class="label highlight label_best">ミスカウント</div>
-          <div id="best_misscount" class="best_value"></div>
-          <div id="best_misscount_option" class="best_value"></div>
-          <div id="best_misscount_timestamp" class="best_value"></div>
+          <div class="label highlight">ノーツ数</div>
+          <div id="scoredata_notes"></div>
+        </div>
+      </div>
+      <div id="component_scorerecord">
+        <div>
+          <div class="label highlight">プレイ回数</div>
+          <div id="score_played_count"></div>
+        </div>
+        <div>
+          <div class="label highlight">最終プレイ</div>
+          <div id="score_latestplay_timestamp"></div>
+        </div>
+        <div>
+          <div class="label highlight">クリアタイプ</div>
+          <div id="best_cleartype" class="value"></div>
+          <div id="best_cleartype_option" class="option"></div>
+          <div id="best_cleartype_timestamp" class="timestamp"></div>
+        </div>
+        <div>
+          <div class="label highlight">DJレベル</div>
+          <div id="best_djlevel" class="value"></div>
+          <div id="best_djlevel_option" class="option"></div>
+          <div id="best_djlevel_timestamp" class="timestamp"></div>
+        </div>
+        <div>
+          <div class="label highlight">スコア</div>
+          <div id="best_score" class="value"></div>
+          <div id="best_score_option" class="option"></div>
+          <div id="best_score_timestamp" class="timestamp"></div>
+        </div>
+        <div>
+          <div class="label highlight">ミスカウント</div>
+          <div id="best_misscount" class="value"></div>
+          <div id="best_misscount_option" class="option"></div>
+          <div id="best_misscount_timestamp" class="timestamp"></div>
         </div>
       </div>
       <div id="component_resultdetail">
         <div>
-          <div class="label highlight label_playresult">日時</div>
-          <div id="playresult_datetime" class="playresult_value playresult_datetime"></div>
+          <div class="label highlight">日時</div>
+          <div id="playresult_datetime" class="datetime"></div>
         </div>
         <div>
-          <div class="label highlight label_playresult">クリアタイプ</div>
-          <div id="playresult_cleartype" class="playresult_value"></div>
+          <div class="label highlight">クリアタイプ</div>
+          <div id="playresult_cleartype"></div>
         </div>
         <div>
-          <div class="label highlight label_playresult">DJレベル</div>
-          <div id="playresult_djlevel" class="playresult_value"></div>
+          <div class="label highlight">DJレベル</div>
+          <div id="playresult_djlevel"></div>
         </div>
         <div>
-          <div class="label highlight label_playresult">スコア</div>
-          <div id="playresult_score" class="playresult_value"></div>
+          <div class="label highlight">スコア</div>
+          <div id="playresult_score"></div>
         </div>
         <div>
-          <div class="label highlight label_playresult">ミスカウント</div>
-          <div id="playresult_misscount" class="playresult_value"></div>
+          <div class="label highlight">ミスカウント</div>
+          <div id="playresult_misscount"></div>
         </div>
         <div>
-          <div class="label highlight label_playresult">オプション</div>
-          <div id="playresult_options" class="playresult_value playresult_datetime"></div>
+          <div class="label highlight">オプション</div>
+          <div id="playresult_options" class="options"></div>
         </div>
         <div id="moredetailbox">
           <div class="label highlight">プレイ速度</div>
           <div id="playresult_playspeed"></div>
+        </div>
+      </div>
+      <div id="component_arcadedata">
+        <div>
+          <div class="label highlight">クリアタイプ</div>
+          <div id="arcade_cleartype"></div>
+        </div>
+        <div>
+          <div class="label highlight">DJレベル</div>
+          <div id="arcade_djlevel"></div>
+        </div>
+        <div>
+          <div class="label highlight">スコア</div>
+          <div id="arcade_score"></div>
+        </div>
+        <div>
+          <div class="label highlight">ミスカウント</div>
+          <div id="arcade_misscount"></div>
         </div>
       </div>
     </div>
@@ -301,6 +346,23 @@
         <div class="buttons_in_dialog">
           <button id="button_execute_clearrecent">Yes</button>
           <button class="dialogclose">No</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_confirm_importarcadecsv">
+      <div>
+        <div>アーケードのCSVデータをクリップボードにコピーして、OKを押してください。</div>
+        <div class="buttons_in_dialog">
+          <button id="button_execute_importarcadecsv">OK</button>
+          <button class="dialogclose">Cancel</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_complete_importarcadecsv">
+      <div>
+        <div>アーケードのCSVデータのインポートが完了しました。</div>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">OK</button>
         </div>
       </div>
     </dialog>

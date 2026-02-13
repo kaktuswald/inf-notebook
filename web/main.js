@@ -59,6 +59,111 @@ imageurls = {};
 
 selectcomponentname_afterloading = null;
 
+componentdefines = {
+  'information': {
+    type: 'component',
+    componentName: 'information',
+    title: 'インフォメーション',
+    isClosable: false,
+  },
+  'summary': {
+    type: 'component',
+    componentName: 'summary',
+    title: '統計',
+    isClosable: false,
+  },
+  'notesradar': {
+    type: 'component',
+    componentName: 'notesradar',
+    title: 'ノーツレーダー',
+    isClosable: false,
+  },
+  'screenshot': {
+    type: 'component',
+    componentName: 'screenshot',
+    title: 'スクリーンショット',
+    isClosable: false,
+  },
+  'scoreinformation': {
+    type: 'component',
+    componentName: 'scoreinformation',
+    title: '譜面記録',
+    isClosable: false,
+  },
+  'chartscoreresult': {
+    type: 'component',
+    componentName: 'chartscoreresult',
+    title: 'グラフ',
+    isClosable: false,
+  },
+  'memo': {
+    type: 'component',
+    componentName: 'memo',
+    title: 'メモ',
+    isClosable: false,
+  },
+  'log': {
+    type: 'component',
+    componentName: 'log',
+    title: 'ログ',
+    isClosable: false,
+  },
+  'recents': {
+    type: 'component',
+    componentName: 'recents',
+    title: '最近のリザルト',
+    isClosable: false,
+  },
+  'search': {
+    type: 'component',
+    componentName: 'search',
+    title: '検索',
+    isClosable: false,
+  },
+  'discord': {
+    type: 'component',
+    componentName: 'discord',
+    title: 'イベント',
+    isClosable: false,
+  },
+  'notesradars': {
+    type: 'component',
+    componentName: 'notesradars',
+    title: 'レーダー詳細',
+    isClosable: false,
+  },
+  'scoredata': {
+    type: 'component',
+    componentName: 'scoredata',
+    title: '譜面データ',
+    isClosable: false,
+  },
+  'scorerecord': {
+    type: 'component',
+    componentName: 'scorerecord',
+    title: '譜面プレイ記録',
+    isClosable: false,
+  },
+  'resultdetail': {
+    type: 'component',
+    componentName: 'resultdetail',
+    title: 'リザルト詳細',
+    isClosable: false,
+  },
+  'arcadedata': {
+    type: 'component',
+    componentName: 'arcadedata',
+    title: 'アーケード記録',
+  },
+  'buttons': {
+    type: 'component',
+    componentName: 'buttons',
+    title: 'コントロール',
+    height: 15,
+    isClosable: false,
+  },
+};
+
 var layoutconfig = {
   settings: {
     // reorderEnabled: false,
@@ -83,60 +188,20 @@ var layoutconfig = {
               {
                 type: 'stack',
                 content: [
-                  {
-                    type: 'component',
-                    componentName: 'information',
-                    title: 'インフォメーション',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'summary',
-                    title: '統計',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'notesradar',
-                    title: 'ノーツレーダー',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'screenshot',
-                    title: 'スクリーンショット',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'scoreinformation',
-                    title: '譜面記録',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'chartscoreresult',
-                    title: 'グラフ',
-                    isClosable: false,
-                  },
+                  componentdefines.information,
+                  componentdefines.summary,
+                  componentdefines.screenshot,
+                  componentdefines.notesradar,
+                  componentdefines.scoreinformation,
+                  componentdefines.chartscoreresult,
                 ],
                 height: 75,
               },
               {
                 type: 'stack',
                 content: [
-                  {
-                    type: 'component',
-                    componentName: 'memo',
-                    title: 'メモ',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'log',
-                    title: 'ログ',
-                    isClosable: false,
-                  },
+                  componentdefines.memo,
+                  componentdefines.log,
                 ],
                 height: 25,
               }
@@ -149,30 +214,10 @@ var layoutconfig = {
               {
                 type: 'stack',
                 content: [
-                  {
-                    type: 'component',
-                    componentName: 'recents',
-                    title: '最近のリザルト',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'search',
-                    title: '検索',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'discord',
-                    title: 'イベント',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'notesradars',
-                    title: 'レーダー詳細',
-                    isClosable: false,
-                  },
+                  componentdefines.recents,
+                  componentdefines.search,
+                  componentdefines.discord,
+                  componentdefines.notesradars,
                 ],
                 height: 64,
               },
@@ -180,18 +225,10 @@ var layoutconfig = {
                 type:'stack',
                 height: 35,
                 content: [
-                  {
-                    type: 'component',
-                    componentName: 'scorebest',
-                    title: 'ベスト記録',
-                    isClosable: false,
-                  },
-                  {
-                    type: 'component',
-                    componentName: 'resultdetail',
-                    title: 'リザルト詳細',
-                    isClosable: false,
-                  },
+                  componentdefines.scoredata,
+                  componentdefines.scorerecord,
+                  componentdefines.resultdetail,
+                  componentdefines.arcadedata,
                 ],
               },
             ],
@@ -199,13 +236,7 @@ var layoutconfig = {
         ],
         height: 85,
       },
-      {
-        type: 'component',
-        componentName: 'buttons',
-        title: 'コントロール',
-        height: 15,
-        isClosable: false,
-      },
+      componentdefines.buttons,
     ],
   }],
 };
@@ -250,6 +281,9 @@ $(function() {
   $('button#button_execute_outputcsv').on('click', onclick_execute_outputcsv);
   $('button#button_confirm_clearrecent').on('click', onclick_confirm_clearrecent);
   $('button#button_execute_clearrecent').on('click', onclick_execute_clearrecent);
+  $('button#button_confirm_importarcadecsv').on('click', onclick_confirm_importarcadecsv);
+  $('button#button_execute_importarcadecsv').on('click', onclick_execute_importarcadecsv);
+
   $('button#button_reset_layout').on('click', onclick_reset_layout);
 
   $('button#button_recents_save_resultimages').on('click', onclick_recents_save_resultimages);
@@ -384,9 +418,36 @@ function refreshlayout() {
     layout.destroy();
   }
 
-  const savedstate = localStorage.getItem('layout');
+  const savedstate = JSON.parse(localStorage.getItem('layout'));
   if(savedstate !== null) {
-    layout = new GoldenLayout(JSON.parse(savedstate));
+    const contentloop = function(content, result) {
+      if('content' in content) {
+        content.content.forEach(c => {
+          if(contentloop(c, result))
+            result.informationparent = content;
+        });
+      }
+      else {
+        result.componentnames.push(content.componentName);
+        if(content.componentName == 'information') return true;
+      }
+
+      return false;
+    }
+
+    const result = {
+      componentnames: [],
+      informationparent: null,
+    };
+
+    contentloop(savedstate, result);
+
+    Object.keys(componentdefines).forEach(name => {
+      if(!result.componentnames.includes(name))
+        result.informationparent.content.push(componentdefines[name]);
+    });
+
+    layout = new GoldenLayout(savedstate);
   }
   else {
     layout = new GoldenLayout(layoutconfig);
@@ -636,7 +697,8 @@ function display_loadingimage() {
  * まず現在選択されているメインタブを取得して
  */
 function detect_loading() {
-  selectcomponentname_afterloading = components['information'].parent.getActiveContentItem();
+  const activecomponent = components['information'].parent.getActiveContentItem();
+  selectcomponentname_afterloading = activecomponent.componentName;
 
   display_loadingimage();
 
@@ -960,12 +1022,40 @@ function get_selected_score() {
  * 選択されている譜面の記録を表示する
  */
 async function display_scoreresult() {
+  const playmode = selected_playtype.includes('BATTLE') ? 'SP' : selected_playtype;
+
+  let version = null;
+  let level = null;
+  if(selected_musicname in musictable.musics) {
+    version = musictable.musics[selected_musicname].version;
+    if(playmode in musictable.musics[selected_musicname]) {
+      if(selected_difficulty in musictable.musics[selected_musicname][playmode])
+        level = musictable.musics[selected_musicname][playmode][selected_difficulty];
+    }
+  }
+
+  let notes = null
+  if(playmode in notesradar) {
+    if(selected_musicname in notesradar[playmode].musics) {
+      if(selected_difficulty in notesradar[playmode].musics[selected_musicname])
+        notes = notesradar[playmode].musics[selected_musicname][selected_difficulty].notes;
+    }
+  }
+
+  $('div#scoredata_musicname').text(selected_musicname);
+  $('div#scoredata_playtype').text(playmode);
+  $('div#scoredata_difficulty').text(selected_difficulty);
+  $('div#scoredata_version').text(version !== null ? version : '');
+  $('div#scoredata_level').text(level !== null ? level : '');
+  $('div#scoredata_notes').text(notes !== null ? notes : '');
+
   $('tr.timestampitem').off('click', onclick_timestampitem);
   $('table#table_timestamps tr.timestampitem').remove();
 
-  $('div#selectscore').text('');
   $('#score_played_count').text('');
   clear_bests();
+
+  clear_arcadedata();
 
   if(selected_musicname == null || selected_playtype == null || selected_difficulty == null) {
     $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
@@ -979,11 +1069,13 @@ async function display_scoreresult() {
     scoretype = `${selected_playtype}${selected_difficulty[0]}`;
   else
     scoretype = `DB${selected_difficulty[0]}`;
-  $('div#selectscore').text(`[${scoretype}]${selected_musicname}`);
+
+  display_arcadedata();
 
   const scoreresult = JSON.parse(await webui.get_scoreresult(selected_musicname, selected_playtype, selected_difficulty));
   if(scoreresult == null) {
     $('#score_played_count').text(0);
+    $('#score_latestplay_timestamp').text('');
 
     $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
     $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
@@ -1010,6 +1102,9 @@ async function display_scoreresult() {
 
   if(scoreresult.timestamps != null && scoreresult.timestamps.length > 0) {
     $('#score_played_count').text(scoreresult.timestamps.length);
+
+    const t = scoreresult.timestamps[0];
+    $('#score_latestplay_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
 
     const xvalues = [];
     const scores = [];
@@ -1184,6 +1279,24 @@ async function display_playresult(timestamp) {
     $('div#moredetailbox').css('display', 'block');
     $('#playresult_playspeed').text(playresult.playspeed.toFixed(2));
   }
+}
+
+function clear_arcadedata() {
+  $('div#arcade_cleartype').text('');
+  $('div#arcade_djlevel').text('');
+  $('div#arcade_score').text('');
+  $('div#arcade_misscount').text('');
+}
+
+async function display_arcadedata() {
+  const arcadedata = JSON.parse(await webui.get_arcadedata(selected_musicname, selected_playtype, selected_difficulty));
+
+  if(arcadedata == null) return;
+
+  $('div#arcade_cleartype').text(arcadedata.cleartype !== null ? arcadedata.cleartype : '');
+  $('div#arcade_djlevel').text(arcadedata.djlevel !== null ? arcadedata.djlevel : '');
+  $('div#arcade_score').text(arcadedata.score !== null ? arcadedata.score : '');
+  $('div#arcade_misscount').text(arcadedata.misscount !== null ? arcadedata.misscount : '');
 }
 
 /**
@@ -1524,6 +1637,36 @@ function onclick_confirm_clearrecent(e) {
  */
 function onclick_execute_clearrecent(e) {
   webui.clear_recent();
+
+  $(this).closest('dialog')[0].close();
+}
+
+/**
+ * アーケードのCSVインポートの確認
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_confirm_importarcadecsv(e) {
+  $('dialog#dialog_confirm_importarcadecsv')[0].showModal();
+}
+
+/**
+ * アーケードのCSVをインポートする
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_execute_importarcadecsv(e) {
+  try {
+    navigator.clipboard.readText().then(async text => {
+      if(!text.length) return;
+
+      if(JSON.parse(await webui.import_arcadecsv(text)))
+        $('dialog#dialog_complete_importarcadecsv')[0].showModal();
+      else
+        display_errormessage(['クリップボードの読込に失敗しました。']);
+    });
+  }
+  catch(error) {
+    display_errormessage(['クリップボードの読込に失敗しました。']);
+  }
 
   $(this).closest('dialog')[0].close();
 }

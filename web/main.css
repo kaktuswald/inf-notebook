@@ -109,47 +109,92 @@ div.label_in_notesradar {
     width: 100px;
 }
 
-.label_best {
-    width: 90px;
+div#component_scoredata {
+    display: flex;
+    flex-direction: column;
+    
+    div {
+        display: inline-block;
+    }
+
+    div.label {
+        user-select: none;
+        width: 80px;
+    }
 }
 
-div.best_value {
-    display: inline-block;
-    font-size: small;
-    width: 100px;
-}
-
-.label_playresult {
-    display: inline-block;
-    user-select: none;
-    font-size: small;
-    width: 82px;
-}
-
-.playresult_value {
-    display: inline-block;
-}
-
-.playresult_datetime {
-    font-size: small;
-}
-
-.playresult_options {
-    font-size: x-small;
-}
-
-div#moredetailbox {
-    display: none;
-    position: absolute;
-    top: 40px;
-    left: 220px;
-    border-style: solid;
-    border-width: 1px;
-    border-color: rgb(96, 96, 96);
+div#component_scorerecord {
+    display: flex;
+    flex-direction: column;
 
     div {
-        display: block;
-        padding: 0px 5px;
+        display: inline-block;
+    }
+
+    div.label {
+        user-select: none;
+        width: 80px;
+    }
+
+    div.value {
+        width: 100px;
+    }
+
+    div.option {
+        width: 125px;
+        font-size: small;
+    }
+
+    div.timestamp {
+        width: 95px;
+        font-size: small;
+    }
+}
+
+div#component_resultdetail {
+    display: flex;
+    flex-direction: column;
+    
+    div {
+        display: inline-block;
+    }
+
+    div.label {
+        user-select: none;
+        width: 82px;
+    }
+
+    div.datetime,
+    div.options {
+        font-size: small;
+    }
+    
+    div#moredetailbox {
+        display: none;
+        position: absolute;
+        top: 40px;
+        left: 220px;
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgb(96, 96, 96);
+
+        div {
+            display: block;
+            padding: 0px 5px;
+        }
+    }
+}
+
+div#component_arcadedata {
+    display: flex;
+    flex-direction: column;
+
+    div {
+        display: inline-block;
+    }
+
+    div.label {
+        width: 90px;
     }
 }
 

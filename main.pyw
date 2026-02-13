@@ -80,6 +80,7 @@ from notesradar import NotesRadar
 from appdata import LocalConfig
 import twitter
 from socket_server import SocketServer
+from arcadecsv import import_arcadecsv,loadfiles_arcadedata,arcadedata
 from versioncheck import version_isold
 
 windowtitle = f'インフィニタス リザルト手帳'
@@ -560,6 +561,7 @@ class GuiApi():
         window.bind('get_resultimage_filtered', self.get_resultimage_filtered)
 
         window.bind('get_scoreresult', self.get_scoreresult)
+        window.bind('get_arcadedata', self.get_arcadedata)
         window.bind('get_playresult', self.get_playresult)
         
         window.bind('recents_save_resultimages', self.recents_save_resultimages)
@@ -576,6 +578,7 @@ class GuiApi():
 
         window.bind('output_csv', self.output_csv)
         window.bind('clear_recent', self.clear_recent)
+        window.bind('import_arcadecsv', self.import_arcadecsv)
 
         window.bind('browse_file', self.browse_file)
         window.bind('browse_directory', self.browse_directory)
@@ -1151,11 +1154,37 @@ class GuiApi():
 
         event.return_string(dumps(result))
 
-    def get_playresult(self, event: webui.Event):
-        '''対象のリザルトの記録を返す
+    def get_arcadedata(self, event: webui.Event):
+        '''対象の譜面のアーケードのデータを返す
+
+        Args:
+            musicname(str): 曲名
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
+            difficulty(str): 難易度
         '''
         musicname = event.get_string_at(0)
-        playmode = event.get_string_at(1)
+        playtype = event.get_string_at(1)
+        difficulty = event.get_string_at(2)
+
+        if playtype in arcadedata.keys() and arcadedata[playtype] is not None:
+            if musicname in arcadedata[playtype].keys():
+                if difficulty in arcadedata[playtype][musicname].keys():
+                    event.return_string(dumps(arcadedata[playtype][musicname][difficulty]))
+                    return
+        
+        event.return_string(dumps(None))
+
+    def get_playresult(self, event: webui.Event):
+        '''対象のリザルトの記録を返す
+
+        Args:
+            musicname(str): 曲名
+            playtype(str): プレイの種類(SP or DP or DP BATTLE)
+            difficulty(str): 難易度
+            timestamp(str): タイムスタンプ
+        '''
+        musicname = event.get_string_at(0)
+        playtype = event.get_string_at(1)
         difficulty = event.get_string_at(2)
         timestamp = event.get_string_at(3)
 
@@ -1164,7 +1193,7 @@ class GuiApi():
             event.return_string(dumps(None))
             return
         
-        scoreresult = notebook.get_scoreresult(playmode, difficulty)
+        scoreresult = notebook.get_scoreresult(playtype, difficulty)
         if scoreresult is None:
             event.return_string(dumps(None))
             return
@@ -1340,7 +1369,12 @@ class GuiApi():
 
     def clear_recent(self, event: webui.Event):
         recent.clear()
-    
+
+    def import_arcadecsv(self, event: webui.Event):
+        value = event.get_string_at(0)
+
+        event.return_string(dumps(import_arcadecsv(value)))
+
     def browse_file(self, event: webui.Event):
         """ファイル選択ダイアログを開き、選択パスを返す
 
@@ -2516,7 +2550,6 @@ if __name__ == '__main__':
     newwindow.set_port(setting.port['main'])
     newwindow.set_public(True)
 
-
     api = GuiApi(newwindow, notebooks_music)
     api_export = GuiApiExport(newwindow)
     api_discordwebhook = GuiApiDiscordWebhook(newwindow)
@@ -2530,6 +2563,8 @@ if __name__ == '__main__':
     hotkeys = Hotkeys()
     if hotkeys.set_hotkeys():
         hotkeys.start()
+
+    loadfiles_arcadedata()
 
     mainloop()
 

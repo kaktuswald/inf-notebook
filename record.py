@@ -753,6 +753,8 @@ class NotebookSummary(Notebook):
                         continue
 
                     target = target['best']
+                    if target is None:
+                        continue
 
                     if 'cleartype' in target.keys():
                         cleartype = target['cleartype']
