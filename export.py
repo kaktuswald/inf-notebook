@@ -211,7 +211,7 @@ def output(notebook: NotebookSummary):
                     lines.append(record['latest'] if record['latest'] is not None else '')
                     lines.append(record['playcount'] if record['playcount'] is not None else '')
 
-                    if 'best' in record.keys():
+                    if 'best' in record.keys() and record['best'] is not None:
                         for key in ('cleartype', 'djlevel', 'score', 'misscount',):
                             if record['best'][key] is not None:
                                 value = record['best'][key]['value']
