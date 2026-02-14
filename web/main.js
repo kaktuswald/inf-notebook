@@ -154,6 +154,7 @@ componentdefines = {
     type: 'component',
     componentName: 'arcadedata',
     title: 'アーケード記録',
+    isClosable: false,
   },
   'buttons': {
     type: 'component',
@@ -282,7 +283,9 @@ $(function() {
   $('button#button_confirm_clearrecent').on('click', onclick_confirm_clearrecent);
   $('button#button_execute_clearrecent').on('click', onclick_execute_clearrecent);
   $('button#button_confirm_importarcadecsv').on('click', onclick_confirm_importarcadecsv);
-  $('button#button_execute_importarcadecsv').on('click', onclick_execute_importarcadecsv);
+  $('button#button_importarcadecsv_fromclipboard').on('click', onclick_importarcadecsv_fromclipboard);
+  $('button#button_importarcadecsv_fromfile').on('click', onclick_importarcadecsv_fromfile);
+  $('input#file_importarcadecsv').on('change', onchange_importarcadecsv_fromfile);
 
   $('button#button_reset_layout').on('click', onclick_reset_layout);
 
@@ -422,17 +425,34 @@ function refreshlayout() {
   if(savedstate !== null) {
     const contentloop = function(content, result) {
       if('content' in content) {
+        const deleteindexes = [];
         content.content.forEach(c => {
-          if(contentloop(c, result))
-            result.informationparent = content;
+          const componentname = contentloop(c, result);
+          if(componentname !== null) {
+            if(componentname == 'information')
+              result.informationparent = content;
+
+            if(!Object.keys(componentdefines).includes(componentname))
+              deleteindexes.push(content.content.indexOf(c));
+          }
+          else {
+            if(!c.content.length)
+              deleteindexes.push(content.content.indexOf(c));
+          }
         });
+
+        for(let i = deleteindexes.length - 1; i >= 0; i--)
+          content.content.splice(deleteindexes[i], 1);
+
+        if(content.type == 'stack')
+          content.activeItemIndex -= deleteindexes.length;
       }
       else {
         result.componentnames.push(content.componentName);
-        if(content.componentName == 'information') return true;
+        return content.componentName;
       }
 
-      return false;
+      return null;
     }
 
     const result = {
@@ -1650,10 +1670,10 @@ async function onclick_confirm_importarcadecsv(e) {
 }
 
 /**
- * アーケードのCSVをインポートする
+ * アーケードのCSVをクリップボードからインポートする
  * @param {ce.Event} e イベントハンドラ
  */
-async function onclick_execute_importarcadecsv(e) {
+async function onclick_importarcadecsv_fromclipboard(e) {
   try {
     navigator.clipboard.readText().then(async text => {
       if(!text.length) return;
@@ -1666,6 +1686,36 @@ async function onclick_execute_importarcadecsv(e) {
   }
   catch(error) {
     display_errormessage(['クリップボードの読込に失敗しました。']);
+  }
+
+  $(this).closest('dialog')[0].close();
+}
+
+/**
+ * アーケードのCSVをインポートするファイルを選択する
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_importarcadecsv_fromfile(e) {
+  $('input#file_importarcadecsv')[0].click();
+}
+
+/**
+ * アーケードのCSVのファイルを選択
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onchange_importarcadecsv_fromfile(e) {
+  try {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      if(JSON.parse(await webui.import_arcadecsv(reader.result)))
+        $('dialog#dialog_complete_importarcadecsv')[0].showModal();
+      else
+        display_errormessage(['ファイルの読込に失敗しました。']);
+    }
+    reader.readAsText(e.target.files[0]);
+  }
+  catch(error) {
+    display_errormessage(['ファイルの読込に失敗しました。']);
   }
 
   $(this).closest('dialog')[0].close();

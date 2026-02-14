@@ -351,10 +351,13 @@
     </dialog>
     <dialog id="dialog_confirm_importarcadecsv">
       <div>
-        <div>アーケードのCSVデータをクリップボードにコピーして、OKを押してください。</div>
+        <div>アーケードのCSVデータをクリップボードにコピーしてボタンを押すか、</div>
+        <div>ダウンロードしたファイルを選択してください。</div>
         <div class="buttons_in_dialog">
-          <button id="button_execute_importarcadecsv">OK</button>
-          <button class="dialogclose">Cancel</button>
+          <button id="button_importarcadecsv_fromclipboard">クリップボードから</button>
+          <button id="button_importarcadecsv_fromfile">ファイルを選択する</button>
+          <button class="dialogclose">キャンセル</button>
+          <input type="file" id="file_importarcadecsv" accept=".csv">
         </div>
       </div>
     </dialog>

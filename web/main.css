@@ -315,3 +315,7 @@ iframe#inner_discordwebhook {
     width: 680px;
     height: 456px;
 }
+
+input[type="file"] {
+    display:none;
+}
