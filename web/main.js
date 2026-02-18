@@ -790,8 +790,10 @@ function set_musicnames() {
   const version_all = version == 'ALL';
 
   let reg = null;
-  if(musicname_pattern.length)
-    reg = new RegExp(musicname_pattern, 'i');
+  if(musicname_pattern.length) {
+    const escaped = musicname_pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    reg = new RegExp(escaped, 'i');
+  }
 
   for(const musicname in musictable.musics) {
     if(!version_all && musictable.musics[musicname].version != version)
