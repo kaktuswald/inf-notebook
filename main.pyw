@@ -528,6 +528,10 @@ class GuiApi():
         window.bind('check_latestversion', self.check_latestversion)
 
         window.bind('upload_imagenothingimage', self.upload_imagenothingimage)
+
+        window.bind('clear_scoreinformationimage', self.clear_scoreinformationimage)
+        window.bind('clear_scoregraphimage', self.clear_scoregraphimage)
+
         window.bind('upload_informationimage', self.upload_informationimage)
         window.bind('upload_summaryimage', self.upload_summaryimage)
         window.bind('upload_notesradarimage', self.upload_notesradarimage)
@@ -699,6 +703,24 @@ class GuiApi():
         socket_server.encodedimage_imagenothing = data
         socket_server.update_information(data)
     
+    def clear_scoreinformationimage(self, event: webui.Event):
+        '''譜面情報画像のクリア
+
+        表示画像を「画像なし」に変更する。
+        '''
+        self.image_scoreinformation = None
+
+        socket_server.reset_scoreinformation()
+
+    def clear_scoregraphimage(self, event: webui.Event):
+        '''譜面グラフ画像のクリア
+
+        表示画像を「画像なし」に変更する。
+        '''
+        self.image_scoregraph = None
+
+        socket_server.reset_scoregraph()
+
     def upload_informationimage(self, event: webui.Event):
         '''インフォメーション画像のアップロード
         

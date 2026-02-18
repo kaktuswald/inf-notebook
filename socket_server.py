@@ -190,6 +190,14 @@ class SocketServer(Thread):
             'd': target if target is not None else {},
         }
 
+    def reset_scoreinformation(self):
+        self.encodedimage_scoreinformation = self.encodedimage_imagenothing
+        self.broadcast(Events.UPDATE_SCOREINFORMATIONIMAGE)
+    
+    def reset_scoregraph(self):
+        self.encodedimage_scoregraph = self.encodedimage_imagenothing
+        self.broadcast(Events.UPDATE_SCOREGRAPHIMAGE)
+    
     def update_information(self, encodedimage: str | None):
         self.encodedimage_information = encodedimage
         self.broadcast(Events.UPDATE_INFORMATIONIMAGE)
