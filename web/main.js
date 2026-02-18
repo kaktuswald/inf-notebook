@@ -254,6 +254,8 @@ $(function() {
     if(e == webui.event.DISCONNECTED) console.log('disconnect.');
   });
 
+  $(window).on('error', onerror_window);
+
   $('button#button_save_scoreinformationimage').on('click', onclick_save_scoreinformationimage);
   $('button#button_save_scoregraphimage').on('click', onclick_save_scoregraphimage);
 
@@ -1339,6 +1341,15 @@ function switch_detect_togglemessage(id, flag) {
     $(`#${id}`).addClass('toggle_on');
   else
     $(`#${id}`).removeClass('toggle_on');
+}
+
+/**
+ * 例外が発生した
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onerror_window(e) {
+  const messages = e.originalEvent.error.stack.split('\n');
+  display_errormessage(messages);
 }
 
 /**

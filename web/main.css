@@ -265,7 +265,7 @@ table#table_notesradar_ranking td:nth-child(3) {
 }
 
 ul#list_errormessages {
-    width: 300px;
+    width: 480px;
     list-style-type: none;
     padding-left: 10px;
     font-size: small;
