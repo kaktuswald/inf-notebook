@@ -24,21 +24,26 @@ from setting import Setting
 setting = Setting()
 
 if setting.debug:
-    logging_level = logging.DEBUG
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
+    )
 else:
-    logging_level = logging.WARNING
-
-logging.basicConfig(
-    level=logging_level,
-    filename='log.txt',
-    filemode='w',
-    format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
-)
+    logging.basicConfig(
+        level=logging.WARNING,
+        filename='log.txt',
+        filemode='w',
+        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
+    )
 
 logger = logging.getLogger()
 
 logger.debug('loaded main.py')
 logger.debug('mode: debug')
+
+logger.getChild('urllib3').setLevel(logging.WARNING)
+logger.getChild('PIL').setLevel(logging.WARNING)
+logger.getChild('google').setLevel(logging.WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
