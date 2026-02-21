@@ -421,61 +421,33 @@ function refreshlayout() {
     });
   
     layout.destroy();
+
+    layout = null;
   }
 
   const savedstate = JSON.parse(localStorage.getItem('layout'));
   if(savedstate !== null) {
-    const contentloop = function(content, result) {
-      if('content' in content) {
-        const deleteindexes = [];
-        content.content.forEach(c => {
-          const componentname = contentloop(c, result);
-          if(componentname !== null) {
-            if(componentname == 'information')
-              result.informationparent = content;
-
-            if(!Object.keys(componentdefines).includes(componentname))
-              deleteindexes.push(content.content.indexOf(c));
-          }
-          else {
-            if(!c.content.length)
-              deleteindexes.push(content.content.indexOf(c));
-          }
-        });
-
-        for(let i = deleteindexes.length - 1; i >= 0; i--)
-          content.content.splice(deleteindexes[i], 1);
-
-        if(content.type == 'stack')
-          content.activeItemIndex -= deleteindexes.length;
-      }
-      else {
-        result.componentnames.push(content.componentName);
-        return content.componentName;
-      }
-
-      return null;
+    try {
+      layout = initlayout(savedstate);
     }
-
-    const result = {
-      componentnames: [],
-      informationparent: null,
-    };
-
-    contentloop(savedstate, result);
-
-    Object.keys(componentdefines).forEach(name => {
-      if(!result.componentnames.includes(name))
-        result.informationparent.content.push(componentdefines[name]);
-    });
-
-    layout = new GoldenLayout(savedstate);
+    catch(error) {
+      display_errormessage([
+        'レイアウトのロードに失敗しました。',
+        'レイアウトが初期化されます。',
+      ])
+    }
   }
-  else {
-    layout = new GoldenLayout(layoutconfig);
-  }
+
+  if(layout === null)
+    layout = initlayout(layoutconfig);
 
   layout.on('stateChanged', onchange_layoutstate);
+
+  active_component('information');
+}
+
+function initlayout(layoutconfig) {
+  const layout = new GoldenLayout(layoutconfig);
 
   allcomponentids.forEach(id => {
     const componentname = id.replace('component_', '');
@@ -489,7 +461,7 @@ function refreshlayout() {
   
   layout.init();
 
-  active_component('information');
+  return layout;
 }
 
 /**
@@ -1403,7 +1375,8 @@ function onerror_window(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onchange_layoutstate(e) {
-  localStorage.setItem('layout', JSON.stringify(layout.toConfig()));
+  if(layout.isInitialised)
+    localStorage.setItem('layout', JSON.stringify(layout.toConfig()));
 }
 
 /**
