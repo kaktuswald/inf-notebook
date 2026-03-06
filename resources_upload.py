@@ -62,7 +62,7 @@ if __name__ == '__main__':
         filepath_musicnamechanges = join(resources_dirname, musicnamechanges_filename)
 
         try:
-            with open(filepath_musicnamechanges, encoding='UTF-8')as f:
+            with open(filepath_musicnamechanges, encoding='utf-8')as f:
                 convertlist = load(f)
             
             if upload(musicnamechanges_filename, filepath_musicnamechanges):

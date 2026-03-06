@@ -156,7 +156,7 @@ def filter(targets, report, define):
     report.append_log(f'Red filter music count: {len(reds)}')
 
     result_report_filepath = join(report_basedir_musicrecog, 'filtertype.txt')
-    with open(result_report_filepath, 'w', encoding='UTF-8') as f:
+    with open(result_report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(result))
     
     factors = {
@@ -199,7 +199,7 @@ def generate_mask(targets, report, name):
                 output.append(f"{key}: ({len(value)}){' '.join([str(p) for p in value[:5]])}")
 
     masks_report_filepath = join(report_basedir_musicrecog, f'report_mask_{name}.txt')
-    with open(masks_report_filepath, 'w', encoding='UTF-8') as f:
+    with open(masks_report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
     report.saveimage_value(np.where(mask==0,False,True), f'mask_{name}.png')
@@ -269,7 +269,7 @@ def learning_music(targets, report, name):
                 report.saveimage_errorvalue(item['value'], f"_{item['key']}.png")
 
     inspectresult_report_filepath = join(report_basedir_musicrecog, f'inspect_{name}.txt')
-    with open(inspectresult_report_filepath, 'w', encoding='UTF-8') as f:
+    with open(inspectresult_report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report_inspect))
 
     report_notuniques = []
@@ -283,7 +283,7 @@ def learning_music(targets, report, name):
                 report.saveimage_errorvalue(item['value'], f"_{item['key']}.png")
 
     notuniques_report_filepath = join(report_basedir_musicrecog, f'noteunique_{name}.txt')
-    with open(notuniques_report_filepath, 'w', encoding='UTF-8') as f:
+    with open(notuniques_report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report_notuniques))
 
     return map
@@ -338,7 +338,7 @@ def organize(informations):
         mkdir(report_dirname);
     
     report_filepath = join(report_dirname, report_organize_filename)
-    with open(report_filepath, 'w', encoding='UTF-8') as f:
+    with open(report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
 def outputtable(table):
@@ -355,7 +355,7 @@ def outputtable(table):
     recursive(0, table, output)
 
     report_filepath = join(report_dirname, 'table.txt')
-    with open(report_filepath, 'w', encoding='UTF-8') as f:
+    with open(report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
 def learning_playmode(informations):
@@ -642,7 +642,7 @@ def learning_musics(informations):
     report.append_log(f'Music count: {len(targets)}')
 
     for music in targets.keys():
-        encoded = music.encode('UTF-8').hex()
+        encoded = music.encode('utf-8').hex()
         if len(encoded) > 240:
             report.error(f'Record file name too long: {music}')
 
@@ -772,21 +772,21 @@ def evaluate_musics(music):
     not_exists = []
     for musicname in arcade_musics:
         if not musicname in musictable['musics'].keys():
-            escaped = musicname.encode('unicode-escape').decode('UTF-8')
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
             not_exists.append(f'- {musicname}({escaped})')
     for musicname in infinitas_musics:
         if not musicname in musictable['musics'].keys():
-            escaped = musicname.encode('unicode-escape').decode('UTF-8')
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
             not_exists.append(f'- {musicname}({escaped})')
     for musicname in leggendaria_musics:
         if not musicname in musictable['musics'].keys():
-            escaped = musicname.encode('unicode-escape').decode('UTF-8')
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
             not_exists.append(f'- {musicname}({escaped})')
 
     not_registereds = []
     for musicname in musictable['musics'].keys():
         if not musicname in arcade_musics and not musicname in infinitas_musics:
-            escaped = musicname.encode('unicode-escape').decode('UTF-8')
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
             not_registereds.append(f'- {musicname}({escaped})')
 
     musictable_leggendarias = []
@@ -797,7 +797,7 @@ def evaluate_musics(music):
     not_registereds_leggendaria = []
     for musicname in musictable_leggendarias:
         if not musicname in leggendaria_musics:
-            escaped = musicname.encode('unicode-escape').decode('UTF-8')
+            escaped = musicname.encode('unicode-escape').decode('utf-8')
             not_registereds_leggendaria.append(f'- {musicname}({escaped})')
     
     output = []
@@ -834,7 +834,7 @@ def evaluate_musics(music):
         output.append(f'')
     
     output_filepath = join(report_basedir_musicrecog, f'register result.txt')
-    with open(output_filepath, 'w', encoding='UTF-8') as f:
+    with open(output_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
     report.report()

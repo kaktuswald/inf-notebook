@@ -280,7 +280,7 @@ def output(notebook: NotebookSummary):
 
     for playtype in Playtypes.values:
         filepath = join(export_dirname, f'{playtype}.csv')
-        with open(filepath, 'w', encoding='UTF-8', newline='\n') as f:
+        with open(filepath, 'w', encoding='utf-8', newline='\n') as f:
             w = writer(f)
             for line in csv_output[playtype]:
                 try:
@@ -308,11 +308,11 @@ def output_notesradarcsv(notesradar: NotesRadar):
             output_rankings[playmode].append('')
         output.append('')
     
-    with open(notesradar_csv_filepath, 'w', encoding='UTF-8') as f:
+    with open(notesradar_csv_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
     for playmode, item in output_rankings.items():
-        with open(notesradar_csv_rankings_filepaths[playmode], 'w', encoding='UTF-8') as f:
+        with open(notesradar_csv_rankings_filepaths[playmode], 'w', encoding='utf-8') as f:
             f.write('\n'.join(item))
 
 def generate_exportsettingcss(port: int):

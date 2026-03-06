@@ -142,9 +142,9 @@ class NotebookMusic(Notebook):
             musicname(str): 曲名
         Note:
             ファイル名から曲名にデコードする場合は
-            bytes.fromhex('ファイル名').decode('UTF-8')
+            bytes.fromhex('ファイル名').decode('utf-8')
         '''
-        self.filename = f"{musicname.encode('UTF-8').hex()}.json"
+        self.filename = f"{musicname.encode('utf-8').hex()}.json"
         super().__init__()
     
     def get_scoreresult(self, playtype: str, difficulty: str):
@@ -810,7 +810,7 @@ def rename_allfiles(musics: list[str]):
     string_max_length = 128
 
     for music in musics:
-        string = music.encode('UTF-8').hex()
+        string = music.encode('utf-8').hex()
         if len(string) > string_max_length:
             omitted_filename = f'{string[:string_max_length]}.json'
             omitted_filepath = join(records_basepath, omitted_filename)
@@ -836,7 +836,7 @@ def rename_changemusicname():
         return
     
     try:
-        with open(filepath, encoding='UTF-8')as f:
+        with open(filepath, encoding='utf-8')as f:
             convertlist = json.load(f)
     except Exception as ex:
         logger.exception(ex)
@@ -844,10 +844,10 @@ def rename_changemusicname():
     
     changed = []
     for target, renamed in convertlist:
-        target_encoded = target.encode('UTF-8').hex()
+        target_encoded = target.encode('utf-8').hex()
         target_filepath = join(records_basepath, f'{target_encoded}.json')
         if exists(target_filepath):
-            renamed_encoded = renamed.encode('UTF-8').hex()
+            renamed_encoded = renamed.encode('utf-8').hex()
             renamed_filepath = join(records_basepath, f'{renamed_encoded}.json')
             if exists(renamed_filepath):
                 remove(renamed_filepath)

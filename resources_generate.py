@@ -69,7 +69,7 @@ class Report():
         
         report_filepath = join(self.report_dirpath, 'report.txt')
 
-        with open(report_filepath, 'w', encoding='UTF-8') as f:
+        with open(report_filepath, 'w', encoding='utf-8') as f:
             f.write('\n'.join(self.log))
             f.write('\n')
             if len(self.log_error) > 0:

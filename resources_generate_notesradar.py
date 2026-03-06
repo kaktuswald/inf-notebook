@@ -39,7 +39,7 @@ def import_csv():
             csv[playmode][attribute] = pd.read_csv(
                 filename,
                 keep_default_na=False,
-                encoding='UTF-8'
+                encoding='utf-8'
             )
 
     return csv
@@ -58,12 +58,12 @@ def output_attributevalues(resource: dict, output_dirpath: str):
             filename = f'{playmode}_{attribute}.txt'
             filepath = join(output_dirpath, filename)
 
-            with open(filepath, 'w', encoding='UTF-8') as f:
+            with open(filepath, 'w', encoding='utf-8') as f:
                 f.write('\n'.join(output))
 
 def output_not_in_notesradar(added: dict, musics: dict, ignore: dict, output_dirpath: str):
     if exists(infinitasonlymusics_filepath):
-        with open(infinitasonlymusics_filepath, 'r', encoding='UTF-8') as f:
+        with open(infinitasonlymusics_filepath, 'r', encoding='utf-8') as f:
             infinitas_only_musics = [v for v in f.read().split('\n') if v != '']
     else:
         infinitas_only_musics = []
@@ -90,20 +90,20 @@ def output_not_in_notesradar(added: dict, musics: dict, ignore: dict, output_dir
                         output.append(f'{musicname} {playmode} {difficulty}')
 
     not_in_notesradar_music_filepath = join(output_dirpath, 'not_in_notesradar.csv')
-    with open(not_in_notesradar_music_filepath, 'w', encoding='UTF-8') as f:
+    with open(not_in_notesradar_music_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
 def generate(musics, csv):
     report = Report(report_name)
 
     if exists(ignore_filepath):
-        with open(ignore_filepath, 'r', encoding='UTF-8') as f:
+        with open(ignore_filepath, 'r', encoding='utf-8') as f:
             ignore = json.load(f)
     else:
         ignore = {}
     
     if exists(convertmusicnames_filepath):
-        with open(convertmusicnames_filepath, 'r', encoding='UTF-8') as f:
+        with open(convertmusicnames_filepath, 'r', encoding='utf-8') as f:
             convertmusicnames = json.load(f)
     else:
         convertmusicnames = []

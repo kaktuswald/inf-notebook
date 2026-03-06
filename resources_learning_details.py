@@ -380,11 +380,11 @@ def learning_option(details: dict[str, Details]):
                 report_keycompare.append(f'Different key {value}')
     
     optionkeys_report_filepath = join(report_basedir_option, 'keys.txt')
-    with open(optionkeys_report_filepath, 'w', encoding='UTF-8') as f:
+    with open(optionkeys_report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report_keys))
     
     keycompare_report_filepath = join(report_basedir_option, 'keycompare.txt')
-    with open(keycompare_report_filepath, 'w', encoding='UTF-8') as f:
+    with open(keycompare_report_filepath, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report_keycompare))
     
     report.report()

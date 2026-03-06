@@ -643,7 +643,7 @@ def learning_musicname_arcade(targets, report):
             report.error(f'duplicate key arcade {musicname}: {count}')
     
     output_path = join(musicname_output_dirpath, 'arcade.txt')
-    with open(output_path, 'w', encoding='UTF-8') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
 def learning_musicname_infinitas(targets, report):
@@ -700,7 +700,7 @@ def learning_musicname_infinitas(targets, report):
             report.error(f'duplicate key infinitas {musicname}: {count}')
     
     output_path = join(musicname_output_dirpath, 'infinitas.txt')
-    with open(output_path, 'w', encoding='UTF-8') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
 def learning_musicname_leggendaria(targets, report):
@@ -761,7 +761,7 @@ def learning_musicname_leggendaria(targets, report):
             report.error(f'duplicate key leggendaria {musicname}: {count}')
     
     output_path = join(musicname_output_dirpath, 'leggendaria.txt')
-    with open(output_path, 'w', encoding='UTF-8') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(output))
 
 def learning_musicname():
@@ -867,7 +867,7 @@ def learning_version():
 
     versions = []
     try:
-        with open(versions_filepath, 'r', encoding='UTF-8') as f:
+        with open(versions_filepath, 'r', encoding='utf-8') as f:
             for line in f.read().splitlines():
                 versions.extend(line.strip().split('&'))
     except Exception:
@@ -971,7 +971,7 @@ def evaluate():
 
     table = musictable['musics']
     for musicname in table.keys():
-        escaped = musicname.encode('unicode-escape').decode('UTF-8')
+        escaped = musicname.encode('unicode-escape').decode('utf-8')
         if musicname in evaluate_musictable.keys():
             if not 'version' in evaluate_musictable[musicname].keys():
                 report.error(f'Not registered version {musicname}')

@@ -19,7 +19,7 @@ class LocalConfig():
         
         self.filepath = appdata_path.joinpath(self.filename)
         if self.filepath.exists():
-            with self.filepath.open('r', encoding='UTF-8') as f:
+            with self.filepath.open('r', encoding='utf-8') as f:
                 loaded: dict = json.load(f)
             
             if 'installer_filepath' in loaded.keys() and loaded['installer_filepath'] is not None and exists(loaded['installer_filepath']):
@@ -35,5 +35,5 @@ class LocalConfig():
             'installer_filepath': str(self.installer_filepath) if self.installer_filepath is not None else None,
             'installed_dirpath': str(self.installed_dirpath) if self.installed_dirpath is not None else None,
         }
-        with self.filepath.open('w', encoding='UTF-8') as f:
+        with self.filepath.open('w', encoding='utf-8') as f:
             json.dump(output, f, indent=2)
