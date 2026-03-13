@@ -251,6 +251,8 @@ def learning_option(details: dict[str, Details]):
                     continue
                 if flip is not None and arrange in Options.ARRANGES_DPBATTLE:
                     continue
+                if battle is not None and flip is not None:
+                    continue
 
                 for assist in (None, *Options.ASSISTS):
                     for regularspeed in (None, Options.REGULARSPEED):
