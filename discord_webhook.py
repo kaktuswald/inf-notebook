@@ -80,7 +80,7 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
             return None, None
         if informations.playspeed is not None:
             return None, None
-        if details is None:
+        if details.options is None or details.options.notrecord:
             return None, None
         if setting['mode'] == DiscordwebhookModes.SCORE:
             if details.score.current is None or setting['mybest'] is not None and setting['mybest'] >= details.score.current:
