@@ -48,7 +48,7 @@ logger.getChild('google').setLevel(logging.WARNING)
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
 from define import Playmodes,Playtypes,define
-from resources import resource,play_sound_result,check_latest
+from resources import resource,play_sound_result,download_latestresource
 from screenshot import Screen,Screenshot
 from recog import Recognition as recog
 from raw_image import save_raw
@@ -2453,26 +2453,26 @@ def check_resource():
     api.send_message('start_resourcecheck')
 
     informations_filename = f'{define.informations_resourcename}.res'
-    if check_latest(storage, informations_filename):
+    if download_latestresource(storage, informations_filename):
         resource.load_resource_informations()
 
     details_filename = f'{define.details_resourcename}.res'
-    if check_latest(storage, details_filename):
+    if download_latestresource(storage, details_filename):
         resource.load_resource_details()
 
     musictable_filename = f'{define.musictable_resourcename}.res'
-    if check_latest(storage, musictable_filename):
+    if download_latestresource(storage, musictable_filename):
         resource.load_resource_musictable()
 
     musicselect_filename = f'{define.musicselect_resourcename}.res'
-    if check_latest(storage, musicselect_filename):
+    if download_latestresource(storage, musicselect_filename):
         resource.load_resource_musicselect()
 
     notesradar_filename = f'{define.notesradar_resourcename}.res'
-    if check_latest(storage, notesradar_filename):
+    if download_latestresource(storage, notesradar_filename):
         resource.load_resource_notesradar()
 
-    check_latest(storage, musicnamechanges_filename)
+    download_latestresource(storage, musicnamechanges_filename)
 
     api.send_message('complete_resourcecheck')
 

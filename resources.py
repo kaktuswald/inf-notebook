@@ -129,8 +129,8 @@ def load_resource_numpy(resourcename):
 def get_resource_filepath(filename):
     return join(resources_dirname, filename)
 
-def check_latest(storage, filename) -> bool:
-    '''対象のリソースファイルが最新かどうかをチェックする
+def download_latestresource(storage, filename) -> bool:
+    '''最新のリソースファイルをダウンロードする
 
     ローカルファイルとGCS上のファイルのタイムスタンプを比較して異なればダウンロードを試みる。
     ダウンロード開始前に現在のファイルを一時ファイルとしてファイル名を変更する。
@@ -145,6 +145,7 @@ def check_latest(storage, filename) -> bool:
     '''
     latest_timestamp: str | None = storage.get_resource_timestamp(filename)
     if latest_timestamp is None:
+        logger.debug(f'Not in storage {filename}')
         return False
     
     filepath = join(resources_dirname, filename)
@@ -155,6 +156,7 @@ def check_latest(storage, filename) -> bool:
         local_timestamp = timestamp.get_timestamp()
 
     if local_timestamp == latest_timestamp:
+        logger.debug(f'Is latest {filename}')
         return False
     
     filepath_tmp = f'{filepath}.tmp'
@@ -162,7 +164,7 @@ def check_latest(storage, filename) -> bool:
         rename(filepath, filepath_tmp)
 
     if storage.download_resource(filename, filepath):
-        logger.info(f'Download {filename}')
+        logger.debug(f'Download successful {filename}')
         timestamp.write_timestamp(latest_timestamp)
 
         if exists(filepath_tmp):
@@ -170,6 +172,7 @@ def check_latest(storage, filename) -> bool:
 
         return True
     else:
+        logger.debug(f'Download failured {filename}')
         if exists(filepath):
             remove(filepath)
         
