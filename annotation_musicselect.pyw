@@ -1,5 +1,6 @@
 from json import load,dump,loads,dumps
-from os.path import join,exists,basename
+from os import remove
+from os.path import join,exists,basename,isfile
 from glob import glob
 from PIL import Image
 from base64 import b64encode
@@ -55,6 +56,7 @@ class GuiApi():
         window.bind('get_labels', self.get_labels)
         window.bind('get_recognitionresult', self.get_recognitionresult)
         window.bind('set_labels', self.set_labels)
+        window.bind('delete_keyandlabel', self.delete_keyandlabel)
     
     def get_collectionkeys(self, event: Event):
         conditions = loads(event.get_string_at(0))
@@ -134,6 +136,21 @@ class GuiApi():
 
         labels[key] = loads(event.get_string_at(1))
 
+        self.save_labels()
+    
+    def delete_keyandlabel(self, event: Event):
+        key = event.get_string_at(0)
+
+        if key in labels.keys():
+            del labels[key]
+            self.save_labels()
+        
+        filepath = join(images_musicselect_basepath, key)
+        if isfile(filepath):
+            remove(filepath)
+            del images[key]
+    
+    def save_labels(self):
         with open(label_filepath, 'w') as f:
             dump(labels, f, indent=2)
     

@@ -8,6 +8,7 @@ $(function() {
 
   $('button#button_labeloverwrite').on('click', onclick_labeloverwrite);
   $('button#button_citationrecog').on('click', onclick_citationrecog);
+  $('button#button_delete').on('click', onclick_delete);
 
   $('input#check_onlynotannotation').on('change', display_keytable);
   $('input#check_onlyundefinedmusicname').on('change', display_keytable);
@@ -34,7 +35,8 @@ async function initialize() {
   }
 
   const versions = JSON.parse(await webui.get_versions());
-  for(const version of versions) {
+  const flatted_versions = versions.flatMap(item => item.split('&'));
+  for(const version of flatted_versions) {
     $('select#select_version').append($('<option>')
       .val(version)
       .text(version)
@@ -113,17 +115,10 @@ async function onclick_keyitem(e) {
   if(label !== null) {
     $('select#select_playmode').val(label.playmode);
     $('select#select_version').val(label.version);
-
-    if(label.version != 'INFINITAS' && label.difficulty != 'LEGGENDARIA')
-      $('select#select_musictype').val('ARCADE')
-    if(label.version == 'INFINITAS')
-      $('select#select_musictype').val('INFINITAS')
-    if(label.difficulty == 'LEGGENDARIA')
-      $('select#select_musictype').val('LEGGENDARIA')
-
+    $('select#select_musictype').val(label.musictype);
     $('input#text_musicname').val(label.musicname);
     $('select#select_difficulty').val(label.difficulty);
-    $('input#check_hasscoredata').prop('checked', !label.nohasscoredata);
+    $('input#check_nohasscoredata').prop('checked', !label.nohasscoredata);
     $('select#select_cleartype').val(label.cleartype);
     $('select#select_djlevel').val(label.djlevel);
     $('input#text_score').val(label.score);
@@ -134,14 +129,15 @@ async function onclick_keyitem(e) {
     $('select#select_levelanother').val(label.level_another);
     $('select#select_levelleggendaria').val(label.level_leggendaria);
     $('input#check_ignore').prop('checked', Object.hasOwn(label, 'ignore') && label.ignore);
+    $('input#check_after260312').prop('checked', Object.hasOwn(label, 'after260312') && label.after260312);
   }
   else {
     $('select#select_playmode').val(null);
     $('select#select_version').val(null);
-    $('select#select_musictype').val(null)
+    $('select#select_musictype').val(null);
     $('input#text_musicname').val(null);
     $('select#select_difficulty').val(null);
-    $('input#check_hasscoredata').prop('checked', true);
+    $('input#check_nohasscoredata').prop('checked', false);
     $('select#select_cleartype').val(null);
     $('select#select_djlevel').val(null);
     $('input#text_score').val(null);
@@ -156,11 +152,11 @@ async function onclick_keyitem(e) {
 
   recognitionresult = JSON.parse(await webui.get_recognitionresult(targetkey));
   if(recognitionresult !== null) {
-    $('span#text_resultlevelbeginner').text(recognitionresult.levels.BEGINNER);
-    $('span#text_resultlevelnormal').text(recognitionresult.levels.NORMAL);
-    $('span#text_resultlevelhyper').text(recognitionresult.levels.HYPER);
-    $('span#text_resultlevelanother').text(recognitionresult.levels.ANOTHER);
-    $('span#text_resultlevelleggendaria').text(recognitionresult.levels.LEGGENDARIA);
+    $('span#text_resultlevelbeginner').text(recognitionresult.levels.BEGINNER ? recognitionresult.levels.BEGINNER : '');
+    $('span#text_resultlevelnormal').text(recognitionresult.levels.NORMAL ? recognitionresult.levels.NORMAL : '');
+    $('span#text_resultlevelhyper').text(recognitionresult.levels.HYPER ? recognitionresult.levels.HYPER : '');
+    $('span#text_resultlevelanother').text(recognitionresult.levels.ANOTHER ? recognitionresult.levels.ANOTHER : '');
+    $('span#text_resultlevelleggendaria').text(recognitionresult.levels.LEGGENDARIA ? recognitionresult.levels.LEGGENDARIA : '');
 
     $('span#text_resultplaymode').text(recognitionresult.playmode);
     $('span#text_resultversion').text(recognitionresult.version);
@@ -207,6 +203,7 @@ async function onclick_labeloverwrite(e) {
     'version': $('select#select_version').val(),
     'musictype': $('select#select_musictype').val(),
     'musicname': $('input#text_musicname').val(),
+    'nohasscoredata': $('input#check_nohasscoredata').prop('checked'),
     'cleartype': $('select#select_cleartype').val(),
     'djlevel': $('select#select_djlevel').val(),
     'score': $('input#text_score').val(),
@@ -215,6 +212,9 @@ async function onclick_labeloverwrite(e) {
 
   if($('input#check_ignore').prop('checked'))
     values.ignore = true;
+
+  if($('input#check_after260312').prop('checked'))
+    values.after260312 = true;
 
   await webui.set_labels(
     targetkey,
@@ -239,7 +239,7 @@ async function onclick_citationrecog(e) {
 
   $('input#text_musicname').val(recognitionresult.musicname);
   $('select#select_difficulty').val(recognitionresult.difficulty);
-  $('input#check_hasscoredata').prop('checked', true);
+  $('input#check_nohasscoredata').prop('checked', false);
   $('select#select_cleartype').val(recognitionresult.cleartype);
   $('select#select_djlevel').val(recognitionresult.djlevel);
   $('input#text_score').val(recognitionresult.score);
@@ -249,6 +249,18 @@ async function onclick_citationrecog(e) {
   $('select#select_levelhyper').val(recognitionresult.levels.HYPER);
   $('select#select_levelanother').val(recognitionresult.levels.ANOTHER);
   $('select#select_levelleggendaria').val(recognitionresult.levels.LEGGENDARIA);
+}
+
+/**
+ * 画像とラベルの削除
+ * @param {} e
+ */
+async function onclick_delete(e) {
+  const targetkey = $('tr.keyitem.selected .cell_key').first().text();
+
+  await webui.delete_keyandlabel(targetkey);
+  
+  display_keytable();
 }
 
 /**
@@ -275,7 +287,6 @@ async function display_keytable() {
     'keyfilter': keyfilter.length ? keyfilter : null,
   })));
   for(const key of keys) {
-
     const tr = $('<tr>')
       .addClass('tableitem keyitem');
 

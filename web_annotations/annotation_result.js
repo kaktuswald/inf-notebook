@@ -8,6 +8,7 @@ $(function() {
 
   $('button#button_labeloverwrite').on('click', onclick_labeloverwrite);
   $('button#button_citationrecog').on('click', onclick_citationrecog);
+  $('button#button_delete').on('click', onclick_delete);
 
   $('input#check_onlynotannotation').on('change', display_keytable);
   $('input#check_onlyundefinedmusicname').on('change', display_keytable);
@@ -51,7 +52,6 @@ async function initialize() {
 
   const graphtypes = JSON.parse(await webui.get_graphtypes());
   for(const graphtype of graphtypes) {
-    console.log(graphtype);
     $('select#select_graphtype').append($('<option>')
       .val(graphtype)
       .text(graphtype)
@@ -178,6 +178,8 @@ async function onclick_keyitem(e) {
       $('select#select_graphtype').val(labels.details.graphtype);
 
       $('input#check_optionbattle').prop('checked', labels.details.option_battle);
+      $('input#check_optionallscratch').prop('checked', labels.details.option_allscratch);
+      $('input#check_optionregularspeed').prop('checked', labels.details.option_regularspeed);
 
       $('select#select_optionarrange').val(labels.details.option_arrange);
 
@@ -243,6 +245,8 @@ async function onclick_keyitem(e) {
   if(recognitionresult !== null && recognitionresult.details !== null) {
     $('span#text_resultgraphtype').text(recognitionresult.details.graphtype);
     $('span#text_resultoptionbattle').text(recognitionresult.details.optionbattle ? 'BATTLE' : '');
+    $('span#text_resultoptionallscratch').text(recognitionresult.details.optionallscratch ? 'ALL-SCR' : '');
+    $('span#text_resultoptionregularspeed').text(recognitionresult.details.optionregularspeed ? 'REGUL-SPEED' : '');
     $('span#text_resultoptionarrange').text(recognitionresult.details.optionarrange);
     $('span#text_resultoptionflip').text(recognitionresult.details.optionflip);
     $('span#text_resultoptionassist').text(recognitionresult.details.optionassist);
@@ -295,6 +299,8 @@ function clearinput_informations() {
 function clearinput_details() {
   $('select#select_graphtype').val(null);
   $('input#check_optionbattle').prop('checked', false);
+  $('input#check_optionallscratch').prop('checked', false);
+  $('input#check_optionregularspeed').prop('checked', false);
   $('select#select_optionarrange').val(null);
   $('select#select_optionarrange1p').val(null);
   $('select#select_optionarrange2p').val(null);
@@ -342,6 +348,8 @@ async function onclick_labeloverwrite(e) {
     details = {
       'graphtype': $('select#select_graphtype').val(),
       'option_battle': $('input#check_optionbattle').prop('checked'),
+      'option_allscratch': $('input#check_optionallscratch').prop('checked'),
+      'option_regularspeed': $('input#check_optionregularspeed').prop('checked'),
       'option_arrange': $('select#select_optionarrange').val(),
       'option_arrange_dp': `${$('select#select_optionarrange1p').val()}/${$('select#select_optionarrange2p').val()}`,
       'option_arrange_sync': $('select#select_optionarrangesync').val(),
@@ -407,6 +415,8 @@ async function onclick_citationrecog(e) {
     $('select#select_graphtype').val(recognitionresult.details.graphtype);
 
     $('input#check_optionbattle').prop('checked', recognitionresult.details.optionbattle);
+    $('input#check_optionallscratch').prop('checked', recognitionresult.details.optionallscratch);
+    $('input#check_optionregularspeed').prop('checked', recognitionresult.details.optionregularspeed);
 
     $('select#select_optionarrange').val(recognitionresult.details.optionarrange);
 
@@ -445,6 +455,8 @@ async function onclick_citationrecog(e) {
 
     $('select#select_graphtype').val(null);
     $('input#check_optionbattle').prop('checked', false);
+    $('input#check_optionallscratch').prop('checked', false);
+    $('input#check_optionregularspeed').prop('checked', false);
     $('select#select_optionarrange').val(null);
     $('select#select_optionarrange1p').val(null);
     $('select#select_optionarrange2p').val(null);
@@ -465,6 +477,18 @@ async function onclick_citationrecog(e) {
     $('input#text_misscountnew').val(null);
     $('select#select_graphtarget').val(null );
   }
+}
+
+/**
+ * 画像とラベルの削除
+ * @param {} e
+ */
+async function onclick_delete(e) {
+  const targetkey = $('tr.keyitem.selected .cell_key').first().text();
+
+  await webui.delete_keyandlabel(targetkey);
+  
+  display_keytable();
 }
 
 /**

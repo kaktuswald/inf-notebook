@@ -5,7 +5,7 @@ from os import mkdir
 from os.path import join,isfile,exists
 import numpy as np
 
-from define import define,Graphtypes
+from define import define,Graphtypes,Options
 import data_collection as dc
 from resources_learning import learning
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
@@ -227,36 +227,38 @@ def learning_option(details: dict[str, Details]):
     
     values = [None]
 
-    for assist in (None, *define.value_list['options_assist']):
-        for sp_arrange in define.value_list['options_arrange']:
-            values.append(','.join(v for v in (sp_arrange, assist, ) if v is not None))
-
-    for battle in (None, 'BATTLE'):
-        for flip in (None, *define.value_list['options_flip']):
-            if battle is not None and flip is not None:
+    arranges = [None]
+    arranges.extend(Options.ARRANGES_SP)
+    for left in Options.ARRANGES_DP:
+        for right in Options.ARRANGES_DP:
+            if left == 'OFF' and right == 'OFF':
+                continue
+            if 'S-RAN' in [left, right] and 'H-RAN' in [left, right]:
                 continue
 
-            for assist in (None, *define.value_list['options_assist']):
-                for left_arrange in define.value_list['options_arrange_dp']:
-                    for right_arrange in define.value_list['options_arrange_dp']:
-                        if left_arrange == 'S-RAN' and right_arrange == 'H-RAN':
-                            continue
-                        if left_arrange == 'H-RAN' and right_arrange == 'S-RAN':
-                            continue
-
-                        arrange = None
-                        if left_arrange != 'OFF' or right_arrange != 'OFF':
-                            arrange = f'{left_arrange}/{right_arrange}'
-
-                        if battle is None and arrange is None and flip is None and assist is None:
-                            continue
-
-                        values.append(','.join(v for v in (battle, arrange, flip, assist, ) if v is not None))
-
-                if battle is not None and flip is None:
-                    for sync_arrange in define.value_list['options_arrange_sync']:
-                        values.append(','.join(v for v in (battle, sync_arrange, flip, assist, ) if v is not None))
+            arranges.append(f'{left}/{right}')
+    arranges.extend(Options.ARRANGES_DPBATTLE)
     
+    for battle in (None, Options.BATTLE):
+        for arrange in (None, Options.ALLSCRATCH, *arranges):
+            if arrange in Options.ARRANGES_SP and battle is not None:
+                continue
+            if arrange in Options.ARRANGES_DPBATTLE and battle is None:
+                continue
+
+            for flip in (None, *Options.FLIPS):
+                if flip is not None and arrange in Options.ARRANGES_SP:
+                    continue
+                if flip is not None and arrange in Options.ARRANGES_DPBATTLE:
+                    continue
+
+                for assist in (None, *Options.ASSISTS):
+                    for regularspeed in (None, Options.REGULARSPEED):
+                        value = [v for v in (battle, arrange, flip, assist, regularspeed,) if v is not None]
+                        joinedvalue = ','.join(value)
+                        if not joinedvalue in values:
+                            values.append(joinedvalue)
+
     keyresult = {}
     for value in values:
         keyresult[value] = {}
@@ -277,8 +279,6 @@ def learning_option(details: dict[str, Details]):
             continue
         if not 'option_assist' in target.label.keys():
             continue
-        if not 'option_battle' in target.label.keys():
-            continue
 
         playside = define.details_get_playside(target.np_value)
 
@@ -289,12 +289,14 @@ def learning_option(details: dict[str, Details]):
             useoptioncounts.append(useoptionresult)
 
         options = (
-            'BATTLE' if target.label['option_battle'] else None,
+            'BATTLE' if 'option_battle' in target.label.keys() and target.label['option_battle'] else None,
+            'ALL-SCR' if 'option_allscratch' in target.label.keys() and target.label['option_allscratch'] else None,
             target.label['option_arrange'] if target.label['option_arrange'] is not None and len(target.label['option_arrange']) else None,
             target.label['option_arrange_dp'] if target.label['option_arrange_dp'] != '/' else None,
             target.label['option_arrange_sync'] if target.label['option_arrange_sync'] is not None and len(target.label['option_arrange_sync']) else None,
             target.label['option_flip'] if target.label['option_flip'] is not None and len(target.label['option_flip']) else None,
             target.label['option_assist'] if target.label['option_assist'] is not None and len(target.label['option_assist']) else None,
+            'REGUL-SPEED' if 'option_regularspeed' in target.label.keys() and target.label['option_regularspeed'] else None,
         )
 
         value = ','.join((v for v in options if v is not None and len(v)))
@@ -341,12 +343,14 @@ def learning_option(details: dict[str, Details]):
             result = table[tablekey]
         
         options = (
-            'BATTLE' if target.label['option_battle'] else None,
+            'BATTLE' if 'option_battle' in target.label.keys() and target.label['option_battle'] else None,
+            'ALL-SCR' if 'option_allscratch' in target.label.keys() and target.label['option_allscratch'] else None,
             target.label['option_arrange'] if target.label['option_arrange'] is not None and len(target.label['option_arrange']) else None,
             target.label['option_arrange_dp'] if target.label['option_arrange_dp'] != '/' else None,
             target.label['option_arrange_sync'] if target.label['option_arrange_sync'] is not None and len(target.label['option_arrange_sync']) else None,
             target.label['option_flip'] if target.label['option_flip'] is not None and len(target.label['option_flip']) else None,
             target.label['option_assist'] if target.label['option_assist'] is not None and len(target.label['option_assist']) else None,
+            'REGUL-SPEED' if 'option_regularspeed' in target.label.keys() and target.label['option_regularspeed'] else None,
         )
 
         value = ','.join((v for v in options if v is not None))

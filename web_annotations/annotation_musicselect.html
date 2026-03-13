@@ -156,7 +156,7 @@
           
           <div>
             <div class="label">スコアデータ:</div>
-            <label><input type="checkbox" id="check_hasscoredata">表示なし</label>
+            <label><input type="checkbox" id="check_nohasscoredata">表示なし</label>
           </div>
 
           <div>
@@ -222,12 +222,18 @@
             <div class="label">学習に使用:</div>
             <label><input type="checkbox" id="check_ignore">しない</label>
           </div>
+
+          <div>
+            <div class="label">バージョン</div>
+            <label><input type="checkbox" id="check_after260312" checked>26年3月12日以降の画像</label>
+          </div>
         </div>
 
         <div>
           <div>
             <button id="button_labeloverwrite">アノテーション保存</button>
             <button id="button_citationrecog">認識結果から引用</button>
+            <button id="button_delete">画像とラベルの削除</button>
           </div>
           
           <div>

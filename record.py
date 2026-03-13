@@ -236,6 +236,7 @@ class NotebookMusic(Notebook):
 
         オプションにBATTLEを含む場合はNewアイコンが出ないため、独自に評価する。
         ただし配置オプションにH-RANが含まれている場合は評価しない。
+        ALL-SCRが使用されている場合やREGUL-SPEEDが使用されている場合も票かしない。
         等倍以外のプレイ時も評価しない。
 
         Args:
@@ -243,7 +244,7 @@ class NotebookMusic(Notebook):
         '''
         if result.informations.playspeed is not None:
             return
-        if result.details.options.arrange is not None and 'H-RAN' in result.details.options.arrange:
+        if result.details.options.notrecord:
             return
 
         update_all = False
@@ -490,7 +491,6 @@ class NotebookMusic(Notebook):
                 'flip': result.details.options.flip,
                 'assist': result.details.options.assist,
                 'battle': result.details.options.battle,
-                'special': result.details.options.special,
             }
         else:
             options_value = None

@@ -27,7 +27,7 @@ class ResultValues():
         self.new = new
 
 class ResultOptions():
-    def __init__(self, arrange: str, flip: str, assist: str, battle: bool):
+    def __init__(self, arrange: str, flip: str, assist: str, battle: bool, allscratch: bool, regularspeed: bool):
         self.arrange: str = arrange
         '''配置オプション'''
 
@@ -40,8 +40,18 @@ class ResultOptions():
         self.battle: bool = battle
         '''DP時にBATTLEがON 両サイドがSP譜面になる'''
 
-        self.special: bool = (arrange is not None and 'H-RAN' in arrange) or self.battle
-        '''H-RAN or BATTLE'''
+        self.allscratch: bool = allscratch
+        '''鍵盤がスクラッチにアサインされる'''
+
+        self.regularspeed: bool = regularspeed
+        '''曲のbpmに影響されずにノーツの速度が固定化される'''
+
+        self.notrecord: bool = (arrange is not None and 'H-RAN' in arrange) or self.allscratch or self.regularspeed
+        '''記録しないリザルト
+
+        H-RAN, ALL-SCR, REGUL-SPEEDの少なくとも1つが含まれている。
+        プレイタイプがDP BATTLEの場合はこれがFalseの場合に記録をする。
+        '''
 
 class ResultDetails():
     def __init__(self, graphtype: str, options: ResultOptions, clear_type: ResultValues, dj_level: ResultValues, score: ResultValues, miss_count: ResultValues, graphtarget: str):

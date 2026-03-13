@@ -46,6 +46,33 @@ class Graphtypes():
     values: list[str] = [GAUGE, LANES, MEASURES]
     '''リザルトの表示グラフの種類のリスト'''
 
+class Options():
+    '''オプション'''
+
+    BATTLE: str = 'BATTLE'
+    '''両サイドがSP譜面になる DPモード限定 記録されなくなる'''
+
+    ALLSCRATCH: str = 'ALL-SCR'
+    '''鍵盤がスクラッチにアサインされる 配置オプションと併用できない 記録されなくなる'''
+
+    ARRANGES_SP: tuple[str] = ('RANDOM', 'R-RANDOM', 'S-RANDOM', 'MIRROR', 'H-RANDOM',)
+    '''SPの配置オプション群 H-RANDAMは記録されない'''
+
+    ARRANGES_DP: tuple[str] = ('OFF', 'RAN', 'R-RAN', 'S-RAN', 'MIR', 'H-RAN',)
+    '''DPの配置オプション群 左右別々に設定 H-RANを含むと記録されない'''
+
+    ARRANGES_DPBATTLE: tuple[str] = ('SYNC-RAN', 'SYMM-RAN',)
+    '''DP BATTLE限定の配置オプション群 左右一括設定'''
+
+    FLIPS: tuple[str] = ('FLIP',)
+    '''左右の譜面を入れ替える DP限定'''
+
+    ASSISTS: tuple[str] = ('A-SCR', 'LEGACY',)
+    '''使用するとASSIST CLEARになる'''
+
+    REGULARSPEED: str = 'REGUL-SPEED'
+    '''曲のbpmに影響されずにノーツの速度が固定になる 記録されなくなる'''
+
 class Define():
     width = 1920
     height = 1080
@@ -93,7 +120,7 @@ class Define():
 
     musictable_version = '1.2'
     informations_recognition_version = '4.1'
-    details_recognition_version = '3.1'
+    details_recognition_version = '3.2'
     musicselect_recognition_version = '2.3'
     notesradar_version = '1.1'
 

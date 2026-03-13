@@ -1,5 +1,6 @@
 from json import load,dump,loads,dumps
-from os.path import join,exists,basename
+from os import remove
+from os.path import join,exists,basename,isfile
 from glob import glob
 from PIL import Image
 from base64 import b64encode
@@ -7,7 +8,7 @@ from numpy import array,zeros,uint8
 from webui.webui import Window,Event,wait,clean
 
 import data_collection as dc
-from define import define,Playmodes,Graphtypes
+from define import define,Playmodes,Graphtypes,Options
 from general import get_imagevalue
 from recog import Recognition as recog
 
@@ -33,11 +34,11 @@ class GuiApi():
     @staticmethod
     def get_options(event: Event):
         event.return_string(dumps({
-            'arrange': define.value_list['options_arrange'],
-            'arrange_dp': define.value_list['options_arrange_dp'],
-            'arrange_sync': define.value_list['options_arrange_sync'],
-            'flip': define.value_list['options_flip'],
-            'assist': define.value_list['options_assist'],
+            'arrange': Options.ARRANGES_SP,
+            'arrange_dp': Options.ARRANGES_DP,
+            'arrange_sync': Options.ARRANGES_DPBATTLE,
+            'flip': Options.FLIPS,
+            'assist': Options.ASSISTS,
         }))
 
     @staticmethod
@@ -70,6 +71,7 @@ class GuiApi():
         window.bind('get_labels', self.get_labels)
         window.bind('get_recognitionresult', self.get_recognitionresult)
         window.bind('set_labels', self.set_labels)
+        window.bind('delete_keyandlabel', self.delete_keyandlabel)
     
     def get_collectionkeys(self, event: Event):
         conditions = loads(event.get_string_at(0))
@@ -165,6 +167,8 @@ class GuiApi():
             details = {
                 'graphtype': result.graphtype,
                 'optionbattle': result.options.battle if result.options is not None else None,
+                'optionallscratch': result.options.allscratch if result.options is not None else None,
+                'optionregularspeed': result.options.regularspeed if result.options is not None else None,
                 'optionarrange': result.options.arrange if result.options is not None else None,
                 'optionflip': result.options.flip if result.options is not None else None,
                 'optionassist': result.options.assist if result.options is not None else None,
@@ -190,6 +194,26 @@ class GuiApi():
 
         labels[key] = loads(event.get_string_at(1))
 
+        self.save_labels()
+    
+    def delete_keyandlabel(self, event: Event):
+        key = event.get_string_at(0)
+
+        if key in labels.keys():
+            del labels[key]
+            self.save_labels()
+        
+        filepath_informations = join(dc.informations_basepath, f'{key}.png')
+        if isfile(filepath_informations):
+            remove(filepath_informations)
+        
+        filepath_details = join(dc.details_basepath, f'{key}.png')
+        if isfile(filepath_details):
+            remove(filepath_details)
+
+        del images[key]
+
+    def save_labels(self):
         with open(dc.label_filepath, 'w') as f:
             dump(labels, f, indent=2)
     

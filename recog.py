@@ -6,7 +6,7 @@ logger_child_name = 'recog'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
-from define import define,Graphtypes
+from define import define,Graphtypes,Options
 from resources import resource
 from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,Result
 from screenshot import Screen
@@ -199,7 +199,7 @@ class Recognition():
             useoptiontrimmed = np_value[resource.details['define']['useoption']['trim'][playside]]
             useoptioncount = np.count_nonzero(useoptiontrimmed==resource.details['define']['useoption']['maskvalue'])
             if useoptioncount != resource.details['option']['useoption']:
-                return ResultOptions(None, None, None, False)
+                return ResultOptions(None, None, None, False, False, False)
 
             trimmed = np_value[resource.details['define']['option']['trim'][playside]]
             bins = np.where(trimmed>=resource.details['define']['option']['thresholdlower'], 1, 0)
@@ -219,17 +219,23 @@ class Recognition():
             flip = None
             assist = None
             battle = False
+            allscratch = False
+            regularspeed = False
             for v in values_splitted:
-                if v in define.value_list['options_arrange'] or '/' in v or v in define.value_list['options_arrange_sync']:
+                if v in Options.ARRANGES_SP or '/' in v or v in Options.ARRANGES_DPBATTLE:
                     arrange = v
-                if v in define.value_list['options_flip']:
+                if v in Options.FLIPS:
                     flip = v
-                if v in define.value_list['options_assist']:
+                if v in Options.ASSISTS:
                     assist = v
-                if v == 'BATTLE':
+                if v == Options.BATTLE:
                     battle = True
+                if v == Options.ALLSCRATCH:
+                    allscratch = True
+                if v == Options.REGULARSPEED:
+                    regularspeed = True
             
-            return ResultOptions(arrange, flip, assist, battle)
+            return ResultOptions(arrange, flip, assist, battle, allscratch, regularspeed)
 
         @staticmethod
         def get_graphtype(np_value):
