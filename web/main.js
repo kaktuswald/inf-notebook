@@ -403,8 +403,13 @@ async function initialize() {
 
   const versionresult = JSON.parse(await webui.check_latestversion());
   if(versionresult) {
-    $('div#findnewestversion_message').text(versionresult);
-    $('dialog#dialog_findnewestversion')[0].showModal();
+    if(versionresult.error) {
+      display_errormessage([versionresult.message]);
+    }
+    else {
+      $('div#findnewestversion_message').text(versionresult.message);
+      $('dialog#dialog_findnewestversion')[0].showModal();
+    }
   }
 
   const imagesavepathresult = JSON.parse(await webui.check_imagesavepath());

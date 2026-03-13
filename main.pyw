@@ -106,6 +106,7 @@ gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
 
 
+failed_to_get_latest_version_message = u'最新バージョンの取得に失敗しました。'
 find_latest_version_message_has_installer = u'インストーラを起動しますか？'
 find_latest_version_message_not_has_installer = u'リザルト手帳のページを開きますか？'
 
@@ -687,9 +688,19 @@ class GuiApi():
         '''
         message, action = check_latest_version()
 
-        self.findnewestversionaction = action
+        if message is not None:
+            self.findnewestversionaction = action
 
-        event.return_string(dumps(message))
+            ret = {
+                'message': message,
+                'error': action is None,
+            }
+        else:
+            self.findnewestversionaction = None
+
+            ret = None
+
+        event.return_string(dumps(ret))
     
     def upload_imagenothingimage(self, event: webui.Event):
         '''画像なし画像のアップロード
@@ -2349,7 +2360,17 @@ def upload_musicselect():
     socket_server.update_screenshot(decorded_data)
 
 def check_latest_version():
+    '''最新バージョンを確認する
+
+    最新バージョンが存在する場合は、該当するアクションを実行するかを確認する。
+    取得に失敗した場合はその旨のメッセージのみを返す。
+    Returns:
+        str: メッセージ
+        action: アクション
+    '''
     latest_version = get_latest_version()
+    if latest_version is None:
+        return failed_to_get_latest_version_message, None
 
     if not version_isold(version, latest_version):
         return None, None
@@ -2371,6 +2392,11 @@ def check_latest_version():
     return message, action
 
 def get_latest_version():
+    '''GitHubから最新バージョン値を取得する
+
+    Returns:
+        str: 最新バージョン値
+    '''
     try:
         with request.urlopen(latest_url) as response:
             response: HTTPResponse
