@@ -120,6 +120,8 @@ class Setting():
             self.json['hotkeys']['select_scoreinformation'] = default['hotkeys']['select_scoreinformation']
         if not 'select_scoregraph' in self.json['hotkeys'].keys():
             self.json['hotkeys']['select_scoregraph'] = default['hotkeys']['select_scoregraph']
+        if not 'upload_musicselect' in self.json['hotkeys'].keys():
+            self.json['hotkeys']['upload_musicselect'] = default['hotkeys']['upload_musicselect']
         if not 'filter_overlay' in self.json.keys():
             self.json['filter_overlay'] = default['filter_overlay']
         if not 'use' in self.json['filter_overlay'].keys():

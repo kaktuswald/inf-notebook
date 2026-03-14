@@ -132,6 +132,8 @@ def learning_levels():
             continue
         if 'nohasscoredata' in target.label.keys() and target.label['nohasscoredata']:
             continue
+        if not 'after260312' in target.label.keys() or not target.label['after260312']:
+            continue
 
         evaluate_targets[key] = target
 
@@ -156,9 +158,6 @@ def learning_levels():
             evaluate_musictable[musicname][playmode][str.upper(difficulty)] = level
 
     for difficulty in difficulties:
-        if 'nohasscoredata' in target.label.keys() and target.label['nohasscoredata']:
-            continue
-
         define_target = musicselect_define['levels']['select'][difficulty]
 
         trim = (
@@ -781,6 +780,8 @@ def learning_musicname():
             continue
         if not 'musicname' in target.label.keys() or target.label['musicname'] == "":
             continue
+        if not 'after260312' in target.label.keys() or not target.label['after260312']:
+            continue
 
         targets[target.label['musictype']][key] = target
         evaluate_targets[key] = target
@@ -888,6 +889,8 @@ def learning_version():
     for key, target in imagevalues.items():
         if not 'version' in target.label.keys() or not target.label['version'] in versions:
             continue
+        if not 'after260312' in target.label.keys() or not target.label['after260312']:
+            continue
         
         version = target.label['version']
         if not version in masktargets.keys():
@@ -900,6 +903,8 @@ def learning_version():
         keys[version] = []
     for key, target in imagevalues.items():
         if not 'version' in target.label.keys() or not target.label['version'] in versions:
+            continue
+        if not 'after260312' in target.label.keys() or not target.label['after260312']:
             continue
         
         value = target.label['version']
@@ -1012,7 +1017,7 @@ if __name__ == '__main__':
     if musicselect_define is None:
         exit()
 
-    musictable = load_resource_serialized(f'musictable{define.musictable_version}')
+    musictable = load_resource_serialized(f'musictable{define.musictable_version}', True)
 
     imagevalues = load_images(labels)
     

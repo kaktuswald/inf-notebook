@@ -420,11 +420,11 @@ class Recognition():
 
     class MusicSelect():
         DIFFICULTY_TRIMAREAS: dict[str, tuple[int, slice]] = {
-            'BEGINNER': (478, slice(161, 247)),
-            'NORMAL': (478, slice(319, 404)),
-            'HYPER': (478, slice(477, 562)),
-            'ANOTHER': (478, slice(635, 720)),
-            'LEGGENDARIA': (478, slice(793, 878)),
+            'BEGINNER': (478, slice(111, 197)),
+            'NORMAL': (478, slice(269, 354)),
+            'HYPER': (478, slice(427, 512)),
+            'ANOTHER': (478, slice(585, 670)),
+            'LEGGENDARIA': (478, slice(743, 828)),
         }
         DIFFICULTY_MASKVALUE: tuple[int] = (255, 255, 255)
 

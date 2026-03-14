@@ -118,7 +118,7 @@ async function onclick_keyitem(e) {
     $('select#select_musictype').val(label.musictype);
     $('input#text_musicname').val(label.musicname);
     $('select#select_difficulty').val(label.difficulty);
-    $('input#check_nohasscoredata').prop('checked', !label.nohasscoredata);
+    $('input#check_nohasscoredata').prop('checked', label.nohasscoredata);
     $('select#select_cleartype').val(label.cleartype);
     $('select#select_djlevel').val(label.djlevel);
     $('input#text_score').val(label.score);
@@ -148,6 +148,7 @@ async function onclick_keyitem(e) {
     $('select#select_levelanother').val(null);
     $('select#select_levelleggendaria').val(null);
     $('input#check_ignore').prop('checked', false);
+    $('input#check_after260312').prop('checked', true);
   }
 
   recognitionresult = JSON.parse(await webui.get_recognitionresult(targetkey));

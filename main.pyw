@@ -18,6 +18,7 @@ from webui import webui
 from hashlib import sha256
 from sys import exit
 from tkinter import Tk,filedialog
+from numpy import array
 
 from setting import Setting
 
@@ -114,6 +115,31 @@ base_url = 'https://github.com/kaktuswald/inf-notebook/'
 releases_url = urljoin(base_url, 'releases/')
 latest_url = urljoin(releases_url, 'latest')
 wiki_url = urljoin(base_url, 'wiki/')
+
+class MusicSelectUnknownMusicNameUploader():
+    '''曲名の認識が不明の選曲画面画像のアップローダ
+    '''
+    time: float | None = None
+    '''曲名の認識の不明を拾った時の時間'''
+    processed: bool = False
+    '''処理済み'''
+
+    def reset(self):
+        self.time = None
+        self.processed = None
+    
+    def evaluate(self):
+        if not setting.data_collection:
+            return False
+        
+        if self.time is not None:
+            if not self.processed and time.time() - self.time > 5.0:
+                self.processed = True
+                return True
+        else:
+            self.time = time.time()
+        
+        return False
 
 class ThreadCapture(Thread):
     handle: int = 0
@@ -279,9 +305,13 @@ class ThreadCapture(Thread):
             trimmed = screenshot.np_value[define.musicselect_trimarea_np]
             if recog.MusicSelect.get_version(trimmed) is not None:
                 try:
-                    self.queues['musicselect_screen'].put(trimmed, block=False)
+                    image = screenshot.get_image()
+                    self.queues['musicselect_screen'].put((image, trimmed,), block=False)
                 except Full as ex:
                     pass
+            else:
+                if setting.data_collection:
+                    musicselect_unknown_musicname_uploader.reset()
 
             return
 
@@ -1871,6 +1901,8 @@ class ScoreSelection():
         self.musicname = musicname
         self.difficulty = difficulty
 
+musicselect_unknown_musicname_uploader = MusicSelectUnknownMusicNameUploader()
+
 def mainloop():
     while not event_close.wait(timeout=1):
         if not newwindow.is_shown():
@@ -1878,7 +1910,7 @@ def mainloop():
         if not queue_result_screen.empty():
             result_process(queue_result_screen.get_nowait())
         if not queue_musicselect_screen.empty():
-            musicselect_process(queue_musicselect_screen.get_nowait())
+            musicselect_process(*queue_musicselect_screen.get_nowait())
         if not queue_messages.empty():
             queuemessage = queue_messages.get_nowait()
             if queuemessage in ['detect_loading', 'escape_loading']:
@@ -1996,11 +2028,12 @@ def result_process(screen: Screen):
                 ):
                     api.send_message('update_notesradar')
 
-def musicselect_process(np_value):
+def musicselect_process(image:Image.Image, np_value: array):
     '''選曲画面で譜面を認識したときの処理をする
 
     Args:
-        np_value (Screen): スクリーンショット画像データ
+        image (Image.Image): スクリーンショットが増
+        np_value (Screen): 選曲画面のトリミング済みの画像データ
     '''
     global scoreselection
 
@@ -2029,6 +2062,8 @@ def musicselect_process(np_value):
 
     musicname = recog.MusicSelect.get_musicname(np_value)
     if musicname is None or not musicname in resource.musictable['musics'].keys():
+        if setting.data_collection and musicselect_unknown_musicname_uploader.evaluate():
+            execute_upload_musicselect_image(image)
         return
     
     if scoreselection is not None:
@@ -2335,7 +2370,7 @@ def select_scoregraph():
 
 def upload_musicselect():
     '''
-    選曲画面の一部を学習用にアップロードする
+    選曲画面の収集画像のアップロードを実行する
     '''
     if not screenshot.shot():
         return
@@ -2347,9 +2382,7 @@ def upload_musicselect():
     if image is None:
         return
     
-    storage.start_uploadmusicselect(image)
-
-    api.send_message('append_log', f'upload screen')
+    execute_upload_musicselect_image(image)
 
     imagevalue = get_imagevalue(image)
 
@@ -2358,6 +2391,12 @@ def upload_musicselect():
 
     decorded_data = b64encode(imagevalue).decode('utf-8')
     socket_server.update_screenshot(decorded_data)
+
+def execute_upload_musicselect_image(image:Image.Image):
+    '''
+    選曲画面の一部を学習用にアップロードする
+    '''
+    storage.start_uploadmusicselect(image)
 
 def check_latest_version():
     '''最新バージョンを確認する
@@ -2584,7 +2623,7 @@ if __name__ == '__main__':
             'result_screen': queue_result_screen,
             'musicselect_screen': queue_musicselect_screen,
             'messages': queue_messages,
-            'multimessages': queue_multimessages
+            'multimessages': queue_multimessages,
         }
     )
 
