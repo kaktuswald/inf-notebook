@@ -1370,10 +1370,12 @@ class GuiApi():
                 uploaded_informations, uploaded_details = storage.start_uploadcollection(results_today[timestamp], images_result[timestamp], True)
                 if uploaded_informations and uploaded_details:
                     timestamps_uploaded.append(timestamp)
-                if uploaded_informations:
-                    api.send_message('append_log', f'upload informations collection: {timestamp}')
-                if uploaded_details:
-                    api.send_message('append_log', f'upload details collection: {timestamp}')
+                
+                if setting.debug:
+                    if uploaded_informations:
+                        api.send_message('append_log', f'upload informations collection: {timestamp}')
+                    if uploaded_details:
+                        api.send_message('append_log', f'upload details collection: {timestamp}')
 
     def delete_musicresult(self, event: webui.Event):
         '''指定した曲の記録データを全て削除する
@@ -1957,10 +1959,12 @@ def result_process(screen: Screen):
         uploaded_informations, uploaded_details = storage.start_uploadcollection(result, resultimage, force_upload_enable)
         if uploaded_informations and uploaded_details:
             timestamps_uploaded.append(result.timestamp)
-        if uploaded_informations:
-            api.send_message('append_log', f'upload informations collection: {result.timestamp}')
-        if uploaded_details:
-            api.send_message('append_log', f'upload details collection: {result.timestamp}')
+        
+        if setting.debug:
+            if uploaded_informations:
+                api.send_message('append_log', f'upload informations collection: {result.timestamp}')
+            if uploaded_details:
+                api.send_message('append_log', f'upload details collection: {result.timestamp}')
 
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
         if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
@@ -2397,6 +2401,8 @@ def execute_upload_musicselect_image(image:Image.Image):
     選曲画面の一部を学習用にアップロードする
     '''
     storage.start_uploadmusicselect(image)
+    if setting.debug:
+        api.send_message('append_log', 'upload musicselect collection.')
 
 def check_latest_version():
     '''最新バージョンを確認する
