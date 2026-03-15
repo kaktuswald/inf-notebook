@@ -1,18 +1,20 @@
 from sys import argv
 from os.path import exists
-from tkinter import Tk,StringVar,TOP,BOTTOM,LEFT,E,NORMAL,DISABLED
-from tkinter.ttk import Frame,Entry,Label,Button,Combobox
+from tkinter import Tk,BooleanVar,StringVar,TOP,BOTTOM,LEFT,E,NORMAL,DISABLED
+from tkinter.ttk import Frame,Entry,Label,Button,Combobox,Checkbutton
 from tkinter import filedialog
-from shutil import unpack_archive,copytree,rmtree
+from shutil import rmtree
 from threading import Thread
 from requests import get
-from urllib.request import HTTPError,urlretrieve
 from pathlib import WindowsPath
+from zipfile import ZipFile
+from io import BytesIO
+from subprocess import Popen
 
 from infnotebook import productname,exe_filename,icon_filename
 from appdata import LocalConfig
 
-version_installer: str = '1.0.0.0'
+version_installer: str = '2.0.0.0'
 
 version_filename: str = 'version.txt'
 '''バージョンファイル
@@ -22,6 +24,9 @@ version_filename: str = 'version.txt'
 '''
 
 url_releases: str = 'https://api.github.com/repos/kaktuswald/inf-notebook/releases'
+
+get_connectiontimeout = 5
+get_downloadtimeout = 60
 
 class InstallerWindow:
     def __init__(self, config: LocalConfig):
@@ -41,6 +46,7 @@ class InstallerWindow:
         self.add_frame_displays()
         self.add_frame_releases()
         self.add_frame_message()
+        self.add_frame_checkbutton()
         self.add_frame_buttons()
 
     def add_frame_displays(self):
@@ -94,13 +100,14 @@ class InstallerWindow:
             padding=5,
         ).pack(side=LEFT)
 
-        Combobox(
+        self.combobox_version = Combobox(
             self.frame_releases,
             values=[*self.releases.keys()],
             textvariable=self.var_selected_release,
             width=60,
             state='readonly',
-        ).pack(side=LEFT)
+        )
+        self.combobox_version.pack(side=LEFT)
         
         self.frame_releases.pack(side=TOP)
 
@@ -118,6 +125,22 @@ class InstallerWindow:
 
         frame.pack(side=TOP)
 
+    def add_frame_checkbutton(self):
+        frame = Frame(
+            self.root,
+            padding=20,
+        )
+
+        self.var_starttool = BooleanVar(value=True)
+
+        Checkbutton(
+            frame,
+            text='終了時にリザルト手帳を起動する',
+            variable=self.var_starttool,
+        ).pack(side=LEFT)
+
+        frame.pack(side=TOP)
+    
     def add_frame_buttons(self):
         frame = Frame(
             self.root,
@@ -182,6 +205,11 @@ class InstallerWindow:
             self.check_is_installed()
     
     def close(self):
+        if self.var_starttool.get():
+            exe_filepath = self.product_dirpath.joinpath(exe_filename)
+            if exe_filepath.exists():
+                Popen(exe_filepath)
+        
         self.root.destroy()
     
     def check_is_installed(self):
@@ -225,6 +253,7 @@ class InstallerWindow:
     
     def launch_install(self):
         self.button_select['state'] = DISABLED
+        self.combobox_version['state'] = DISABLED
         self.button_install['state'] = DISABLED
         self.button_close['state'] = DISABLED
 
@@ -232,14 +261,42 @@ class InstallerWindow:
     
     def install(self):
         downloadurl = self.releases[self.var_selected_release.get()]
+
+        zipdata: bytes | None = None
+
         self.var_message.set('ダウンロードしています...')
         try:
-            zip_filepath = WindowsPath(urlretrieve(downloadurl)[0])
-        except HTTPError as error:
-            self.var_message.set(f'ダウンロードに失敗しました。(Code: {error.code})')
-            self.button_close['state'] = NORMAL
-            return
+            buffer = BytesIO()
 
+            with get(downloadurl, stream=True, timeout=(get_connectiontimeout, get_downloadtimeout,)) as response:
+                response.raise_for_status()
+
+                total = int(response.headers.get('Content-Length', 0))
+                downloaded = 0
+
+                for chunk in response.iter_content(chunk_size=1024*1024):
+                    if not chunk:
+                        continue
+
+                    buffer.write(chunk)
+                    downloaded += len(chunk)
+
+                    percent = int(downloaded / total * 100) if total > 0 else None
+                    self.var_message.set(f'ダウンロードしています... {downloaded/1000000:,.1f} MB / {total/1000000:,.1f} MB ({percent} %)')
+                
+            if response.ok:
+                buffer.seek(0)
+                zipdata = buffer
+            else:
+                self.var_message.set(f'ダウンロードに失敗しました。({response.content})')
+
+        except Exception as e:
+            self.var_message.set(f'ダウンロードに失敗しました。({e})')
+            return
+        
+        if zipdata is None:
+            return
+        
         lib_dirpath = self.product_dirpath.joinpath('lib')
         if lib_dirpath.exists():
             self.var_message.set('不要なファイルを削除しています...')
@@ -250,37 +307,9 @@ class InstallerWindow:
                 self.button_close['state'] = NORMAL
                 return
 
-        temporary_filename = zip_filepath.name
-        unpackzip_dirpath = zip_filepath.parent.joinpath(f'{temporary_filename}_')
-        if unpackzip_dirpath.exists():
-            try:
-                rmtree(unpackzip_dirpath)
-            except Exception as ex:
-                self.var_message.set('一時ファイルの削除に失敗しました。')
-                self.button_close['state'] = NORMAL
-                return
-
-        try:
-            unpackzip_dirpath.mkdir()
-        except Exception as ex:
-            self.var_message.set('一時解凍先のフォルダの作成に失敗しました。')
-            self.button_close['state'] = NORMAL
-            return
-
-        self.var_message.set('圧縮ファイルを解凍しています...')
-        unpack_archive(zip_filepath, unpackzip_dirpath, 'zip')
-
-        self.var_message.set('圧縮ファイルをコピーしています...')
-        copytree(unpackzip_dirpath, self.target_dirpath, dirs_exist_ok=True)
-
-        self.var_message.set('一時ファイルを削除しています...')
-        try:
-            zip_filepath.unlink()
-            rmtree(unpackzip_dirpath)
-        except Exception as ex:
-            self.var_message.set('一時的ファイルの削除に失敗しました。')
-            self.button_close['state'] = NORMAL
-            return
+        self.var_message.set('圧縮ファイルを解凍・コピーしています...')
+        with ZipFile(zipdata) as z:
+            z.extractall(self.target_dirpath)
 
         self.var_message.set(f'バージョン {self.get_version()} のインストールが完了しました。')
 

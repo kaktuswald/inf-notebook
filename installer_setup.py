@@ -22,7 +22,7 @@ executables = (
     [
         Executable(
             'installer.py',
-            copyright='Copyright (C) 2024',
+            copyright='Copyright (C) 2024-2026',
             base=base,
             shortcut_name=u'リザルト手帳 インストーラ',
             shortcut_dir=u'リザルト手帳 インストーラ',
