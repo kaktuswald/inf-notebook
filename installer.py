@@ -208,7 +208,7 @@ class InstallerWindow:
         if self.var_starttool.get():
             exe_filepath = self.product_dirpath.joinpath(exe_filename)
             if exe_filepath.exists():
-                Popen(exe_filepath)
+                Popen([exe_filepath], cwd=exe_filepath.parent)
         
         self.root.destroy()
     
