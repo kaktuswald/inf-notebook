@@ -335,12 +335,14 @@ def learning_cleartype():
     table = {}
     evaluate_targets = {}
     for key, target in imagevalues.items():
-        if 'cleartype' in target.label.keys() and target.label['cleartype'] != "":
-            value = target.label['cleartype']
-            trimmed = target.np_value[trim]
-            uniques, counts = np.unique(trimmed, return_counts=True)
-            color = uniques[np.argmax(counts)]
-            table[color] = value
+        if not 'cleartype' in target.label.keys() or target.label['cleartype'] == "":
+            continue
+
+        value = target.label['cleartype']
+        trimmed = target.np_value[trim]
+        uniques, counts = np.unique(trimmed, return_counts=True)
+        color = uniques[np.argmax(counts)]
+        table[color] = value
 
         evaluate_targets[key] = target
     
@@ -351,20 +353,19 @@ def learning_cleartype():
         report.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
-        if 'cleartype' in target.label.keys() and target.label['cleartype'] != "":
-            trimmed = target.np_value[trim]
-            uniques, counts = np.unique(trimmed, return_counts=True)
-            color = uniques[np.argmax(counts)]
+        trimmed = target.np_value[trim]
+        uniques, counts = np.unique(trimmed, return_counts=True)
+        color = uniques[np.argmax(counts)]
 
-            result = None
-            if color in table.keys():
-                result = table[color]
-            
-            if target.label['cleartype'] == result:
-                report.through()
-            else:
-                report.saveimage_errorvalue(trimmed, f'{key}.png')
-                report.error(f'Mismatch {result} {key}')
+        result = None
+        if color in table.keys():
+            result = table[color]
+        
+        if target.label['cleartype'] == result:
+            report.through()
+        else:
+            report.saveimage_errorvalue(trimmed, f'{key}.png')
+            report.error(f'Mismatch {result} {key}')
 
     resource['cleartype'] = {
         'trim': trim,
@@ -391,11 +392,10 @@ def learning_djlevel():
         if not 'djlevel' in target.label.keys() or target.label['djlevel'] == "":
             continue
 
-        if 'djlevel' in target.label.keys() and target.label['djlevel'] != "":
-            value = target.label['djlevel']
-            trimmed = target.np_value[trim]
-            count = np.count_nonzero(trimmed==maskvalue)
-            table[count] = value
+        value = target.label['djlevel']
+        trimmed = target.np_value[trim]
+        count = np.count_nonzero(trimmed==maskvalue)
+        table[count] = value
 
         evaluate_targets[key] = target
     
@@ -406,19 +406,18 @@ def learning_djlevel():
         report.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
-        if 'dj_level' in target.label.keys() and target.label['djlevel'] != "":
-            trimmed = target.np_value[trim]
-            count = np.count_nonzero(trimmed==maskvalue)
+        trimmed = target.np_value[trim]
+        count = np.count_nonzero(trimmed==maskvalue)
 
-            result = None
-            if count in table.keys():
-                result = table[count]
-            
-            if target.label['djlevel'] == result:
-                report.through()
-            else:
-                report.saveimage_errorvalue(trimmed, f'{key}.png')
-                report.error(f'Mismatch {result} {key}({count})')
+        result = None
+        if count in table.keys():
+            result = table[count]
+        
+        if target.label['djlevel'] == result:
+            report.through()
+        else:
+            report.saveimage_errorvalue(trimmed, f'{key}.png')
+            report.error(f'Mismatch {result} {key}({count})')
 
     resource['djlevel'] = {
         'trim': trim,

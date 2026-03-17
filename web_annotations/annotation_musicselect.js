@@ -163,6 +163,7 @@ async function onclick_keyitem(e) {
     $('span#text_resultversion').text(recognitionresult.version);
     $('span#text_resultmusicname').text(recognitionresult.musicname);
     $('span#text_resultdifficulty').text(recognitionresult.difficulty);
+    $('span#text_hasscoredata').text(recognitionresult.hasscoredata ? 'あり' : 'なし');
     $('span#text_resultcleartype').text(recognitionresult.cleartype);
     $('span#text_resultdjlevel').text(recognitionresult.djlevel);
     $('span#text_resultscore').text(recognitionresult.score);
@@ -179,6 +180,7 @@ async function onclick_keyitem(e) {
     $('span#text_resultversion').empty();
     $('span#text_resultmusicname').empty();
     $('span#text_resultdifficulty').empty();
+    $('span#text_hasscoredata').empty();
     $('span#text_resultcleartype').empty();
     $('span#text_resultdjlevel').empty();
     $('span#text_resultscore').empty();
@@ -240,7 +242,7 @@ async function onclick_citationrecog(e) {
 
   $('input#text_musicname').val(recognitionresult.musicname);
   $('select#select_difficulty').val(recognitionresult.difficulty);
-  $('input#check_nohasscoredata').prop('checked', false);
+  $('input#check_nohasscoredata').prop('checked', !recognitionresult.hasscoredata);
   $('select#select_cleartype').val(recognitionresult.cleartype);
   $('select#select_djlevel').val(recognitionresult.djlevel);
   $('input#text_score').val(recognitionresult.score);

@@ -122,6 +122,7 @@ class GuiApi():
             'version': recog.MusicSelect.get_version(image_np),
             'musicname': recog.MusicSelect.get_musicname(image_np),
             'difficulty': recog.MusicSelect.get_difficulty(image_np),
+            'hasscoredata': recog.MusicSelect.get_hasscoredata(image_np),
             'cleartype': recog.MusicSelect.get_cleartype(image_np),
             'djlevel': recog.MusicSelect.get_djlevel(image_np),
             'score': recog.MusicSelect.get_score(image_np),
