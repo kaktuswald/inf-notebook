@@ -269,6 +269,8 @@ async function onclick_keyitem(e) {
   else {
     $('span#text_resultgraphtype').empty();
     $('span#text_resultoptionbattle').empty();
+    $('span#text_resultoptionallscratch').empty();
+    $('span#text_resultoptionregularspeed').empty();
     $('span#text_resultoptionarrange').empty();
     $('span#text_resultoptionflip').empty();
     $('span#text_resultoptionassist').empty();
