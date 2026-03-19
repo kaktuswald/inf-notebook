@@ -1971,7 +1971,14 @@ def result_process(screen: Screen):
             imagevalue_discordwebhook = get_imagevalue(stamp(resultimage, result.play_side))
             Thread(target=post_discord_webhooks, args=(result, imagevalue_discordwebhook)).start()
     
-    if setting.newrecord_only and not result.has_new_record():
+    notebook = None
+    if musicname is not None:
+        notebook = notebooks_music.get_notebook(musicname)
+
+    if notebook is not None:
+        result.battle_checknew(notebook.json)
+
+    if setting.newrecord_only and not result.has_newrecord:
         return
     
     saved = False
@@ -1998,32 +2005,22 @@ def result_process(screen: Screen):
         )
         filtered = True
 
-    notebook = None
-    if musicname is not None:
-        notebook = notebooks_music.get_notebook(musicname)
-
-    if notebook is not None:
-        if result.playtype == 'DP BATTLE':
-            notebook.check_new_of_battle(result)
-
     notebook_recent.append(result, saved, filtered)
     notebook_recent.save()
     socket_server.update_recents()
 
-    if not result.dead or result.has_new_record():
+    if not result.dead or result.has_newrecord:
         recent.insert(result)
 
     insert_results(result)
 
     if notebook is not None:
-        notebook.insert(result)
-        notebook_summary.import_targetmusic(musicname, notebook)
-        notebook_summary.save()
-
-        if result.has_new_record():
+        if notebook.insert(result):
+            notebook_summary.import_targetmusic(musicname, notebook)
+            notebook_summary.save()
             api.send_message('update_summary')
-
-            if playtype in Playmodes.values and result.details.score.new:
+            
+            if result.has_new and playtype in Playmodes.values and result.details.score.new:
                 if notesradar.insert(
                     playtype,
                     musicname,

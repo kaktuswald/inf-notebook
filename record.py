@@ -3,7 +3,6 @@ from os import remove,mkdir,rename
 from os.path import join,exists
 from logging import getLogger
 from copy import deepcopy
-from re import search
 
 logger_child_name = 'record'
 
@@ -76,6 +75,7 @@ class NotebookRecent(Notebook):
             option = None
         else:
             optionvalues = [
+                'ALL-SCR' if result.details.options.allscratch else None,
                 result.details.options.arrange,
                 result.details.options.flip,
                 result.details.options.assist
@@ -133,6 +133,7 @@ class NotebookMusic(Notebook):
     achievement_default = {
         'fixed': {'clear_type': None, 'dj_level': None},
         'S-RANDOM': {'clear_type': None, 'dj_level': None},
+        'ALL-SCR': {'clear_type': None, 'dj_level': None},
     }
 
     def __init__(self, musicname: str):
@@ -231,81 +232,8 @@ class NotebookMusic(Notebook):
             'playspeed': result.informations.playspeed,
         }
 
-    def check_new_of_battle(self, result: Result):
-        '''更新の有無をチェックする
-
-        オプションにBATTLEを含む場合はNewアイコンが出ないため、独自に評価する。
-        ただし配置オプションにH-RANが含まれている場合は評価しない。
-        ALL-SCRが使用されている場合やREGUL-SPEEDが使用されている場合も票かしない。
-        等倍以外のプレイ時も評価しない。
-
-        Args:
-            result(Result): 対象のリザルト
-        '''
-        if result.informations.playspeed is not None:
-            return
-        if result.details.options.notrecord:
-            return
-
-        update_all = False
-        if not 'DP BATTLE' in self.json.keys():
-            update_all = True
-        else:
-            target = self.json['DP BATTLE']
-
-        if not update_all:
-            if not result.informations.difficulty in target.keys():
-                update_all = True
-            else:
-                target = target[result.informations.difficulty]
-
-        if not update_all:
-            if not 'best' in target.keys():
-                update_all = True
-            else:
-                target = target['best']
-
-        targets = {
-            'clear_type': result.details.clear_type,
-            'dj_level': result.details.dj_level,
-            'score': result.details.score,
-            'miss_count': result.details.miss_count,
-        }
-        for key, value in targets.items():
-            if value.current is None:
-                continue
-
-            update = update_all
-
-            if not update and not key in target.keys():
-                update = True
-
-            if not update and target[key]['value'] is None:
-                update = True
-            
-            if not update:
-                if key in ['clear_type', 'dj_level']:
-                    if key == 'clear_type':
-                        value_list = define.value_list['clear_types']
-                    if key == 'dj_level':
-                        value_list = define.value_list['dj_levels']
-                    
-                    nowbest_index = value_list.index(target[key]['value'])
-                    current_index = value_list.index(value.current)
-                    if nowbest_index < current_index:
-                        update = True
-                
-                if key in ['score', 'miss_count']:
-                    if value.current > target[key]['value']:
-                        update = True
-
-            if update:
-                value.new = True
-
     def update_best_result(self, target: dict[int | dict[str, dict | list]], result: Result, options: dict[str, str | bool | None]):
         '''ベスト記録を更新する
-
-        BATTLEの場合はゲームに記録が残らず「New」アイコンが出なため独自に更新の有無を評価する。
 
         Args:
             target(dict): 対象の記録テーブル
@@ -326,9 +254,10 @@ class NotebookMusic(Notebook):
             'score': result.details.score,
             'miss_count': result.details.miss_count,
         }
+
         updated = False
         for key, value in targets.items():
-            if value.new:
+            if value.new or (result.originalnews is not None and result.originalnews[key]):
                 target['best'][key] = {
                     'value': value.current,
                     'timestamp': result.timestamp,
@@ -346,7 +275,7 @@ class NotebookMusic(Notebook):
         
         return updated
 
-    def generate_achievement_from_histories(self, target):
+    def generate_achievement_from_histories(self, target: json):
         '''達成記録を過去の記録データから作成する
 
         理論値を記録していたら MAX と記録する
@@ -357,9 +286,12 @@ class NotebookMusic(Notebook):
         target['achievement'] = deepcopy(self.achievement_default)
         achievement = target['achievement']
 
+        if not 'timestamps' in target.keys():
+            return
+        
         targetkeys = {
             'clear_type': define.value_list['clear_types'],
-            'dj_level': define.value_list['dj_levels']
+            'dj_level': define.value_list['dj_levels'],
         }
         for timestamp in target['timestamps']:
             record = target['history'][timestamp]
@@ -368,10 +300,14 @@ class NotebookMusic(Notebook):
                 continue
 
             achievement_key = None
-            if record['options']['arrange'] in (None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR',):
-                achievement_key = 'fixed'
-            if record['options']['arrange'] in ('S-RANDOM', 'S-RAN/S-RAN',):
-                achievement_key = 'S-RANDOM'
+            if not record['options']['allscratch']:
+                if record['options']['arrange'] in (None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR',):
+                    achievement_key = 'fixed'
+                if record['options']['arrange'] in ('S-RANDOM', 'S-RAN/S-RAN',):
+                    achievement_key = 'S-RANDOM'
+            else:
+                achievement_key = 'ALL-SCR'
+            
             if achievement_key is None:
                 continue
 
@@ -400,76 +336,18 @@ class NotebookMusic(Notebook):
         
         achievement['fromhistoriesgenerate_lastversion'] = version
         
-    def update_achievement(self, target: dict[int | dict[str, dict | list]], result: Result) -> bool:
-        '''達成記録を更新する
-
-        Args:
-            target (dict): 記録の対象部分
-            result (Result): 対象のリザルト
-        
-        Returns:
-            bool: 更新があった
-        '''
-        if not 'achievement' in target.keys():
-            target['achievement'] = deepcopy(self.achievement_default)
-        achievement = target['achievement']
-        
-        informations = result.informations
-        details = result.details
-
-        if details.options is None:
-            return False
-
-        arrange = details.options.arrange
-
-        achievement_key = None
-        if arrange in [None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR']:
-            achievement_key = 'fixed'
-        if arrange in ['S-RANDOM', 'S-RAN/S-RAN']:
-            achievement_key = 'S-RANDOM'
-
-        if achievement_key is None:
-            return False
-        
-        updated = False
-
-        if not 'MAX' in achievement[achievement_key].keys():
-            if informations is not None and informations.notes is not None and details.score.current == informations.notes * 2:
-                achievement[achievement_key]['MAX'] = True
-                updated = True
-
-        if not 'F-COMBO & AAA' in achievement[achievement_key].keys():
-            if details.clear_type.current == 'F-COMBO' and details.dj_level.current == 'AAA':
-                achievement[achievement_key]['F-COMBO & AAA'] = True
-                updated = True
-
-        results = [
-            ('clear_type', define.value_list['clear_types'], details.clear_type.current),
-            ('dj_level', define.value_list['dj_levels'], details.dj_level.current)
-        ]
-        for key, valuelist, value in results:
-            is_updated = achievement[achievement_key][key] is None
-            if not is_updated:
-                index_current = valuelist.index(value)
-                index_recorded = valuelist.index(achievement[achievement_key][key]) if achievement[achievement_key][key] is not None else None
-                if index_recorded is not None and index_current > index_recorded:
-                    is_updated = True
-            if is_updated:
-                achievement[achievement_key][key] = value
-                updated = True
-        
-        return updated
-
-    def insert(self, result: Result):
+    def insert(self, result: Result) -> bool | None:
         '''対象のリザルトを記録に追加する
 
         Args:
             result (Result): 追加対象のリザルト
+        Returns:
+            (bool): 更新がある
         '''
         if result.playtype is None:
-            return
+            return None
         if result.informations.notes is None:
-            return
+            return None
         
         target = self.json
 
@@ -491,24 +369,31 @@ class NotebookMusic(Notebook):
                 'flip': result.details.options.flip,
                 'assist': result.details.options.assist,
                 'battle': result.details.options.battle,
+                'allscratch': result.details.options.allscratch,
+                'regularspeed': result.details.options.regularspeed,
             }
         else:
             options_value = None
 
         updated = False
-        if not result.dead or result.has_new_record():
+        if not result.dead or result.has_newrecord:
             self.insert_latest(target, result, options_value)
             self.insert_history(target, result, options_value)
             updated = True
 
-        if self.update_best_result(target, result, options_value):
-            updated = True
-        
-        if self.update_achievement(target, result):
-            updated = True
+        if result.informations is not None and result.informations.playspeed is None:
+            if result.details is not None and result.details.options is not None:
+                if self.update_best_result(target, result, options_value):
+                    updated = True
+
+                if result.details.options.record_achievements:
+                    self.generate_achievement_from_histories(target)
+                    updated = True
 
         if updated:
             self.save()
+        
+        return updated
     
     def update_best_musicselect(self, values: dict):
         '''選曲画面から取り込んだ認識結果からベスト記録を更新する

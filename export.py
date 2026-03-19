@@ -102,7 +102,7 @@ class Recent():
             'timestamp': result.timestamp,
             'difficulty': result.informations.difficulty,
             'music': result.informations.music,
-            'new': result.has_new_record(),
+            'new': result.has_newrecord,
             'score': score,
             'misscount': misscount,
             'updated_score': score_update,

@@ -1,7 +1,7 @@
 from datetime import datetime
 from logging import getLogger
 
-from define import Playmodes,Playtypes
+from define import Playmodes,Playtypes,define
 
 logger_child_name = 'result'
 
@@ -27,31 +27,48 @@ class ResultValues():
         self.new = new
 
 class ResultOptions():
+    arrange: str | None = None
+    '''配置オプション'''
+
+    flip: str | None = None
+    '''DPオンリー 左右の譜面が入れ替わる'''
+
+    assist: str | None = None
+    '''A-SCR or LEGACY'''
+
+    battle: bool | None = None
+    '''DP時にBATTLEがON 両サイドがSP譜面になる'''
+
+    allscratch: bool | None = None
+    '''鍵盤がスクラッチにアサインされる'''
+
+    regularspeed: bool | None = None
+    '''曲のbpmに影響されずにノーツの速度が固定化される'''
+
+    notrecord: bool | None = None
+    '''記録しないリザルト 配置にH-RANを含む ALL-SCR REGUL-SPEED'''
+
+    record_achievements: bool | None = None
+    '''実績を記録する REGUL-SPEEDを使用しておらず、固定配置系かS-RANDAMかALL-SCRか'''
+
     def __init__(self, arrange: str, flip: str, assist: str, battle: bool, allscratch: bool, regularspeed: bool):
-        self.arrange: str = arrange
-        '''配置オプション'''
+        self.arrange = arrange
+        self.flip = flip
+        self.assist = assist
+        self.battle = battle
+        self.allscratch = allscratch
+        self.regularspeed = regularspeed
 
-        self.flip: str = flip
-        '''DPオンリー 左右の譜面が入れ替わる'''
+        self.notrecord = (arrange is not None and 'H-RAN' in arrange) or self.allscratch or self.regularspeed
 
-        self.assist: str = assist
-        '''A-SCR or LEGACY'''
-
-        self.battle: bool = battle
-        '''DP時にBATTLEがON 両サイドがSP譜面になる'''
-
-        self.allscratch: bool = allscratch
-        '''鍵盤がスクラッチにアサインされる'''
-
-        self.regularspeed: bool = regularspeed
-        '''曲のbpmに影響されずにノーツの速度が固定化される'''
-
-        self.notrecord: bool = (arrange is not None and 'H-RAN' in arrange) or self.allscratch or self.regularspeed
-        '''記録しないリザルト
-
-        H-RAN, ALL-SCR, REGUL-SPEEDの少なくとも1つが含まれている。
-        プレイタイプがDP BATTLEの場合はこれがFalseの場合に記録をする。
-        '''
+        if (arrange is None or not 'H-RAN' in arrange) and not self.regularspeed:
+            if not self.allscratch:
+                if arrange in (None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR',):
+                    self.record_achievements = True
+                if arrange in ('S-RANDOM', 'S-RAN/S-RAN',):
+                    self.record_achievements = True
+            else:
+                self.record_achievements = True
 
 class ResultDetails():
     def __init__(self, graphtype: str, options: ResultOptions, clear_type: ResultValues, dj_level: ResultValues, score: ResultValues, miss_count: ResultValues, graphtarget: str):
@@ -64,6 +81,13 @@ class ResultDetails():
         self.graphtarget = graphtarget
 
 class Result():
+    has_new: bool | None = None
+    '''NEWアイコンがある'''
+    has_new_original: bool | None = None
+    '''プレイ履歴と比較した結果更新がある'''
+    originalnews: dict[str | bool] = None
+    '''BATTLEやALL-SCRのときの更新状況'''
+
     def __init__(self, play_side: str, rival: bool, dead: bool, informations: ResultInformations | None, details: ResultDetails | None):
         self.play_side: str = play_side
         self.rival: bool = rival
@@ -74,8 +98,16 @@ class Result():
 
         self.set_playtype()
 
+        self.check_new()
+
         now = datetime.now()
         self.timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
+    
+    @property
+    def has_newrecord(self):
+        '''更新がある
+        '''
+        return self.has_new or self.has_new_original
     
     def set_playtype(self):
         '''プレイの種類をセットする
@@ -105,13 +137,91 @@ class Result():
         else:
             self.playtype = Playtypes.DPBATTLE
         
-    def has_new_record(self):
-        return any([
+    def check_new(self):
+        if self.details is None:
+            return
+        
+        self.has_new = any([
             self.details.clear_type is not None and self.details.clear_type.new,
             self.details.dj_level is not None and self.details.dj_level.new,
             self.details.score is not None and self.details.score.new,
-            self.details.miss_count is not None and self.details.miss_count.new
+            self.details.miss_count is not None and self.details.miss_count.new,
         ])
+    
+    def battle_checknew(self, record: dict):
+        if self.informations is None or self.details is None:
+            return
+        
+        if self.informations.difficulty is None:
+            return
+
+        if self.informations.playspeed is not None:
+            return
+        
+        if self.details.options is None:
+            return
+        
+        if self.details.options.notrecord:
+            return
+
+        if not self.details.options.battle:
+            return
+        
+        self.originalnews = {}
+
+        update_all = False
+        if not self.playtype in record.keys():
+            update_all = True
+        else:
+            difficulty = self.informations.difficulty
+        
+            if record[self.playtype] is None or not difficulty in record[self.playtype].keys():
+                update_all = True
+            else:
+                if record[self.playtype][difficulty] is None or not 'best' in record[self.playtype][difficulty].keys():
+                    update_all = True
+                else:
+                    update_all = record[self.playtype][difficulty]['best'] is None
+
+        if not update_all:
+            bests = record[self.playtype][difficulty]['best']
+        
+        targets = {
+            'clear_type': self.details.clear_type,
+            'dj_level': self.details.dj_level,
+            'score': self.details.score,
+            'miss_count': self.details.miss_count,
+        }
+
+        for key, value in targets.items():
+            if value.current is None:
+                continue
+
+            if update_all:
+                update = True
+            else:
+                if not key in bests.keys() or bests[key]['value'] is None:
+                    update = True
+                else:
+                    if key in ['clear_type', 'dj_level']:
+                        if key == 'clear_type':
+                            value_list = define.value_list['clear_types']
+                        if key == 'dj_level':
+                            value_list = define.value_list['dj_levels']
+                        
+                        nowbest_index = value_list.index(bests[key]['value'])
+                        current_index = value_list.index(value.current)
+                        if nowbest_index < current_index:
+                            update = True
+                    
+                    if key in ['score', 'miss_count']:
+                        if value.current > bests[key]['value']:
+                            update = True
+
+            self.originalnews[key] = update
+
+            if update:
+                self.has_new_original = True
 
 class RecentResult():
     class NewFlags():

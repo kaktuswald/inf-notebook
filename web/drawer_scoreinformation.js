@@ -64,6 +64,12 @@ class DrawerScoreinformation {
       'clear_type': {'x': 640, 'y': 680},
       'dj_level': {'x': 730, 'y': 680},
     },
+    'ALL-SCR': {
+      'label': {'text': 'ALL-SCR', 'x': 1020, 'y': 640, 'special': true},
+      'max and fcomboandaaa': {'x': 1020, 'y': 680},
+      'clear_type': {'x': 1040, 'y': 680},
+      'dj_level': {'x': 1130, 'y': 680},
+    },
   };
 
   static drawtextargs_musicname = {
@@ -255,50 +261,60 @@ class DrawerScoreinformation {
         DrawerScoreinformation.drawtextargs_basic,
       );
 
+      const drawtextargs_special = {
+        'textcolor': DrawerScoreinformation.textcolor,
+        'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
+        'fontsize': DrawerScoreinformation.fontsize_small,
+      };
+    
       Object.keys(DrawerScoreinformation.achievementkeys).forEach(key => {
         if(!values.achievement.hasOwnProperty(key) || values.achievement[key] == null) return;
 
         ctx.font = `${DrawerScoreinformation.fontsize_small}px ${this.fontfamily}`;
 
+        let drawtextargs_text = DrawerScoreinformation.drawtextargs_small;
+        if(DrawerScoreinformation.achievementkeys[key].label.special)
+          drawtextargs_text = drawtextargs_special;
+        
         this.drawtext_center(
           ctx,
           DrawerScoreinformation.achievementkeys[key].label.text,
           DrawerScoreinformation.achievementkeys[key].label.x,
           DrawerScoreinformation.achievementkeys[key].label.y,
-          DrawerScoreinformation.drawtextargs_small,
+          drawtextargs_text,
         );
 
         if(values.achievement[key]['MAX']) {
-          const drawtextargs = {
-            'textcolor': DrawerScoreinformation.textcolor,
-            'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
-            'fontsize': DrawerScoreinformation.fontsize_small,
-          };
+          // const drawtextargs = {
+          //   'textcolor': DrawerScoreinformation.textcolor,
+          //   'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
+          //   'fontsize': DrawerScoreinformation.fontsize_small,
+          // };
         
           this.drawtext_center(
             ctx,
             'MAX',
             DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].x,
             DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].y,
-            drawtextargs,
+            drawtextargs_special,
           );
   
           return;
         }
         
         if(values.achievement[key]['F-COMBO & AAA']) {
-          const drawtextargs = {
-            'textcolor': DrawerScoreinformation.textcolor,
-            'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
-            'fontsize': DrawerScoreinformation.fontsize_small,
-          };
+          // const drawtextargs = {
+          //   'textcolor': DrawerScoreinformation.textcolor,
+          //   'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
+          //   'fontsize': DrawerScoreinformation.fontsize_small,
+          // };
         
           this.drawtext_center(
             ctx,
             'F-COMBO & AAA',
             DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].x,
             DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].y,
-            drawtextargs,
+            drawtextargs_special,
           );
   
           return;

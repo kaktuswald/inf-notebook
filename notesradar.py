@@ -106,6 +106,8 @@ class NotesRadar():
                         continue
                     if not 'best' in summary[musicname][playmode][difficulty].keys():
                         continue
+                    if summary[musicname][playmode][difficulty]['best'] is None:
+                        continue
                     if not 'score' in summary[musicname][playmode][difficulty]['best'].keys():
                         continue
                     if summary[musicname][playmode][difficulty]['best']['score'] is None:
