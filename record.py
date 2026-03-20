@@ -301,13 +301,13 @@ class NotebookMusic(Notebook):
                 continue
 
             achievement_key = None
-            if not record['options']['allscratch']:
+            if 'allscratch' in record['options'].keys() and record['options']['allscratch']:
+                achievement_key = 'ALL-SCR'
+            else:
                 if record['options']['arrange'] in (None, 'MIRROR', 'OFF/MIR', 'MIR/OFF', 'MIR/MIR',):
                     achievement_key = 'fixed'
                 if record['options']['arrange'] in ('S-RANDOM', 'S-RAN/S-RAN',):
                     achievement_key = 'S-RANDOM'
-            else:
-                achievement_key = 'ALL-SCR'
             
             if achievement_key is None:
                 continue
