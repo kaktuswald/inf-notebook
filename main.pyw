@@ -106,7 +106,6 @@ allimport_version_threshold = '0.20.dev1'    # 全曲の記録のインポート
 gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
 
-
 failed_to_get_latest_version_message = u'最新バージョンの取得に失敗しました。'
 find_latest_version_message_has_installer = u'インストーラを起動しますか？'
 find_latest_version_message_not_has_installer = u'リザルト手帳のページを開きますか？'
