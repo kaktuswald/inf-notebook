@@ -78,7 +78,8 @@ class NotebookRecent(Notebook):
                 'ALL-SCR' if result.details.options.allscratch else None,
                 result.details.options.arrange,
                 result.details.options.flip,
-                result.details.options.assist
+                result.details.options.assist,
+                'REGUL-SPEED' if result.details.options.regularspeed else None,
             ]
             option = ','.join([v for v in optionvalues if v is not None])
         
