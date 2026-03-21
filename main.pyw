@@ -4,6 +4,7 @@ from threading import Thread,Event
 from queue import Queue,Full
 import webbrowser
 import logging
+import requests
 from urllib import request
 from datetime import datetime,timezone,timedelta
 from PIL import Image
@@ -2420,8 +2421,10 @@ def check_latest_version():
     config = LocalConfig()
     if config.installer_filepath is not None:
         if config.installer_filepath.exists():
+            filepath = config.installer_filepath
+            cwd = filepath.parent
             def action():
-                Popen(config.installer_filepath)
+                Popen([filepath], cwd=cwd)
                 newwindow.close()
             message = find_latest_version_message_has_installer
     
@@ -2439,10 +2442,10 @@ def get_latest_version():
         str: 最新バージョン値
     '''
     try:
-        with request.urlopen(latest_url) as response:
-            response: HTTPResponse
-            url = response.geturl()
-            version = url.split('/')[-1]
+        with requests.get(latest_url, timeout=(5, 10)) as response:
+            response.raise_for_status()
+            
+            version = response.url.split('/')[-1]
             api.send_message('append_log', f'released latest version: {version}')
             if version[0] == 'v':
                 return version.removeprefix('v')

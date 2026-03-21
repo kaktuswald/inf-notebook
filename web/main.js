@@ -401,14 +401,16 @@ async function initialize() {
 
   await set_recentnotebook_results(false);
 
-  const versionresult = JSON.parse(await webui.check_latestversion());
-  if(versionresult) {
-    if(versionresult.error) {
-      display_errormessage([versionresult.message]);
-    }
-    else {
-      $('div#findnewestversion_message').text(versionresult.message);
-      $('dialog#dialog_findnewestversion')[0].showModal();
+  if(version != '0.0.0.0') {
+    const versionresult = JSON.parse(await webui.check_latestversion());
+    if(versionresult) {
+      if(versionresult.error) {
+        display_errormessage([versionresult.message]);
+      }
+      else {
+        $('div#findnewestversion_message').text(versionresult.message);
+        $('dialog#dialog_findnewestversion')[0].showModal();
+      }
     }
   }
 
