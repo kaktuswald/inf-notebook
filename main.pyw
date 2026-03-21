@@ -311,7 +311,8 @@ class ThreadCapture(Thread):
                     pass
             else:
                 if setting.data_collection:
-                    musicselect_unknown_musicname_uploader.reset()
+                    if recog.MusicSelect.get_hasscoredata():
+                        musicselect_unknown_musicname_uploader.reset()
 
             return
 
