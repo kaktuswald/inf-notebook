@@ -541,6 +541,9 @@ class NotebookSummary(Notebook):
             musicname (str): 曲名
             notebook (NotebookMusic): 対象曲の記録
         '''
+        if not musicname in resource.musictable['musics'].keys():
+            return
+        
         if not 'musics' in self.json.keys():
             self.json['musics'] = {}
 
