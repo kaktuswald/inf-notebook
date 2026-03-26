@@ -5,12 +5,10 @@ from queue import Queue,Full
 import webbrowser
 import logging
 import requests
-from urllib import request
 from datetime import datetime,timezone,timedelta
 from PIL import Image
 from urllib.parse import urljoin
 from subprocess import Popen
-from http.client import HTTPResponse
 from os.path import abspath,isfile,isdir,dirname
 from json import dump,dumps,load,loads
 from uuid import uuid1
