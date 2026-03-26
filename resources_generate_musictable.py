@@ -420,6 +420,7 @@ def generate_musictable():
     filename = f'musictable{define.musictable_version}.res'
     save_resource_serialized(filename, table, True)
 
+    report.output_json(table, 'result.json')
     report.report()
 
 if __name__ == '__main__':

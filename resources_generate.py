@@ -6,6 +6,7 @@ from os.path import join,exists,isfile
 from shutil import rmtree
 from PIL import Image
 from glob import glob
+from json import dump
 
 from raw_image import raws_basepath
 from resources import resources_dirname
@@ -84,6 +85,16 @@ class Report():
             print('\n'.join(self.log_error[:error_output_count]))
             text_endspecial()
         print()
+    
+    def output_json(self, data: dict, filename: str, indent: int = 2):
+        filepath = join(self.report_dirpath, filename)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            dump(data, f, indent=indent)
+
+    def output_list(self, data: dict, filename: str):
+        filepath = join(self.report_dirpath, filename)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(data))
 
 class RawData():
     def __init__(self, np_value, label):

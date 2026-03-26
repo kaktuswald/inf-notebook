@@ -17,7 +17,7 @@ for playmode in Playmodes.values:
     for attribute in define.value_list['notesradar_attributes']:
         filenames[playmode][attribute] = join(radardata_dirpath, f'{playmode} {attribute}.csv')
 
-ignore_filepath = join(registries_dirname, 'notesradar_ignore.json')
+differentcharts_filepath = join(registries_dirname, 'different_chart.json')
 convertmusicnames_filepath = join(registries_dirname, 'notesradar_convertmusicnames.json')
 
 report_name = 'notesradar'
@@ -44,7 +44,7 @@ def import_csv():
 
     return csv
 
-def output_attributevalues(resource: dict, output_dirpath: str):
+def output_attributevalues(resource: dict):
     for playmode, targets1 in resource.items():
         for attribute, targets2 in targets1['attributes'].items():
             output = []
@@ -55,13 +55,11 @@ def output_attributevalues(resource: dict, output_dirpath: str):
                 value = resource[playmode]['musics'][musicname][difficulty]['radars'][attribute]
                 output.append(f'{float(value):>6.2f}: {musicname}({difficulty})')
                 
-            filename = f'{playmode}_{attribute}.txt'
-            filepath = join(output_dirpath, filename)
+            filename = f'sorted_{playmode}_{attribute}.txt'
 
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(output))
+            report.output_list(output, filename)
 
-def output_not_in_notesradar(added: dict, musics: dict, ignore: dict, output_dirpath: str):
+def output_not_in_notesradar(added: dict, musics: dict, ignore: dict):
     if exists(infinitasonlymusics_filepath):
         with open(infinitasonlymusics_filepath, 'r', encoding='utf-8') as f:
             infinitas_only_musics = [v for v in f.read().split('\n') if v != '']
@@ -89,15 +87,14 @@ def output_not_in_notesradar(added: dict, musics: dict, ignore: dict, output_dir
                     if musicname in ignore.keys() and not difficulty in ignore[musicname][playmode]:
                         output.append(f'{musicname} {playmode} {difficulty}')
 
-    not_in_notesradar_music_filepath = join(output_dirpath, 'not_in_notesradar.csv')
-    with open(not_in_notesradar_music_filepath, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(output))
+    report.output_list(output, 'not_in_notesradar.txt')
+
+    if len(output):
+        report.error(f'not in notesradar count: {len(output)}')
 
 def generate(musics, csv):
-    report = Report(report_name)
-
-    if exists(ignore_filepath):
-        with open(ignore_filepath, 'r', encoding='utf-8') as f:
+    if exists(differentcharts_filepath):
+        with open(differentcharts_filepath, 'r', encoding='utf-8') as f:
             ignore = json.load(f)
     else:
         ignore = {}
@@ -113,12 +110,11 @@ def generate(musics, csv):
     added = {}
     mismatch_notes = {}
 
-    nas = [music for music in musics if 'n/a' in music]
-
     for playmode in csv.keys():
         resource[playmode] = {'musics': {}, 'attributes': {}}
         mismatch_notes[playmode] = {}
 
+        ignores = []
         notesradar_musics = resource[playmode]['musics']
         for attribute in csv[playmode].keys():
             resource[playmode]['attributes'][attribute] = []
@@ -144,7 +140,7 @@ def generate(musics, csv):
                 if musicname in ignore.keys():
                     if playmode in ignore[musicname].keys():
                         if difficulty in ignore[musicname][playmode]:
-                            report.append_log(f'Ignore {playmode} {musicname} {difficulty} {attribute}')
+                            ignores.append(f'Ignore {playmode} {musicname} {difficulty} {attribute}')
                             continue
 
                 if not musicname in notesradar_musics.keys():
@@ -187,16 +183,19 @@ def generate(musics, csv):
 
     for playmode in mismatch_notes.keys():
         if len(mismatch_notes[playmode]):
-            report.append_log(f'Mismatch notes count: {playmode} {len(mismatch_notes[playmode])}')
+            report.error(f'Mismatch notes count: {playmode} {len(mismatch_notes[playmode])}')
             for musicname in mismatch_notes[playmode].keys():
                 for difficulty, value in mismatch_notes[playmode][musicname].items():
                     report.append_log(f'  {musicname}({difficulty}): {value}')
 
-    report.report()
-
-    output_attributevalues(resource, report.report_dirpath)
     
-    output_not_in_notesradar(added, musics, ignore, report.report_dirpath)
+    report.output_json(resource, 'result.json')
+
+    output_attributevalues(resource)
+    
+    output_not_in_notesradar(added, musics, ignore)
+
+    report.output_list(ignores, 'ignores.txt')
 
     return resource
 
@@ -208,4 +207,8 @@ def generate_notesradar():
     save_resource_serialized(resource_filename, data, True)
 
 if __name__ == '__main__':
+    report = Report(report_name)
+
     generate_notesradar()
+
+    report.report()
