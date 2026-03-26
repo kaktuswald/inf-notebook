@@ -16,6 +16,9 @@ $(function() {
   $('input#check_onlyignore').on('change', display_keytable);
   $('input#text_musicnamefilter').on('input', display_keytable);
   $('input#text_keyfilter').on('input', display_keytable);
+
+  $('input#text_musicnamefilter').on('click', onclick_filter);
+  $('input#text_keyfilter').on('click', onclick_filter);
 });
 
 /**
@@ -252,6 +255,10 @@ async function onclick_citationrecog(e) {
   $('select#select_levelhyper').val(recognitionresult.levels.HYPER);
   $('select#select_levelanother').val(recognitionresult.levels.ANOTHER);
   $('select#select_levelleggendaria').val(recognitionresult.levels.LEGGENDARIA);
+
+  $('input#text_musicname')
+    .focus()
+    .select();
 }
 
 /**
@@ -264,6 +271,14 @@ async function onclick_delete(e) {
   await webui.delete_keyandlabel(targetkey);
   
   display_keytable();
+}
+
+/**
+ * フィルタを選択
+ * @param {} e
+ */
+async function onclick_filter(e) {
+  $(this).select();
 }
 
 /**
