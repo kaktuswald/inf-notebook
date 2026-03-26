@@ -195,11 +195,11 @@ class Result():
 
         for key, value in targets.items():
             if value.current is None:
+                self.originalnews[key] = False
                 continue
 
-            if update_all:
-                update = True
-            else:
+            update = update_all
+            if not update:
                 if not key in bests.keys() or bests[key]['value'] is None:
                     update = True
                 else:
