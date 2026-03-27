@@ -521,6 +521,10 @@ class GuiApi():
         event.return_string(dumps(resource.notesradar))
     
     @staticmethod
+    def get_resource_unofficialdifficulty(event: webui.Event):
+        event.return_string(dumps(resource.unofficialdifficulty))
+    
+    @staticmethod
     def check_imagesavepath(event: webui.Event):
         event.return_string(dumps(isdir(setting.imagesave_path)))
 
@@ -546,6 +550,7 @@ class GuiApi():
         window.bind('start_capturing', GuiApi.start_capturing)
         window.bind('getresource_musictable', GuiApi.get_resource_musictable)
         window.bind('getresource_notesradar', GuiApi.get_resource_notesradar)
+        window.bind('getresource_unofficialdifficulty', GuiApi.get_resource_unofficialdifficulty)
         window.bind('check_imagesavepath', GuiApi.check_imagesavepath)
 
         window.bind('get_setting', self.get_setting)

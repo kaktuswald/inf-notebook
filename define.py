@@ -136,6 +136,7 @@ class Define():
     details_recognition_version = '3.2'
     musicselect_recognition_version = '2.3'
     notesradar_version = '1.1'
+    unofficialdifficulty_version = '1.0'
 
     informations_trimpos = (560, 910)
     informations_trimsize = (800, 156)
@@ -224,6 +225,7 @@ class Define():
         self.musictable_resourcename = f'musictable{self.musictable_version}'
         self.musicselect_resourcename = f'musicselect{self.musicselect_recognition_version}'
         self.notesradar_resourcename = f'notesradar{self.notesradar_version}'
+        self.unofficialdifficulty_resourcename = f'unofficialdifficulty{self.unofficialdifficulty_version}'
 
         self.details_trimarea = {}
         for play_side in self.details_trimpos.keys():

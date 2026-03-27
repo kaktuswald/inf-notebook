@@ -479,6 +479,7 @@ function initlayout(layoutconfig) {
 async function loadresourceafterprocessing() {
   await loadresource_musictable();
   await loadresource_notesradar();
+  await loadresource_unofficialdifficulty();
 
   await webui.execute_records_processing();
   await webui.execute_generate_notesradar();
@@ -752,6 +753,13 @@ async function loadresource_musictable() {
  */
 async function loadresource_notesradar() {
   notesradar = JSON.parse(await webui.getresource_notesradar());
+}
+
+/**
+ * 非公式難易度表リソースデータを読み出す
+ */
+async function loadresource_unofficialdifficulty() {
+  unofficialdifficulty = JSON.parse(await webui.getresource_unofficialdifficulty());
 }
 
 /**
@@ -1203,6 +1211,7 @@ function clear_scoredata() {
   $('div#scoredata_version').text('');
   $('div#scoredata_level').text('');
   $('div#scoredata_notes').text('');
+  $('ul#unofficialdifficulties').empty();
 }
 
 /**
@@ -1239,6 +1248,23 @@ function display_scoredata() {
   $('div#scoredata_version').text(version !== null ? version : '');
   $('div#scoredata_level').text(level !== null ? level : '');
   $('div#scoredata_notes').text(notes !== null ? notes : '');
+
+  if(unofficialdifficulty) {
+    let target = unofficialdifficulty;
+    if(Object.hasOwn(target, selected_musicname)) {
+      target = target[selected_musicname];
+      if(Object.hasOwn(target, selected_playtype)) {
+        target = target[selected_playtype];
+        if(Object.hasOwn(target, selected_difficulty)) {
+          target = target[selected_difficulty];
+          target.forEach(v => {
+            const value = $('<li>').text(v);
+            $('ul#unofficialdifficulties').append(value);
+          });
+        }
+      }
+    }
+  }
 }
 
 /**

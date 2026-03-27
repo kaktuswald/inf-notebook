@@ -38,6 +38,7 @@ class Resource():
         self.load_resource_musictable()
         self.load_resource_musicselect()
         self.load_resource_notesradar()
+        self.load_resource_unofficialdifficulty()
 
         self.imagevalue_musictableinformation = None
 
@@ -67,6 +68,11 @@ class Resource():
         resourcename = f'notesradar{define.notesradar_version}'
         
         self.notesradar: dict[str, dict[str, list[dict[str, str | int]]]] = load_resource_serialized(resourcename, True)
+    
+    def load_resource_unofficialdifficulty(self):
+        resourcename = f'unofficialdifficulty{define.unofficialdifficulty_version}'
+        
+        self.unofficialdifficulty: dict = load_resource_serialized(resourcename, True)
 
 class ResourceTimestamp():
     def __init__(self, resourcename):
