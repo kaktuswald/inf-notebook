@@ -8,7 +8,7 @@ from define import Playmodes,define
 from data_collection import collection_basepath
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
-from resources_learning import learning_multivalue,learning
+from resources_learning import learning_multivaluemask,learning
 
 images_musicselect_basepath = join(collection_basepath, 'musicselect')
 label_filepath = join(collection_basepath, 'label_musicselect.json')
@@ -82,7 +82,7 @@ def learning_playmode():
     
     report.append_log(f'Source count: {len(learning_targets)}')
 
-    table = learning_multivalue(learning_targets, report, maskvalue)
+    table = learning_multivaluemask(learning_targets, report, maskvalue)
     if table is None:
         report.report()
         return

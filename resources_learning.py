@@ -69,7 +69,31 @@ def learning(targets, report):
 
     return result
 
-def learning_multivalue(targets, report, maskvalue):
+def learning_multivalue(targets, report):
+    if len(targets) == 0:
+        report.append_log('count: 0')
+        return None
+
+    table = {}
+    for value in targets.keys():
+        keys = []
+        for key, np_value in targets[value].items():
+            tablekey = np_value.tobytes().hex()
+
+            if not tablekey in table.keys():
+                table[tablekey] = value
+                keys.append(tablekey)
+                report.append_log(f'{value}: {tablekey}')
+                report.saveimage_value(np_value, f'{value}-pattern{len(keys):02}-{tablekey}-{key}.png')
+    
+    report.append_log(f'Key count: {len(table)}')
+
+    if len(table) == 0:
+        return None
+
+    return table
+
+def learning_multivaluemask(targets, report, maskvalue):
     if len(targets) == 0:
         report.append_log('count: 0')
         return None
@@ -94,4 +118,3 @@ def learning_multivalue(targets, report, maskvalue):
         return None
 
     return table
-

@@ -9,7 +9,7 @@ from define import define
 import data_collection as dc
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
-from resources_learning import learning_multivalue
+from resources_learning import learning_multivaluemask
 
 recognition_define_filename = 'define_recognition_informations.json'
 
@@ -379,7 +379,7 @@ def learning_playmode(informations):
     
     report.append_log(f'Source count: {len(learning_targets)}')
 
-    table = learning_multivalue(learning_targets, report, informations_define['play_mode']['maskvalue'])
+    table = learning_multivaluemask(learning_targets, report, informations_define['play_mode']['maskvalue'])
     if table is None:
         report.report()
         return
@@ -591,7 +591,7 @@ def learning_playspeed(informations):
     
     report.append_log(f'Source count: {len(learning_targets)}')
 
-    table = learning_multivalue(learning_targets, report, informations_define['playspeed']['maskvalue'])
+    table = learning_multivaluemask(learning_targets, report, informations_define['playspeed']['maskvalue'])
     if table is None:
         report.report()
         return
