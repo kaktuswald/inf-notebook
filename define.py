@@ -17,7 +17,7 @@ class Playmodes():
     DP: str = 'DP'
     '''DOUBLE PLAY'''
 
-    values: list[str] = [SP, DP]
+    values: list[str] = (SP, DP,)
     '''プレイモードのリスト'''
 
 class Playtypes():
@@ -28,7 +28,7 @@ class Playtypes():
     DPBATTLE: str = 'DP BATTLE'
     '''DOUBLE PLAY BATTLE'''
 
-    values: list[str] = [Playmodes.SP, Playmodes.DP, DPBATTLE]
+    values: list[str] = (Playmodes.SP, Playmodes.DP, DPBATTLE,)
     '''プレイの種類のリスト'''
 
 class Graphtypes():
@@ -43,7 +43,7 @@ class Graphtypes():
     MEASURES: str = 'measures'
     '''小節ごとの精度の棒グラフ'''
 
-    values: list[str] = [GAUGE, LANES, MEASURES]
+    values: list[str] = (GAUGE, LANES, MEASURES,)
     '''リザルトの表示グラフの種類のリスト'''
 
 class Options():
@@ -72,6 +72,20 @@ class Options():
 
     REGULARSPEED: str = 'REGUL-SPEED'
     '''曲のbpmに影響されずにノーツの速度が固定になる 記録されなくなる'''
+
+
+class NotesradarAttributes():
+    '''ノーツレーダーの要素'''
+
+    NOTES: str = 'NOTES'
+    CHORD: str = 'CHORD'
+    PEAK: str = 'PEAK'
+    CHARGE: str = 'CHARGE'
+    SCRATCH: str = 'SCRATCH'
+    SOFLAN: str = 'SOF-LAN'
+
+    values: list[str] = (NOTES, CHORD, PEAK, CHARGE, SCRATCH, SOFLAN,)
+    '''ノーツレーダー要素のリスト'''
 
 class Define():
     width = 1920
@@ -115,7 +129,6 @@ class Define():
         'options_assist': ('A-SCR', 'LEGACY',),
         'clear_types': ('NO PLAY', 'FAILED', 'A-CLEAR', 'E-CLEAR', 'CLEAR', 'H-CLEAR', 'EXH-CLEAR', 'F-COMBO',),
         'graphtargets': ('no graph', 'personal best score only', 'national best', 'national average', 'prefecture best', 'prefecture average', 'same class best', 'same class average', 'rival', 'rival best', 'rival average', 'pacemaker',),
-        'notesradar_attributes': ('NOTES', 'CHORD', 'PEAK', 'CHARGE', 'SCRATCH', 'SOF-LAN',),
     }
 
     musictable_version = '1.2'

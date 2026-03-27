@@ -47,7 +47,7 @@ logger.getChild('google').setLevel(logging.WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
-from define import Playmodes,Playtypes,define
+from define import Playmodes,Playtypes,NotesradarAttributes,define
 from resources import resource,play_sound_result,download_latestresource
 from screenshot import Screen,Screenshot
 from recog import Recognition as recog
@@ -484,7 +484,7 @@ class GuiApi():
 
     @staticmethod
     def get_notesradar_attributes(event: Event):
-        event.return_string(dumps(define.value_list['notesradar_attributes']))
+        event.return_string(dumps(NotesradarAttributes.values))
 
     @staticmethod
     def checkresource(event: webui.Event):

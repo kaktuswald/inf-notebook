@@ -2,7 +2,7 @@ from os.path import join,exists
 import json
 import pandas as pd
 
-from define import Playmodes,define
+from define import Playmodes,NotesradarAttributes,define
 from resources import resource
 from resources_generate import Report,save_resource_serialized,registries_dirname
 from resources_generate_musictable import infinitasonlymusics_filepath
@@ -14,7 +14,7 @@ radardata_dirpath = join(registries_dirname, 'notesradars')
 filenames = {}
 for playmode in Playmodes.values:
     filenames[playmode] = {}
-    for attribute in define.value_list['notesradar_attributes']:
+    for attribute in NotesradarAttributes.values:
         filenames[playmode][attribute] = join(radardata_dirpath, f'{playmode} {attribute}.csv')
 
 differentcharts_filepath = join(registries_dirname, 'different_chart.json')
@@ -171,7 +171,7 @@ def generate(musics, csv):
                         'radars': {}
                     }
 
-                    for attribute1 in define.value_list['notesradar_attributes']:
+                    for attribute1 in NotesradarAttributes.values:
                         notesradar_musics[musicname][difficulty]['radars'][attribute1] = 0
                 
                 notesradar_musics[musicname][difficulty]['radars'][attribute] = value

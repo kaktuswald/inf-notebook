@@ -1,10 +1,9 @@
-from define import Playmodes,define
+from define import Playmodes,NotesradarAttributes,define
 from resources import resource
 
 ranking_count = 50
 
 difficulties = define.value_list['difficulties']
-attributes = define.value_list['notesradar_attributes']
 
 class NotesRadarValue():
     '''一曲の値
@@ -70,7 +69,7 @@ class NotesRadarItem():
         self.attributes: dict[str, NotesRadarAttribute] = {}
         '''属性ごとのデータ'''
 
-        for attribute in attributes:
+        for attribute in NotesradarAttributes.values:
             self.attributes[attribute] = NotesRadarAttribute()
     
     def calculate_total(self):
