@@ -33,9 +33,10 @@ class Resource():
         self.dead = load_resource_numpy('dead')
         self.rival = load_resource_numpy('rival')
 
+        self.load_resource_musictable()
         self.load_resource_informations()
         self.load_resource_details()
-        self.load_resource_musictable()
+        self.load_resource_resultothers()
         self.load_resource_musicselect()
         self.load_resource_notesradar()
         self.load_resource_unofficialdifficulty()
@@ -44,6 +45,11 @@ class Resource():
 
         self.image_stamp = Image.open(images_stamp_filepath)
     
+    def load_resource_musictable(self):
+        resourcename = f'musictable{define.musictable_version}'
+        
+        self.musictable = load_resource_serialized(resourcename, True)
+
     def load_resource_informations(self):
         resourcename = f'informations{define.informations_recognition_version}'
         
@@ -54,10 +60,10 @@ class Resource():
         
         self.details = load_resource_serialized(resourcename, True)
 
-    def load_resource_musictable(self):
-        resourcename = f'musictable{define.musictable_version}'
+    def load_resource_resultothers(self):
+        resourcename = f'resultothers{define.resultothers_recognition_version}'
         
-        self.musictable = load_resource_serialized(resourcename, True)
+        self.resultothers = load_resource_serialized(resourcename, True)
 
     def load_resource_musicselect(self):
         resourcename = f'musicselect{define.musicselect_recognition_version}'

@@ -47,7 +47,7 @@ logger.getChild('google').setLevel(logging.WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
-from define import Playmodes,Playtypes,NotesradarAttributes,define
+from define import Playmodes,Playtypes,ResultTabs,NotesradarAttributes,define
 from resources import resource,play_sound_result,download_latestresource
 from screenshot import Screen,Screenshot
 from recog import Recognition as recog
@@ -369,42 +369,50 @@ class Hotkeys():
                 'actuate_on_partical_release': True,
             },
             'select_summary': {
-                'hotkey': 'Alt+F1',
+                'hotkey': 'Alt+U',
                 'on_press_callback': select_summary,
                 'on_release_callback': None,
                 'actuate_on_partical_release': True,
             },
             'select_notesradar': {
-                'hotkey': 'Alt+F1',
+                'hotkey': 'Alt+R',
                 'on_press_callback': select_notesradar,
                 'on_release_callback': None,
                 'actuate_on_partical_release': True,
             },
             'select_screenshot': {
-                'hotkey': 'Alt+F1',
+                'hotkey': 'Alt+T',
                 'on_press_callback': select_screenshot,
                 'on_release_callback': None,
                 'actuate_on_partical_release': True,
             },
             'select_scoreinformation': {
-                'hotkey': 'Alt+F1',
+                'hotkey': 'Alt+I',
                 'on_press_callback': select_scoreinformation,
                 'on_release_callback': None,
                 'actuate_on_partical_release': True,
             },
             'select_scoregraph': {
-                'hotkey': 'Alt+F1',
+                'hotkey': 'Alt+G',
                 'on_press_callback': select_scoregraph,
                 'on_release_callback': None,
                 'actuate_on_partical_release': True,
             },
             'upload_musicselect': {
-                'hotkey': 'Alt+F1',
+                'hotkey': 'Alt+F8',
                 'on_press_callback': upload_musicselect,
                 'on_release_callback': None,
                 'actuate_on_partical_release': True,
             },
         }
+
+        if setting.debug:
+            self.bindings['upload_resultothers'] = {
+                'hotkey': 'Alt+F7',
+                'on_press_callback': upload_resultothers,
+                'on_release_callback': None,
+                'actuate_on_partical_release': True,
+            }
     
     def set_hotkeys(self) -> bool:
         if setting.hotkeys is None:
@@ -660,6 +668,7 @@ class GuiApi():
         setting.autosave = values['autosave']
         setting.autosave_filtered = values['autosave_filtered']
         setting.filter_compact = values['filter_compact']
+        setting.filter_notmyname = values['filter_notmyname']
         setting.filter_overlay = filteroverlay
         setting.savefilemusicname_right = values['savefilemusicname_right']
 
@@ -1173,8 +1182,10 @@ class GuiApi():
                     images_filtered[timestamp] = filter_resultimage(
                         images_result[timestamp],
                         target['play_side'],
+                        target['tab'] if 'tab' in target.keys() else None,
                         target['has_loveletter'],
                         target['has_graphtargetname'],
+                        target['rankposition'] if 'rankposition' in target.keys() else None,
                     )
             
             if images_filtered[timestamp] is not None:
@@ -1326,8 +1337,10 @@ class GuiApi():
                     images_filtered[timestamp] = filter_resultimage(
                         images_result[timestamp],
                         target['play_side'],
+                        target['tab'] if 'tab' in target.keys() else None,
                         target['has_loveletter'],
                         target['has_graphtargetname'],
+                        target['rankposition'] if 'rankposition' in target.keys() else None,
                     )
                 
                 if images_filtered[timestamp] is not None and not timestamp in timestamps_filteredsaved:
@@ -1969,6 +1982,23 @@ def result_process(screen: Screen):
                 api.send_message('append_log', f'upload informations collection: {result.timestamp}')
             if uploaded_details:
                 api.send_message('append_log', f'upload details collection: {result.timestamp}')
+    
+    if setting.debug and setting.data_collection:
+        if result.others.tab:
+            unrecognizeds = None
+            if result.others.tab == ResultTabs.RIVAL:
+                unrecognizeds = [
+                    not result.others.rival.rankbefore,
+                    not result.others.rival.ranknow,
+                    not result.others.rival.rankposition,
+                ]
+            if result.others.tab == ResultTabs.RADAR:
+                unrecognizeds = [
+                    not result.others.notesradar.attribute,
+                ]
+
+            if not unrecognizeds or any(unrecognizeds):
+                execute_upload_resultothers_image(resultimage, result.play_side)
 
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
         if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
@@ -1995,8 +2025,10 @@ def result_process(screen: Screen):
         filteredimage = filter_resultimage(
             resultimage,
             result.play_side,
+            result.others.tab,
             result.rival,
             result.details.graphtarget == 'rival',
+            result.others.rival.rankposition if result.others.rival else None,
         )
         images_filtered[result.timestamp] = filteredimage
         
@@ -2130,14 +2162,16 @@ def musicselect_process(image:Image.Image, np_value: array):
 
     api.send_message('scoreselect', {'playtype': playtype, 'musicname': musicname, 'difficulty': difficulty})
 
-def filter_resultimage(resultimage: Image.Image, playside: str, has_loveletter: bool, has_graphtargetname: bool) -> Image.Image:
+def filter_resultimage(resultimage: Image.Image, playside:str, tab:str|None, has_loveletter:bool, has_graphtargetname:bool, unfilterrankposition:int|None) -> Image.Image:
     '''リザルト画像にフィルター加工をする
 
     Args:
         timestamp(str): 対象リザルトのタイムスタンプ
         playside(str): プレイサイド(1P or 2P)
+        tab (str|None): 表示タブ
         has_loveletter(bool): ライバル挑戦状の有無
         has_graphtargetname(bool): グラフターゲットのライバル名の有無
+        unfilterrankposition(int): フィルター加工をしない順位位置
     
     Returns:
         (Image): 加工されたリザルト画像
@@ -2146,14 +2180,17 @@ def filter_resultimage(resultimage: Image.Image, playside: str, has_loveletter: 
         return filter_result(
             resultimage,
             playside,
+            tab,
             has_loveletter,
             has_graphtargetname,
             setting.filter_compact,
+            setting.filter_notmyname and unfilterrankposition,
         )
     else:
         return filter_overlay(
             resultimage,
             playside,
+            tab,
             has_loveletter,
             has_graphtargetname,
             overlaysettings,
@@ -2397,6 +2434,32 @@ def upload_musicselect():
     decorded_data = b64encode(imagevalue).decode('utf-8')
     socket_server.update_screenshot(decorded_data)
 
+def upload_resultothers():
+    '''
+    リザルト画面の詳細の反対側の画像のアップロードを実行する
+    '''
+    if not screenshot.shot():
+        return
+    
+    if setting.play_sound:
+        play_sound_result()
+
+    image = screenshot.get_image()
+    if image is None:
+        return
+    
+    playside = recog.Result.get_play_side(screenshot.np_value)
+
+    execute_upload_resultothers_image(image, playside)
+
+    imagevalue = get_imagevalue(image)
+
+    api.image_activescreenshot = imagevalue
+    api.send_message('resultothers_upload')
+
+    decorded_data = b64encode(imagevalue).decode('utf-8')
+    socket_server.update_screenshot(decorded_data)
+
 def execute_upload_musicselect_image(image:Image.Image):
     '''
     選曲画面の一部を学習用にアップロードする
@@ -2404,6 +2467,14 @@ def execute_upload_musicselect_image(image:Image.Image):
     storage.start_uploadmusicselect(image)
     if setting.debug:
         api.send_message('append_log', 'upload musicselect collection.')
+
+def execute_upload_resultothers_image(image:Image.Image, playside: str):
+    '''
+    リザルト画面の詳細の反対側の画像を学習用にアップロードする
+    '''
+    storage.start_uploadresultothers(image, playside)
+    if setting.debug:
+        api.send_message('append_log', 'upload resultothers collection.')
 
 def check_latest_version():
     '''最新バージョンを確認する

@@ -1,7 +1,7 @@
 from datetime import datetime
 from logging import getLogger
 
-from define import Playmodes,Playtypes,define
+from define import Playmodes,Playtypes,ResultTabs,NotesradarAttributes,define
 
 logger_child_name = 'result'
 
@@ -80,6 +80,22 @@ class ResultDetails():
         self.miss_count = miss_count
         self.graphtarget = graphtarget
 
+class ResultOthers():
+    class ResultOthersRival():
+        def __init__(self, rankbefore: int, ranknow: int, rankposition: int):
+            self.rankbefore = rankbefore
+            self.ranknow = ranknow
+            self.rankposition = rankposition
+
+    class ResultOthersNotesradar():
+        def __init__(self, attribute: NotesradarAttributes):
+            self.attribute = attribute
+
+    def __init__(self, tab: ResultTabs, rival: ResultOthersRival, notesradar: ResultOthersNotesradar):
+        self.tab = tab
+        self.rival = rival
+        self.notesradar = notesradar
+
 class Result():
     has_new: bool | None = None
     '''NEWアイコンがある'''
@@ -87,6 +103,8 @@ class Result():
     '''プレイ履歴と比較した結果更新がある'''
     originalnews: dict[str | bool] = None
     '''BATTLEやALL-SCRのときの更新状況'''
+
+    others: ResultOthers | None = None
 
     def __init__(self, play_side: str, rival: bool, dead: bool, informations: ResultInformations | None, details: ResultDetails | None):
         self.play_side: str = play_side

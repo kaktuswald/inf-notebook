@@ -1,0 +1,19 @@
+div.value {
+    display: inline-block;
+    width: 150px;
+}
+
+div#box_image {
+    width: 271px;
+    height: 471px;
+}
+
+div#container_keys {
+    width: 260px;
+    height: 400px;
+}
+
+img#image {
+    width: 271px;
+    height: 465px;
+}

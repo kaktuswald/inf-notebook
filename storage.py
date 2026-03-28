@@ -20,12 +20,14 @@ from cloud_function import callfunction_eventdelete
 
 bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
+bucket_name_resultothers = 'bucket-inf-notebook-resultothers'
 bucket_name_musicselect = 'bucket-inf-notebook-musicselect'
 bucket_name_resources = 'bucket-inf-notebook-resources2'
 bucket_name_discordwebhooks = 'bucket-inf-notebook-discordwebhook2'
 
 informations_dirname = 'informations'
 details_dirname = 'details'
+resultothers_dirname = 'resultothers'
 musicselect_dirname = 'musicselect'
 
 result_rivalname_fillbox = (
@@ -55,6 +57,7 @@ class StorageAccessor():
     client = None
     bucket_informations = None
     bucket_details = None
+    bucket_resultothers = None
     bucket_musicselect = None
     bucket_resources = None
     bucket_discordwebhooks = None
@@ -92,6 +95,18 @@ class StorageAccessor():
         try:
             self.bucket_details = self.client.get_bucket(bucket_name_details)
             logger.debug('connect bucket details')
+        except Exception as ex:
+            logger.exception(ex)
+    
+    def connect_bucket_resultothers(self):
+        if self.client is None:
+            self.connect_client()
+        if self.client is None:
+            return
+        
+        try:
+            self.bucket_resultothers = self.client.get_bucket(bucket_name_resultothers)
+            logger.debug('connect bucket resultothers')
         except Exception as ex:
             logger.exception(ex)
     
@@ -160,6 +175,19 @@ class StorageAccessor():
             blob = self.bucket_details.blob(object_name)
             self.upload_image(blob, image)
             logger.debug(f'upload details image {object_name}')
+        except Exception as ex:
+            logger.exception(ex)
+
+    def upload_resultothers(self, object_name, image):
+        if self.bucket_resultothers is None:
+            self.connect_bucket_resultothers()
+        if self.bucket_resultothers is None:
+            return
+
+        try:
+            blob = self.bucket_resultothers.blob(object_name)
+            self.upload_image(blob, image)
+            logger.debug(f'upload resultothers image {object_name}')
         except Exception as ex:
             logger.exception(ex)
 
@@ -233,6 +261,24 @@ class StorageAccessor():
             Thread(target=self.upload_details, args=(object_name, trim,)).start()
         
         return informations_trim, details_trim
+    
+    def start_uploadresultothers(self, image, playside: str):
+        '''リザルト画面の詳細の反対側の収集画像をアップロードする
+
+        Args:
+            image (Image): 対象のリザルト画像(PIL.Image)
+        '''
+        if not playside:
+            return
+        
+        self.connect_client()
+        if self.client is None:
+            return
+        
+        object_name = f'{uuid1()}.png'
+
+        trim = image.crop(define.resultothers_trimareas[playside])
+        Thread(target=self.upload_resultothers, args=(object_name, trim,)).start()
     
     def start_uploadmusicselect(self, image):
         '''選曲画面の収集画像をアップロードする
@@ -376,6 +422,7 @@ class StorageAccessor():
 
         informations_dirpath = join(basedir, informations_dirname)
         details_dirpath = join(basedir, details_dirname)
+        resultothers_dirpath = join(basedir, resultothers_dirname)
         musicselect_dirpath = join(basedir, musicselect_dirname)
 
         count = 0
@@ -388,6 +435,12 @@ class StorageAccessor():
         blobs = self.client.list_blobs(bucket_name_details)
         for blob in blobs:
             self.save_image(details_dirpath, blob)
+            blob.delete()
+            count += 1
+
+        blobs = self.client.list_blobs(bucket_name_resultothers)
+        for blob in blobs:
+            self.save_image(resultothers_dirpath, blob)
             blob.delete()
             count += 1
 

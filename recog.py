@@ -6,9 +6,9 @@ logger_child_name = 'recog'
 logger = getLogger().getChild(logger_child_name)
 logger.debug('loaded recog.py')
 
-from define import define,Graphtypes,Options
+from define import define,Graphtypes,Options,ResultTabs
 from resources import resource
-from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,Result
+from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,ResultOthers,Result
 from screenshot import Screen
 
 class Recognition():
@@ -418,6 +418,85 @@ class Recognition():
 
             return ResultDetails(graphtype, options, clear_type, dj_level, score, miss_count, graphtarget)
 
+    class ResultOthers():
+        @staticmethod
+        def get_tab(np_value):
+            if resource.resultothers is None:
+                return None
+            if not 'tab' in resource.resultothers.keys():
+                return None
+
+            trimmed = np_value[resource.resultothers['tab']['trim']]
+            tablekey = trimmed.tobytes().hex()
+            if not tablekey in resource.resultothers['tab']['table'].keys():
+                return None
+
+            return resource.resultothers['tab']['table'][tablekey]
+        
+        @staticmethod
+        def get_rankbefore(np_value):
+            if resource.resultothers is None:
+                return None
+            if not 'rankbefore' in resource.resultothers.keys():
+                return None
+
+            trimmed = np_value[resource.resultothers['rankbefore']['trim']]
+            bins = np.where(trimmed.flatten()==resource.resultothers['rankbefore']['maskvalue'], 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+            if not tablekey in resource.resultothers['rankbefore']['table'].keys():
+                return None
+                
+            return resource.resultothers['rankbefore']['table'][tablekey]
+        
+        @staticmethod
+        def get_ranknow(np_value):
+            if resource.resultothers is None:
+                return None
+            if not 'ranknow' in resource.resultothers.keys():
+                return None
+
+            trimmed = np_value[resource.resultothers['ranknow']['trim']]
+            bins = np.where(trimmed.flatten()==resource.resultothers['ranknow']['maskvalue'], 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+            if not tablekey in resource.resultothers['ranknow']['table'].keys():
+                return None
+                
+            return resource.resultothers['ranknow']['table'][tablekey]
+        
+        @staticmethod
+        def get_rankposition(np_value):
+            if resource.resultothers is None:
+                return None
+            if not 'rankposition' in resource.resultothers.keys():
+                return None
+
+            trimmed = np_value[resource.resultothers['rankposition']['trim']]
+            bins = np.where(trimmed.flatten()==resource.resultothers['rankposition']['maskvalue'], 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+            if not tablekey in resource.resultothers['rankposition']['table'].keys():
+                return None
+                
+            return resource.resultothers['rankposition']['table'][tablekey]
+
+        @staticmethod
+        def get_notesradar_attribute(np_value):
+            if resource.resultothers is None:
+                return None
+            if not 'notesradar_attribute' in resource.resultothers.keys():
+                return None
+
+            trimmed = np_value[resource.resultothers['notesradar_attribute']['trim']]
+            bins = np.where(trimmed.flatten()==resource.resultothers['notesradar_attribute']['maskvalue'], 1, 0)
+            hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+            tablekey = ''.join([format(v, '0x') for v in hexs])
+            if not tablekey in resource.resultothers['notesradar_attribute']['table'].keys():
+                return None
+                
+            return resource.resultothers['notesradar_attribute']['table'][tablekey]
+    
     class MusicSelect():
         DIFFICULTY_TRIMAREAS: dict[str, tuple[int, slice]] = {
             'BEGINNER': (478, slice(111, 197)),
@@ -680,6 +759,28 @@ class Recognition():
             cls.Result.get_has_dead(screen.np_value, play_side),
             cls.Result.get_informations(screen.np_value[define.areas_np['informations']]),
             cls.Result.get_details(screen.np_value[define.areas_np['details'][play_side]]),
+        )
+
+        otherstrimmed = screen.np_value[define.areas_np['others'][play_side]]
+
+        tab = cls.ResultOthers.get_tab(otherstrimmed)
+        rival = None
+        notesradar = None
+        if tab == ResultTabs.RIVAL:
+            rival = ResultOthers.ResultOthersRival(
+                cls.ResultOthers.get_rankbefore(otherstrimmed),
+                cls.ResultOthers.get_ranknow(otherstrimmed),
+                cls.ResultOthers.get_rankposition(otherstrimmed),
+            )
+        if tab == ResultTabs.RADAR:
+            notesradar = ResultOthers.ResultOthersNotesradar(
+                cls.ResultOthers.get_notesradar_attribute(otherstrimmed),
+            )
+        
+        result.others = ResultOthers(
+            tab,
+            rival if rival else None,
+            notesradar if notesradar else None,
         )
     
         return result

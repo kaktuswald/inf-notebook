@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>選曲画像のアノテーション</title>
+    <link rel="stylesheet" href="./web/general.css" />
+    <link rel="stylesheet" href="./web_annotations/annotation.css" />
+    <link rel="stylesheet" href="./web_annotations/annotation_resultothers.css" />
+    <script src="./webui.js"></script>
+    <script src="./web/lib/jquery-3.7.1.slim.min.js"></script>
+    <script src="./web_annotations/annotation_resultothers.js"></script>
+  </head>
+  <body>
+    <div class="split_horizontal">
+      <div class="pane_left" class="pane">
+        <div class="split_horizontal">
+          <div id="box_image">
+            <div>
+              <img id="image" alt="曲情報画像">
+            </div>
+          </div>
+          <div>
+            <div id="container_keys" class="scroll">
+              <table id="table_keys"></table>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div>
+            <div class="label">タブ:</div>
+            <div class="value">
+              <span id="text_resulttab"></span>
+            </div>
+          </div>
+          <div>
+            <div class="label">過去ランク:</div>
+            <div class="value">
+              <span id="text_resultrankbefore"></span>
+            </div>
+          </div>
+          <div>
+            <div class="label">現在ランク:</div>
+            <div class="value">
+              <span id="text_resultranknow"></span>
+            </div>
+          </div>
+          <div>
+            <div class="label">ランク位置:</div>
+            <div class="value">
+              <span id="text_resultrankposition"></span>
+            </div>
+          </div>
+          <div>
+            <div class="label">レーダー種:</div>
+            <div class="value">
+              <span id="text_resultradarattribute"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="pane_right" class="pane">
+        <div>
+          <div>
+            <div class="label">タブ:</div>
+            <select id="select_tab">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">過去ランク:</div>
+            <select id="select_rankbefore">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">現在ランク:</div>
+            <select id="select_ranknow">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">ランク位置:</div>
+            <select id="select_rankposition">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">レーダー種:</div>
+            <select id="select_radarattribute">
+              <option />
+            </select>
+          </div>
+
+          <div>
+            <div class="label">学習に使用:</div>
+            <label><input type="checkbox" id="check_ignore">しない</label>
+          </div>
+        </div>
+
+        <div>
+          <div>
+            <button id="button_labeloverwrite">アノテーション保存</button>
+            <button id="button_citationrecog">認識結果から引用</button>
+            <button id="button_delete">画像とラベルの削除</button>
+          </div>
+          
+          <div>
+            <div>
+              <label><input type="checkbox" id="check_onlynotannotation" checked>未アノテーションのみ</label>
+            </div>
+            <div>
+              <label><input type="checkbox" id="check_onlyignore">学習に使用しないもののみ</label>
+            </div>
+            <div>
+              <label>キー:</label>
+              <input type="text" id="text_keyfilter">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
