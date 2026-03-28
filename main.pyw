@@ -505,6 +505,9 @@ class GuiApi():
     
     @staticmethod
     def execute_generate_notesradar(event: webui.Event):
+        if not 'musics' in notebook_summary.json.keys():
+            return
+        
         notesradar.generate(notebook_summary.json['musics'])
 
     @staticmethod
@@ -973,6 +976,9 @@ class GuiApi():
 
     def get_summaryvalues(self, event: webui.Event):
         counts = notebook_summary.count()
+        if counts is None:
+            event.return_string(dumps(None))
+            return
 
         result = {}
         for playmode in setting.summaries.keys():
@@ -1386,6 +1392,8 @@ class GuiApi():
 
         notebooks_music.delete_notebook(musicname)
 
+        # 統計やノーツレーダーの再計算
+
     def delete_scoreresult(self, event: webui.Event):
         '''指定した譜面の記録データを全て削除する
         
@@ -1399,8 +1407,8 @@ class GuiApi():
         difficulty = event.get_string_at(2)
 
         notebooks_music.get_notebook(musicname).delete_scoreresult(playtype, difficulty)
+        
         # 統計やノーツレーダーの再計算
-        # 譜面記録を再表示する
     
     def delete_playresult(self, event: webui.Event):
         '''指定したタイムスタンプの記録を削除する
@@ -1423,7 +1431,6 @@ class GuiApi():
         )
 
         # 統計やノーツレーダーの再計算
-        # 譜面記録を再表示する
     
     def execute_findnewestversionaction(self, event: webui.Event):
         '''最新バージョンを見つけたときの処理を実行する
@@ -2466,6 +2473,9 @@ def initial_records_processing():
 
     api.send_message('start_summaryprocessing')
 
+    if version == '0.0.0.0':
+        return
+    
     importing = not 'last_allimported' in notebook_summary.json.keys()
     if not importing:
         importing = version_isold(
