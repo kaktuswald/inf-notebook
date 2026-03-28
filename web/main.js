@@ -1118,22 +1118,28 @@ async function display_scoreresult() {
       $('table#table_timestamps').append(tr);
 
       const targetresult = scoreresult['history'][timestamp];
-      if(targetresult.playspeed == null) {
-        const date = timestamp.slice(0, 8);
-        const time = timestamp.slice(9, 15);
-
-        const year = date.slice(0, 4);
-        const month = date.slice(4, 6);
-        const day = date.slice(6, 8);
-
-        const hours = time.slice(0, 2);
-        const minutes = time.slice(2, 4);
-        const seconds = time.slice(4, 6);
-
-        xvalues.push(new Date(year, month - 1, day, hours, minutes, seconds));
-        scores.push(targetresult['score']['value']);
-        misscounts.push(targetresult.hasOwnProperty('miss_count') ? targetresult['miss_count']['value'] : null);
+      if(targetresult.playspeed) return;
+      if(targetresult.options) {
+        const options = targetresult.options;
+        if(options.arrange && options.arrange.includes('H-RAN')) return;
+        if(options.allscratch) return;
+        if(options.regularspeed) return;
       }
+
+      const date = timestamp.slice(0, 8);
+      const time = timestamp.slice(9, 15);
+
+      const year = date.slice(0, 4);
+      const month = date.slice(4, 6);
+      const day = date.slice(6, 8);
+
+      const hours = time.slice(0, 2);
+      const minutes = time.slice(2, 4);
+      const seconds = time.slice(4, 6);
+
+      xvalues.push(new Date(year, month - 1, day, hours, minutes, seconds));
+      scores.push(targetresult['score']['value']);
+      misscounts.push(targetresult.hasOwnProperty('miss_count') ? targetresult['miss_count']['value'] : null);
     });
 
     if(xvalues.length) {
@@ -1255,7 +1261,7 @@ function clear_playresult() {
   $('#playresult_options').text('');
 
   $('div#moredetailbox').css('display', 'none');
-  $('#playresult_playspeed').text('');
+  $('div#moredetailbox').find('ul').empty();
 }
 
 /**
@@ -1316,9 +1322,27 @@ async function display_playresult(timestamp) {
     $('#playresult_options').text('不明');
   }
 
-  if(playresult.playspeed != null) {
+  let specials = [];
+  if(playresult.playspeed != null)
+    specials.push(`プレイ速度: ${playresult.playspeed.toFixed(2)}`)
+
+  if(playresult.options) {
+    if(playresult.options.allscratch)
+      specials.push('ALL-SCR')
+    if(playresult.options.arrange && playresult.options.arrange.includes('H-RAN'))
+      specials.push('H-RANDOM')
+    if(playresult.options.regularspeed)
+      specials.push('REGUL-SPEED')
+  }
+
+  if(specials.length) {
+    const listparent = $('div#moredetailbox').find('ul');
+    
+    specials.forEach(text => {
+      listparent.append($('<li>').text(text));
+    });
+
     $('div#moredetailbox').css('display', 'block');
-    $('#playresult_playspeed').text(playresult.playspeed.toFixed(2));
   }
 }
 

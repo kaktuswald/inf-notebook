@@ -30,6 +30,8 @@
     --td-background-color-hover: rgb(56, 33, 17);
     --td-background-color-selected: rgb(7, 90, 7);
     --message-color: rgb(200, 98, 98);
+    --special-border-color: rgb(196, 196, 196);
+    --special-background-color: rgb(7, 90, 7);
 }
 
 body {
