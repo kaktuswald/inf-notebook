@@ -73,6 +73,16 @@ class Options():
     REGULARSPEED: str = 'REGUL-SPEED'
     '''曲のbpmに影響されずにノーツの速度が固定になる 記録されなくなる'''
 
+class ResultTabs():
+    '''リザルト画面の反対側の表示'''
+
+    RIVAL: str = 'rival'
+    '''ライバル'''
+    RADAR: str = 'radar'
+    '''ノーツレーダー'''
+
+    values: list[str] = (RIVAL, RADAR,)
+    '''リザルト画面の反対側のタブリスト'''
 
 class NotesradarAttributes():
     '''ノーツレーダーの要素'''
@@ -134,8 +144,10 @@ class Define():
     musictable_version = '1.2'
     informations_recognition_version = '4.1'
     details_recognition_version = '3.2'
+    resultothers_recognition_version = '1.0'
     musicselect_recognition_version = '2.3'
     notesradar_version = '1.1'
+    unofficialdifficulty_version = '1.0'
 
     informations_trimpos = (560, 910)
     informations_trimsize = (800, 156)
@@ -155,6 +167,13 @@ class Define():
         '7fffffffffffffff0': '2P'
     }
     details_graphtarget_name_area = (210, 622, 300, 644)
+
+    resultothers_trimpos = {
+        '1P': (1359, 62,), 
+        '2P': (19, 62,),
+    }
+
+    resultothers_trimsize = (542, 930,)
 
     musicselect_trimarea = (48, 135, 1188, 952)
     musicselect_trimarea_np = (
@@ -216,6 +235,10 @@ class Define():
             '1P': (slice(64, 1016), slice(10, 564)),
             '2P': (slice(64, 1016), slice(1360, 1914)),
         },
+        'others': {
+            '1P': (slice(62, 992), slice(1359, 1901)),
+            '2P': (slice(62, 992), slice(19, 561)),
+        }
     }
 
     def __init__(self):
@@ -224,6 +247,7 @@ class Define():
         self.musictable_resourcename = f'musictable{self.musictable_version}'
         self.musicselect_resourcename = f'musicselect{self.musicselect_recognition_version}'
         self.notesradar_resourcename = f'notesradar{self.notesradar_version}'
+        self.unofficialdifficulty_resourcename = f'unofficialdifficulty{self.unofficialdifficulty_version}'
 
         self.details_trimarea = {}
         for play_side in self.details_trimpos.keys():
@@ -232,6 +256,15 @@ class Define():
                 self.details_trimpos[play_side][1],
                 self.details_trimpos[play_side][0] + self.details_trimsize[0],
                 self.details_trimpos[play_side][1] + self.details_trimsize[1]
+            )
+
+        self.resultothers_trimareas = {}
+        for play_side in self.resultothers_trimpos.keys():
+            self.resultothers_trimareas[play_side] = (
+                self.resultothers_trimpos[play_side][0],
+                self.resultothers_trimpos[play_side][1],
+                self.resultothers_trimpos[play_side][0] + self.resultothers_trimsize[0],
+                self.resultothers_trimpos[play_side][1] + self.resultothers_trimsize[1]
             )
 
         for key in self.filter_ranking_position.keys():

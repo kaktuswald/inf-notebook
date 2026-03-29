@@ -11,6 +11,7 @@ default = {
     'autosave': False,
     'autosave_filtered': False,
     'filter_compact': False,
+    'filter_notmyname': False,
     'filter_overlay': {
         'use': False,
         'rival': {
@@ -206,6 +207,16 @@ class Setting():
     @filter_compact.setter
     def filter_compact(self, value: bool):
         self.set_value('filter_compact', value)
+    
+    @property
+    def filter_notmyname(self):
+        '''自分の名前は隠さない ライバル隠しが最小設定の場合のみ反映
+        '''
+        return self.get_value('filter_notmyname')
+
+    @filter_notmyname.setter
+    def filter_notmyname(self, value: bool):
+        self.set_value('filter_notmyname', value)
     
     @property
     def filter_overlay(self):

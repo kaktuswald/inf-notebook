@@ -112,6 +112,8 @@ class NotebookRecent(Notebook):
             'has_graphtargetname': result.details.graphtarget == 'rival',
             'saved': saved,
             'filtered': filtered,
+            'tab': result.others.tab,
+            'rankposition': result.others.rival.rankposition if result.others.rival is not None else None,
         }
 
         while len(self.json['timestamps']) > self.maxcount:

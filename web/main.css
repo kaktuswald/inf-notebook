@@ -121,6 +121,13 @@ div#component_scoredata {
         user-select: none;
         width: 80px;
     }
+
+    ul {
+        list-style-type: none;
+        padding: 0px;
+        margin: 0px 5px;
+        font-size: small;
+    }
 }
 
 div#component_scorerecord {

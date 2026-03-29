@@ -34,6 +34,7 @@ async function initialize() {
   $('#check_autosave').prop('checked', setting['autosave']);
   $('#check_autosave_filtered').prop('checked', setting['autosave_filtered']);
   $('#check_filter_compact').prop('checked', setting['filter_compact']);
+  $('#check_filter_notmyname').prop('checked', setting['filter_notmyname']);
   $('#check_filter_overlay').prop('checked', setting['filter_overlay']['use']);
   ['rival', 'loveletter', 'rivalname'].forEach(key => {
     $(`#text_overlayimage${key}_path`).val(setting['filter_overlay'][key]['imagefilepath']);
@@ -229,6 +230,7 @@ async function onclick_button_save(e) {
     'autosave': $('#check_autosave').prop('checked'),
     'autosave_filtered': $('#check_autosave_filtered').prop('checked'),
     'filter_compact': $('#check_filter_compact').prop('checked'),
+    'filter_notmyname': $('#check_filter_notmyname').prop('checked'),
     'filter_overlay': {
       'use': $('#check_filter_overlay').prop('checked'),
       'rival': {

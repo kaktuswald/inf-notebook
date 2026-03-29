@@ -1,7 +1,7 @@
 from PIL import ImageFilter
 from PIL.Image import Image
 
-from define import define
+from define import ResultTabs,define
 from resources import resource
 
 class StampDefine():
@@ -31,7 +31,7 @@ def blur(image, area):
 
     return image
 
-def filter(image, play_side, loveletter, rivalname, compact):
+def filter(image, play_side, tab, loveletter, rivalname, compact, nonfilterrankposition):
     '''適切な位置にぼかしを入れる
 
     ライバル順位と、必要があれば挑戦状・グラフターゲットのライバル名にぼかしを入れる。
@@ -39,21 +39,26 @@ def filter(image, play_side, loveletter, rivalname, compact):
     Args:
         image (Image): 対象の画像(PIL)
         play_side (str): 1P or 2P
+        tab (str|None): 表示タブ
         loveletter (bool): ライバル挑戦状の有無
         rivalname (bool): グラフターゲットのライバル名の有無
         compact (bool): ぼかしの範囲を最小限にする
+        nonfilterrankposition (int): ぼかしを入れない順位位置
 
     Returns:
         Image: ぼかしを入れた画像
     '''
     ret = image.copy()
 
-    if play_side != '':
+    # プレイサイドが不明の場合はフィルタ加工できない しょうがない
+    # タブが不明の場合はとりあえずフィルタ加工する しょうがない
+    if tab in [None, ResultTabs.RIVAL] and play_side != '':
         if not compact:
             ret = blur(ret, define.filter_areas['ranking'][play_side])
         else:
-            for area in define.filter_areas['ranking_compact'][play_side]:
-                ret = blur(ret, area)
+            for pos in range(1, len(define.filter_areas['ranking_compact'][play_side])+1):
+                if pos != nonfilterrankposition:
+                    ret = blur(ret, define.filter_areas['ranking_compact'][play_side][pos-1])
         
         if rivalname:
             ret = blur(ret, define.filter_areas['graphtarget_name'][play_side])
@@ -92,12 +97,13 @@ def stamp(image: Image, play_side: str):
 
     return ret
 
-def filter_overlay(image: Image, play_side: str, loveletter: bool, rivalname: bool, settings: dict):
+def filter_overlay(image: Image, play_side: str, tab: str, loveletter: bool, rivalname: bool, settings: dict):
     '''リザルト画像に各種ライバル隠し用の画像を重ねる
 
     Args:
         image (Image): 対象の画像(PIL)
         play_side (str): 1P or 2P
+        tab (str|None): 表示タブ
         loveletter (bool): ライバル挑戦状の有無
         rivalname (bool): グラフターゲットのライバル名の有無
         settings: オーバーレイ設定
@@ -118,7 +124,9 @@ def filter_overlay(image: Image, play_side: str, loveletter: bool, rivalname: bo
             settings['loveletter']['image'],
         )
 
-    if play_side == '':
+    # プレイサイドが不明の場合はフィルタ加工できない しょうがない
+    # タブが不明の場合はとりあえずフィルタ加工する しょうがない
+    if play_side == '' or not tab in [ResultTabs.RIVAL, None]:
         return ret.convert('RGB')
     
     if 'rival' in settings.keys():
