@@ -48,7 +48,7 @@ logger.getChild('google').setLevel(logging.WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
-from define import Playmodes,Playtypes,ResultTabs,NotesradarAttributes,define
+from define import Playmodes,Playtypes,NotesradarAttributes,define
 from resources import resource,play_sound_result,download_latestresource
 from screenshot import Screen,Screenshot
 from recog import Recognition as recog
@@ -88,6 +88,7 @@ import twitter
 from socket_server import SocketServer
 from arcadecsv import import_arcadecsv,loadfiles_arcadedata,arcadedata
 from versioncheck import version_isold
+from collection_uploader import CollectionUploader
 
 windowtitle = f'インフィニタス リザルト手帳'
 windowwidth = 1200
@@ -115,34 +116,11 @@ releases_url = urljoin(base_url, 'releases/')
 latest_url = urljoin(releases_url, 'latest')
 wiki_url = urljoin(base_url, 'wiki/')
 
-class MusicSelectUnknownMusicNameUploader():
-    '''曲名の認識が不明の選曲画面画像のアップローダ
-    '''
-    time: float | None = None
-    '''曲名の認識の不明を拾った時の時間'''
-    processed: bool = False
-    '''処理済み'''
-
-    def reset(self):
-        self.time = None
-        self.processed = None
 class LoggingHandler(logging.Handler):
     def __init__(self, output_func):
         super().__init__()
         self.output_func = output_func
     
-    def evaluate(self):
-        if not setting.data_collection:
-            return False
-        
-        if self.time is not None:
-            if not self.processed and time.time() - self.time > 5.0:
-                self.processed = True
-                return True
-        else:
-            self.time = time.time()
-        
-        return False
     def emit(self, record:logging.LogRecord):
         message = self.format(record)
         self.output_func(message)
@@ -314,7 +292,7 @@ class ThreadCapture(Thread):
             else:
                 if setting.data_collection:
                     if recog.MusicSelect.get_hasscoredata(trimmed):
-                        musicselect_unknown_musicname_uploader.reset()
+                        collectionuploader.musicselectchecker_reset()
 
             return
 
@@ -1393,15 +1371,10 @@ class GuiApi():
 
         for timestamp in timestamps:
             if timestamp in results_today.keys() and not timestamp in timestamps_uploaded:
-                uploaded_informations, uploaded_details = storage.start_uploadcollection(results_today[timestamp], images_result[timestamp], True)
-                if uploaded_informations and uploaded_details:
-                    timestamps_uploaded.append(timestamp)
-                
-                if setting.debug:
-                    if uploaded_informations:
-                        api.send_message('append_log', f'upload informations collection: {timestamp}')
-                    if uploaded_details:
-                        api.send_message('append_log', f'upload details collection: {timestamp}')
+                result = results_today[timestamp]
+                storage.start_uploadinformations(images_result[timestamp])
+                storage.start_uploaddetails(images_result[timestamp], result.play_side)
+                timestamps_uploaded.append(timestamp)
 
     def delete_musicresult(self, event: webui.Event):
         '''指定した曲の記録データを全て削除する
@@ -1930,8 +1903,6 @@ class ScoreSelection():
         self.musicname = musicname
         self.difficulty = difficulty
 
-musicselect_unknown_musicname_uploader = MusicSelectUnknownMusicNameUploader()
-
 def mainloop():
     while not event_close.wait(timeout=1):
         if not newwindow.is_shown():
@@ -1980,32 +1951,11 @@ def result_process(screen: Screen):
             scoreselection = None
 
     if setting.data_collection or force_upload_enable:
-        uploaded_informations, uploaded_details = storage.start_uploadcollection(result, resultimage, force_upload_enable)
-        if uploaded_informations and uploaded_details:
+        if collectionuploader.checkandupload_result(result, resultimage, force_upload_enable):
             timestamps_uploaded.append(result.timestamp)
-        
-        if setting.debug:
-            if uploaded_informations:
-                api.send_message('append_log', f'upload informations collection: {result.timestamp}')
-            if uploaded_details:
-                api.send_message('append_log', f'upload details collection: {result.timestamp}')
     
     if setting.debug and setting.data_collection:
-        if result.others.tab:
-            unrecognizeds = None
-            if result.others.tab == ResultTabs.RIVAL:
-                unrecognizeds = [
-                    not result.others.rival.rankbefore,
-                    not result.others.rival.ranknow,
-                    not result.others.rival.rankposition,
-                ]
-            if result.others.tab == ResultTabs.RADAR:
-                unrecognizeds = [
-                    not result.others.notesradar.attribute,
-                ]
-
-            if not unrecognizeds or any(unrecognizeds):
-                execute_upload_resultothers_image(resultimage, result.play_side)
+        collectionuploader.checkandupload_resultothers(result, resultimage)
 
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
         if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
@@ -2106,8 +2056,9 @@ def musicselect_process(image:Image.Image, np_value: array):
 
     musicname = recog.MusicSelect.get_musicname(np_value)
     if musicname is None or not musicname in resource.musictable['musics'].keys():
-        if setting.data_collection and musicselect_unknown_musicname_uploader.evaluate():
-            execute_upload_musicselect_image(image)
+        if setting.data_collection:
+            collectionuploader.checkandupload_musicselect(image)
+
         return
     
     if scoreselection is not None:
@@ -2417,6 +2368,8 @@ def select_scoregraph():
 def upload_musicselect():
     '''
     選曲画面の収集画像のアップロードを実行する
+    
+    ショートカットキーで呼び出す
     '''
     if not screenshot.shot():
         return
@@ -2428,7 +2381,7 @@ def upload_musicselect():
     if image is None:
         return
     
-    execute_upload_musicselect_image(image)
+    storage.start_uploadmusicselect(image)
 
     imagevalue = get_imagevalue(image)
 
@@ -2441,6 +2394,8 @@ def upload_musicselect():
 def upload_resultothers():
     '''
     リザルト画面の詳細の反対側の画像のアップロードを実行する
+    
+    ショートカットキーで呼び出す
     '''
     if not screenshot.shot():
         return
@@ -2454,7 +2409,7 @@ def upload_resultothers():
     
     playside = recog.Result.get_play_side(screenshot.np_value)
 
-    execute_upload_resultothers_image(image, playside)
+    storage.start_uploadresultothers(image, playside)
 
     imagevalue = get_imagevalue(image)
 
@@ -2463,22 +2418,6 @@ def upload_resultothers():
 
     decorded_data = b64encode(imagevalue).decode('utf-8')
     socket_server.update_screenshot(decorded_data)
-
-def execute_upload_musicselect_image(image:Image.Image):
-    '''
-    選曲画面の一部を学習用にアップロードする
-    '''
-    storage.start_uploadmusicselect(image)
-    if setting.debug:
-        api.send_message('append_log', 'upload musicselect collection.')
-
-def execute_upload_resultothers_image(image:Image.Image, playside: str):
-    '''
-    リザルト画面の詳細の反対側の画像を学習用にアップロードする
-    '''
-    storage.start_uploadresultothers(image, playside)
-    if setting.debug:
-        api.send_message('append_log', 'upload resultothers collection.')
 
 def check_latest_version():
     '''最新バージョンを確認する
@@ -2730,6 +2669,8 @@ if __name__ == '__main__':
     api_discordwebhook = GuiApiDiscordWebhook(newwindow)
 
     logger.addHandler(LoggingHandler(lambda message: api.send_message('append_log', message)))
+
+    collectionuploader = CollectionUploader(setting, storage)
 
     newwindow.show('index.html')
     handle = gethandle(windowtitle)

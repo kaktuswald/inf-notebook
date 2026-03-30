@@ -17,8 +17,7 @@ logger = getLogger().getChild('storage')
 logger.debug('loaded storage.py')
 
 from service_account_info import service_account_info
-from define import define,Graphtypes
-from result import Result
+from define import define
 from cloud_function import callfunction_eventdelete
 
 bucket_name_informations = 'bucket-inf-notebook-informations'
@@ -41,7 +40,7 @@ result_rivalname_fillbox = (
     (
         define.details_graphtarget_name_area[2],
         define.details_graphtarget_name_area[3]
-    )
+    ),
 )
 
 musicselect_rivals_fillbox = (
@@ -52,11 +51,27 @@ musicselect_rivals_fillbox = (
     (
         define.musicselect_rivals_name_area[2],
         define.musicselect_rivals_name_area[3]
-    )
-
+    ),
 )
 
 class StorageAccessor():
+    class WorkerThread(Thread):
+        queue: Queue[Tuple[Callable[..., Any], tuple, dict]] = Queue()
+
+        def __init__(self):
+            super().__init__(daemon=True)
+        
+        def run(self):
+            while True:
+                func, args, kwargs = self.queue.get()
+                try:
+                    func(*args, **kwargs)
+                finally:
+                    self.queue.task_done()
+        
+        def pushfunc(self, func: Callable[..., Any], *args, **kwargs):
+            self.queue.put((func, args, kwargs,))
+
     client = None
     bucket_informations = None
     bucket_details = None
@@ -65,6 +80,7 @@ class StorageAccessor():
     bucket_resources = None
     bucket_discordwebhooks = None
     blob_musics = None
+    worker = WorkerThread()
 
     def connect_client(self):
         if self.client is not None:
@@ -122,6 +138,18 @@ class StorageAccessor():
         try:
             self.bucket_musicselect = self.client.get_bucket(bucket_name_musicselect)
             logger.debug('connect bucket musicselect')
+        except Exception as ex:
+            logger.exception(ex)
+    
+    def connect_bucket_notesradarvalue(self):
+        if self.client is None:
+            self.connect_client()
+        if self.client is None:
+            return
+        
+        try:
+            self.bucket_notesradarvalue = self.client.get_bucket(bucket_name_notesradarvalue)
+            logger.debug('connect bucket notesradarvalue')
         except Exception as ex:
             logger.exception(ex)
     
@@ -207,16 +235,11 @@ class StorageAccessor():
         except Exception as ex:
             logger.exception(ex)
 
-    def start_uploadcollection(self, result: Result, image: Image.Image, force: bool):
-        '''収集画像をアップロードする
+    def start_uploadinformations(self, image: Image.Image):
+        '''リザルト画面の譜面情報の収集画像をアップロードする
 
         Args:
-            result (Result): 対象のリザルト(result.py)
             image (Image): 対象のリザルト画像(PIL.Image)
-            force (bool): 強制アップロード
-
-        Returns:
-            bool, bool: informationsをアップロードした、detailsをアップロードした
         '''
         self.connect_client()
         if self.client is None:
@@ -224,48 +247,32 @@ class StorageAccessor():
         
         object_name = f'{uuid1()}.png'
 
-        informations_trim = force
-        details_trim = force
-
-        if result.informations is None:
-            informations_trim = True
-        else:
-            if result.informations.play_mode is None:
-                informations_trim = True
-            if result.informations.difficulty is None:
-                informations_trim = True
-            if result.informations.level is None:
-                informations_trim = True
-            if result.informations.music is None:
-                informations_trim = True
-
-        if result.details is None:
-            details_trim = True
-        else:
-            if result.details.clear_type is None or result.details.clear_type.current is None:
-                details_trim = True
-            if result.details.dj_level is None or result.details.dj_level.current is None:
-                details_trim = True
-            if result.details.score is None or result.details.score.current is None:
-                details_trim = True
-            if result.details.graphtarget is None:
-                details_trim = True
-            if result.details.graphtype == Graphtypes.GAUGE and result.details.options is None:
-                details_trim = True
-
-        if informations_trim:
-            trim = image.crop(define.informations_trimarea)
-            Thread(target=self.upload_informations, args=(object_name, trim,)).start()
-        if details_trim:
-            play_side = result.play_side
-            trim = image.crop(define.details_trimarea[play_side])
-            image_draw = ImageDraw.Draw(trim)
-            image_draw.rectangle(result_rivalname_fillbox, fill=0)
-            Thread(target=self.upload_details, args=(object_name, trim,)).start()
-        
-        return informations_trim, details_trim
+        trim = image.crop(define.informations_trimarea)
+        self.worker.pushfunc(self.upload_informations, object_name, trim)
+        if not self.worker.is_alive():
+            self.worker.start()
     
-    def start_uploadresultothers(self, image, playside: str):
+    def start_uploaddetails(self, image: Image.Image, playside: str):
+        '''リザルト画面の詳細の収集画像をアップロードする
+
+        Args:
+            image (Image): 対象のリザルト画像(PIL.Image)
+        '''
+        if not playside:
+            return
+        
+        self.connect_client()
+        if self.client is None:
+            return
+        
+        object_name = f'{uuid1()}.png'
+
+        trim = image.crop(define.details_trimareas[playside])
+        self.worker.pushfunc(self.upload_details, object_name, trim)
+        if not self.worker.is_alive():
+            self.worker.start()
+    
+    def start_uploadresultothers(self, image: Image.Image, playside: str):
         '''リザルト画面の詳細の反対側の収集画像をアップロードする
 
         Args:
@@ -281,9 +288,11 @@ class StorageAccessor():
         object_name = f'{uuid1()}.png'
 
         trim = image.crop(define.resultothers_trimareas[playside])
-        Thread(target=self.upload_resultothers, args=(object_name, trim,)).start()
+        self.worker.pushfunc(self.upload_resultothers, object_name, trim)
+        if not self.worker.is_alive():
+            self.worker.start()
     
-    def start_uploadmusicselect(self, image):
+    def start_uploadmusicselect(self, image: Image.Image):
         '''選曲画面の収集画像をアップロードする
 
         Args:
@@ -298,7 +307,10 @@ class StorageAccessor():
         trim = image.crop(define.musicselect_trimarea)
         image_draw = ImageDraw.Draw(trim)
         image_draw.rectangle(musicselect_rivals_fillbox, fill=0)
-        Thread(target=self.upload_musicselect, args=(object_name, trim,)).start()
+        self.worker.pushfunc(self.upload_musicselect, object_name, trim)
+        if not self.worker.is_alive():
+            self.worker.start()
+    
     
     def upload_resource(self, resourcename, targetfilepath):
         if self.bucket_resources is None:

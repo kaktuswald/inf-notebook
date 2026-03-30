@@ -249,9 +249,9 @@ class Define():
         self.notesradar_resourcename = f'notesradar{self.notesradar_version}'
         self.unofficialdifficulty_resourcename = f'unofficialdifficulty{self.unofficialdifficulty_version}'
 
-        self.details_trimarea = {}
+        self.details_trimareas = {}
         for play_side in self.details_trimpos.keys():
-            self.details_trimarea[play_side] = (
+            self.details_trimareas[play_side] = (
                 self.details_trimpos[play_side][0],
                 self.details_trimpos[play_side][1],
                 self.details_trimpos[play_side][0] + self.details_trimsize[0],
