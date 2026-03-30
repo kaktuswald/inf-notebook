@@ -1,14 +1,17 @@
 from os import mkdir
 from os.path import join,exists,splitext
 import io
-from google.cloud import storage
-from google.cloud.storage import Blob
-from PIL import Image,ImageDraw
 from json import loads,dumps
 from uuid import uuid1
 from datetime import datetime,timezone,timedelta
 from threading import Thread
+from queue import Queue
+from typing import Callable,Any,Tuple
 from logging import getLogger
+
+from google.cloud import storage
+from google.cloud.storage import Blob
+from PIL import Image,ImageDraw
 
 logger = getLogger().getChild('storage')
 logger.debug('loaded storage.py')
@@ -161,7 +164,7 @@ class StorageAccessor():
         try:
             blob = self.bucket_informations.blob(object_name)
             self.upload_image(blob, image)
-            logger.debug(f'upload information image {object_name}')
+            logger.info(f'upload information image {object_name}')
         except Exception as ex:
             logger.exception(ex)
 
@@ -174,7 +177,7 @@ class StorageAccessor():
         try:
             blob = self.bucket_details.blob(object_name)
             self.upload_image(blob, image)
-            logger.debug(f'upload details image {object_name}')
+            logger.info(f'upload details image {object_name}')
         except Exception as ex:
             logger.exception(ex)
 
@@ -187,7 +190,7 @@ class StorageAccessor():
         try:
             blob = self.bucket_resultothers.blob(object_name)
             self.upload_image(blob, image)
-            logger.debug(f'upload resultothers image {object_name}')
+            logger.info(f'upload resultothers image {object_name}')
         except Exception as ex:
             logger.exception(ex)
 
@@ -200,7 +203,7 @@ class StorageAccessor():
         try:
             blob = self.bucket_musicselect.blob(object_name)
             self.upload_image(blob, image)
-            logger.debug(f'upload musicselect image {object_name}')
+            logger.info(f'upload musicselect image {object_name}')
         except Exception as ex:
             logger.exception(ex)
 
@@ -337,7 +340,7 @@ class StorageAccessor():
 
         try:
             blob.download_to_filename(targetfilepath)
-            logger.debug('download resource {targetfilepath}')
+            logger.info('download resource {targetfilepath}')
         except Exception as ex:
             logger.exception(ex)
             return False
@@ -395,7 +398,7 @@ class StorageAccessor():
         try:
             blob = self.bucket_discordwebhooks.blob(filename)
             blob.upload_from_string(dumps(value))
-            logger.debug(f'upload discordwebhooks {filename}')
+            logger.info(f'upload discordwebhooks {filename}')
         except Exception as ex:
             logger.exception(ex)
             return False

@@ -1,22 +1,23 @@
-from global_hotkeys import register_hotkeys,clear_hotkeys,start_checking_hotkeys
 import time
 from threading import Thread,Event
 from queue import Queue,Full
 import webbrowser
-import logging
-import requests
 from datetime import datetime,timezone,timedelta
-from PIL import Image
 from urllib.parse import urljoin
 from subprocess import Popen
 from os.path import abspath,isfile,isdir,dirname
 from json import dump,dumps,load,loads
 from uuid import uuid1
 from base64 import b64decode,b64encode
-from webui import webui
 from hashlib import sha256
 from sys import exit
 from tkinter import Tk,filedialog
+import logging
+
+from webui import webui
+from PIL import Image
+from global_hotkeys import register_hotkeys,clear_hotkeys,start_checking_hotkeys
+import requests
 from numpy import array
 
 from setting import Setting
@@ -30,7 +31,7 @@ if setting.debug:
     )
 else:
     logging.basicConfig(
-        level=logging.WARNING,
+        level=logging.INFO,
         filename='log.txt',
         filemode='w',
         format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
@@ -125,6 +126,10 @@ class MusicSelectUnknownMusicNameUploader():
     def reset(self):
         self.time = None
         self.processed = None
+class LoggingHandler(logging.Handler):
+    def __init__(self, output_func):
+        super().__init__()
+        self.output_func = output_func
     
     def evaluate(self):
         if not setting.data_collection:
@@ -138,6 +143,9 @@ class MusicSelectUnknownMusicNameUploader():
             self.time = time.time()
         
         return False
+    def emit(self, record:logging.LogRecord):
+        message = self.format(record)
+        self.output_func(message)
 
 class ThreadCapture(Thread):
     handle: int = 0
@@ -172,7 +180,7 @@ class ThreadCapture(Thread):
 
     def run(self):
         self.sleep_time = thread_time_wait_nonactive
-        self.queues['log'].put('start capture thread.')
+        logger.debug('start capture thread.')
         while not self.event_close.wait(timeout=self.sleep_time):
             self.routine()
 
@@ -182,7 +190,7 @@ class ThreadCapture(Thread):
             if self.handle == 0:
                 return
 
-            self.queues['log'].put(f'infinitas find.')
+            logger.debug(f'infinitas find.')
             api.send_message('switch_detect_infinitas', True)
             self.active = False
             screenshot.xy = None
@@ -190,7 +198,7 @@ class ThreadCapture(Thread):
         rect = get_rect(self.handle)
 
         if rect is None or rect.right - rect.left == 0 or rect.bottom - rect.top == 0:
-            self.queues['log'].put(f'infinitas lost.')
+            logger.debug(f'infinitas lost.')
             api.send_message('switch_detect_infinitas', False)
             api.send_message('switch_capturable', False)
             self.sleep_time = thread_time_wait_nonactive
@@ -204,7 +212,7 @@ class ThreadCapture(Thread):
         if not check_rectsize(rect):
             if self.active:
                 self.sleep_time = thread_time_wait_nonactive
-                self.queues['log'].put(f'infinitas deactivate: {self.sleep_time}')
+                logger.debug(f'infinitas deactivate: {self.sleep_time}')
                 api.send_message('switch_capturable', False)
 
             self.active = False
@@ -218,7 +226,7 @@ class ThreadCapture(Thread):
             self.waiting = False
             self.musicselect = False
             self.sleep_time = thread_time_normal
-            self.queues['log'].put(f'infinitas activate: {self.sleep_time}')
+            logger.debug(f'infinitas activate: {self.sleep_time}')
             api.send_message('switch_capturable', True)
         
         screenshot.xy = (rect.left, rect.top)
@@ -265,8 +273,7 @@ class ThreadCapture(Thread):
             self.waiting = True
             self.musicselect = False
             self.sleep_time = thread_time_wait_loading
-            if setting.debug:
-                self.queues['log'].put(f'detect loading: start waiting: {self.sleep_time}')
+            logger.debug(f'detect loading: start waiting: {self.sleep_time}')
             self.queues['messages'].put('detect_loading')
             return
             
@@ -275,8 +282,7 @@ class ThreadCapture(Thread):
         if self.waiting:
             self.waiting = False
             self.sleep_time = thread_time_normal
-            if setting.debug:
-                self.queues['log'].put(f'escape loading: end waiting: {self.sleep_time}')
+            logger.debug(f'escape loading: end waiting: {self.sleep_time}')
             self.queues['messages'].put('escape_loading')
 
         # ここから先はローディング中じゃないときのみ
@@ -285,16 +291,14 @@ class ThreadCapture(Thread):
             # 画面が選曲から抜けたとき
             self.musicselect = False
             self.sleep_time = thread_time_normal
-            if setting.debug:
-                self.queues['log'].put(f'screen out music select: {self.sleep_time}')
+            logger.debug(f'screen out music select: {self.sleep_time}')
 
         if screen == 'music_select':
             if not self.musicselect:
                 # 画面が選曲に入ったとき
                 self.musicselect = True
                 self.sleep_time = thread_time_musicselect
-                if setting.debug:
-                    self.queues['log'].put(f'screen in music select: {self.sleep_time}')
+                logger.debug(f'screen in music select: {self.sleep_time}')
 
             if not shotted:
                 screenshot.shot()
@@ -327,8 +331,7 @@ class ThreadCapture(Thread):
             if screen == 'result':
                 # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
                 self.sleep_time = thread_time_result
-                if setting.debug:
-                    self.queues['log'].put(f'screen in result: {self.sleep_time}')
+                logger.debug(f'screen in result: {self.sleep_time}')
         
         if self.processed:
             return
@@ -356,7 +359,7 @@ class ThreadCapture(Thread):
                 pass
 
             self.sleep_time = thread_time_normal
-            self.queues['log'].put(f'processing result screen: {self.sleep_time}')
+            logger.debug(f'processing result screen: {self.sleep_time}')
             self.processed = True
 
 class Hotkeys():
@@ -1943,8 +1946,6 @@ def mainloop():
                 api.send_message(queuemessage)
         if not queue_callfunction.empty():
             queue_callfunction.get_nowait()()
-        if not queue_log.empty():
-            api.send_message('append_log', queue_log.get_nowait())
 
 def result_process(screen: Screen):
     '''リザルトを記録するときの処理をする
@@ -1954,8 +1955,7 @@ def result_process(screen: Screen):
     '''
     global scoreselection
 
-    if setting.debug:
-        api.send_message('append_log', 'result process')
+    logger.debug('result process')
 
     result: Result | None = recog.get_result(screen)
     if result is None:
@@ -2115,9 +2115,6 @@ def musicselect_process(image:Image.Image, np_value: array):
             return
     
     scoreselection = ScoreSelection(playtype, musicname, difficulty)
-
-    if setting.debug:
-        api.send_message('append_log', f'musicselect: {playtype}, {musicname}, {difficulty}')
 
     music_information = resource.musictable['musics'][musicname]
     version = recog.MusicSelect.get_version(np_value)
@@ -2696,11 +2693,9 @@ if __name__ == '__main__':
 
     recentresults: list[RecentResult] = []
 
-    queue_log = Queue()
     queue_result_screen = Queue(1)
     queue_musicselect_screen = Queue(1)
     queue_messages = Queue()
-    queue_multimessages = Queue()
     queue_callfunction = Queue()
 
     storage = StorageAccessor()
@@ -2709,11 +2704,9 @@ if __name__ == '__main__':
     thread = ThreadCapture(
         event_close,
         queues = {
-            'log': queue_log,
             'result_screen': queue_result_screen,
             'musicselect_screen': queue_musicselect_screen,
             'messages': queue_messages,
-            'multimessages': queue_multimessages,
         }
     )
 
@@ -2735,6 +2728,8 @@ if __name__ == '__main__':
     api = GuiApi(newwindow, notebooks_music)
     api_export = GuiApiExport(newwindow)
     api_discordwebhook = GuiApiDiscordWebhook(newwindow)
+
+    logger.addHandler(LoggingHandler(lambda message: api.send_message('append_log', message)))
 
     newwindow.show('index.html')
     handle = gethandle(windowtitle)
