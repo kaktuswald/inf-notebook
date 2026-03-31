@@ -1,14 +1,14 @@
-from PIL import Image
 import json
 from sys import exit
-from os import mkdir
-from os.path import join,isfile,exists
+from os.path import join,isfile
+
+from PIL import Image
 import numpy as np
 
 from define import define,Graphtypes,Options
 import data_collection as dc
-from resources_learning import learning
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
+from resources_learning import learning
 
 recognition_define_filename = 'define_recognition_details.json'
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
@@ -20,7 +20,7 @@ class Details():
         self.np_value = np_value
         self.label = label
 
-def load_details(labels):
+def load_details(labels) -> dict:
     def is_using(key):
         if not 'details' in labels[key].keys() or labels[key]['details'] is None:
             return False
@@ -45,7 +45,7 @@ def load_details(labels):
     
     return details
 
-def load_define():
+def load_define() -> dict:
     try:
         with open(recognition_define_filepath) as f:
             ret = json.load(f)
@@ -175,10 +175,10 @@ def load_define():
 
     return ret
 
-def learning_graphtype(details):
+def learning_graphtype(details:dict, report:Report) -> dict:
     resourcename = 'graphtype'
 
-    report = Report(resourcename)
+    report_graphtype = Report(resourcename)
 
     trimareas = details_define['graphtype']
 
@@ -195,8 +195,8 @@ def learning_graphtype(details):
             trimmed = target.np_value[trimareas[playside][value]]
             if not value in table.keys():
                 table[value] = trimmed
-                report.saveimage_value(trimmed, f'{value}.png')
-                report.append_log(f'({key}({playside})){value}: {trimmed.tolist()}')
+                report_graphtype.saveimage_value(trimmed, f'{value}.png')
+                report_graphtype.append_log(f'({key}({playside})){value}: {trimmed.tolist()}')
 
         evaluate_targets[key] = target
     
@@ -211,19 +211,24 @@ def learning_graphtype(details):
                 recoged = k
         
         if recoged == value:
-            report.through()
+            report_graphtype.through()
         else:
-            report.saveimage_errorvalue(trimmed, f'{key}.png')
-            report.error(f'Mismatch {key} {playside} {recoged} {value}')
+            report_graphtype.saveimage_errorvalue(trimmed, f'{key}.png')
+            report_graphtype.error(f'Mismatch {key} {playside} {recoged} {value}')
 
-    report.report()
+    report_graphtype.report()
+
+    if not report_graphtype.count_error:
+        report.through()
+    else:
+        report.error('Error graphtype')
 
     return table
 
-def learning_option(details: dict[str, Details]):
+def learning_option(details: dict, report:Report) -> dict:
     resourcename = 'option'
 
-    report = Report(resourcename)
+    report_option = Report(resourcename)
     
     values = [None]
 
@@ -306,7 +311,7 @@ def learning_option(details: dict[str, Details]):
             value = None
 
         if not value in values:
-            report.error(f'Abnormal value: {value}')
+            report_option.error(f'Abnormal value: {value}')
             continue
 
         trimmed = target.np_value[details_define['option']['trim'][playside]]
@@ -320,17 +325,17 @@ def learning_option(details: dict[str, Details]):
         if not tablekey in keyresult[value][playside].keys():
             keyresult[value][playside][tablekey] = key
             if value is not None:
-                report.saveimage_value(trimmed>=details_define['option']['thresholdlower'], f'{value.replace('/', '_')}-{key}.png')
+                report_option.saveimage_value(trimmed>=details_define['option']['thresholdlower'], f'{value.replace('/', '_')}-{key}.png')
 
         evaluate_targets[key] = target
     
-    report.append_log('')
+    report_option.append_log('')
 
-    report.append_log(','.join(useoptioncounts))
+    report_option.append_log(','.join(useoptioncounts))
     if len(useoptioncounts) == 0:
-        report.error(f'Use option value is none')
+        report_option.error(f'Use option value is none')
     if len(useoptioncounts) > 1:
-        report.error(f'Use option value is duplicate: {useoptioncounts}')
+        report_option.error(f'Use option value is duplicate: {useoptioncounts}')
 
     for key, target in evaluate_targets.items():
         playside = define.details_get_playside(target.np_value)
@@ -360,47 +365,47 @@ def learning_option(details: dict[str, Details]):
             value = None
 
         if value == result:
-            report.through()
+            report_option.through()
         else:
-            report.saveimage_errorvalue(trimmed, f'[Error]{value.replace('/', '_')}-{key}.png')
-            report.error(f'Mismatch {result} {key}')
+            report_option.saveimage_errorvalue(trimmed, f'[Error]{value.replace('/', '_')}-{key}.png')
+            report_option.error(f'Mismatch {result} {key}')
 
-    report_keys = []
-    report_keycompare = []
+    report_option_keys = []
+    report_option_keycompare = []
     for value in values:
-        report_keys.append(f'{value}:')
+        report_option_keys.append(f'{value}:')
         for playside in define.value_list['play_sides']:
-            report_keys.append(f'\t{playside}:')
+            report_option_keys.append(f'\t{playside}:')
             tablekeys = [*keyresult[value][playside].keys()]
             for tablekey in tablekeys:
-                report_keys.append(f'\t\t{tablekey}: {keyresult[value][playside][tablekey]}')
+                report_option_keys.append(f'\t\t{tablekey}: {keyresult[value][playside][tablekey]}')
             if len(tablekeys) == 0:
-                report.error(f'Not key: {value}({playside})')
+                report_option.error(f'Not key: {value}({playside})')
             if len(tablekeys) >= 2:
-                report.error(f'Duplicate key: {value}({playside})')
+                report_option.error(f'Duplicate key: {value}({playside})')
         
         keys1p = [*keyresult[value]['1P'].keys()]
         keys2p = [*keyresult[value]['2P'].keys()]
         if len(keys1p) == 1 and len(keys2p) == 1:
             if keys1p[0] != keys2p[0]:
-                report_keycompare.append(f'Different key {value}')
+                report_option_keycompare.append(f'Different key {value}')
     
-    optionkeys_report_filepath = join(report_basedir_option, 'keys.txt')
-    with open(optionkeys_report_filepath, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(report_keys))
+    report_option.output_list(report_option_keys, 'keys.txt')
+    report_option.output_list(report_option_keycompare, 'keycompare.txt')
     
-    keycompare_report_filepath = join(report_basedir_option, 'keycompare.txt')
-    with open(keycompare_report_filepath, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(report_keycompare))
-    
-    report.report()
+    report_option.report()
+
+    if not report_option.count_error:
+        report.through()
+    else:
+        report.error('Error option')
 
     return {'useoption': useoptioncount, 'option': table}
 
-def learning_cleartype(details):
+def learning_cleartype(details, report:Report) -> dict:
     resourcename = 'cleartype'
 
-    report = Report(resourcename)
+    report_cleartype = Report(resourcename)
 
     table = {}
     evaluate_targets = {}
@@ -424,8 +429,8 @@ def learning_cleartype(details):
     for value in define.value_list['clear_types']:
         keys = [k for k, v in table.items() if v == value]
         if not len(keys):
-            report.append_log(f'Not found key {value}')
-        report.append_log(f'{value}: {keys}')
+            report_cleartype.append_log(f'Not found key {value}')
+        report_cleartype.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
         if 'clear_type_best' in target.label.keys() and target.label['clear_type_best'] != "":
@@ -438,10 +443,10 @@ def learning_cleartype(details):
                 result = table[color]
             
             if target.label['clear_type_best'] == result:
-                report.through()
+                report_cleartype.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}-best.png')
-                report.error(f'Mismatch best {result} {key}')
+                report_cleartype.saveimage_errorvalue(trimmed, f'{key}-best.png')
+                report_cleartype.error(f'Mismatch best {result} {key}')
 
         if 'clear_type_current' in target.label.keys() and target.label['clear_type_current'] != "":
             trimmed = target.np_value[details_define['clear_type']['current']]
@@ -453,19 +458,24 @@ def learning_cleartype(details):
                 result = table[color]
             
             if target.label['clear_type_current'] == result:
-                report.through()
+                report_cleartype.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}-current.png')
-                report.error(f'Mismatch current {result} {key}')
+                report_cleartype.saveimage_errorvalue(trimmed, f'{key}-current.png')
+                report_cleartype.error(f'Mismatch current {result} {key}')
 
-    report.report()
+    report_cleartype.report()
+
+    if not report_cleartype.count_error:
+        report.through()
+    else:
+        report.error('Error cleartype')
 
     return table
 
-def learning_djlevel(details):
+def learning_djlevel(details, report:Report) -> dict:
     resourcename = 'djlevel'
 
-    report = Report(resourcename)
+    report_djlevel = Report(resourcename)
 
     table = {}
     evaluate_targets = {}
@@ -492,8 +502,8 @@ def learning_djlevel(details):
     for value in define.value_list['dj_levels']:
         keys = [k for k, v in table.items() if v == value]
         if not len(keys):
-            report.append_log(f'Not found key {value}')
-        report.append_log(f'{value}: {keys}')
+            report_djlevel.append_log(f'Not found key {value}')
+        report_djlevel.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
         if 'dj_level_best' in target.label.keys() and target.label['dj_level_best'] != "":
@@ -505,10 +515,10 @@ def learning_djlevel(details):
                 result = table[count]
             
             if target.label['dj_level_best'] == result:
-                report.through()
+                report_djlevel.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}-best.png')
-                report.error(f'Mismatch best {result} {key}({count})')
+                report_djlevel.saveimage_errorvalue(trimmed, f'{key}-best.png')
+                report_djlevel.error(f'Mismatch best {result} {key}({count})')
 
         if 'dj_level_current' in target.label.keys() and target.label['dj_level_current'] != "":
             trimmed = target.np_value[details_define['dj_level']['current']]
@@ -519,19 +529,24 @@ def learning_djlevel(details):
                 result = table[count]
             
             if target.label['dj_level_current'] == result:
-                report.through()
+                report_djlevel.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}-current.png')
-                report.error(f'Mismatch current {result} {key}({count})')
+                report_djlevel.saveimage_errorvalue(trimmed, f'{key}-current.png')
+                report_djlevel.error(f'Mismatch current {result} {key}({count})')
 
-    report.report()
+    report_djlevel.report()
+
+    if not report_djlevel.count_error:
+        report.through()
+    else:
+        report.error('Error djlevel')
 
     return table
 
-def learning_numberbest(details):
+def learning_numberbest(details, report:Report) -> dict:
     resourcename = 'numberbest'
 
-    report = Report(resourcename)
+    report_numberbest = Report(resourcename)
 
     table = {}
     evaluate_targets = {}
@@ -545,7 +560,7 @@ def learning_numberbest(details):
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
-                report.saveimage_value(trimmed_once, f'{value}-{key}-score.png')
+                report_numberbest.saveimage_value(trimmed_once, f'{value}-{key}-score.png')
                 table[tablekey] = value
 
             evaluate_targets[f'score_{key}'] = target
@@ -559,7 +574,7 @@ def learning_numberbest(details):
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
-                report.saveimage_value(trimmed_once, f'{value}-{key}-misscount.png')
+                report_numberbest.saveimage_value(trimmed_once, f'{value}-{key}-misscount.png')
                 table[tablekey] = value
         
             evaluate_targets[f'miss_count_{key}'] = target
@@ -567,9 +582,9 @@ def learning_numberbest(details):
     for value in range(10):
         keys = [k for k, v in table.items() if v == value]
         if not len(keys):
-            report.append_log(f'Not found key {value}')
+            report_numberbest.append_log(f'Not found key {value}')
         else:
-            report.append_log(f'{value}: {keys}')
+            report_numberbest.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
         if 'score_best' in target.label.keys() and target.label['score_best'] != "":
@@ -589,11 +604,11 @@ def learning_numberbest(details):
                 result += 10 ** dig * table[tablekey]
             
             if int(target.label['score_best']) == result:
-                report.through()
+                report_numberbest.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}.png')
-                report.error(f"Mismatch score {result} {target.label['score_best']}")
-                report.error(f'{keys}')
+                report_numberbest.saveimage_errorvalue(trimmed, f'{key}.png')
+                report_numberbest.error(f"Mismatch score {result} {target.label['score_best']}")
+                report_numberbest.error(f'{keys}')
 
         if 'miss_count_best' in target.label.keys() and target.label['miss_count_best'] != "":
             trimmed = target.np_value[details_define['miss_count']['best']]
@@ -610,19 +625,24 @@ def learning_numberbest(details):
                 result += 10 ** dig * table[tablekey]
             
             if int(target.label['miss_count_best']) == result:
-                report.through()
+                report_numberbest.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}.png')
-                report.error(f"Mismatch miss count {result} {target.label['miss_count_best']}")
+                report_numberbest.saveimage_errorvalue(trimmed, f'{key}.png')
+                report_numberbest.error(f"Mismatch miss count {result} {target.label['miss_count_best']}")
 
-    report.report()
+    report_numberbest.report()
+
+    if not report_numberbest.count_error:
+        report.through()
+    else:
+        report.error('Error numberbest')
 
     return table
 
-def learning_numbercurrent(details):
+def learning_numbercurrent(details, report:Report) -> dict:
     resourcename = 'numbercurrent'
 
-    report = Report(resourcename)
+    report_numbercurrent = Report(resourcename)
 
     table = {}
     evaluate_targets = {}
@@ -636,7 +656,7 @@ def learning_numbercurrent(details):
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
-                report.saveimage_value(trimmed_once, f'{value}-{key}-score.png')
+                report_numbercurrent.saveimage_value(trimmed_once, f'{value}-{key}-score.png')
                 table[tablekey] = value
 
             evaluate_targets[f'score_{key}'] = target
@@ -650,7 +670,7 @@ def learning_numbercurrent(details):
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if not tablekey in table or not value in table.values():
-                report.saveimage_value(trimmed_once, f'{value}-{key}-misscount.png')
+                report_numbercurrent.saveimage_value(trimmed_once, f'{value}-{key}-misscount.png')
                 table[tablekey] = value
         
             evaluate_targets[f'miss_count_{key}'] = target
@@ -658,9 +678,9 @@ def learning_numbercurrent(details):
     for value in range(10):
         keys = [k for k, v in table.items() if v == value]
         if not len(keys):
-            report.append_log(f'Not found key {value}')
+            report_numbercurrent.append_log(f'Not found key {value}')
         else:
-            report.append_log(f'{value}: {keys}')
+            report_numbercurrent.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
         if 'score_current' in target.label.keys() and target.label['score_current'] != "":
@@ -680,11 +700,11 @@ def learning_numbercurrent(details):
                 result += 10 ** dig * table[tablekey]
             
             if int(target.label['score_current']) == result:
-                report.through()
+                report_numbercurrent.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}.png')
-                report.error(f"Mismatch score {result} {target.label['score_current']}")
-                report.error(f'{keys}')
+                report_numbercurrent.saveimage_errorvalue(trimmed, f'{key}.png')
+                report_numbercurrent.error(f"Mismatch score {result} {target.label['score_current']}")
+                report_numbercurrent.error(f'{keys}')
 
         if 'miss_count_current' in target.label.keys() and target.label['miss_count_current'] != "":
             trimmed = target.np_value[details_define['miss_count']['current']]
@@ -701,17 +721,22 @@ def learning_numbercurrent(details):
                 result += 10 ** dig * table[tablekey]
             
             if int(target.label['miss_count_current']) == result:
-                report.through()
+                report_numbercurrent.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}.png')
-                report.error(f"Mismatch miss count {result} {target.label['miss_count_current']}")
+                report_numbercurrent.saveimage_errorvalue(trimmed, f'{key}.png')
+                report_numbercurrent.error(f"Mismatch miss count {result} {target.label['miss_count_current']}")
 
-    report.report()
+    report_numbercurrent.report()
+
+    if not report_numbercurrent.count_error:
+        report.through()
+    else:
+        report.error('Error numbercurrent')
 
     return table
 
-def learning_not_new(details):
-    report = Report('notnew')
+def learning_not_new(details, report:Report) -> dict:
+    report_notnew = Report('notnew')
 
     trimareas = {}
     for key in ['clear_type', 'dj_level', 'score', 'miss_count']:
@@ -729,11 +754,11 @@ def learning_not_new(details):
 
         evaluate_targets[key] = target
     
-    report.append_log(f'source count: {len(learning_targets)}')
+    report_notnew.append_log(f'source count: {len(learning_targets)}')
 
-    result = learning(learning_targets, report)
+    result = learning(learning_targets, report_notnew)
     if result is None:
-        report.report()
+        report_notnew.report_notnew()
         return
 
     for key, target in evaluate_targets.items():
@@ -742,17 +767,22 @@ def learning_not_new(details):
             trimmed = target.np_value[trimareas[k]]
             recoged = np.all((result==0)|(trimmed==result))
             if (recoged and not is_new) or (not recoged and is_new):
-                report.through()
+                report_notnew.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}_{k}.png')
-                report.error(f'Mismatch {k}_new {is_new} {recoged} {key}')
+                report_notnew.saveimage_errorvalue(trimmed, f'{key}_{k}.png')
+                report_notnew.error(f'Mismatch {k}_new {is_new} {recoged} {key}')
 
-    report.report()
+    report_notnew.report()
+
+    if not report_notnew.count_error:
+        report.through()
+    else:
+        report.error('Error notnew')
 
     return result
 
-def learning_graphtarget(details):
-    report = Report('graphtarget')
+def learning_graphtarget(details, report:Report) -> dict:
+    report_graphtarget = Report('graphtarget')
 
     trimareas = details_define['graphtarget']
 
@@ -777,7 +807,7 @@ def learning_graphtarget(details):
         tablekey = ''.join([format(v, '0x') for v in hexs])
         if not tablekey in table[mode].keys():
             table[mode][tablekey] = value
-            report.saveimage_value(trimmed, f'{value}.png')
+            report_graphtarget.saveimage_value(trimmed, f'{value}.png')
             result[value] = f'({key}){mode} {tablekey}'
 
         evaluate_targets[key] = target
@@ -799,19 +829,24 @@ def learning_graphtarget(details):
                 recoged = table[mode][tablekey]
 
         if recoged == value:
-            report.through()
+            report_graphtarget.through()
         else:
-            report.saveimage_errorvalue(np_value, f'{key}.png')
-            report.error(f'Mismatch {recoged} {value} {key}')
+            report_graphtarget.saveimage_errorvalue(np_value, f'{key}.png')
+            report_graphtarget.error(f'Mismatch {recoged} {value} {key}')
 
     for value in define.value_list['graphtargets']:
         if value in result.keys():
-            report.append_log(f'{value}: {result[value]}')
+            report_graphtarget.append_log(f'{value}: {result[value]}')
         else:
-            report.append_log(f'{value}: Not define.')
-            report.error(f'Not define {value}')
+            report_graphtarget.append_log(f'{value}: Not define.')
+            report_graphtarget.error(f'Not define {value}')
 
-    report.report()
+    report_graphtarget.report()
+
+    if not report_graphtarget.count_error:
+        report.through()
+    else:
+        report.error('Error graphtarget')
 
     return table
 
@@ -829,17 +864,16 @@ if __name__ == '__main__':
 
     details: dict[str, Details] = load_details(labels)
     
-    if not exists(report_basedir_option):
-        mkdir(report_basedir_option)
-
-    table_graphtype = learning_graphtype(details)
-    table_option = learning_option(details)
-    table_clear_type = learning_cleartype(details)
-    table_dj_level = learning_djlevel(details)
-    table_number_best = learning_numberbest(details)
-    table_number_current = learning_numbercurrent(details)
-    mask_not_new = learning_not_new(details)
-    table_graphtarget = learning_graphtarget(details)
+    report = Report('informations')
+    
+    table_graphtype = learning_graphtype(details, report)
+    table_option = learning_option(details, report)
+    table_clear_type = learning_cleartype(details, report)
+    table_dj_level = learning_djlevel(details, report)
+    table_number_best = learning_numberbest(details, report)
+    table_number_current = learning_numbercurrent(details, report)
+    mask_not_new = learning_not_new(details, report)
+    table_graphtarget = learning_graphtarget(details, report)
  
     filename = f'details{define.details_recognition_version}.res'
 
@@ -856,3 +890,5 @@ if __name__ == '__main__':
     }
     
     save_resource_serialized(filename, data, True)
+
+    report.report()

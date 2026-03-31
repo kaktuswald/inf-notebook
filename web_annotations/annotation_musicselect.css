@@ -1,3 +1,7 @@
+div.label {
+    width: 140px;
+}
+
 div.value_levels,
 div.value_others,
 div.value_musicname {

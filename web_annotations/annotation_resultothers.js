@@ -12,6 +12,7 @@ $(function() {
 
   $('input#check_onlynotannotation').on('change', display_keytable);
   $('input#check_onlyignore').on('change', display_keytable);
+  $('select#select_tabfilter').on('change', display_keytable);
   $('input#text_keyfilter').on('input', display_keytable);
 
   $('input#text_keyfilter').on('click', onclick_filter);
@@ -28,6 +29,11 @@ async function initialize() {
   const tabs = JSON.parse(await webui.get_tabs());
   for(const tab of tabs) {
     $('select#select_tab').append($('<option>')
+      .val(tab)
+      .text(tab)
+    );
+
+    $('select#select_tabfilter').append($('<option>')
       .val(tab)
       .text(tab)
     );
@@ -89,6 +95,14 @@ async function onclick_keyitem(e) {
     $('select#select_ranknow').val(label.ranknow);
     $('select#select_rankposition').val(label.rankposition);
     $('select#select_radarattribute').val(label.radarattribute);
+    $('input#text_radarchartvalue').val(label.radarchartvalue);
+    $('input#text_radarvalue').val(label.radarvalue);
+
+    if(label.radarupdated == null)
+      $('select#select_radarupdated').val('不明');
+    else
+      $('select#select_radarupdated').val(label.radarupdated ? 'あり' : 'なし');
+
     $('input#check_ignore').prop('checked', Object.hasOwn(label, 'ignore') && label.ignore);
   }
   else {
@@ -97,16 +111,26 @@ async function onclick_keyitem(e) {
     $('select#select_ranknow').val(null);
     $('select#select_rankposition').val(null);
     $('select#select_radarattribute').val(null);
+    $('input#text_radarchartvalue').val(null);
+    $('input#text_radarvalue').val(null);
+    $('select#select_radarupdated').val(null);
     $('input#check_ignore').prop('checked', false);
   }
 
   recognitionresult = JSON.parse(await webui.get_recognitionresult(targetkey));
-  if(recognitionresult !== null) {
+  if(recognitionresult != null) {
     $('span#text_resulttab').text(recognitionresult.tab);
     $('span#text_resultrankbefore').text(recognitionresult.rankbefore);
     $('span#text_resultranknow').text(recognitionresult.ranknow);
     $('span#text_resultrankposition').text(recognitionresult.rankposition);
     $('span#text_resultradarattribute').text(recognitionresult.radarattribute);
+    $('span#text_resultradarchartvalue').text(recognitionresult.radarchartvalue);
+    $('span#text_resultradarvalue').text(recognitionresult.radarvalue);
+
+    if(recognitionresult.radarupdated == null)
+      $('span#text_resultradarupdated').text('不明')
+    else
+      $('span#text_resultradarupdated').text(recognitionresult.radarupdated ? 'あり' : 'なし');
   }
   else {
     $('span#text_resulttab').empty();
@@ -120,12 +144,22 @@ async function onclick_keyitem(e) {
 async function onclick_labeloverwrite(e) {
   const targetkey = $('tr.keyitem.selected .cell_key').first().text();
 
+  const radarupdatedselected = $('select#select_radarupdated').val();
+  let radarupdated;
+  if(radarupdatedselected == '不明')
+    radarupdated = null;
+  else
+    radarupdated = radarupdatedselected == 'あり' ? true : false;
+
   values = {
     'tab': $('select#select_tab').val(),
     'rankbefore': $('select#select_rankbefore').val(),
     'ranknow': $('select#select_ranknow').val(),
     'rankposition': $('select#select_rankposition').val(),
     'radarattribute': $('select#select_radarattribute').val(),
+    'radarchartvalue': $('input#text_radarchartvalue').val(),
+    'radarvalue': $('input#text_radarvalue').val(),
+    'radarupdated': radarupdated,
   };
 
   if($('input#check_ignore').prop('checked'))
@@ -147,6 +181,13 @@ async function onclick_citationrecog(e) {
   $('select#select_ranknow').val(recognitionresult.ranknow);
   $('select#select_rankposition').val(recognitionresult.rankposition);
   $('select#select_radarattribute').val(recognitionresult.radarattribute);
+  $('input#text_radarchartvalue').val(recognitionresult.radarchartvalue);
+  $('input#text_radarvalue').val(recognitionresult.radarvalue);
+
+  if(recognitionresult.radarupdated == null)
+    $('select#select_radarupdated').val('不明');
+  else
+    $('select#select_radarupdated').val(recognitionresult.radarupdated ? 'あり' : 'なし');
 }
 
 /**
@@ -179,11 +220,13 @@ async function display_keytable() {
 
   const only_notannotation = $('input#check_onlynotannotation').prop('checked');
   const only_ignore = $('input#check_onlyignore').prop('checked');
+  const tabfilter = $('select#select_tabfilter').val();
   const keyfilter = $('input#text_keyfilter').val();
 
   keys = JSON.parse(await webui.get_collectionkeys(JSON.stringify({
     'only_notannotation': only_notannotation,
     'only_ignore': only_ignore,
+    'tabfilter': tabfilter.length ? tabfilter : null,
     'keyfilter': keyfilter.length ? keyfilter : null,
   })));
   for(const key of keys) {

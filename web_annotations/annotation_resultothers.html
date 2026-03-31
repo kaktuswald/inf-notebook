@@ -57,6 +57,24 @@
               <span id="text_resultradarattribute"></span>
             </div>
           </div>
+          <div>
+            <div class="label">この曲の今のレーダー値:</div>
+            <div class="value">
+              <span id="text_resultradarchartvalue"></span>
+            </div>
+          </div>
+          <div>
+            <div class="label">プレイヤーのレーダー値:</div>
+            <div class="value">
+              <span id="text_resultradarvalue"></span>
+            </div>
+          </div>
+          <div>
+            <div class="label">プレイヤーのレーダー値が更新:</div>
+            <div class="value">
+              <span id="text_resultradarupdated"></span>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -98,6 +116,25 @@
           </div>
 
           <div>
+            <div class="label">この曲の今のレーダー値:</div>
+            <input type="text" id="text_radarchartvalue" class="text_chartvalue">
+          </div>
+
+          <div>
+            <div class="label">プレイヤーのレーダー値:</div>
+            <input type="text" id="text_radarvalue" class="text_chartvalue">
+          </div>
+
+          <div>
+            <div class="label">プレイヤーのレーダー値が更新:</div>
+            <select id="select_radarupdated">
+              <option value="不明">不明</option>
+              <option value="なし">なし</option>
+              <option value="あり">あり</option>
+            </select>
+          </div>
+
+          <div>
             <div class="label">学習に使用:</div>
             <label><input type="checkbox" id="check_ignore">しない</label>
           </div>
@@ -116,6 +153,12 @@
             </div>
             <div>
               <label><input type="checkbox" id="check_onlyignore">学習に使用しないもののみ</label>
+            </div>
+            <div>
+              <span>タブ</span>
+              <select id="select_tabfilter">
+                <option />
+              </select>
             </div>
             <div>
               <label>キー:</label>

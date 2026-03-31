@@ -2,16 +2,16 @@ from json import load,dump,loads,dumps
 from os import remove
 from os.path import join,exists,basename,isfile
 from glob import glob
-from PIL import Image
 from base64 import b64encode
-from numpy import array,uint8
 from webui.webui import Window,Event,wait,clean
 
-from resources_learning_resultothers import images_resultothers_basepath,label_filepath
-from define import define,ResultTabs,NotesradarAttributes
+from PIL import Image
+from numpy import array,uint8
+
+from define import ResultTabs,NotesradarAttributes
 from general import get_imagevalue
 from recog import Recognition as recog
-from resources import resource
+from resources_learning_resultothers import images_resultothers_basepath,label_filepath
 
 class GuiApi():
     window: Window
@@ -45,9 +45,14 @@ class GuiApi():
 
         if conditions['only_notannotation']:
             targetkeys = [key for key in targetkeys if not key in labels.keys()]
+        else:
+            targetkeys = [key for key in targetkeys if key in labels.keys()]
 
-        if conditions['only_ignore']:
-            targetkeys = [key for key in targetkeys if key in labels.keys() and 'ignore' in labels[key].keys() and labels[key]['ignore']]
+            if conditions['only_ignore']:
+                targetkeys = [key for key in targetkeys if 'ignore' in labels[key].keys() and labels[key]['ignore']]
+
+            if conditions['tabfilter'] is not None:
+                targetkeys = [key for key in targetkeys if 'tab' in labels[key].keys() and labels[key]['tab'] == conditions['tabfilter']]
 
         if conditions['keyfilter'] is not None:
             targetkeys = [key for key in targetkeys if conditions['keyfilter'] in key]
@@ -84,12 +89,17 @@ class GuiApi():
         key = event.get_string_at(0)
 
         image_np = array(images[key], dtype=uint8)
+
+        radarvalue, is_updated = recog.ResultOthers.get_notesradar_value(image_np)
         result = {
             'tab': recog.ResultOthers.get_tab(image_np),
             'rankbefore': recog.ResultOthers.get_rankbefore(image_np),
             'ranknow': recog.ResultOthers.get_ranknow(image_np),
             'rankposition': recog.ResultOthers.get_rankposition(image_np),
             'radarattribute': recog.ResultOthers.get_notesradar_attribute(image_np),
+            'radarchartvalue': recog.ResultOthers.get_notesradar_chartvalue(image_np),
+            'radarvalue': radarvalue,
+            'radarupdated': is_updated,
         }
 
         event.return_string(dumps(result))

@@ -88,8 +88,10 @@ class ResultOthers():
             self.rankposition = rankposition
 
     class ResultOthersNotesradar():
-        def __init__(self, attribute: NotesradarAttributes):
+        def __init__(self, attribute: NotesradarAttributes, chartvalue: float, value: float):
             self.attribute = attribute
+            self.chartvalue = chartvalue
+            self.value = value
 
     def __init__(self, tab: ResultTabs, rival: ResultOthersRival, notesradar: ResultOthersNotesradar):
         self.tab = tab

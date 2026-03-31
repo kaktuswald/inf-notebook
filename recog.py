@@ -496,6 +496,108 @@ class Recognition():
                 return None
                 
             return resource.resultothers['notesradar_attribute']['table'][tablekey]
+
+        @staticmethod
+        def get_notesradar_chartvalue(np_value):
+            if resource.resultothers is None:
+                return None
+            if not 'notesradar_chartvalue' in resource.resultothers.keys():
+                return None
+
+            recognition = resource.resultothers['notesradar_chartvalue']
+
+            trim = recognition['trim']
+            onedigitwidth = recognition['onedigitwidth']
+            leftpositions = recognition['leftpositions']
+            maskvalue = recognition['maskvalue']
+            table = recognition['table']
+
+            trimmed1 = np_value[trim]
+
+            value = None
+            for i in range(len(leftpositions)):
+                trimmed2 = trimmed1[:, leftpositions[i]:leftpositions[i]+onedigitwidth]
+                bins = np.where(trimmed2.flatten()==maskvalue, 1, 0)
+                hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+                tablekey = ''.join([format(v, '0x') for v in hexs])
+                if tablekey in table.keys():
+                    if value is None:
+                        value = 0
+                    value += table[tablekey] * (10 ** (len(leftpositions) - i - 1))
+            
+            return float(f'{value/100:.2f}') if value is not None else None
+        
+        @staticmethod
+        def get_notesradar_value(np_value):
+            if resource.resultothers is None:
+                return None
+            if not 'notesradar_value' in resource.resultothers.keys():
+                return None
+
+            recognition = resource.resultothers['notesradar_value']
+
+            trim = recognition['trim']
+            onedigitwidth = recognition['onedigitwidth']
+            leftpositions = recognition['leftpositions']
+            maskvalues = recognition['maskvalues']
+            table = recognition['table']
+
+            trimmed1 = np_value[trim]
+
+            is_updated = False
+            for typekey in ['normal', 'updated']:
+                value = None
+                for i in range(len(leftpositions)-1, -1, -1):
+                    trimmed2 = trimmed1[:, leftpositions[i]:leftpositions[i]+onedigitwidth]
+                    bins = np.where(trimmed2.flatten()==maskvalues[typekey], 1, 0)
+                    hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+                    tablekey = ''.join([format(v, '0x') for v in hexs])
+
+                    if value is None and not tablekey in table[typekey].keys():
+                        break
+
+                    if tablekey in table[typekey].keys():
+                        if value is None:
+                            value = 0
+                        value += table[typekey][tablekey] * (10 ** (len(leftpositions) - i - 1))
+                
+                if value is not None:
+                    if typekey == 'updated':
+                        is_updated = True
+                    break
+
+            
+            return float(f'{value/100:.2f}') if value is not None else None, is_updated
+        
+        @staticmethod
+        def get_notesradar_updatedvalue(np_value):
+            if resource.resultothers is None:
+                return None
+            if not 'notesradar_updatedvalue' in resource.resultothers.keys():
+                return None
+
+            recognition = resource.resultothers['notesradar_updatedvalue']
+
+            trim = recognition['trim']
+            onedigitwidth = recognition['onedigitwidth']
+            leftpositions = recognition['leftpositions']
+            maskvalue = recognition['maskvalue']
+            table = recognition['table']
+
+            trimmed1 = np_value[trim]
+
+            value = None
+            for i in range(len(leftpositions)):
+                trimmed2 = trimmed1[:, leftpositions[i]:leftpositions[i]+onedigitwidth]
+                bins = np.where(trimmed2.flatten()==maskvalue, 1, 0)
+                hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
+                tablekey = ''.join([format(v, '0x') for v in hexs])
+                if tablekey in table.keys():
+                    if value is None:
+                        value = 0
+                    value += table[tablekey] * (10 ** (len(leftpositions) - i - 1))
+            
+            return f'{value/100:.2f}' if value is not None else None
     
     class MusicSelect():
         DIFFICULTY_TRIMAREAS: dict[str, tuple[int, slice]] = {
@@ -761,7 +863,7 @@ class Recognition():
             cls.Result.get_details(screen.np_value[define.areas_np['details'][play_side]]),
         )
 
-        otherstrimmed = screen.np_value[define.areas_np['others'][play_side]]
+        otherstrimmed = screen.np_value[define.areas_np['resultothers'][play_side]]
 
         tab = cls.ResultOthers.get_tab(otherstrimmed)
         rival = None
@@ -775,6 +877,8 @@ class Recognition():
         if tab == ResultTabs.RADAR:
             notesradar = ResultOthers.ResultOthersNotesradar(
                 cls.ResultOthers.get_notesradar_attribute(otherstrimmed),
+                cls.ResultOthers.get_notesradar_chartvalue(otherstrimmed),
+                cls.ResultOthers.get_notesradar_value(otherstrimmed),
             )
         
         result.others = ResultOthers(

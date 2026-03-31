@@ -1,13 +1,14 @@
-from PIL import Image
 import json
 from sys import exit
 from os.path import join,isfile
+
+from PIL import Image
 import numpy as np
 
 from define import Playmodes,define
 from data_collection import collection_basepath
 from resources import load_resource_serialized
-from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
+from resources_generate import Report,save_resource_serialized,registries_dirname
 from resources_learning import learning_multivaluemask,learning
 
 images_musicselect_basepath = join(collection_basepath, 'musicselect')
@@ -18,16 +19,12 @@ recognition_define_filepath = join(registries_dirname, recognition_define_filena
 
 versions_filepath = join(registries_dirname, 'versions.txt')
 
-report_basedir_musicrecog = join(report_dirname, 'musicrecog')
-
-musicname_output_dirpath = join(report_dirname, 'musicselect_musicname')
-
 class ImageValues():
     def __init__(self, np_value, label):
         self.np_value = np_value
         self.label = label
 
-def load_images(labels):
+def load_images(labels:dict) -> dict:
     keys = [key for key in labels.keys()]
 
     imagevaleus = {}
@@ -44,7 +41,7 @@ def load_images(labels):
     
     return imagevaleus
 
-def load_define():
+def load_define() -> dict:
     try:
         with open(recognition_define_filepath) as f:
             ret = json.load(f)
@@ -55,7 +52,7 @@ def load_define():
     return ret
 
 def learning_playmode():
-    report = Report('musicselect_playmode')
+    report_playmode = Report('musicselect_playmode')
 
     define_target = musicselect_define['playmode']
 
@@ -80,11 +77,11 @@ def learning_playmode():
 
         evaluate_targets[key] = target
     
-    report.append_log(f'Source count: {len(learning_targets)}')
+    report_playmode.append_log(f'Source count: {len(learning_targets)}')
 
-    table = learning_multivaluemask(learning_targets, report, maskvalue)
+    table = learning_multivaluemask(learning_targets, report_playmode, maskvalue)
     if table is None:
-        report.report()
+        report_playmode.report_playmode()
         return
 
     for key, target in evaluate_targets.items():
@@ -98,10 +95,10 @@ def learning_playmode():
             result = table[tablekey]
         
         if result == target.label['playmode']:
-            report.through()
+            report_playmode.through()
         else:
-            report.saveimage_errorvalue(trimmed, key)
-            report.error(f'Mismatch {result} {key}')
+            report_playmode.saveimage_errorvalue(trimmed, key)
+            report_playmode.error(f'Mismatch {result} {key}')
 
     resource['playmode'] = {
         'trim': trim,
@@ -109,10 +106,15 @@ def learning_playmode():
         'table': table
     }
 
-    report.report()
+    report_playmode.report()
+
+    if not report_playmode.count_error:
+        report.through()
+    else:
+        report.error('Error playmode')
 
 def learning_levels():
-    report = Report(f'musicselect_levels')
+    report_levels = Report(f'musicselect_levels')
 
     selectstatus = ['select', 'noselect']
     difficulties = ['beginner', 'normal', 'hyper', 'another', 'leggendaria']
@@ -137,13 +139,13 @@ def learning_levels():
 
         evaluate_targets[key] = target
 
-        musicname = target.label['musicname']
-        if not musicname in evaluate_musictable.keys():
-            evaluate_musictable[musicname] = {}
+        songname = target.label['musicname']
+        if not songname in evaluate_musictable.keys():
+            evaluate_musictable[songname] = {}
         
         playmode = target.label['playmode']
-        if playmode is not None and not playmode in evaluate_musictable[musicname].keys():
-            evaluate_musictable[musicname][playmode] = {}
+        if playmode is not None and not playmode in evaluate_musictable[songname].keys():
+            evaluate_musictable[songname][playmode] = {}
 
         for difficulty in difficulties:
             level_key = f'level_{difficulty}'
@@ -155,7 +157,7 @@ def learning_levels():
                 targets['noselect'][difficulty][key] = target
             
             level = target.label[level_key]
-            evaluate_musictable[musicname][playmode][str.upper(difficulty)] = level
+            evaluate_musictable[songname][playmode][str.upper(difficulty)] = level
 
     for difficulty in difficulties:
         define_target = musicselect_define['levels']['select'][difficulty]
@@ -180,12 +182,12 @@ def learning_levels():
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if tablekey in table.keys() and value != table[tablekey]:
-                report.error(f'Duplicate select {difficulty} {tablekey} {value} {table[tablekey]}')
+                report_levels.error(f'Duplicate select {difficulty} {tablekey} {value} {table[tablekey]}')
             table[tablekey] = value
 
         for level in define.value_list['levels']:
             keys = [k for k, v in table.items() if v == level]
-            report.append_log(f'select {difficulty} {level}: {keys}')
+            report_levels.append_log(f'select {difficulty} {level}: {keys}')
 
         resource['levels']['select'][difficulty] = {
             'trim': trim,
@@ -215,12 +217,12 @@ def learning_levels():
             hexs = bins[:,0::4]*8+bins[:,1::4]*4+bins[:,2::4]*2+bins[:,3::4]
             tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
             if tablekey in table.keys() and value != table[tablekey]:
-                report.error(f'Duplicate noselect {difficulty} {tablekey} {value} {table[tablekey]}')
+                report_levels.error(f'Duplicate noselect {difficulty} {tablekey} {value} {table[tablekey]}')
             table[tablekey] = value
         
         for level in define.value_list['levels']:
             keys = [k for k, v in table.items() if v == level]
-            report.append_log(f'noselect {difficulty} {level}: {keys}')
+            report_levels.append_log(f'noselect {difficulty} {level}: {keys}')
 
         resource['levels']['noselect'][difficulty] = {
             'trim': trim,
@@ -257,26 +259,31 @@ def learning_levels():
                 if tablekey in resource['levels'][selectstate][difficulty]['table'].keys():
                     levelresult = resource['levels'][selectstate][difficulty]['table'][tablekey]
                     if level_key in target.label.keys() and target.label[level_key] != "" and levelresult == target.label[level_key]:
-                        report.through()
+                        report_levels.through()
                     else:
-                        report.saveimage_errorvalue(trimmed, f'{key}-{difficulty}-{target.label[level_key]}.png')
-                        report.error(f'Mismatch {key} {difficulty} {levelresult} {target.label[level_key]}')
+                        report_levels.saveimage_errorvalue(trimmed, f'{key}-{difficulty}-{target.label[level_key]}.png')
+                        report_levels.error(f'Mismatch {key} {difficulty} {levelresult} {target.label[level_key]}')
 
                     if selectstate == 'select' and selectdifficulty is None and str.upper(difficulty) == target.label['difficulty']:
                         selectdifficulty = difficulty
 
         if selectdifficulty is not None:
             if str.upper(selectdifficulty) == target.label['difficulty']:
-                report.through()
+                report_levels.through()
             else:
-                report.error(f'Mismatch {key} select {selectdifficulty} {target.label["difficulty"]}')
+                report_levels.error(f'Mismatch {key} select {selectdifficulty} {target.label["difficulty"]}')
         else:
-            report.error(f'Unrecognized {key} {target.label["difficulty"]}')
+            report_levels.error(f'Unrecognized {key} {target.label["difficulty"]}')
 
-    report.report()
+    report_levels.report()
+    
+    if not report_levels.count_error:
+        report.through()
+    else:
+        report.error('Error levels')
 
 def learning_hasscoredata():
-    report = Report('musicselect_hasscoredata')
+    report_hasscoredata = Report('musicselect_hasscoredata')
 
     define_target = musicselect_define['hasscoredata']
 
@@ -299,30 +306,35 @@ def learning_hasscoredata():
 
         evaluate_targets[key] = {'value': not target.label['nohasscoredata'], 'trimmed': trimmed}
     
-    report.append_log(f'source count: {len(learning_targets)}')
+    report_hasscoredata.append_log(f'source count: {len(learning_targets)}')
 
-    result = learning(learning_targets, report)
+    result = learning(learning_targets, report_hasscoredata)
     if result is None:
-        report.report()
+        report_hasscoredata.report_hasscoredata()
         return
     
     for key, target in evaluate_targets.items():
         is_hasscoredata = target['value']
         recoged = np.all((result==0)|(target['trimmed']==result))
         if (recoged and is_hasscoredata) or (not recoged and not is_hasscoredata):
-            report.through()
+            report_hasscoredata.through()
         else:
-            report.error(f'Mismatch {is_hasscoredata} {key}')
+            report_hasscoredata.error(f'Mismatch {is_hasscoredata} {key}')
 
     resource['hasscoredata'] = {
         'trim': trim,
         'mask': result
     }
 
-    report.report()
+    report_hasscoredata.report()
+    
+    if not report_hasscoredata.count_error:
+        report.through()
+    else:
+        report.error('Error hasscoredata')
 
 def learning_cleartype():
-    report = Report('musicselect_cleartype')
+    report_cleartype = Report('musicselect_cleartype')
 
     define_target = musicselect_define['cleartype']
 
@@ -349,8 +361,8 @@ def learning_cleartype():
     for value in define.value_list['clear_types']:
         keys = [k for k, v in table.items() if v == value]
         if not len(keys):
-            report.append_log(f'Not found key {value}')
-        report.append_log(f'{value}: {keys}')
+            report_cleartype.append_log(f'Not found key {value}')
+        report_cleartype.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
         trimmed = target.np_value[trim]
@@ -362,20 +374,25 @@ def learning_cleartype():
             result = table[color]
         
         if target.label['cleartype'] == result:
-            report.through()
+            report_cleartype.through()
         else:
-            report.saveimage_errorvalue(trimmed, f'{key}.png')
-            report.error(f'Mismatch {result} {key}')
+            report_cleartype.saveimage_errorvalue(trimmed, f'{key}.png')
+            report_cleartype.error(f'Mismatch {result} {key}')
 
     resource['cleartype'] = {
         'trim': trim,
         'table': table
     }
 
-    report.report()
+    report_cleartype.report()
+    
+    if not report_cleartype.count_error:
+        report.through()
+    else:
+        report.error('Error cleartype')
 
 def learning_djlevel():
-    report = Report('musicselect_djlevel')
+    report_djlevel = Report('musicselect_djlevel')
 
     define_target = musicselect_define['djlevel']
 
@@ -402,8 +419,8 @@ def learning_djlevel():
     for value in define.value_list['dj_levels']:
         keys = [k for k, v in table.items() if v == value]
         if not len(keys):
-            report.append_log(f'Not found key {value}')
-        report.append_log(f'{value}: {keys}')
+            report_djlevel.append_log(f'Not found key {value}')
+        report_djlevel.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
         trimmed = target.np_value[trim]
@@ -414,10 +431,10 @@ def learning_djlevel():
             result = table[count]
         
         if target.label['djlevel'] == result:
-            report.through()
+            report_djlevel.through()
         else:
-            report.saveimage_errorvalue(trimmed, f'{key}.png')
-            report.error(f'Mismatch {result} {key}({count})')
+            report_djlevel.saveimage_errorvalue(trimmed, f'{key}.png')
+            report_djlevel.error(f'Mismatch {result} {key}({count})')
 
     resource['djlevel'] = {
         'trim': trim,
@@ -425,10 +442,15 @@ def learning_djlevel():
         'table': table
     }
 
-    report.report()
+    report_djlevel.report()
+    
+    if not report_djlevel.count_error:
+        report.through()
+    else:
+        report.error('Error djlevel')
 
 def learning_number():
-    report = Report('musicselect_number')
+    report_number = Report('musicselect_number')
 
     define_target_score = musicselect_define['score']
     define_target_misscount = musicselect_define['misscount']
@@ -489,9 +511,9 @@ def learning_number():
     for value in range(10):
         keys = [k for k, v in table.items() if v == value]
         if not len(keys):
-            report.append_log(f'Not found key {value}')
+            report_number.append_log(f'Not found key {value}')
         else:
-            report.append_log(f'{value}: {keys} ({targetkeys[value]})')
+            report_number.append_log(f'{value}: {keys} ({targetkeys[value]})')
 
     for key, target in evaluate_targets.items():
         if 'score' in target.label.keys() and target.label['score'] != "":
@@ -511,10 +533,10 @@ def learning_number():
                 result += 10 ** dig * table[tablekey]
             
             if int(target.label['score']) == result:
-                report.through()
+                report_number.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}.png')
-                report.error(f"Mismatch score {result} {target.label['score']} {key}")
+                report_number.saveimage_errorvalue(trimmed, f'{key}.png')
+                report_number.error(f"Mismatch score {result} {target.label['score']} {key}")
 
         if 'misscount' in target.label.keys() and target.label['misscount'] != "":
             trimmed = target.np_value[trim_misscount]
@@ -531,10 +553,10 @@ def learning_number():
                 result += 10 ** dig * table[tablekey]
             
             if int(target.label['misscount']) == result:
-                report.through()
+                report_number.through()
             else:
-                report.saveimage_errorvalue(trimmed, f'{key}.png')
-                report.error(f"Mismatch miss count {result} {target.label['misscount']} {key}")
+                report_number.saveimage_errorvalue(trimmed, f'{key}.png')
+                report_number.error(f"Mismatch miss count {result} {target.label['misscount']} {key}")
 
     resource['score'] = {
         'trim': trim_score,
@@ -550,9 +572,14 @@ def learning_number():
         'table': table
     }
 
-    report.report()
+    report_number.report()
+    
+    if not report_number.count_error:
+        report.through()
+    else:
+        report.error('Error number')
 
-def learning_musicname_convertdefine():
+def learning_songname_convertdefine():
     resource_target = resource['musicname']
 
     define_target = musicselect_define['musicname']
@@ -585,7 +612,7 @@ def learning_musicname_convertdefine():
         'thresholds': leggendaria['thresholds']
     }
 
-def learning_musicname_arcade(targets, report):
+def learning_songname_arcade(targets:dict, report:Report):
     resource_target = resource['musicname']['arcade']
     th = resource_target['thresholds']
     key_valid_count_minimum = musicselect_define['musicname']['arcade']['key_valid_count_minimum']
@@ -601,7 +628,7 @@ def learning_musicname_arcade(targets, report):
         (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
     )
     for key, target in targets.items():
-        musicname = target.label['musicname']
+        songname = target.label['musicname']
 
         cropped = target.np_value[resource_target['trim']]
         masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
@@ -609,7 +636,7 @@ def learning_musicname_arcade(targets, report):
         shrunk = [line[::2]&line[1::2] for line in bins]
         valid_count = np.count_nonzero(shrunk)
         if valid_count < minimum_valid_count[2]:
-            minimum_valid_count = (musicname, key, valid_count)
+            minimum_valid_count = (songname, key, valid_count)
         hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in shrunk]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
@@ -618,33 +645,31 @@ def learning_musicname_arcade(targets, report):
                 target[recogkey] = {}
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
-            target[recogkeys[-1]] = musicname
-            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
-            if not musicname in evaluate.keys():
-                evaluate[musicname] = []
-            evaluate[musicname].append(''.join(recogkeys))
+            target[recogkeys[-1]] = songname
+            output.append(f'{key}: ({valid_count}) {songname} {recogkeys}')
+            if not songname in evaluate.keys():
+                evaluate[songname] = []
+            evaluate[songname].append(''.join(recogkeys))
         else:
-            if musicname != target[recogkeys[-1]]:
-                report.error(f'{musicname}: arcade duplicate {target[recogkeys[-1]]}({key})')
+            if songname != target[recogkeys[-1]]:
+                report.error(f'{songname}: arcade duplicate {target[recogkeys[-1]]}({key})')
                 report.saveimage_errorvalue(cropped, f'duplicate-arcade-{key}')
         
-        if not musicname in evaluate.keys():
-            evaluate[musicname] = []
-        evaluate[musicname].append(''.join(recogkeys))
+        if not songname in evaluate.keys():
+            evaluate[songname] = []
+        evaluate[songname].append(''.join(recogkeys))
     
     if minimum_valid_count[2] < key_valid_count_minimum:
         report.error(f'Arcade key valid count is less than {key_valid_count_minimum}: {minimum_valid_count[0]} {minimum_valid_count[1]} {minimum_valid_count[2]}')
 
-    for musicname in evaluate.keys():
-        count = len(set(evaluate[musicname]))
+    for songname in evaluate.keys():
+        count = len(set(evaluate[songname]))
         if(count != 1):
-            report.error(f'duplicate key arcade {musicname}: {count}')
+            report.error(f'duplicate key arcade {songname}: {count}')
     
-    output_path = join(musicname_output_dirpath, 'arcade.txt')
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(output))
+    report.output_list(output, 'arcade.txt')
 
-def learning_musicname_infinitas(targets, report):
+def learning_songname_infinitas(targets:dict, report:Report):
     resource_target = resource['musicname']['infinitas']
     key_valid_count_minimum = musicselect_define['musicname']['infinitas']['key_valid_count_minimum']
 
@@ -659,7 +684,7 @@ def learning_musicname_infinitas(targets, report):
         (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
     )
     for key, target in targets.items():
-        musicname = target.label['musicname']
+        songname = target.label['musicname']
 
         cropped = target.np_value[resource_target['trim']]
         filtereds = []
@@ -670,7 +695,7 @@ def learning_musicname_infinitas(targets, report):
         bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
         valid_count = np.count_nonzero(bins)
         if valid_count < minimum_valid_count[2]:
-            minimum_valid_count = (musicname, key, valid_count)
+            minimum_valid_count = (songname, key, valid_count)
         hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
@@ -679,29 +704,27 @@ def learning_musicname_infinitas(targets, report):
                 target[recogkey] = {}
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
-            target[recogkeys[-1]] = musicname
-            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
-            if not musicname in evaluate.keys():
-                evaluate[musicname] = []
-            evaluate[musicname].append(''.join(recogkeys))
+            target[recogkeys[-1]] = songname
+            output.append(f'{key}: ({valid_count}) {songname} {recogkeys}')
+            if not songname in evaluate.keys():
+                evaluate[songname] = []
+            evaluate[songname].append(''.join(recogkeys))
         else:
-            if musicname != target[recogkeys[-1]]:
-                report.error(f'{musicname}: infinitas duplicate {target[recogkeys[-1]]}({key})')
+            if songname != target[recogkeys[-1]]:
+                report.error(f'{songname}: infinitas duplicate {target[recogkeys[-1]]}({key})')
                 report.saveimage_errorvalue(cropped, f'duplicate-infinitas-{key}')
     
     if minimum_valid_count[2] < key_valid_count_minimum:
         report.error(f'Infinitas key valid count is less than {key_valid_count_minimum}: {minimum_valid_count[0]} {minimum_valid_count[1]} {minimum_valid_count[2]}')
 
-    for musicname in evaluate.keys():
-        count = len(set(evaluate[musicname]))
+    for songname in evaluate.keys():
+        count = len(set(evaluate[songname]))
         if(count != 1):
-            report.error(f'duplicate key infinitas {musicname}: {count}')
+            report.error(f'duplicate key infinitas {songname}: {count}')
     
-    output_path = join(musicname_output_dirpath, 'infinitas.txt')
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(output))
+    report.output_list(output, 'infinitas.txt')
 
-def learning_musicname_leggendaria(targets, report):
+def learning_songname_leggendaria(targets:dict, report:Report):
     resource_target = resource['musicname']['leggendaria']
     key_valid_count_minimum = musicselect_define['musicname']['leggendaria']['key_valid_count_minimum']
 
@@ -716,7 +739,7 @@ def learning_musicname_leggendaria(targets, report):
         (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
     )
     for key, target in targets.items():
-        musicname = target.label['musicname']
+        songname = target.label['musicname']
 
         cropped = target.np_value[resource_target['trim']]
         filtereds = []
@@ -727,7 +750,7 @@ def learning_musicname_leggendaria(targets, report):
         bins = np.where((filtereds[0]==1)&(filtereds[1]==1)&(filtereds[2]==1), 1, 0)
         valid_count = np.count_nonzero(bins)
         if valid_count < minimum_valid_count[2]:
-            minimum_valid_count = (musicname, key, valid_count)
+            minimum_valid_count = (songname, key, valid_count)
         hexes = [line[::4]*8+line[1::4]*4+line[2::4]*2+line[3::4] for line in bins]
         recogkeys = [''.join([format(v, '0x') for v in line]) for line in hexes]
         target = table
@@ -736,38 +759,36 @@ def learning_musicname_leggendaria(targets, report):
                 target[recogkey] = {}
             target = target[recogkey]
         if not recogkeys[-1] in target.keys():
-            target[recogkeys[-1]] = musicname
-            output.append(f'{key}: ({valid_count}) {musicname} {recogkeys}')
-            if not musicname in evaluate.keys():
-                evaluate[musicname] = []
-            evaluate[musicname].append(''.join(recogkeys))
+            target[recogkeys[-1]] = songname
+            output.append(f'{key}: ({valid_count}) {songname} {recogkeys}')
+            if not songname in evaluate.keys():
+                evaluate[songname] = []
+            evaluate[songname].append(''.join(recogkeys))
         else:
-            if musicname != target[recogkeys[-1]]:
-                report.error(f'{musicname}: leggendaria duplicate {target[recogkeys[-1]]}({key})')
+            if songname != target[recogkeys[-1]]:
+                report.error(f'{songname}: leggendaria duplicate {target[recogkeys[-1]]}({key})')
                 report.saveimage_errorvalue(cropped, f'duplicate-leggendaria-{key}')
         
-        if not musicname in evaluate.keys():
-            evaluate[musicname] = []
-        evaluate[musicname].append(''.join(recogkeys))
+        if not songname in evaluate.keys():
+            evaluate[songname] = []
+        evaluate[songname].append(''.join(recogkeys))
     
     if minimum_valid_count[2] < key_valid_count_minimum:
         report.error(f'Leggendaria key valid count is less than {key_valid_count_minimum}: {minimum_valid_count[0]} {minimum_valid_count[1]} {minimum_valid_count[2]}')
 
-    for musicname in evaluate.keys():
-        count = len(set(evaluate[musicname]))
+    for songname in evaluate.keys():
+        count = len(set(evaluate[songname]))
         if(count != 1):
-            report.error(f'duplicate key leggendaria {musicname}: {count}')
+            report.error(f'duplicate key leggendaria {songname}: {count}')
     
-    output_path = join(musicname_output_dirpath, 'leggendaria.txt')
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(output))
+    report.output_list(output, 'leggendaria.txt')
 
-def learning_musicname():
-    report = Report('musicselect_musicname')
+def learning_songname():
+    report_songname = Report('musicselect_musicname')
 
     resource['musicname'] = {}
 
-    learning_musicname_convertdefine()
+    learning_songname_convertdefine()
     
     targets = {}
     evaluate_targets = {}
@@ -785,16 +806,16 @@ def learning_musicname():
         targets[target.label['musictype']][key] = target
         evaluate_targets[key] = target
 
-    learning_musicname_arcade(targets['ARCADE'], report)
-    learning_musicname_infinitas(targets['INFINITAS'], report)
-    learning_musicname_leggendaria(targets['LEGGENDARIA'], report)
+    learning_songname_arcade(targets['ARCADE'], report_songname)
+    learning_songname_infinitas(targets['INFINITAS'], report_songname)
+    learning_songname_leggendaria(targets['LEGGENDARIA'], report_songname)
     
     for key, target in evaluate_targets.items():
-        musicname = target.label['musicname']
+        songname = target.label['musicname']
 
-        resultmusicname = None
+        resultsongname = None
 
-        if resultmusicname is None:
+        if resultsongname is None:
             resource_target = resource['musicname']['infinitas']
             cropped = target.np_value[resource_target['trim']]
             filtereds = []
@@ -810,11 +831,11 @@ def learning_musicname():
                 if not recogkey in tabletarget.keys():
                     break
                 if type(tabletarget[recogkey]) is str:
-                    resultmusicname = tabletarget[recogkey]
+                    resultsongname = tabletarget[recogkey]
                     break
                 tabletarget = tabletarget[recogkey]
         
-        if resultmusicname is None:
+        if resultsongname is None:
             resource_target = resource['musicname']['leggendaria']
             cropped = target.np_value[resource_target['trim']]
             filtereds = []
@@ -830,11 +851,11 @@ def learning_musicname():
                 if not recogkey in tabletarget.keys():
                     break
                 if type(tabletarget[recogkey]) is str:
-                    resultmusicname = tabletarget[recogkey]
+                    resultsongname = tabletarget[recogkey]
                     break
                 tabletarget = tabletarget[recogkey]
 
-        if resultmusicname is None:
+        if resultsongname is None:
             resource_target = resource['musicname']['arcade']
             thresholds = resource_target['thresholds']
             cropped = target.np_value[resource_target['trim']]
@@ -848,20 +869,25 @@ def learning_musicname():
                 if not recogkey in tabletarget.keys():
                     break
                 if type(tabletarget[recogkey]) is str:
-                    resultmusicname = tabletarget[recogkey]
+                    resultsongname = tabletarget[recogkey]
                     break
                 tabletarget = tabletarget[recogkey]
     
-        if(musicname == resultmusicname):
-            report.through()
+        if(songname == resultsongname):
+            report_songname.through()
         else:
-            report.error(f'{key}: wrong recognition {musicname} {resultmusicname}')
-            report.saveimage_errorvalue(cropped, f'maskerror-{key}')
+            report_songname.error(f'{key}: wrong recognition {songname} {resultsongname}')
+            report_songname.saveimage_errorvalue(cropped, f'maskerror-{key}')
 
-    report.report()
+    report_songname.report()
+    
+    if not report_songname.count_error:
+        report.through()
+    else:
+        report.error('Error songname')
 
 def learning_version():
-    report = Report('musicselect_version')
+    report_version = Report('musicselect_version')
 
     define_target = musicselect_define['version']
 
@@ -922,11 +948,11 @@ def learning_version():
         evaluate_targets[key] = target
 
         if 'musicname' in target.label.keys() and 'version' in target.label.keys():
-            musicname = target.label['musicname']
+            songname = target.label['musicname']
             version = target.label['version']
-            if musicname is not None and not musicname in evaluate_musictable.keys():
-                evaluate_musictable[musicname] = {}
-            evaluate_musictable[musicname]['version'] = version
+            if songname is not None and not songname in evaluate_musictable.keys():
+                evaluate_musictable[songname] = {}
+            evaluate_musictable[songname]['version'] = version
     
     for table in tables:
         table['table'] = {}
@@ -950,10 +976,10 @@ def learning_version():
                 break
         
         if result == target.label['version']:
-            report.through()
+            report_version.through()
         else:
-            report.saveimage_errorvalue(cropped, key)
-            report.error(f'Mismatch {result} {key}')
+            report_version.saveimage_errorvalue(cropped, key)
+            report_version.error(f'Mismatch {result} {key}')
 
     for version in versions:
         is_ok = False
@@ -961,48 +987,64 @@ def learning_version():
             target = table['table']
             if version in target.values():
                 is_ok = True
-                report.append_log(f'{version} key: {[k for k, v in target.items() if v == version][0]}')
+                report_version.append_log(f'{version} key: {[k for k, v in target.items() if v == version][0]}')
                 break
         if not is_ok:
-            report.error(f'Undefined {version}')
+            report_version.error(f'Undefined {version}')
 
     resource['version'] = tables
 
-    report.report()
+    report_version.report()
+    
+    if not report_version.count_error:
+        report.through()
+    else:
+        report.error('Error version')
 
 def evaluate():
-    report = Report('musicselect_evaluate')
+    report_evaluate = Report('musicselect_evaluate')
 
     table = musictable['musics']
-    for musicname in table.keys():
-        escaped = musicname.encode('unicode-escape').decode('utf-8')
-        if musicname in evaluate_musictable.keys():
-            if not 'version' in evaluate_musictable[musicname].keys():
-                report.error(f'Not registered version {musicname}')
+    for songname in table.keys():
+        escaped = songname.encode('unicode-escape').decode('utf-8')
+
+        if songname in evaluate_musictable.keys():
+            if not 'version' in evaluate_musictable[songname].keys():
+                report_evaluate.error(f'Not registered version {songname}')
+            else:
+                resultversion = evaluate_musictable[songname]['version']
+                tableversion = table[songname]['version']
+                if resultversion != tableversion:
+                    report_evaluate.error(f'Mismatch {songname} {resultversion} {tableversion}({escaped})')
             
             for playmode in Playmodes.values:
-                if playmode in evaluate_musictable[musicname].keys():
+                if playmode in evaluate_musictable[songname].keys():
                     for difficulty in define.value_list['difficulties']:
                         resultlevel = None
                         tablelevel = None
 
-                        if difficulty in evaluate_musictable[musicname][playmode].keys():
-                            resultlevel = evaluate_musictable[musicname][playmode][difficulty]
-                        if difficulty in table[musicname][playmode].keys():
-                            tablelevel = table[musicname][playmode][difficulty]
+                        if difficulty in evaluate_musictable[songname][playmode].keys():
+                            resultlevel = evaluate_musictable[songname][playmode][difficulty]
+                        if difficulty in table[songname][playmode].keys():
+                            tablelevel = table[songname][playmode][difficulty]
 
                         if resultlevel != tablelevel:
-                            report.error(f'Mismatch {musicname} {playmode} {difficulty}: {resultlevel} {tablelevel}({escaped})')
-                else:
-                    report.error(f'Not registered {musicname} {playmode}({escaped})')
+                            report_evaluate.error(f'Mismatch {songname} {playmode} {difficulty}: {resultlevel} {tablelevel}({escaped})')
+                # else:
+                #     report_evaluate.error(f'Not registered {songname} {playmode}({escaped})')
         else:
-            report.error(f'Not registered {musicname}({escaped})')
+            report_evaluate.error(f'Not registered {songname}({escaped})')
     
-    for musicname in evaluate_musictable.keys():
-        if musicname != "" and not musicname in table.keys():
-            report.error(f'Not exist {musicname}')
+    for songname in evaluate_musictable.keys():
+        if songname != "" and not songname in table.keys():
+            report_evaluate.error(f'Not exist {songname}')
     
-    report.report()
+    report_evaluate.report()
+    
+    if not report_evaluate.count_error:
+        report.through()
+    else:
+        report.error('Error evaluate')
 
 if __name__ == '__main__':
     try:
@@ -1023,6 +1065,8 @@ if __name__ == '__main__':
     resource = {}
     evaluate_musictable = {}
 
+    report = Report('musicselect')
+
     learning_playmode()
     learning_levels()
     learning_hasscoredata()
@@ -1030,9 +1074,11 @@ if __name__ == '__main__':
     learning_djlevel()
     learning_number()
     learning_version()
-    learning_musicname()
+    learning_songname()
 
     evaluate()
 
     filename = f'musicselect{define.musicselect_recognition_version}.res'
     save_resource_serialized(filename, resource, True)
+    
+    report.report()

@@ -235,7 +235,7 @@ class Define():
             '1P': (slice(64, 1016), slice(10, 564)),
             '2P': (slice(64, 1016), slice(1360, 1914)),
         },
-        'others': {
+        'resultothers': {
             '1P': (slice(62, 992), slice(1359, 1901)),
             '2P': (slice(62, 992), slice(19, 561)),
         }

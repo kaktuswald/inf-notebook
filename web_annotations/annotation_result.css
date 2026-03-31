@@ -2,6 +2,10 @@ fieldset {
     border: none;
 }
 
+div.label {
+    width: 140px;
+}
+
 div.value_informations,
 div.value_musicname,
 div.value_details,

@@ -1,11 +1,19 @@
+div.label {
+    width: 200px;
+}
+
 div.value {
     display: inline-block;
     width: 150px;
 }
 
+input.text_chartvalue {
+    width: 50px;
+}
+
 div#box_image {
     width: 271px;
-    height: 471px;
+    height: 472px;
 }
 
 div#container_keys {
