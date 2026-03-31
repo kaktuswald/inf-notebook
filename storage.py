@@ -1,7 +1,7 @@
 from os import mkdir
 from os.path import join,exists,splitext
 import io
-from json import loads,dumps
+from json import load,dump,loads,dumps
 from uuid import uuid1
 from datetime import datetime,timezone,timedelta
 from threading import Thread
@@ -24,6 +24,7 @@ bucket_name_informations = 'bucket-inf-notebook-informations'
 bucket_name_details = 'bucket-inf-notebook-details'
 bucket_name_resultothers = 'bucket-inf-notebook-resultothers'
 bucket_name_musicselect = 'bucket-inf-notebook-musicselect'
+bucket_name_notesradarvalue = 'bucket-inf-notebook-notesradarvalue'
 bucket_name_resources = 'bucket-inf-notebook-resources2'
 bucket_name_discordwebhooks = 'bucket-inf-notebook-discordwebhook2'
 
@@ -31,6 +32,8 @@ informations_dirname = 'informations'
 details_dirname = 'details'
 resultothers_dirname = 'resultothers'
 musicselect_dirname = 'musicselect'
+
+notesradarvalues_filename = 'notesradarvalues.json'
 
 result_rivalname_fillbox = (
     (
@@ -77,6 +80,7 @@ class StorageAccessor():
     bucket_details = None
     bucket_resultothers = None
     bucket_musicselect = None
+    bucket_notesradarvalue = None
     bucket_resources = None
     bucket_discordwebhooks = None
     blob_musics = None
@@ -235,6 +239,19 @@ class StorageAccessor():
         except Exception as ex:
             logger.exception(ex)
 
+    def upload_notesradarvalue(self, object_name, data):
+        if self.bucket_notesradarvalue is None:
+            self.connect_bucket_notesradarvalue()
+        if self.bucket_notesradarvalue is None:
+            return
+
+        try:
+            blob = self.bucket_notesradarvalue.blob(object_name)
+            blob.upload_from_string(dumps(data))
+            logger.info(f'upload notesradarvalue image {object_name}')
+        except Exception as ex:
+            logger.exception(ex)
+
     def start_uploadinformations(self, image: Image.Image):
         '''リザルト画面の譜面情報の収集画像をアップロードする
 
@@ -311,6 +328,21 @@ class StorageAccessor():
         if not self.worker.is_alive():
             self.worker.start()
     
+    def start_uploadnotesradarvalue(self, data: dict):
+        '''ノーツレーダー値をアップロードする
+
+        Args:
+            data (dict): ノーツレーダー値データ
+        '''
+        self.connect_client()
+        if self.client is None:
+            return
+        
+        object_name = f'{uuid1()}.json'
+
+        self.worker.pushfunc(self.upload_notesradarvalue, object_name, data)
+        if not self.worker.is_alive():
+            self.worker.start()
     
     def upload_resource(self, resourcename, targetfilepath):
         if self.bucket_resources is None:
@@ -440,6 +472,8 @@ class StorageAccessor():
         resultothers_dirpath = join(basedir, resultothers_dirname)
         musicselect_dirpath = join(basedir, musicselect_dirname)
 
+        notesradarvalues_filepath = join(basedir, notesradarvalues_filename)
+
         count = 0
         blobs = self.client.list_blobs(bucket_name_informations)
         for blob in blobs:
@@ -464,5 +498,21 @@ class StorageAccessor():
             self.save_image(musicselect_dirpath, blob)
             blob.delete()
             count += 1
+
+        try:
+            with open(notesradarvalues_filepath, 'r') as f:
+                notesradarvalues = load(f)
+        except Exception as ex:
+            notesradarvalues = []
+        
+        blobs = self.client.list_blobs(bucket_name_notesradarvalue)
+        for blob in blobs:
+            notesradarvalues.append(loads(blob.download_as_text()))
+            # self.save_image(musicselect_dirpath, blob)
+            blob.delete()
+            count += 1
+        
+        with open(notesradarvalues_filepath, 'w') as f:
+            dump(notesradarvalues, f, indent=2)
 
         print(f'download count: {count}')

@@ -300,35 +300,39 @@ class ThreadCapture(Thread):
             self.confirmed_somescreen = False
             self.confirmed_processable = False
             self.processed = False
+
+            if setting.debug and setting.data_collection:
+                collectionuploader.notesradarchecker_reset()
+            
             return
         
         # ここから先はリザルトのみ
 
         if not self.confirmed_somescreen:
             self.confirmed_somescreen = True
-            if screen == 'result':
-                # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
-                self.sleep_time = thread_time_result
-                logger.debug(f'screen in result: {self.sleep_time}')
-        
-        if self.processed:
-            return
-        
-        if not shotted:
-            screenshot.shot()
-        
-        if screen == 'result' and not recog.get_is_savable(screenshot.np_value):
-            return
-        
-        if not self.confirmed_processable:
-            self.confirmed_processable = True
-            self.findtime_processable = time.time()
-            return
 
-        if time.time() - self.findtime_processable <= thread_time_normal * 2 - 0.1:
+            # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
+            self.sleep_time = thread_time_result
+            logger.debug(f'screen in result: {self.sleep_time}')
+        
+        if self.processed and not (setting.debug and setting.data_collection):
             return
+        
+        if not self.processed:
+            if not shotted:
+                screenshot.shot()
+            
+            if not recog.get_is_savable(screenshot.np_value):
+                return
+            
+            if not self.confirmed_processable:
+                self.confirmed_processable = True
+                self.findtime_processable = time.time()
+                return
 
-        if screen == 'result':
+            if time.time() - self.findtime_processable <= thread_time_normal * 2 - 0.1:
+                return
+
             resultscreen = screenshot.get_resultscreen()
 
             try:
@@ -339,6 +343,12 @@ class ThreadCapture(Thread):
             self.sleep_time = thread_time_normal
             logger.debug(f'processing result screen: {self.sleep_time}')
             self.processed = True
+        
+        if self.processed and setting.debug and setting.data_collection:
+            if not shotted:
+                screenshot.shot()
+            
+            collectionuploader.checkandupload_notesradarvalue(screenshot.np_value)
 
 class Hotkeys():
     def __init__(self):
