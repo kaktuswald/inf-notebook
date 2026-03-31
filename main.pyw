@@ -2668,8 +2668,6 @@ if __name__ == '__main__':
     api_export = GuiApiExport(newwindow)
     api_discordwebhook = GuiApiDiscordWebhook(newwindow)
 
-    logger.addHandler(LoggingHandler(lambda message: api.send_message('append_log', message)))
-
     collectionuploader = CollectionUploader(setting, storage)
 
     newwindow.show('index.html')
@@ -2678,6 +2676,8 @@ if __name__ == '__main__':
         show_messagebox('起動に失敗しました。', windowtitle)
         exit()
     
+    logger.addHandler(LoggingHandler(lambda message: api.send_message('append_log', message)))
+
     hotkeys = Hotkeys()
     if hotkeys.set_hotkeys():
         hotkeys.start()
