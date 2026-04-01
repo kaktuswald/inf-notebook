@@ -503,12 +503,11 @@ class StorageAccessor():
             with open(notesradarvalues_filepath, 'r') as f:
                 notesradarvalues = load(f)
         except Exception as ex:
-            notesradarvalues = []
+            notesradarvalues = {}
         
         blobs = self.client.list_blobs(bucket_name_notesradarvalue)
         for blob in blobs:
-            notesradarvalues.append(loads(blob.download_as_text()))
-            # self.save_image(musicselect_dirpath, blob)
+            notesradarvalues[blob.name] = loads(blob.download_as_text())
             blob.delete()
             count += 1
         

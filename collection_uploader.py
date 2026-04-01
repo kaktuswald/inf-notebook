@@ -162,12 +162,12 @@ class CollectionUploader():
             difficulty = self.notesradarchecker.informations.difficulty
             notes = self.notesradarchecker.informations.notes
             score = self.notesradarchecker.details.score.current
+
             ratio = score / (notes * 2)
             attribute = result[0]
             chartvalue = result[1]
 
             predictedmaxlower = float(f'{chartvalue/ratio:.2f}')
-            predictedmaxupper = float(f'{((chartvalue+0.01)/ratio)-0.01:.2f}')
 
             resourcemax = None
             r1 = resource.notesradar[playmode]
@@ -176,17 +176,16 @@ class CollectionUploader():
                 if difficulty in r2.keys():
                     resourcemax = r2[difficulty]['radars'][attribute]
             
-            print(attribute, predictedmaxlower, predictedmaxupper, resourcemax, predictedmaxlower>resourcemax if resourcemax is not None else None)
             if resourcemax is None or predictedmaxlower > resourcemax:
-                data = {
+                self.storage.start_uploadnotesradarvalue({
+                    'playmode': playmode,
                     'songname': songname,
                     'difficulty': difficulty,
                     'notes': notes,
                     'notesradar_attribute': attribute,
                     'score': score,
                     'notesradar_chartvalue': chartvalue,
-                }
-                self.storage.start_uploadnotesradarvalue(data)
+                })
     
     def musicselectchecker_reset(self):
         self.musicselectchecker.reset()

@@ -242,9 +242,10 @@ class Define():
     }
 
     def __init__(self):
+        self.musictable_resourcename = f'musictable{self.musictable_version}'
         self.informations_resourcename = f'informations{self.informations_recognition_version}'
         self.details_resourcename = f'details{self.details_recognition_version}'
-        self.musictable_resourcename = f'musictable{self.musictable_version}'
+        self.resultothers_resourcename = f'resultothers{self.resultothers_recognition_version}'
         self.musicselect_resourcename = f'musicselect{self.musicselect_recognition_version}'
         self.notesradar_resourcename = f'notesradar{self.notesradar_version}'
         self.unofficialdifficulty_resourcename = f'unofficialdifficulty{self.unofficialdifficulty_version}'

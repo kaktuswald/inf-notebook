@@ -2527,6 +2527,10 @@ def check_resource():
 
     api.send_message('start_resourcecheck')
 
+    musictable_filename = f'{define.musictable_resourcename}.res'
+    if download_latestresource(storage, musictable_filename):
+        resource.load_resource_musictable()
+
     informations_filename = f'{define.informations_resourcename}.res'
     if download_latestresource(storage, informations_filename):
         resource.load_resource_informations()
@@ -2535,9 +2539,9 @@ def check_resource():
     if download_latestresource(storage, details_filename):
         resource.load_resource_details()
 
-    musictable_filename = f'{define.musictable_resourcename}.res'
-    if download_latestresource(storage, musictable_filename):
-        resource.load_resource_musictable()
+    resultothers_filename = f'{define.resultothers_resourcename}.res'
+    if download_latestresource(storage, resultothers_filename):
+        resource.load_resource_resultothers()
 
     musicselect_filename = f'{define.musicselect_resourcename}.res'
     if download_latestresource(storage, musicselect_filename):
@@ -2548,7 +2552,7 @@ def check_resource():
         resource.load_resource_notesradar()
 
     download_latestresource(storage, musicnamechanges_filename)
-
+    
     api.send_message('complete_resourcecheck')
 
 def load_resultimages(playtype: str, musicname: str, difficulty: str, timestamp: str, recent=False):
