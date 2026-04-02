@@ -5,7 +5,6 @@ import pandas as pd
 from define import Playmodes,NotesradarAttributes,define
 from resources import resource
 from resources_generate import Report,save_resource_serialized,registries_dirname
-from resources_generate_musictable import infinitasonlymusics_filepath
 from data_collection import collection_basepath
 
 resource_filename = f'notesradar{define.notesradar_version}.res'
@@ -23,7 +22,8 @@ def generate():
     musics: dict = resource.musictable['musics']
 
     csvradardata = load_csvfiles()
-    jsonradardata = load_json(radardata2_filepath)
+    jsonradardata = load_collectiondata(radardata2_filepath)
+
     different_charts = load_json(differentcharts_filepath)
     convertmusicnames = load_json(convertmusicnames_filepath)
 
@@ -37,7 +37,6 @@ def generate():
         result_musics = result[playmode]['musics']
         for attribute in csvradardata[playmode].keys():
             result[playmode]['attributes'][attribute] = []
-            result_attribute = result[playmode]['attributes'][attribute]
 
             df: pd.DataFrame = csvradardata[playmode][attribute]
 
@@ -86,11 +85,6 @@ def generate():
                 
                 result_musics[songname][difficulty]['radars'][attribute] = value
 
-                result_attribute.append({
-                    'musicname': songname,
-                    'difficulty': difficulty,
-                })
-
     for playmode in mismatch_notes.keys():
         if len(mismatch_notes[playmode]):
             report.error(f'Mismatch notes count: {playmode} {len(mismatch_notes[playmode])}')
@@ -100,46 +94,51 @@ def generate():
 
     uncertains = []
     overrides = []
-    for key, data in jsonradardata.items():
-        playmode = data['playmode']
-        songname = data['songname']
-        difficulty = data['difficulty']
-        notes = data['notes']
-        attribute = data['notesradar_attribute']
-        score = data['score']
-        chartvalue = data['notesradar_chartvalue']
+    for playmode, target1 in jsonradardata.items():
+        for songname, target2 in target1.items():
+            for difficulty, target3 in target2.items():
+                notes = target3['notes']
+                for attribute in NotesradarAttributes.values:
+                    predictedmaxlower = target3['attributes'][attribute]['lower']
+                    predictedmaxupper = target3['attributes'][attribute]['upper']
+                    
+                    if predictedmaxlower != predictedmaxupper:
+                        output = [songname, playmode, difficulty, attribute, f'{predictedmaxlower}～{predictedmaxupper}']
+                        uncertains.append(' '.join(output))
+                    
+                    if not songname in result[playmode]['musics'].keys():
+                        result[playmode]['musics'][songname] = {}
+                    if not difficulty in result[playmode]['musics'][songname].keys():
+                        result[playmode]['musics'][songname][difficulty] = {
+                            'notes': notes,
+                            'radars': {attribute: 0 for attribute in NotesradarAttributes.values},
+                        }
 
-        if not songname in musics.keys():
-            report.error(f'Not exist {songname}({key})')
-            continue
-        if not difficulty in musics[songname][playmode].keys():
-            report.error(f'Not exist {songname} {playmode} {difficulty}({key})')
-            continue
-    
-        ratio = score / (notes * 2)
+                    registeredvalue = result[playmode]['musics'][songname][difficulty]['radars'][attribute]
+                    if registeredvalue != 0:
+                        if registeredvalue < predictedmaxlower or registeredvalue > predictedmaxupper:
+                            output = [songname, playmode, difficulty, attribute, f'{registeredvalue}->{predictedmaxlower}']
+                            overrides.append(' '.join(output))
 
-        predictedmaxlower = float(f'{chartvalue/ratio:.2f}')
-        predictedmaxupper = float(f'{((chartvalue+0.01)/ratio)-0.01:.2f}')
+                    result[playmode]['musics'][songname][difficulty]['radars'][attribute] = predictedmaxlower
 
-        if predictedmaxlower != predictedmaxupper:
-            output = [songname, playmode, difficulty, attribute, f'{predictedmaxlower}～{predictedmaxupper}']
-            uncertains.append(f'{key}: {songname} {' '.join(output)}')
+    for playmode in Playmodes.values:
+        result[playmode]['attributes'] = {}
+        for attribute in NotesradarAttributes.values:
+            rankingdata: dict[float, list[dict[str, str]]] = {}
+            for songname in result[playmode]['musics'].keys():
+                for difficulty in result[playmode]['musics'][songname].keys():
+                    value = result[playmode]['musics'][songname][difficulty]['radars'][attribute]
+                    if not value in rankingdata.keys():
+                        rankingdata[value] = []
+                    rankingdata[value].append({
+                        'musicname': songname,
+                        'difficulty': difficulty
+                    })
         
-        if not songname in result[playmode]['musics'].keys():
-            result[playmode]['musics'][songname] = {}
-        if not difficulty in result[playmode]['musics'][songname].keys():
-            result[playmode]['musics'][songname][difficulty] = {
-                'notes': notes,
-                'radars': {attribute: 0 for attribute in NotesradarAttributes.values},
-            }
-        
-        registeredvalue = result[playmode]['musics'][songname][difficulty]['radars'][attribute]
-        if registeredvalue != 0:
-            if registeredvalue < predictedmaxlower or registeredvalue > predictedmaxupper:
-                output = [songname, playmode, difficulty, attribute, f'{registeredvalue}->{predictedmaxlower}']
-                overrides.append(f'{key}: {' '.join(output)}')
-        
-        result[playmode]['musics'][songname][difficulty]['radars'][attribute] = predictedmaxlower
+            result[playmode]['attributes'][attribute] = []
+            for value in reversed(sorted(rankingdata.keys())):
+                result[playmode]['attributes'][attribute].extend(rankingdata[value])
 
     report.output_json(result, 'result.json')
 
@@ -178,6 +177,58 @@ def load_json(filepath: str):
     
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
+    
+    return data
+    
+def load_collectiondata(filepath: str):
+    if not exists(filepath):
+        return {}
+    
+    with open(filepath, 'r', encoding='utf-8') as f:
+        loaddata = json.load(f)
+    
+    musics = resource.musictable['musics']
+
+    data = {playmode: {} for playmode in Playmodes.values}
+
+    for key, values in loaddata.items():
+        playmode = values['playmode']
+        songname = values['songname']
+        difficulty = values['difficulty']
+        notes = values['notes']
+        attribute = values['notesradar_attribute']
+        score = values['score']
+        chartvalue = values['notesradar_chartvalue']
+
+        if songname == 'BRING HER DOWN':
+            pass
+        if not songname in musics.keys():
+            report.error(f'Not exist from json data: {songname}({key})')
+            continue
+        if not difficulty in musics[songname][playmode].keys():
+            report.error(f'Not exist from json data:  {songname} {playmode} {difficulty}({key})')
+            continue
+        
+        if not songname in data[playmode].keys():
+            data[playmode][songname] = {}
+        if not difficulty in data[playmode][songname].keys():
+            data[playmode][songname][difficulty] = {'notes': notes, 'attributes': {}}
+            for attribute1 in NotesradarAttributes.values:
+                data[playmode][songname][difficulty]['attributes'][attribute1] = {
+                    'lower': 0.00,
+                    'upper': 200.00,
+                }
+        
+        ratio = score / (notes * 2)
+
+        predictedmaxlower = float(f'{chartvalue/ratio:.2f}')
+        if predictedmaxlower > data[playmode][songname][difficulty]['attributes'][attribute]['lower']:
+            data[playmode][songname][difficulty]['attributes'][attribute]['lower'] = predictedmaxlower
+
+        predictedmaxupper = float(f'{((chartvalue+0.01)/ratio)-0.01:.2f}')
+        if predictedmaxupper < data[playmode][songname][difficulty]['attributes'][attribute]['upper']:
+            data[playmode][songname][difficulty]['attributes'][attribute]['upper'] = predictedmaxupper
+
     return data
 
 def output_attributevalues(resource: dict):

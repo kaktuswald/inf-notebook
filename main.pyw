@@ -301,7 +301,7 @@ class ThreadCapture(Thread):
             self.confirmed_processable = False
             self.processed = False
 
-            if setting.debug and setting.data_collection:
+            if setting.data_collection:
                 collectionuploader.notesradarchecker_reset()
             
             return
@@ -315,7 +315,7 @@ class ThreadCapture(Thread):
             self.sleep_time = thread_time_result
             logger.debug(f'screen in result: {self.sleep_time}')
         
-        if self.processed and not (setting.debug and setting.data_collection):
+        if self.processed and not setting.data_collection:
             return
         
         if not self.processed:
@@ -344,7 +344,7 @@ class ThreadCapture(Thread):
             logger.debug(f'processing result screen: {self.sleep_time}')
             self.processed = True
         
-        if self.processed and setting.debug and setting.data_collection:
+        if self.processed and setting.data_collection:
             if not shotted:
                 screenshot.shot()
             
