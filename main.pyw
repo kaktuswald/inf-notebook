@@ -45,6 +45,7 @@ logger.debug('mode: debug')
 logger.getChild('urllib3').setLevel(logging.WARNING)
 logger.getChild('PIL').setLevel(logging.WARNING)
 logger.getChild('google').setLevel(logging.WARNING)
+logger.getChild('websockets').setLevel(logging.WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
@@ -1523,6 +1524,9 @@ class GuiApi():
         event.return_string(dumps(directorypath))
     
     def send_message(self, message: str, data:object = None):
+        if newwindow is None:
+            return
+        
         if data is None:
             newwindow.run(f'communication_message("{message}");')
         else:
@@ -2707,6 +2711,8 @@ if __name__ == '__main__':
     socket_server.stop()
     event_close.set()
 
+    newwindow = None
+    
     if socket_server is not None and socket_server.is_alive():
         socket_server.join()
     if thread is not None and thread.is_alive():
