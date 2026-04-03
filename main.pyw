@@ -1017,7 +1017,7 @@ class GuiApi():
         for playmode, playmodeitem in notesradar.items.items():
             ret[playmode] = {}
             for attribute, attributeitem in playmodeitem.attributes.items():
-                ret[playmode][attribute] = attributeitem.average
+                ret[playmode][attribute] = float(attributeitem.average)
         
         event.return_string(dumps(ret))
 
@@ -1031,7 +1031,7 @@ class GuiApi():
         '''
         playmode = event.get_string_at(0)
 
-        event.return_string(dumps(notesradar.items[playmode].total))
+        event.return_string(dumps(float(notesradar.items[playmode].total)))
     
     def get_notesradar_ranking(self, event: webui.Event):
         '''ノーツレーダーの合計値を返す
@@ -1068,7 +1068,7 @@ class GuiApi():
                 'rank': i + 1,
                 'musicname': targets[i].musicname,
                 'difficulty': targets[i].difficulty,
-                'value': targets[i].value,
+                'value': float(targets[i].value),
             })
         
         event.return_string(dumps(ret))

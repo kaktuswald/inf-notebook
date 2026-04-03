@@ -1,4 +1,5 @@
 from time import time
+from decimal import Decimal,ROUND_UP
 
 from PIL import Image
 from numpy import array
@@ -163,11 +164,12 @@ class CollectionUploader():
             notes = self.notesradarchecker.informations.notes
             score = self.notesradarchecker.details.score.current
 
-            ratio = score / (notes * 2)
-            attribute = result[0]
-            chartvalue = result[1]
+            ratio = Decimal(str(score / (notes * 2)))
 
-            predictedmaxlower = float(f'{chartvalue/ratio:.2f}')
+            attribute = result[0]
+            chartvalue = Decimal(str(result[1]))
+
+            predictedmaxlower = float((chartvalue/ratio).quantize(Decimal('0.00'), rounding=ROUND_UP))
 
             resourcemax = None
             r1 = resource.notesradar[playmode]

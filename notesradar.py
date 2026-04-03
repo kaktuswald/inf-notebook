@@ -1,3 +1,5 @@
+from decimal import Decimal,ROUND_DOWN
+
 from define import Playmodes,NotesradarAttributes,define
 from resources import resource
 
@@ -9,20 +11,20 @@ class NotesRadarValue():
     '''一曲の値
     '''
 
-    def __init__(self, musicname: str, difficulty: str, value: float):
+    def __init__(self, musicname: str, difficulty: str, value: Decimal):
         self.musicname: str = musicname
         '''曲名'''
 
         self.difficulty: str = difficulty
         '''譜面難易度'''
 
-        self.value: float = value
+        self.value: Decimal = value
         '''レーダー値'''
     
-    def __lt__(self, other: float):
+    def __lt__(self, other: Decimal):
         return self.value < other
 
-    def __gt__(self, other: float):
+    def __gt__(self, other: Decimal):
         return self.value > other
 
     def __eq__(self, item):
@@ -33,7 +35,7 @@ class NotesRadarAttribute():
     '''
 
     def __init__(self):
-        self.average: float = 0
+        self.average: Decimal = Decimal('0.00')
         '''平均値'''
 
         self.ranking: list[NotesRadarValue] = []
@@ -55,15 +57,16 @@ class NotesRadarAttribute():
         if len(self.ranking) > ranking_count:
             del self.ranking[ranking_count:]
 
-        if len(self.targets) > 0:
-            self.average = sum([t.value * 100 for t in self.targets]) // 10 / 100
+        if len(self.targets) > 0.0:
+            average: Decimal = sum([t.value for t in self.targets]) / Decimal('10')
+            self.average = average.quantize(Decimal('0.00'), rounding=ROUND_DOWN)
 
 class NotesRadarItem():
     '''プレイモードごとのアイテム
     '''
 
     def __init__(self):
-        self.total: float = 0
+        self.total: Decimal = 0
         '''合計値'''
 
         self.attributes: dict[str, NotesRadarAttribute] = {}
@@ -73,7 +76,7 @@ class NotesRadarItem():
             self.attributes[attribute] = NotesRadarAttribute()
     
     def calculate_total(self):
-        self.total = sum([t.average for t in self.attributes.values()]) * 100 // 1 / 100
+        self.total = sum([t.average for t in self.attributes.values()])
     
 class NotesRadar():
     '''ノーツレーダー
@@ -116,15 +119,15 @@ class NotesRadar():
                     
                     target = resource.notesradar[playmode]['musics'][musicname][difficulty]
                     notes = target['notes']
-                    max = target['radars'][attribute]
+                    max = Decimal(str(target['radars'][attribute]))
 
                     if len(ranking) == ranking_count and min(ranking).value > max:
                         break
 
                     score = summary[musicname][playmode][difficulty]['best']['score']['value']
                     
-                    rate = score * 10000 / (notes * 2) // 1
-                    calculated = rate * max / 100 // 1 / 100
+                    ratio = Decimal(str(score / (notes * 2)))
+                    calculated = (ratio*max).quantize(Decimal('0.00'), rounding=ROUND_DOWN)
 
                     if len(ranking) == ranking_count and min(ranking).value > calculated:
                         continue
@@ -167,10 +170,10 @@ class NotesRadar():
 
         updated = False
         for attribute, targetattribute in targetitem.attributes.items():
-            max = resource.notesradar[playmode]['musics'][musicname][difficulty]['radars'][attribute]
+            max = Decimal(str(resource.notesradar[playmode]['musics'][musicname][difficulty]['radars'][attribute]))
 
-            rate = score * 100 // (notes * 2) / 100
-            calculated = rate * 100 * max // 1 / 100
+            ratio = Decimal(str(score / (notes * 2)))
+            calculated = (ratio*max).quantize(Decimal('0.00'), rounding=ROUND_DOWN)
 
             ranking = targetattribute.ranking
 

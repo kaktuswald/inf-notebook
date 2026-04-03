@@ -1,6 +1,7 @@
 from os.path import join,exists
 import json
 import pandas as pd
+from decimal import Decimal,ROUND_UP
 
 from define import Playmodes,NotesradarAttributes,define
 from resources import resource
@@ -116,7 +117,7 @@ def generate():
 
                     registeredvalue = result[playmode]['musics'][songname][difficulty]['radars'][attribute]
                     if registeredvalue != 0:
-                        if registeredvalue < predictedmaxlower or registeredvalue > predictedmaxupper:
+                        if registeredvalue < predictedmaxlower:
                             output = [songname, playmode, difficulty, attribute, f'{registeredvalue}->{predictedmaxlower}']
                             overrides.append(' '.join(output))
 
@@ -191,6 +192,8 @@ def load_collectiondata(filepath: str):
 
     data = {playmode: {} for playmode in Playmodes.values}
 
+    format = Decimal('0.00')
+    delta = Decimal('0.01')
     for key, values in loaddata.items():
         playmode = values['playmode']
         songname = values['songname']
@@ -198,7 +201,7 @@ def load_collectiondata(filepath: str):
         notes = values['notes']
         attribute = values['notesradar_attribute']
         score = values['score']
-        chartvalue = values['notesradar_chartvalue']
+        chartvalue = Decimal(str(values['notesradar_chartvalue']))
 
         if songname == 'BRING HER DOWN':
             pass
@@ -219,13 +222,13 @@ def load_collectiondata(filepath: str):
                     'upper': 200.00,
                 }
         
-        ratio = score / (notes * 2)
+        ratio = Decimal(str(score / (notes * 2)))
 
-        predictedmaxlower = float(f'{chartvalue/ratio:.2f}')
+        predictedmaxlower = float((chartvalue/ratio).quantize(format, rounding=ROUND_UP))
         if predictedmaxlower > data[playmode][songname][difficulty]['attributes'][attribute]['lower']:
             data[playmode][songname][difficulty]['attributes'][attribute]['lower'] = predictedmaxlower
 
-        predictedmaxupper = float(f'{((chartvalue+0.01)/ratio)-0.01:.2f}')
+        predictedmaxupper = float(((chartvalue+delta)/ratio-delta).quantize(format, rounding=ROUND_UP))
         if predictedmaxupper < data[playmode][songname][difficulty]['attributes'][attribute]['upper']:
             data[playmode][songname][difficulty]['attributes'][attribute]['upper'] = predictedmaxupper
 
