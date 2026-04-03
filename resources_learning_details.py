@@ -260,18 +260,16 @@ def learning_option(details: dict, report:Report) -> dict:
                     continue
 
                 for assist in (None, *Options.ASSISTS):
+                    if arrange == Options.ALLSCRATCH and assist == 'LEGACY':
+                        continue
+                    
                     for regularspeed in (None, Options.REGULARSPEED):
                         value = [v for v in (battle, arrange, flip, assist, regularspeed,) if v is not None]
                         joinedvalue = ','.join(value)
-                        if not joinedvalue in values:
+                        if len(joinedvalue) and not joinedvalue in values:
                             values.append(joinedvalue)
 
-    keyresult = {}
-    for value in values:
-        keyresult[value] = {}
-        for playside in define.value_list['play_sides']:
-            keyresult[value][playside] = {}
-    
+    keyresult = {value: {} for value in values}
     useoptioncounts = []
     table = {}
     evaluate_targets = {}
@@ -322,10 +320,12 @@ def learning_option(details: dict, report:Report) -> dict:
         if not tablekey in table.keys():
             table[tablekey] = value
         
+        if not playside in keyresult[value].keys():
+            keyresult[value][playside] = {}
         if not tablekey in keyresult[value][playside].keys():
             keyresult[value][playside][tablekey] = key
             if value is not None:
-                report_option.saveimage_value(trimmed>=details_define['option']['thresholdlower'], f'{value.replace('/', '_')}-{key}.png')
+                report_option.saveimage_value(trimmed>=details_define['option']['thresholdlower'], f'_{value.replace('/', '_')}-{key}.png')
 
         evaluate_targets[key] = target
     
@@ -367,31 +367,37 @@ def learning_option(details: dict, report:Report) -> dict:
         if value == result:
             report_option.through()
         else:
-            report_option.saveimage_errorvalue(trimmed, f'[Error]{value.replace('/', '_')}-{key}.png')
+            report_option.saveimage_errorvalue(trimmed, f'_[Error]{value.replace('/', '_')}-{key}.png')
             report_option.error(f'Mismatch {result} {key}')
 
     report_option_keys = []
     report_option_keycompare = []
     for value in values:
         report_option_keys.append(f'{value}:')
-        for playside in define.value_list['play_sides']:
-            report_option_keys.append(f'\t{playside}:')
-            tablekeys = [*keyresult[value][playside].keys()]
-            for tablekey in tablekeys:
-                report_option_keys.append(f'\t\t{tablekey}: {keyresult[value][playside][tablekey]}')
-            if len(tablekeys) == 0:
-                report_option.error(f'Not key: {value}({playside})')
-            if len(tablekeys) >= 2:
-                report_option.error(f'Duplicate key: {value}({playside})')
         
-        keys1p = [*keyresult[value]['1P'].keys()]
-        keys2p = [*keyresult[value]['2P'].keys()]
-        if len(keys1p) == 1 and len(keys2p) == 1:
-            if keys1p[0] != keys2p[0]:
-                report_option_keycompare.append(f'Different key {value}')
+        if not len(keyresult[value]):
+            report_option.error(f'Not key: {value}')
+        else:
+            for playside in define.value_list['play_sides']:
+                report_option_keys.append(f'\t{playside}:')
+                if playside in keyresult[value].keys():
+                    tablekeys = [*keyresult[value][playside].keys()]
+                    for tablekey in tablekeys:
+                        report_option_keys.append(f'\t\t{tablekey}: {keyresult[value][playside][tablekey]}')
+                    if len(tablekeys) >= 2:
+                        report_option.error(f'Duplicate key: {value}({playside})')
+        
+        if len(keyresult[value]) == 2:
+            keys1p = [*keyresult[value]['1P'].keys()]
+            keys2p = [*keyresult[value]['2P'].keys()]
+            if len(keys1p) == 1 and len(keys2p) == 1:
+                if keys1p[0] != keys2p[0]:
+                    report_option_keycompare.append(f'Different key {value}')
     
     report_option.output_list(report_option_keys, 'keys.txt')
     report_option.output_list(report_option_keycompare, 'keycompare.txt')
+
+    report_option.output_json(table, 'optionresult.json')
     
     report_option.report()
 
