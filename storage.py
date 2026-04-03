@@ -384,7 +384,7 @@ class StorageAccessor():
 
         try:
             blob.download_to_filename(targetfilepath)
-            logger.info('download resource {targetfilepath}')
+            logger.info(f'download resource {targetfilepath}')
         except Exception as ex:
             logger.exception(ex)
             return False
