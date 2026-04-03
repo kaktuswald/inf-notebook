@@ -65,6 +65,13 @@ if __name__ == '__main__':
         if upload(filename_notesradar, filepath_notesradar): 
             print(f'Upload complete {filename_notesradar}')
     
+    if '-all' in argv or '-unofficialdifficulty' in argv:
+        filename_unofficialdifficulty = f'{define.unofficialdifficulty_resourcename}.res'
+        filepath_unofficialdifficulty = join(resources_dirname, filename_unofficialdifficulty)
+        
+        if upload(filename_unofficialdifficulty, filepath_unofficialdifficulty): 
+            print(f'Upload complete {filename_unofficialdifficulty}')
+    
     if '-all' in argv or '-musicnamechanges' in argv:
         filepath_musicnamechanges = join(resources_dirname, musicnamechanges_filename)
 

@@ -2555,6 +2555,10 @@ def check_resource():
     if download_latestresource(storage, notesradar_filename):
         resource.load_resource_notesradar()
 
+    unofficialdifficulty_filename = f'{define.unofficialdifficulty_resourcename}.res'
+    if download_latestresource(storage, unofficialdifficulty_filename):
+        resource.load_resource_unofficialdifficulty()
+    
     download_latestresource(storage, musicnamechanges_filename)
     
     api.send_message('complete_resourcecheck')

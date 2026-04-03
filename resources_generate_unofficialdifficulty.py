@@ -9,9 +9,11 @@ resource_filename = f'unofficialdifficulty{define.unofficialdifficulty_version}.
 
 difficultydata_dirpath = join(registries_dirname, 'unofficialdifficulties')
 
-difficultydata_filepaths = [
-    join(join(difficultydata_dirpath, 'spwiki'), 'result.json'),
-]
+source_dirnames_filepath = join(registries_dirname, 'unofficialdifficulty_dirnames.txt')
+with open(source_dirnames_filepath, 'r', encoding='utf-8') as f:
+    dirnames = f.read().split('\n')
+
+difficultydata_filepaths = [join(join(difficultydata_dirpath, dirname), 'result.json') for dirname in dirnames if len(dirname)]
 
 differentchart_filepath = join(registries_dirname, 'different_chart.json')
 
