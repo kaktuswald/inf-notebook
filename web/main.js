@@ -1662,7 +1662,6 @@ async function onclick_summary_setting(e) {
 /**
  * メモの内容が変更された
  * 
- * 設定画面を開いて、統計タブをアクティブにする。
  * @param {ce.Event} e イベントハンドラ
  */
 function onchange_memo(e) {
