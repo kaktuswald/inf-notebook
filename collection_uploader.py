@@ -186,7 +186,7 @@ class CollectionUploader():
                     'notes': notes,
                     'notesradar_attribute': attribute,
                     'score': score,
-                    'notesradar_chartvalue': chartvalue,
+                    'notesradar_chartvalue': float(chartvalue),
                 })
     
     def musicselectchecker_reset(self):
