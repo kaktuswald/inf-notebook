@@ -590,14 +590,17 @@ class NotebookSummary(Notebook):
                     target['best'] = None
                 
                 if 'achievement' in r.keys():
-                    target['achievement'] = {
-                        'fixed': r['achievement']['fixed'],
-                        'S-RANDOM': r['achievement']['S-RANDOM'],
-                    }
-                    if 'MAX' in r['achievement'].keys():
-                        target['achievement']['MAX'] = True
-                    if 'F-COMBO & AAA' in r['achievement'].keys():
-                        target['achievement']['F-COMBO & AAA'] = True
+                    target['achievement'] = {}
+                    for arrangekey in ['fixed', 'S-RANDOM', 'ALL-SCR']:
+                        if not arrangekey in r['achievement'].keys():
+                            continue
+                        
+                        target['achievement'][arrangekey] = r['achievement'][arrangekey]
+
+                        if 'MAX' in r['achievement'][arrangekey].keys():
+                            target['achievement'][arrangekey]['MAX'] = True
+                        if 'F-COMBO & AAA' in r['achievement'][arrangekey].keys():
+                            target['achievement'][arrangekey]['F-COMBO & AAA'] = True
                 else:
                     target['achievement'] = None
     

@@ -164,6 +164,9 @@ def output(notebook: NotebookSummary):
         'S-RANDOM実績',
         'S-RANDOMクリアタイプ',
         'S-RANDOMDJレベル',
+        'ALL-SCR実績',
+        'ALL-SCRクリアタイプ',
+        'ALL-SCRDJレベル',
     ]
 
     summary_keys1 = ['difficulties', 'levels']
@@ -205,7 +208,7 @@ def output(notebook: NotebookSummary):
                 lines = [version, musicname, difficulty, level]
 
                 if notebook_target is None or not playtype in notebook_target.keys() or not difficulty in notebook_target[playtype].keys():
-                    lines.extend(('', '', '', '', '', '', '', '', '', '', '', '','', '', '', '',))
+                    lines.extend(('', '', '', '', '', '', '', '', '', '', '', '','', '', '', '', '', '', '',))
                 else:
                     record = notebook_target[playtype][difficulty]
 
@@ -246,22 +249,26 @@ def output(notebook: NotebookSummary):
                         lines.extend(('', '', '', '', '', '', '', '',))
                     
                     if 'achievement' in record.keys() and record['achievement'] is not None:
-                        for key1 in ('fixed', 'S-RANDOM',):
-                            if 'MAX' in record['achievement'][key1].keys() or 'F-COMBO & AAA' in record['achievement'][key1].keys():
-                                if 'MAX' in record['achievement'][key1].keys():
-                                    lines.append('MAX')
-                                else:
-                                    lines.append('F-COMBO & AAA')
-                            else:
-                                lines.append('')
-
+                        for key1 in ('fixed', 'S-RANDOM', 'ALL-SCR'):
                             if key1 in record['achievement'].keys():
-                                for key2 in ('clear_type', 'dj_level',):
-                                    lines.append(record['achievement'][key1][key2] if record['achievement'][key1][key2] is not None else '')
+                                if 'MAX' in record['achievement'][key1].keys() or 'F-COMBO & AAA' in record['achievement'][key1].keys():
+                                    if 'MAX' in record['achievement'][key1].keys():
+                                        lines.append('MAX')
+                                    else:
+                                        lines.append('F-COMBO & AAA')
+                                else:
+                                    lines.append('')
+
+                                if key1 in record['achievement'].keys():
+                                    for key2 in ('clear_type', 'dj_level',):
+                                        lines.append(record['achievement'][key1][key2] if record['achievement'][key1][key2] is not None else '')
+                                else:
+                                    lines.extend(('', '',))
                             else:
-                                lines.extend(('', '',))
+                                lines.extend(('', '', '',))
+
                     else:
-                        lines.extend(('', '', '', '', '', '',))
+                        lines.extend(('', '', '', '', '', '', '', '', '',))
                 
                 csv_output[playtype].append(lines)
 

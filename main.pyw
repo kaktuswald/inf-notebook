@@ -103,7 +103,7 @@ thread_time_normal = 0.3        # 通常のスレッド周期
 thread_time_result = 0.12       # リザルトのときのスレッド周期
 thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
 
-allimport_version_threshold = '0.20.dev1'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
+allimport_version_threshold = '0.21.3.7'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
 
 gamewindowtitle = 'beatmania IIDX INFINITAS'
 exename = 'bm2dx.exe'
