@@ -2535,7 +2535,12 @@ async function display_notesradar_ranking() {
       const td_max = $('<td>').text(notesradar_target.toFixed(2));
       td_max.addClass('notesradar_cell_max');
       tr.append(td_max);
-  
+      
+      const ratio = value['value'] / notesradar_target * 100;
+      const td_ratio = $('<td>').text(ratio.toFixed(2));
+      td_ratio.addClass('notesradar_cell_ratio');
+      tr.append(td_ratio);
+      
       const td_difficulty = $('<td>').text(value['difficulty']);
       td_difficulty.addClass('notesradar_cell_difficulty cell_hidden');
       tr.append(td_difficulty);

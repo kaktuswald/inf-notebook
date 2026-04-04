@@ -3,6 +3,7 @@ from os.path import exists,join
 from datetime import datetime
 from csv import writer
 from logging import getLogger
+from decimal import Decimal
 import re
 
 logger_child_name = 'export'
@@ -300,11 +301,20 @@ def output_notesradarcsv(notesradar: NotesRadar):
         output_rankings[playmode] = []
         for attribute, targetattribute in targetitem.attributes.items():
             output.append(f'{attribute}, {targetattribute.average}')
-
-            output_rankings[playmode].append(f'順位,曲名,譜面,{attribute}')
+            
+            output_rankings[playmode].append(f'順位,曲名,譜面,{attribute},MAX,%')
             for i in range(len(targetattribute.ranking)):
                 t = targetattribute.ranking[i]
-                output_rankings[playmode].append(f'{i+1},{t.musicname},{t.difficulty},{t.value}')
+                max = Decimal(str(resource.notesradar[playmode]['musics'][t.musicname][t.difficulty]['radars'][attribute]))
+                rate = (t.value/max*Decimal('100.0')).quantize(Decimal('0.00'))
+                output_rankings[playmode].append(','.join([
+                    str(i + 1),
+                    t.musicname,
+                    t.difficulty,
+                    str(t.value),
+                    str(max),
+                    str(rate),
+                ]))
             output_rankings[playmode].append('')
         output.append('')
     
