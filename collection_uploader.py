@@ -134,6 +134,9 @@ class CollectionUploader():
         return upload_informations and upload_details
 
     def checkandupload_resultothers(self, result:Result, image:Image.Image):
+        if result.others.tab is None:
+            return
+        
         unrecognizeds = None
         if result.others.tab == ResultTabs.RIVAL:
             unrecognizeds = [
