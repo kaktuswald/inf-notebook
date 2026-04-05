@@ -2,13 +2,22 @@ from ctypes import (
     windll,
     c_bool,
     c_int,
+    c_long,
     c_ulong,
     pointer,
     POINTER,
     WINFUNCTYPE,
     create_unicode_buffer,
 )
-from ctypes.wintypes import RECT,DWORD,MAX_PATH
+from ctypes.wintypes import (
+    BOOL,
+    RECT,
+    DWORD,
+    HDC,
+    LPARAM,
+    HMONITOR,
+    MAX_PATH,
+)
 from os import system,environ
 from os.path import basename,exists
 from pathlib import WindowsPath
@@ -32,6 +41,8 @@ rectsizes = (
 いずれかに一致していたらOKとする
 '''
 
+MONITOR_DEFAULTTONEAREST = 2
+
 windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS.PROCESS_DPI_UNAWARE)
 
 def get_filename(wHnd):
@@ -51,11 +62,11 @@ def get_filename(wHnd):
 
     return filename
 
-def find_window(title, filename):
+def find_window(title:str, filename:str):
     enumWindowsProc = WINFUNCTYPE(c_bool, c_int, POINTER(c_int))
 
     handles = []
-    def foreach_window(hWnd, lParam):
+    def foreach_window(hWnd:int, lParam:c_long):
         if windll.user32.IsHungAppWindow(hWnd):
             return True
         filename = get_filename(hWnd)
@@ -73,7 +84,7 @@ def find_window(title, filename):
 
     return handles[0] if len(handles) == 1 else 0
 
-def get_rect(handle):
+def get_rect(handle:int):
     if handle == 0:
         return None
     
@@ -81,13 +92,46 @@ def get_rect(handle):
     windll.user32.GetWindowRect(handle, pointer(rect))
     return rect
 
-def check_rectsize(rect: RECT) -> bool:
+def get_monitor_index(handle:int) -> int|None:
+    hmonitor = windll.user32.MonitorFromWindow(handle, MONITOR_DEFAULTTONEAREST)
+
+    monitors = []
+
+    MonitorEnumProc = WINFUNCTYPE(
+        BOOL,
+        HMONITOR,
+        HDC,
+        POINTER(RECT),
+        LPARAM
+    )
+
+    windll.user32.EnumDisplayMonitors.argtypes = [
+        HDC,
+        POINTER(RECT),
+        MonitorEnumProc,
+        LPARAM
+    ]
+
+    def callback(hMon:int, hdc:None, rect:RECT, data:int):
+        monitors.append(hMon)
+        return True
+    
+    windll.user32.EnumDisplayMonitors.restype = BOOL
+    windll.user32.EnumDisplayMonitors(0, None, MonitorEnumProc(callback), 0)
+
+    for i, mon in enumerate(monitors):
+        if mon == hmonitor:
+            return i
+    
+    return None
+
+def check_rectsize(rect:RECT) -> bool:
     width = rect.right - rect.left
     height = rect.bottom - rect.top
 
     return (width, height) in rectsizes
 
-def openfolder(dirpath: str):
+def openfolder(dirpath:str):
     try:
         system(f'explorer.exe {dirpath}')
     except Exception as ex:
@@ -119,13 +163,13 @@ def get_local_appdata_path() -> WindowsPath:
 
     return productpath
 
-def gethandle(title: str):
+def gethandle(title:str):
     handle = windll.user32.FindWindowW(None, title)
     if handle == 0:
         return None
     return handle
 
-def show_messagebox(message: str, title: str):
+def show_messagebox(message:str, title:str):
     MB_OK = 0x0000
     windll.user32.MessageBoxW(0, message, title, MB_OK)
 

@@ -46,6 +46,7 @@ logger.getChild('urllib3').setLevel(logging.WARNING)
 logger.getChild('PIL').setLevel(logging.WARNING)
 logger.getChild('google').setLevel(logging.WARNING)
 logger.getChild('websockets').setLevel(logging.WARNING)
+logger.getChild('dxcam').setLevel(logging.WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
@@ -67,7 +68,7 @@ from export import (
     csssetting_filepath,
 )
 from export import output as output_summary
-from windows import find_window,get_rect,check_rectsize,gethandle,show_messagebox
+from windows import find_window,get_rect,get_monitor_index,check_rectsize,gethandle,show_messagebox
 import image
 from image import (
     generate_scoretype,
@@ -172,7 +173,7 @@ class ThreadCapture(Thread):
             logger.debug(f'infinitas find.')
             api.send_message('switch_detect_infinitas', True)
             self.active = False
-            screenshot.xy = None
+            screenshot.clear_camera()
         
         rect = get_rect(self.handle)
 
@@ -184,7 +185,7 @@ class ThreadCapture(Thread):
 
             self.handle = 0
             self.active = False
-            screenshot.xy = None
+            screenshot.clear_camera()
 
             return
 
@@ -195,11 +196,13 @@ class ThreadCapture(Thread):
                 api.send_message('switch_capturable', False)
 
             self.active = False
-            screenshot.xy = None
+            screenshot.clear_camera()
             return
         
         if not self.active:
             self.active = True
+            screenshot.create_camera(get_monitor_index(self.handle))
+
             self.capturing_successful = None
             self.capturing_checkstarttime = time.time()
             self.waiting = False
@@ -208,29 +211,24 @@ class ThreadCapture(Thread):
             logger.debug(f'infinitas activate: {self.sleep_time}')
             api.send_message('switch_capturable', True)
         
-        screenshot.xy = (rect.left, rect.top)
-        screen = screenshot.get_screen()
+        if not screenshot.shot():
+            return
 
-        shotted = False
         if self.capturing_successful is None:
-            screenshot.shot()
-            shotted = True
-
-            if not screenshot.is_black():
+            if screenshot.is_black() is False:
                 self.capturing_successful = True
             else:
                 if time.time() - self.capturing_checkstarttime >= 60:
                     self.capturing_successful = False
                     messages = [
-                        'キャプチャー画面がずっと真っ黒です。',
+                        'キャプチャーに成功しないか、キャプチャー画面がずっと真っ黒です。',
                         '',
                         'ゲーム実行ファイル(\\beatmania IIDX INFINITAS\\games\\app\\bm2dx.exe)のプロパティから「全画面表示の最適化を無効にする」のチェックを外すと正常化する可能性があります。',
                     ]
                     api.send_message('error', messages)
 
-        if not self.capturing_successful:
-            return
-        
+        screen = screenshot.get_screen()
+
         if screen != self.screen_latest:
             self.confirmed_somescreen = False
             self.confirmed_processable = False
@@ -279,10 +277,6 @@ class ThreadCapture(Thread):
                 self.sleep_time = thread_time_musicselect
                 logger.debug(f'screen in music select: {self.sleep_time}')
 
-            if not shotted:
-                screenshot.shot()
-                shotted = True
-
             trimmed = screenshot.np_value[define.musicselect_trimarea_np]
             if recog.MusicSelect.get_version(trimmed) is not None:
                 try:
@@ -320,9 +314,6 @@ class ThreadCapture(Thread):
             return
         
         if not self.processed:
-            if not shotted:
-                screenshot.shot()
-            
             if not recog.get_is_savable(screenshot.np_value):
                 return
             
@@ -346,9 +337,6 @@ class ThreadCapture(Thread):
             self.processed = True
         
         if self.processed and setting.data_collection:
-            if not shotted:
-                screenshot.shot()
-            
             collectionuploader.checkandupload_notesradarvalue(screenshot.np_value)
 
 class Hotkeys():

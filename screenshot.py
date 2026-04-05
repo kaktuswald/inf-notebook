@@ -1,10 +1,12 @@
-import ctypes
-from ctypes import windll,wintypes,create_string_buffer
 from datetime import datetime
-from PIL import Image
-from logging import getLogger
 from os.path import exists,basename
+from logging import getLogger
+
+from PIL import Image
 import numpy as np
+from numpy import ndarray,uint64
+from dxcam import create as create_camera
+from dxcam import DXCamera
 
 logger_child_name = 'screenshot'
 
@@ -14,110 +16,50 @@ logger.debug('loaded screenshot.py')
 from define import define
 from resources import load_resource_serialized
 
-SRCCOPY = 0x00CC0020
-DIB_RGB_COLORS = 0
-PW_CLIENTONLY = 1
-
-class BITMAPINFOHEADER(ctypes.Structure):
-    _fields_ = [
-        ('biSize', wintypes.DWORD),
-        ('biWidth', wintypes.LONG),
-        ('biHeight', wintypes.LONG),
-        ('biPlanes', wintypes.WORD),
-        ('biBitCount', wintypes.WORD),
-        ('biCompression', wintypes.DWORD),
-        ('biSizeImage', wintypes.DWORD),
-        ('biXPelsPerMeter', wintypes.LONG),
-        ('biYPelsPerMeter', wintypes.LONG),
-        ('biClrUsed', wintypes.DWORD),
-        ('biClrImportant', wintypes.DWORD),
-    ]
-
-class RGBQUAD(ctypes.Structure):
-    _fields_ = [
-        ('rgbRed', ctypes.c_byte),
-        ('rgbGreen', ctypes.c_byte),
-        ('rgbBlue', ctypes.c_byte),
-        ('rgbReserved', ctypes.c_byte),
-    ]
-
-class BITMAPINFO(ctypes.Structure):
-    _fields_ = [
-        ('bmiHeader', BITMAPINFOHEADER),
-        ('bmiColors', ctypes.POINTER(RGBQUAD))
-    ]
-
 class Screen:
-    def __init__(self, np_value, filename):
+    def __init__(self, np_value:ndarray, filename:str):
         self.np_value = np_value
 
         self.original = Image.fromarray(np_value)
         self.filename = filename
 
-class Capture:
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-
-        self.bmi = BITMAPINFO()
-        self.bmi.bmiHeader.biSize = ctypes.sizeof(BITMAPINFOHEADER)
-        self.bmi.bmiHeader.biWidth = self.width
-        self.bmi.bmiHeader.biHeight = self.height
-        self.bmi.bmiHeader.biPlanes = 1
-        self.bmi.bmiHeader.biBitCount = 24
-        self.bmi.bmiHeader.biCompression = 0
-        self.bmi.bmiHeader.biSizeImage = 0
-
-        self.screen = windll.gdi32.CreateDCW("DISPLAY", None, None, None)
-        self.screen_copy = windll.gdi32.CreateCompatibleDC(self.screen)
-        self.bitmap = windll.gdi32.CreateCompatibleBitmap(self.screen, self.width, self.height)
-
-        windll.gdi32.SelectObject(self.screen_copy, self.bitmap)
-
-        self.buffer = create_string_buffer(self.height * self.width * 3)
-    
-    def shot(self, left, top):
-        windll.gdi32.BitBlt(self.screen_copy, 0, 0, self.width, self.height, self.screen, left, top, SRCCOPY)
-        windll.gdi32.GetDIBits(self.screen_copy, self.bitmap, 0, self.height, ctypes.pointer(self.buffer), ctypes.pointer(self.bmi), DIB_RGB_COLORS)
-
-        return np.array(bytearray(self.buffer), dtype=np.uint8).reshape(self.height, self.width, 3)
-
-    def __del__(self):
-        windll.gdi32.DeleteObject(self.bitmap)
-        windll.gdi32.DeleteDC(self.screen_copy)
-        windll.gdi32.DeleteDC(self.screen)
-
-        logger.debug('Called Screenshot destuctor.')
-
 class Screenshot:
-    xy = None
-    screentable = load_resource_serialized('get_screen')
-    np_value = None
+    screentable: dict = load_resource_serialized('get_screen')
+    np_value: ndarray | None = None
+    camera: DXCamera | None = None
 
     def __init__(self):
-        self.checkscreens = []
+        self.checkscreens: list[tuple[str|tuple[slice]|uint64]] = []
         for screenname, areas in define.screens.items():
-            lefttop = (areas['left'], areas['top'],)
-            capture = Capture(areas['width'], areas['height'])
-            self.checkscreens.append((screenname, lefttop, capture, self.screentable[screenname],))
+            slices = (
+                slice(areas['top'], areas['top'] + areas['height']),
+                slice(areas['left'], areas['left'] + areas['width']),
+            )
+            self.checkscreens.append((screenname, slices, self.screentable[screenname],))
+
+    def create_camera(self, idx:int):
+        self.camera = create_camera(output_idx=idx, processor_backend='numpy')
+        self.camera.start()
+    
+    def clear_camera(self):
+        if self.camera is not None:
+            self.camera.release()
+        self.camera = None
+    
+    def shot(self) -> bool:
+        if self.camera is None:
+            return False
         
-        self.capture = Capture(define.width, define.height)
+        self.np_value = self.camera.grab()
+        return self.np_value is not None
 
-    def __del__(self):
-        for screen, pos, capture, value in self.checkscreens:
-            del capture
-        del self.capture
-
-    def get_screen(self):
-        if self.xy is None:
+    def get_screen(self) -> str|None:
+        if self.np_value is None:
             return None
         
         results = []
-        for screen, pos, capture, value in self.checkscreens:
-            x = self.xy[0] + pos[0]
-            y = self.xy[1] + pos[1]
-
-            if np.sum(capture.shot(x, y)) == value:
+        for screen, slices, value in self.checkscreens:
+            if np.sum(self.np_value[slices]) == value:
                 results.append(screen)
         
         if len(results) != 1:
@@ -125,29 +67,25 @@ class Screenshot:
 
         return results[0]
 
-    def shot(self):
-        if self.xy is None:
-            return False
+    def is_black(self) -> bool|None:
+        if self.np_value is None:
+            return None
         
-        self.np_value = self.capture.shot(self.xy[0], self.xy[1])[::-1, :, ::-1]
-        return True
+        return bool(np.all(self.np_value == 0))
 
-    def is_black(self):
-        return np.all(self.np_value == 0)
-
-    def get_image(self):
+    def get_image(self) -> Image.Image|None:
         if self.np_value is None:
             return None
         
         return Image.fromarray(self.np_value)
-
-    def get_resultscreen(self):
+    
+    def get_resultscreen(self) -> Screen:
         now = datetime.now()
         filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.png"
 
         return Screen(self.np_value, filename)
 
-def open_screenimage(filepath):
+def open_screenimage(filepath:str) -> Screen:
     if not exists(filepath):
         return None
     
