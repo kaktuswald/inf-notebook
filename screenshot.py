@@ -6,7 +6,7 @@ from PIL import Image
 import numpy as np
 from numpy import ndarray,uint64
 from dxcam import create as create_camera
-from dxcam import DXCamera
+from dxcam import DXCamera,Device,Output,enum_dxgi_adapters
 
 logger_child_name = 'screenshot'
 
@@ -15,6 +15,7 @@ logger.debug('loaded screenshot.py')
 
 from define import define
 from resources import load_resource_serialized
+from windows import get_monitorhandle
 
 class Screen:
     def __init__(self, np_value:ndarray, filename:str):
@@ -37,9 +38,23 @@ class Screenshot:
             )
             self.checkscreens.append((screenname, slices, self.screentable[screenname],))
 
-    def create_camera(self, idx:int):
-        self.camera = create_camera(output_idx=idx, processor_backend='numpy')
-        self.camera.start()
+    def create_camera(self, handle:int):
+        mhandle = get_monitorhandle(handle)
+
+        for i_adapter, p_adapter in enumerate(enum_dxgi_adapters()):
+            device = Device(p_adapter)
+            for i_output, p_output in enumerate(device.enum_outputs()):
+                output = Output(p_output)
+                output.hmonitor
+                output.devicename
+                if output.hmonitor == mhandle:
+                    self.camera = create_camera(
+                        device_idx=i_adapter,
+                        output_idx=i_output,
+                        processor_backend='numpy',
+                    )
+                    self.camera.start()
+                    return
     
     def clear_camera(self):
         if self.camera is not None:

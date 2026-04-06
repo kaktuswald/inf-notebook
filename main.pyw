@@ -46,7 +46,7 @@ logger.getChild('urllib3').setLevel(logging.WARNING)
 logger.getChild('PIL').setLevel(logging.WARNING)
 logger.getChild('google').setLevel(logging.WARNING)
 logger.getChild('websockets').setLevel(logging.WARNING)
-logger.getChild('dxcam').setLevel(logging.WARNING)
+logger.getChild('dxcam').setLevel(logging.ERROR)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
@@ -68,7 +68,7 @@ from export import (
     csssetting_filepath,
 )
 from export import output as output_summary
-from windows import find_window,get_rect,get_monitor_index,check_rectsize,gethandle,show_messagebox
+from windows import find_window,get_rect,check_rectsize,gethandle,show_messagebox
 import image
 from image import (
     generate_scoretype,
@@ -201,7 +201,7 @@ class ThreadCapture(Thread):
         
         if not self.active:
             self.active = True
-            screenshot.create_camera(get_monitor_index(self.handle))
+            screenshot.create_camera(self.handle)
 
             self.capturing_successful = None
             self.capturing_checkstarttime = time.time()

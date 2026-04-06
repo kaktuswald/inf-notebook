@@ -8,13 +8,15 @@ from ctypes import (
     POINTER,
     WINFUNCTYPE,
     create_unicode_buffer,
+    sizeof,
+    byref,
+    Structure,
 )
 from ctypes.wintypes import (
     BOOL,
     RECT,
     DWORD,
-    HDC,
-    LPARAM,
+    WCHAR,
     HMONITOR,
     MAX_PATH,
 )
@@ -29,19 +31,22 @@ class PROCESS_DPI_AWARENESS:
     PROCESS_SYSTEM_DPI_AWARE = 1
     PROCESS_PER_MONITOR_DPI_AWARE = 2
 
+class MONITOR_FROM_FLAGS:
+    MONITOR_DEFAULTTONULL = 0
+    MONITOR_DEFAULTTOPRIMARY = 1
+    MONITOR_DEFAULTTONEAREST = 2
+
 rectsizes = (
     (1920, 1080),
     (1536, 864),
     (1280, 720),
-    (1097, 617)
+    (1097, 617),
 )
 '''INFINITASの画面サイズの候補
 
 ディスプレイの拡大/縮小設定によって取得できるINFINITASの画面サイズが変化するため、
 いずれかに一致していたらOKとする
 '''
-
-MONITOR_DEFAULTTONEAREST = 2
 
 windll.shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS.PROCESS_DPI_UNAWARE)
 
@@ -92,38 +97,8 @@ def get_rect(handle:int):
     windll.user32.GetWindowRect(handle, pointer(rect))
     return rect
 
-def get_monitor_index(handle:int) -> int|None:
-    hmonitor = windll.user32.MonitorFromWindow(handle, MONITOR_DEFAULTTONEAREST)
-
-    monitors = []
-
-    MonitorEnumProc = WINFUNCTYPE(
-        BOOL,
-        HMONITOR,
-        HDC,
-        POINTER(RECT),
-        LPARAM
-    )
-
-    windll.user32.EnumDisplayMonitors.argtypes = [
-        HDC,
-        POINTER(RECT),
-        MonitorEnumProc,
-        LPARAM
-    ]
-
-    def callback(hMon:int, hdc:None, rect:RECT, data:int):
-        monitors.append(hMon)
-        return True
-    
-    windll.user32.EnumDisplayMonitors.restype = BOOL
-    windll.user32.EnumDisplayMonitors(0, None, MonitorEnumProc(callback), 0)
-
-    for i, mon in enumerate(monitors):
-        if mon == hmonitor:
-            return i
-    
-    return None
+def get_monitorhandle(handle:int) -> int|None:
+    return windll.user32.MonitorFromWindow(handle, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST)
 
 def check_rectsize(rect:RECT) -> bool:
     width = rect.right - rect.left
