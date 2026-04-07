@@ -211,6 +211,13 @@ class ThreadCapture(Thread):
             logger.debug(f'infinitas activate: {self.sleep_time}')
             api.send_message('switch_capturable', True)
         
+        if not screenshot.camera.is_capturing:
+            logger.debug(f'not capturing')
+            try:
+                screenshot.camera.start()
+            except Exception as ex:
+                logger.error(f'Failed to start capture: {ex}')
+
         if not screenshot.shot():
             return
 
