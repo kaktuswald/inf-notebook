@@ -168,7 +168,10 @@ class CollectionUploader():
             score = self.notesradarchecker.details.score.current
 
             ratio = Decimal(str(score / (notes * 2)))
-
+            
+            if not ratio:
+                return
+            
             attribute = result[0]
             chartvalue = Decimal(str(result[1]))
 

@@ -313,7 +313,12 @@ def output_notesradarcsv(notesradar: NotesRadar):
             for i in range(len(targetattribute.ranking)):
                 t = targetattribute.ranking[i]
                 max = Decimal(str(resource.notesradar[playmode]['musics'][t.musicname][t.difficulty]['radars'][attribute]))
-                rate = (t.value/max*Decimal('100.0')).quantize(Decimal('0.00'))
+                
+                if max:
+                    rate = (t.value/max*Decimal('100.0')).quantize(Decimal('0.00'))
+                else:
+                    rate = Decimal('0.00')
+                
                 output_rankings[playmode].append(','.join([
                     str(i + 1),
                     t.musicname,
