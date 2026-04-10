@@ -1,10 +1,8 @@
 import numpy as np
 from logging import getLogger
 
-logger_child_name = 'recog'
-
-logger = getLogger().getChild(logger_child_name)
-logger.debug('loaded recog.py')
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from define import define,Graphtypes,Options,ResultTabs
 from resources import resource

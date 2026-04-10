@@ -1,8 +1,13 @@
 from os import mkdir
 from os.path import join,exists,isfile
-from PIL import Image
 from datetime import datetime
 import re
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
+from PIL import Image
 
 from define import Playtypes
 from export import export_dirname

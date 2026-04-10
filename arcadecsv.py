@@ -1,5 +1,9 @@
 from json import dump,load
 from os.path import isfile,join
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from resources import resource
 from record import records_basepath

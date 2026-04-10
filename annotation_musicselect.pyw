@@ -2,9 +2,14 @@ from json import load,dump,loads,dumps
 from os import remove
 from os.path import join,exists,basename,isfile
 from glob import glob
-from PIL import Image
 from base64 import b64encode
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from numpy import array,uint8
+from PIL import Image
 from webui.webui import Window,Event,wait,clean
 
 from resources_learning_musicselect import images_musicselect_basepath,label_filepath

@@ -1,10 +1,12 @@
 from json import dumps,loads
 from requests import post
-from google.auth.transport.requests import Request
-from google.oauth2.service_account import IDTokenCredentials
 from logging import getLogger
 
-logger = getLogger('cloud function')
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
+from google.auth.transport.requests import Request
+from google.oauth2.service_account import IDTokenCredentials
 
 from service_account_info import service_account_info
 

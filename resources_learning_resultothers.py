@@ -1,6 +1,10 @@
 import json
 from sys import exit
 from os.path import join,isfile
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from PIL import Image
 import numpy as np

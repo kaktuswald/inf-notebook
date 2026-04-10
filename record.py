@@ -1,13 +1,11 @@
 import json
 from os import remove,mkdir,rename
 from os.path import join,exists
-from logging import getLogger
 from copy import deepcopy
+from logging import getLogger
 
-logger_child_name = 'record'
-
-logger = getLogger().getChild(logger_child_name)
-logger.debug(f'loaded record.py')
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from version import version
 from resources import resource,resources_dirname

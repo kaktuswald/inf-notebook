@@ -1,6 +1,10 @@
 import json
 import requests
 from datetime import datetime
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from result import Result,ResultInformations,ResultDetails
 

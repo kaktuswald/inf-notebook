@@ -1,4 +1,9 @@
 from io import BytesIO
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from PIL.Image import Image
 
 imagesize = (1280, 720)

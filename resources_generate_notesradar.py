@@ -1,7 +1,12 @@
 from os.path import join,exists
 import json
-import pandas as pd
 from decimal import Decimal,ROUND_UP
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
+import pandas as pd
 
 from define import Playmodes,NotesradarAttributes,define
 from resources import resource

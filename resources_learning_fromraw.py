@@ -1,5 +1,9 @@
 import numpy as np
 from sys import argv
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from define import define
 from resources_generate import Report,load_raws,save_resource_numpy

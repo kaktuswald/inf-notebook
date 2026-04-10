@@ -4,9 +4,14 @@ import gzip
 from os import mkdir,remove
 from os.path import join,exists,isfile
 from shutil import rmtree
-from PIL import Image
 from glob import glob
 from json import dump
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
+from PIL import Image
 
 from raw_image import raws_basepath
 from resources import resources_dirname

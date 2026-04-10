@@ -1,10 +1,9 @@
 from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 import numpy as np
-
-logger_child_name = 'define'
-
-logger = getLogger().getChild(logger_child_name)
-logger.debug('loaded define.py')
 
 class Playmodes():
     '''プレイモード

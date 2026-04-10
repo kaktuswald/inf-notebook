@@ -3,10 +3,14 @@ from os import remove
 from os.path import join,exists,basename,isfile
 from glob import glob
 from base64 import b64encode
-from webui.webui import Window,Event,wait,clean
+from logging import getLogger
 
-from PIL import Image
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from numpy import array,uint8
+from PIL import Image
+from webui.webui import Window,Event,wait,clean
 
 from define import ResultTabs,NotesradarAttributes
 from general import get_imagevalue

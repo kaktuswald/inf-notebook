@@ -12,7 +12,27 @@ from base64 import b64decode,b64encode
 from hashlib import sha256
 from sys import exit
 from tkinter import Tk,filedialog
-import logging
+from logging import LogRecord,basicConfig,getLogger,Handler,DEBUG,INFO,WARNING
+
+from setting import Setting
+
+setting = Setting()
+
+if setting.debug:
+    basicConfig(
+        level=DEBUG,
+        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
+    )
+else:
+    basicConfig(
+        level=INFO,
+        filename='log.txt',
+        filemode='w',
+        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
+    )
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from webui import webui
 from PIL import Image
@@ -20,32 +40,10 @@ from global_hotkeys import register_hotkeys,clear_hotkeys,start_checking_hotkeys
 import requests
 from numpy import array
 
-from setting import Setting
-
-setting = Setting()
-
-if setting.debug:
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
-    )
-else:
-    logging.basicConfig(
-        level=logging.INFO,
-        filename='log.txt',
-        filemode='w',
-        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
-    )
-
-logger = logging.getLogger()
-
-logger.debug('loaded main.py')
-logger.debug('mode: debug')
-
-logger.getChild('urllib3').setLevel(logging.WARNING)
-logger.getChild('PIL').setLevel(logging.WARNING)
-logger.getChild('google').setLevel(logging.WARNING)
-logger.getChild('websockets').setLevel(logging.WARNING)
+logger.getChild('urllib3').setLevel(WARNING)
+logger.getChild('PIL').setLevel(WARNING)
+logger.getChild('google').setLevel(WARNING)
+logger.getChild('websockets').setLevel(WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
@@ -117,12 +115,12 @@ releases_url = urljoin(base_url, 'releases/')
 latest_url = urljoin(releases_url, 'latest')
 wiki_url = urljoin(base_url, 'wiki/')
 
-class LoggingHandler(logging.Handler):
+class LoggingHandler(Handler):
     def __init__(self, output_func):
         super().__init__()
         self.output_func = output_func
     
-    def emit(self, record:logging.LogRecord):
+    def emit(self, record:LogRecord):
         message = self.format(record)
         self.output_func(message)
 

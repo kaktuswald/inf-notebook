@@ -1,6 +1,10 @@
 import os
 import sys
 from base64 import b64decode
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 generate_filename = 'service_account_info.py'
 

@@ -1,6 +1,10 @@
 import numpy as np
 from os.path import join
 import json
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from raw_image import raws_basepath
 

@@ -1,12 +1,11 @@
 from threading import Thread
-from websockets.sync.server import Server,ServerConnection,serve
-from logging import getLogger
 from json import loads,dumps
+from logging import getLogger
 
-logger_child_name = 'socket server'
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
-logger = getLogger().getChild(logger_child_name)
-logger.debug(f'loaded socket_server.py')
+from websockets.sync.server import Server,ServerConnection,serve
 
 from record import NotebookRecent
 

@@ -9,12 +9,12 @@ from queue import Queue
 from typing import Callable,Any,Tuple
 from logging import getLogger
 
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from google.cloud import storage
 from google.cloud.storage import Blob
 from PIL import Image,ImageDraw
-
-logger = getLogger().getChild('storage')
-logger.debug('loaded storage.py')
 
 from service_account_info import service_account_info
 from define import define

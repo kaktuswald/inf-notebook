@@ -1,16 +1,15 @@
 import numpy as np
 from winsound import SND_FILENAME,PlaySound
-from logging import getLogger
 import pickle
 import gzip
 from os import rename,remove
 from os.path import join,isfile,exists
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from PIL import Image
-
-logger_child_name = 'resources'
-
-logger = getLogger().getChild(logger_child_name)
-logger.debug(f'loaded resources.py')
 
 from define import define
 

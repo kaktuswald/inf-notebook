@@ -12,6 +12,10 @@ from ctypes.wintypes import RECT,DWORD,MAX_PATH
 from os import system,environ
 from os.path import basename,exists
 from pathlib import WindowsPath
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from infnotebook import productname
 

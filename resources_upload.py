@@ -1,6 +1,10 @@
 from sys import argv
 from os.path import join
 from json import load
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from define import define
 from resources import ResourceTimestamp,resources_dirname

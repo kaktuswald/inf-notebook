@@ -1,5 +1,9 @@
 from os.path import join,isfile
 from json import load
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from define import define
 from resources import resource

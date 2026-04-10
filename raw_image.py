@@ -1,12 +1,11 @@
 import os
-from logging import getLogger
 from datetime import datetime
+from logging import basicConfig,getLogger,DEBUG,INFO,WARNING
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from PIL.Image import Image
-
-logger_child_name = 'raw_image'
-
-logger = getLogger().getChild(logger_child_name)
-logger.debug('loaded raw_image.py')
 
 raws_basepath = 'raws'
 

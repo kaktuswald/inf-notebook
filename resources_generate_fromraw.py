@@ -3,6 +3,11 @@ from sys import argv
 from random import shuffle
 from os import mkdir
 from os.path import join,exists
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from PIL import Image
 
 from define import define

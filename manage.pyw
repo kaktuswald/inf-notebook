@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 import glob
 import os
-import logging
+from logging import basicConfig,getLogger,DEBUG
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -10,9 +10,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
 )
 
-logger = logging.getLogger()
-
-logger.debug('loaded manage.py')
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 import gui.manage as gui
 from screenshot import Screenshot,open_screenimage

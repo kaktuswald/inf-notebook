@@ -1,12 +1,10 @@
 from datetime import datetime
 from logging import getLogger
 
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from define import Playmodes,Playtypes,ResultTabs,NotesradarAttributes,define
-
-logger_child_name = 'result'
-
-logger = getLogger().getChild(logger_child_name)
-logger.debug('loaded result.py')
 
 results_dirname = 'results'
 filtereds_dirname = 'filtered'

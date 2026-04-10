@@ -1,6 +1,10 @@
 from datetime import datetime
 from webbrowser import open
 from urllib.parse import quote
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from define import Playmodes,Playtypes
 from resources import resource

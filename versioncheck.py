@@ -1,4 +1,8 @@
 from re import search
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 def version_isold(value: str, threshold: str):
     '''バージョンをチェックする

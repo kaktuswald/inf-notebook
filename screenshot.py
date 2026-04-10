@@ -1,15 +1,14 @@
 import ctypes
 from ctypes import windll,wintypes,create_string_buffer
 from datetime import datetime
-from PIL import Image
-from logging import getLogger
 from os.path import exists,basename
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 import numpy as np
-
-logger_child_name = 'screenshot'
-
-logger = getLogger().getChild(logger_child_name)
-logger.debug('loaded screenshot.py')
+from PIL import Image
 
 from define import define
 from resources import load_resource_serialized

@@ -1,3 +1,8 @@
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
 from PIL import ImageFilter
 from PIL.Image import Image
 

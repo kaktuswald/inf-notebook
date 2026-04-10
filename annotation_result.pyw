@@ -2,9 +2,14 @@ from json import load,dump,loads,dumps
 from os import remove
 from os.path import join,exists,basename,isfile
 from glob import glob
-from PIL import Image
 from base64 import b64encode
-from numpy import array,zeros,uint8
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
+
+from numpy import array,uint8,zeros
+from PIL import Image
 from webui.webui import Window,Event,wait,clean
 
 import data_collection as dc

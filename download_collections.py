@@ -1,15 +1,14 @@
-import logging
+from logging import basicConfig,getLogger,DEBUG
 
-logging.basicConfig(
-    level=logging.DEBUG,
+basicConfig(
+    level=DEBUG,
     filename='log.txt',
     filemode='w',
     format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
 )
 
-logger = logging.getLogger()
-
-logger.debug('loaded download.py')
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from storage import StorageAccessor
 

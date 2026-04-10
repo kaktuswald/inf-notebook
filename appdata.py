@@ -1,6 +1,10 @@
 import json
 from os.path import exists
 from pathlib import WindowsPath
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from windows import get_appdata_path,get_local_appdata_path
 

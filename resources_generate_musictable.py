@@ -3,6 +3,10 @@ from sys import exit
 from os import mkdir
 from os.path import join,basename,exists
 from glob import glob
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from define import Playmodes,define
 from image import generate_filename

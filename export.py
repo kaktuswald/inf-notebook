@@ -2,14 +2,12 @@ import json
 from os.path import exists,join
 from datetime import datetime
 from csv import writer
-from logging import getLogger
 from decimal import Decimal
 import re
+from logging import getLogger
 
-logger_child_name = 'export'
-
-logger = getLogger().getChild(logger_child_name)
-logger.debug(f'loaded export.py')
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from define import Playmodes,Playtypes,define
 from resources import resource

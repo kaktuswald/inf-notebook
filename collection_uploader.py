@@ -1,5 +1,9 @@
 from time import time
 from decimal import Decimal,ROUND_UP
+from logging import getLogger
+
+logger = getLogger(__name__)
+logger.debug(f'loaded {__name__}')
 
 from PIL import Image
 from numpy import array
