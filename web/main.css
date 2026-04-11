@@ -111,12 +111,8 @@ div.label_in_notesradar {
 
 div#component_scoredata {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     
-    div {
-        display: inline-block;
-    }
-
     div.label {
         user-select: none;
         width: 80px;
@@ -127,6 +123,20 @@ div#component_scoredata {
         padding: 0px;
         margin: 0px 5px;
         font-size: small;
+    }
+
+    div#chartnotesradar {
+        position: absolute;
+        top: 20px;
+        left: 240px;
+        width: 128px;
+        height: 144px;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
     }
 }
 

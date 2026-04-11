@@ -45,15 +45,6 @@ div#components {
     display: none;
 }
 
-div.component {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border: 1px solid #888;
-    box-sizing: border-box;
-    overflow: auto;
-}
-
 dialog {
     color: var(--color);
     background-color: var(--background-color);
@@ -173,10 +164,24 @@ img {
     height: 360px;
 }
 
+img[src=""],
+img:not([src]) {
+    visibility: hidden;
+}
+
 div.split_horizontal {
     display: flex;
     flex-direction: row;
     overflow: overlay;
+}
+
+div.stack_vertical {
+    display: flex;
+    flex-direction: column;
+
+    div {
+        display: inline-block;
+    }
 }
 
 div.scroll {

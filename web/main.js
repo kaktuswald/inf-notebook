@@ -377,7 +377,7 @@ async function initialize() {
   drawer_simpletext = new DrawerSimpletext(width, height, fontfamily);
   drawer_information = new DrawerInformation(width, height, fontfamily);
   drawer_summary = new DrawerSummary(width, height, fontfamily);
-  drawer_notesradar = new DrawerNotesradar(playmodes, width, height);
+  drawer_notesradar = new DrawerNotesradar(width / 2, height);
   drawer_scoreinformation = new DrawerScoreinformation(width, height, fontfamily);
   drawer_scoregraph = new DrawerScoregraph(width, height);
 
@@ -1218,6 +1218,8 @@ function clear_scoredata() {
   $('div#scoredata_level').text('');
   $('div#scoredata_notes').text('');
   $('ul#unofficialdifficulties').empty();
+  
+  $('img#image_chartnotesradar_chart').removeAttr('src');
 }
 
 /**
@@ -1227,7 +1229,7 @@ function clear_scoredata() {
  * @remarks
  *   将来的に収録パック情報やAC収録状況なども出したい。
  */
-function display_scoredata() {
+async function display_scoredata() {
   const playmode = selected_playtype.includes('BATTLE') ? 'SP' : selected_playtype;
 
   let version = null;
@@ -1271,6 +1273,24 @@ function display_scoredata() {
       }
     }
   }
+
+  draw_notesradar_chart(playmode, selected_musicname, selected_difficulty);
+}
+
+async function draw_notesradar_chart(playmode, musicname, difficutly) {
+  const notesradar_charts = notesradar[playmode].musics;
+  if(!Object.keys(notesradar_charts).includes(musicname))
+    return false;
+  if(!Object.keys(notesradar_charts[musicname]).includes(difficutly))
+    return false;
+
+  const values = notesradar_charts[musicname][difficutly].radars;
+  const blob = await drawer_notesradar.draw_chartradarchart(values);
+  const url = URL.createObjectURL(blob)
+
+  update_imageurl('notesradar_chart_chart', 'image_chartnotesradar_chart', url);
+
+  return true;
 }
 
 /**
@@ -2402,7 +2422,7 @@ async function draw_summary() {
 async function draw_notesradar() {
   const values = JSON.parse(await webui.get_notesradar_chartvalues());
 
-  const blob = await drawer_notesradar.draw(values);
+  const blob = await drawer_notesradar.draw_playerradarchart(values);
   const url = URL.createObjectURL(blob)
 
   update_imageurl('notesradar', 'image_chartnotesradar', url);

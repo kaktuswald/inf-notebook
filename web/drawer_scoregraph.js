@@ -21,8 +21,6 @@ class DrawerScoregraph {
    */
   constructor(width, height) {
     this.canvas = new OffscreenCanvas(width, height);
-
-    this.chart = null;
   }
 
   /**
@@ -35,9 +33,7 @@ class DrawerScoregraph {
    * @returns {blob} 画像データ
    */
   async draw(values, xrange, notes, scoretype, musicname) {
-    if(this.chart) this.chart.destroy();
-
-    this.chart = new Chart(this.canvas.getContext('2d'), {
+    const chart = new Chart(this.canvas.getContext('2d'), {
       type: 'scatter',
       data: {
         datasets: [
@@ -260,6 +256,10 @@ class DrawerScoregraph {
       ],
     });
 
-    return await this.canvas.convertToBlob();
+    const blob = await this.canvas.convertToBlob();
+
+    chart.destroy();
+    
+    return blob;
   }
-};
+}

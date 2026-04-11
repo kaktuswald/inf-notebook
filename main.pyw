@@ -1011,11 +1011,19 @@ class GuiApi():
     def get_notesradar_chartvalues(self, event: webui.Event):
         '''ノーツレーダーのチャート値を返す
         '''
-        ret = {}
-        for playmode, playmodeitem in notesradar.items.items():
-            ret[playmode] = {}
-            for attribute, attributeitem in playmodeitem.attributes.items():
-                ret[playmode][attribute] = float(attributeitem.average)
+        ret = []
+        for playmode in Playmodes.values:
+            chartdata = {
+                'playmode': playmode,
+                'values': {},
+            }
+            
+            playmodeitem = notesradar.items[playmode]
+            for attribute in NotesradarAttributes.values:
+                attributeitem = playmodeitem.attributes[attribute]
+                chartdata['values'][attribute] = float(attributeitem.average)
+            
+            ret.append(chartdata)
         
         event.return_string(dumps(ret))
 
