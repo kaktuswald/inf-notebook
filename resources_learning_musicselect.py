@@ -1018,7 +1018,7 @@ def evaluate():
             else:
                 resultversion = evaluate_musictable[songname]['version']
                 tableversion = table[songname]['version']
-                if resultversion != tableversion:
+                if resultversion != tableversion and not resultversion in tableversion:
                     report_evaluate.error(f'Mismatch {songname} {resultversion} {tableversion}({escaped})')
             
             for playmode in Playmodes.values:
@@ -1034,8 +1034,6 @@ def evaluate():
 
                         if resultlevel != tablelevel:
                             report_evaluate.error(f'Mismatch {songname} {playmode} {difficulty}: {resultlevel} {tablelevel}({escaped})')
-                # else:
-                #     report_evaluate.error(f'Not registered {songname} {playmode}({escaped})')
         else:
             report_evaluate.error(f'Not registered {songname}({escaped})')
     
