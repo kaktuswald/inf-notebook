@@ -14,7 +14,10 @@ from os.path import basename,exists
 from pathlib import WindowsPath
 from logging import getLogger
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 from infnotebook import productname

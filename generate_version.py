@@ -1,7 +1,10 @@
 import sys
 from logging import getLogger
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 generate_python_filename = 'version.py'

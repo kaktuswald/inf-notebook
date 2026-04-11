@@ -3,7 +3,10 @@ import sys
 from base64 import b64encode
 from logging import getLogger
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 if __name__ == '__main__':

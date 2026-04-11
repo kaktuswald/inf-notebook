@@ -1,7 +1,10 @@
 from re import search
 from logging import getLogger
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 def version_isold(value: str, threshold: str):

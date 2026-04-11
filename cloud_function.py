@@ -2,7 +2,10 @@ from json import dumps,loads
 from requests import post
 from logging import getLogger
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 from google.auth.transport.requests import Request

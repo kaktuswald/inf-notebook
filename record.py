@@ -4,7 +4,10 @@ from os.path import join,exists
 from copy import deepcopy
 from logging import getLogger
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 from version import version

@@ -5,7 +5,10 @@ from glob import glob
 from base64 import b64encode
 from logging import getLogger
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 from numpy import array,uint8

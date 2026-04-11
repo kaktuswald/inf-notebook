@@ -1,7 +1,10 @@
 from decimal import Decimal,ROUND_DOWN
-from logging import basicConfig,getLogger,DEBUG,INFO,WARNING
+from logging import getLogger
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 from define import Playmodes,NotesradarAttributes,define

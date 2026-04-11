@@ -7,7 +7,10 @@ basicConfig(
     format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
 )
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 from storage import StorageAccessor

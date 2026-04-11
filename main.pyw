@@ -21,17 +21,20 @@ setting = Setting()
 if setting.debug:
     basicConfig(
         level=DEBUG,
-        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
+        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s',
     )
 else:
     basicConfig(
         level=INFO,
         filename='log.txt',
         filemode='w',
-        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s'
+        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s',
     )
 
-logger = getLogger(__name__)
+if __name__ == '__main__':
+    logger = getLogger()
+else:
+    logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
 from webui import webui
