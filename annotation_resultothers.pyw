@@ -12,10 +12,13 @@ from numpy import array,uint8
 from PIL import Image
 from webui.webui import Window,Event,wait,clean
 
+import data_collection as dc
 from define import ResultTabs,NotesradarAttributes
 from general import get_imagevalue
 from recog import Recognition as recog
-from resources_learning_resultothers import images_resultothers_basepath,label_filepath
+from windows import gethandle,maximize
+
+windowtitle = 'リザルトのタブ側のアノテーション'
 
 class GuiApi():
     window: Window
@@ -67,7 +70,7 @@ class GuiApi():
         key = event.get_string_at(0)
 
         if images[key] is None:
-            image = load_image(images_resultothers_basepath, key)
+            image = load_image(dc.images_resultothers_basepath, key)
 
             images[key] = image
 
@@ -122,13 +125,13 @@ class GuiApi():
             del labels[key]
             self.save_labels()
         
-        filepath = join(images_resultothers_basepath, key)
+        filepath = join(dc.images_resultothers_basepath, key)
         if isfile(filepath):
             remove(filepath)
             del images[key]
     
     def save_labels(self):
-        with open(label_filepath, 'w') as f:
+        with open(dc.label_resultothers_filepath, 'w') as f:
             dump(labels, f, indent=2)
     
 images = {}
@@ -147,11 +150,11 @@ def load_image(basedir, key):
     return Image.open(filepath)
 
 if __name__ == '__main__':
-    if exists(label_filepath):
-        with open(label_filepath) as f:
+    if exists(dc.label_resultothers_filepath):
+        with open(dc.label_resultothers_filepath) as f:
             labels = load(f)
     
-    for filepath in glob(join(images_resultothers_basepath, '*')):
+    for filepath in glob(join(dc.images_resultothers_basepath, '*')):
         key = basename(filepath).removesuffix('.png')
         images[f'{key}.png'] = None
 
@@ -161,6 +164,10 @@ if __name__ == '__main__':
     api = GuiApi(window)
 
     window.show('web_annotations/annotation_resultothers.html')
+    handle = gethandle(windowtitle)
+    if handle:
+        maximize(handle)
+    
 
     wait()
 

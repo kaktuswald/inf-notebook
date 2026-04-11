@@ -24,6 +24,10 @@ class PROCESS_DPI_AWARENESS:
     PROCESS_SYSTEM_DPI_AWARE = 1
     PROCESS_PER_MONITOR_DPI_AWARE = 2
 
+ShowWindow = windll.user32.ShowWindow
+ShowWindow.argtypes = [HWND, INT]
+ShowWindow.restype = BOOL
+
 rectsizes = (
     (1920, 1080),
     (1536, 864),
@@ -132,6 +136,9 @@ def gethandle(title: str):
 def show_messagebox(message: str, title: str):
     MB_OK = 0x0000
     windll.user32.MessageBoxW(0, message, title, MB_OK)
+
+def maximize(handle: int) -> bool:
+    return ShowWindow(handle, SHOWWINDOW_COMMANDS.SW_MAXMIZE)
 
 if __name__ == '__main__':
     gamewindowtitle = 'beatmania IIDX INFINITAS'

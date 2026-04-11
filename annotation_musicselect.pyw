@@ -12,11 +12,14 @@ from numpy import array,uint8
 from PIL import Image
 from webui.webui import Window,Event,wait,clean
 
-from resources_learning_musicselect import images_musicselect_basepath,label_filepath
+import data_collection as dc
 from define import define,Playmodes
 from general import get_imagevalue
 from recog import Recognition as recog
 from resources import resource
+from windows import gethandle,maximize
+
+windowtitle = '選曲画像のアノテーション'
 
 class GuiApi():
     window: Window
@@ -96,7 +99,7 @@ class GuiApi():
         key = event.get_string_at(0)
 
         if images[key] is None:
-            image = load_image(images_musicselect_basepath, key)
+            image = load_image(dc.images_musicselect_basepath, key)
 
             images[key] = image
 
@@ -151,13 +154,13 @@ class GuiApi():
             del labels[key]
             self.save_labels()
         
-        filepath = join(images_musicselect_basepath, key)
+        filepath = join(dc.images_musicselect_basepath, key)
         if isfile(filepath):
             remove(filepath)
             del images[key]
     
     def save_labels(self):
-        with open(label_filepath, 'w') as f:
+        with open(dc.label_musicselect_filepath, 'w') as f:
             dump(labels, f, indent=2)
     
 images = {}
@@ -176,11 +179,11 @@ def load_image(basedir, key):
     return Image.open(filepath)
 
 if __name__ == '__main__':
-    if exists(label_filepath):
-        with open(label_filepath) as f:
+    if exists(dc.label_musicselect_filepath):
+        with open(dc.label_musicselect_filepath) as f:
             labels = load(f)
     
-    for filepath in glob(join(images_musicselect_basepath, '*')):
+    for filepath in glob(join(dc.images_musicselect_basepath, '*')):
         key = basename(filepath).removesuffix('.png')
         images[f'{key}.png'] = None
 
@@ -190,6 +193,9 @@ if __name__ == '__main__':
     api = GuiApi(window)
 
     window.show('web_annotations/annotation_musicselect.html')
+    handle = gethandle(windowtitle)
+    if handle:
+        maximize(handle)
 
     wait()
 

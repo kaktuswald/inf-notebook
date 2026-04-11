@@ -10,7 +10,7 @@ from PIL import Image
 import numpy as np
 
 from define import define,Graphtypes,Options
-import data_collection as dc
+from data_collection import label_result_filepath,images_details_basepath
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 from resources_learning import learning
 
@@ -38,7 +38,7 @@ def load_details(labels) -> dict:
     details = {}
     for key in keys:
         filename = f'{key}.png'
-        filepath = join(dc.details_basepath, filename)
+        filepath = join(images_details_basepath, filename)
         if isfile(filepath):
             image = Image.open(filepath)
             if image.mode != 'RGB':
@@ -862,10 +862,10 @@ def learning_graphtarget(details, report:Report) -> dict:
 
 if __name__ == '__main__':
     try:
-        with open(dc.label_filepath) as f:
+        with open(label_result_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{dc.label_filepath}を読み込めませんでした。")
+        print(f"{label_result_filepath}を読み込めませんでした。")
         exit()
     
     details_define = load_define()

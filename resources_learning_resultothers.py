@@ -10,12 +10,9 @@ from PIL import Image
 import numpy as np
 
 from define import define
-from data_collection import collection_basepath
+from data_collection import label_resultothers_filepath,images_resultothers_basepath
 from resources_generate import Report,save_resource_serialized,registries_dirname
-from resources_learning import learning_multivalue,learning_multivaluemask,learning
-
-images_resultothers_basepath = join(collection_basepath, 'resultothers')
-label_filepath = join(collection_basepath, 'label_resultothers.json')
+from resources_learning import learning_multivalue,learning_multivaluemask
 
 recognition_define_filename = 'define_recognition_resultothers.json'
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
@@ -505,7 +502,6 @@ def learning_notesradar_valuenumber():
     for key, target in evaluate_targets.items():
         trimmed1 = target.np_value[trim]
 
-        is_updated = False
         for typekey in ['normal', 'updated']:
             value = None
             for i in range(len(leftpositions)-1, -1, -1):
@@ -523,8 +519,6 @@ def learning_notesradar_valuenumber():
                     value += table[typekey][tablekey] * (10 ** (len(leftpositions) - i - 1))
             
             if value is not None:
-                if typekey == 'updated':
-                    is_updated = True
                 break
 
         strvalue = f'{value/100:.2f}' if value is not None else None
@@ -552,10 +546,10 @@ def learning_notesradar_valuenumber():
 
 if __name__ == '__main__':
     try:
-        with open(label_filepath) as f:
+        with open(label_resultothers_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{label_filepath}を読み込めませんでした。")
+        print(f"{label_resultothers_filepath}を読み込めませんでした。")
         exit()
 
     resultothers_define = load_define()

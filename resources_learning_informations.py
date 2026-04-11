@@ -11,13 +11,12 @@ import numpy as np
 from numpy import array
 
 from define import define
-import data_collection as dc
+from data_collection import label_result_filepath,images_informations_basepath
 from resources import load_resource_serialized
-from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
+from resources_generate import Report,save_resource_serialized,registries_dirname
 from resources_learning import learning_multivaluemask
 
 recognition_define_filename = 'define_recognition_informations.json'
-
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
 
 class Informations():
@@ -39,7 +38,7 @@ def load_informations(labels:dict) -> dict:
     informations = {}
     for key in keys:
         filename = f'{key}.png'
-        filepath = join(dc.informations_basepath, filename)
+        filepath = join(images_informations_basepath, filename)
         if not isfile(filepath):
             continue
 
@@ -854,10 +853,10 @@ def evaluate_songname(recognition:dict):
 
 if __name__ == '__main__':
     try:
-        with open(dc.label_filepath) as f:
+        with open(label_result_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{dc.label_filepath}を読み込めませんでした。")
+        print(f"{label_result_filepath}を読み込めませんでした。")
         exit()
     
     informations_define = load_define()

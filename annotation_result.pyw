@@ -16,6 +16,9 @@ import data_collection as dc
 from define import define,Playmodes,Graphtypes,Options
 from general import get_imagevalue
 from recog import Recognition as recog
+from windows import gethandle,maximize
+
+windowtitle = 'リザルト画像のアノテーション'
 
 class GuiApi():
     window: Window
@@ -115,8 +118,8 @@ class GuiApi():
         key = event.get_string_at(0)
 
         if images[key] is None:
-            image_informations = load_image(dc.informations_basepath, key)
-            image_details = load_image(dc.details_basepath, key)
+            image_informations = load_image(dc.images_informations_basepath, key)
+            image_details = load_image(dc.images_details_basepath, key)
 
             images[key] = {
                 'informations': image_informations,
@@ -208,18 +211,18 @@ class GuiApi():
             del labels[key]
             self.save_labels()
         
-        filepath_informations = join(dc.informations_basepath, f'{key}.png')
+        filepath_informations = join(dc.images_informations_basepath, f'{key}.png')
         if isfile(filepath_informations):
             remove(filepath_informations)
         
-        filepath_details = join(dc.details_basepath, f'{key}.png')
+        filepath_details = join(dc.images_details_basepath, f'{key}.png')
         if isfile(filepath_details):
             remove(filepath_details)
 
         del images[key]
 
     def save_labels(self):
-        with open(dc.label_filepath, 'w') as f:
+        with open(dc.label_result_filepath, 'w') as f:
             dump(labels, f, indent=2)
     
 images = {}
@@ -239,14 +242,14 @@ def load_image(basedir, key):
     return Image.open(filepath)
 
 if __name__ == '__main__':
-    if exists(dc.label_filepath):
-        with open(dc.label_filepath) as f:
+    if exists(dc.label_result_filepath):
+        with open(dc.label_result_filepath) as f:
             labels = load(f)
     
-    for filepath in glob(join(dc.informations_basepath, '*')):
+    for filepath in glob(join(dc.images_informations_basepath, '*')):
         key = basename(filepath).removesuffix('.png')
         images[key] = None
-    for filepath in glob(join(dc.details_basepath, '*')):
+    for filepath in glob(join(dc.images_details_basepath, '*')):
         key = basename(filepath).removesuffix('.png')
         images[key] = None
 
@@ -256,6 +259,10 @@ if __name__ == '__main__':
     api = GuiApi(window)
 
     window.show('web_annotations/annotation_result.html')
+    handle = gethandle(windowtitle)
+    if handle:
+        maximize(handle)
+    
 
     wait()
 

@@ -10,13 +10,10 @@ from PIL import Image
 import numpy as np
 
 from define import Playmodes,define
-from data_collection import collection_basepath
+from data_collection import label_musicselect_filepath,images_musicselect_basepath
 from resources import load_resource_serialized
 from resources_generate import Report,save_resource_serialized,registries_dirname
 from resources_learning import learning_multivaluemask,learning
-
-images_musicselect_basepath = join(collection_basepath, 'musicselect')
-label_filepath = join(collection_basepath, 'label_musicselect.json')
 
 recognition_define_filename = 'define_recognition_musicselect.json'
 recognition_define_filepath = join(registries_dirname, recognition_define_filename)
@@ -1052,10 +1049,10 @@ def evaluate():
 
 if __name__ == '__main__':
     try:
-        with open(label_filepath) as f:
+        with open(label_musicselect_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{label_filepath}を読み込めませんでした。")
+        print(f"{label_musicselect_filepath}を読み込めませんでした。")
         exit()
 
     musicselect_define = load_define()
