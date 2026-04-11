@@ -96,7 +96,7 @@ class ResourceTimestamp():
         return timestamp
 
     def write_timestamp(self, timestamp):
-        logger.info(f'Update timestamp {self.resourcename} {timestamp}')
+        logger.debug(f'save timestamp file {self.resourcename} {timestamp}')
         with open(self.filepath, 'w') as f:
             f.write(timestamp)
 

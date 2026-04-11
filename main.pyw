@@ -5,7 +5,9 @@ import webbrowser
 from datetime import datetime,timezone,timedelta
 from urllib.parse import urljoin
 from subprocess import Popen
+from os import sep
 from os.path import abspath,isfile,isdir,dirname
+from pathlib import Path
 from json import dump,dumps,load,loads
 from uuid import uuid1
 from base64 import b64decode,b64encode
@@ -890,7 +892,7 @@ class GuiApi():
         )
 
         save_imagevalue(self.image_scoreinformation['imagevalue'], filepath)
-        self.send_message('append_log', 'saved scoreinformation.png')
+        logger.info(f'saved scoreinformation {sep.join(('...', *Path(filepath).parts[-3:]))}')
 
         event.return_string(dumps(True))
 
@@ -926,7 +928,7 @@ class GuiApi():
         )
 
         save_imagevalue(self.image_scoregraph['imagevalue'], filepath)
-        self.send_message('append_log', 'saved scoregraph.png')
+        logger.info(f'saved scoregraph {sep.join(('...', *Path(filepath).parts[-3:]))}')
 
         event.return_string(dumps(True))
 
@@ -2363,7 +2365,7 @@ def active_screenshot():
         return
     
     timestamp, filepath = save_raw(image)
-    api.send_message('append_log', f'save screen: {filepath}')
+    logger.info(f'save screen: ...\{filepath}')
 
     imagevalue = get_imagevalue(image)
     
@@ -2487,7 +2489,7 @@ def get_latest_version():
             response.raise_for_status()
             
             version = response.url.split('/')[-1]
-            api.send_message('append_log', f'released latest version: {version}')
+            logger.info(f'released latest version: {version}')
             if version[0] == 'v':
                 return version.removeprefix('v')
             else:
@@ -2536,7 +2538,7 @@ def check_resource():
     GCPにアクセスしてリソースファイルの最新状態を確認する。
     最新ファイルがある場合はダウンロードする。
     '''
-    api.send_message('append_log', 'start resource check.')
+    logger.info('start resource check.')
 
     api.send_message('start_resourcecheck')
 
