@@ -70,7 +70,17 @@ from export import (
     csssetting_filepath,
 )
 from export import output as output_summary
-from windows import find_window,get_rect,check_rectsize,gethandle,show_messagebox
+from windows import (
+    find_window,
+    get_rect,
+    check_rectsize,
+    gethandle,
+    show_messagebox,
+    maximize,
+    get_window_state,
+    move_window,
+    get_monitors,
+)
 import image
 from image import (
     generate_scoretype,
@@ -179,7 +189,7 @@ class ThreadCapture(Thread):
         
         rect = get_rect(self.handle)
 
-        if rect is None or rect.right - rect.left == 0 or rect.bottom - rect.top == 0:
+        if rect is None or rect.width == 0 or rect.height == 0:
             logger.debug(f'infinitas lost.')
             api.send_message('switch_detect_infinitas', False)
             api.send_message('switch_capturable', False)
@@ -2365,7 +2375,7 @@ def active_screenshot():
         return
     
     timestamp, filepath = save_raw(image)
-    logger.info(f'save screen: ...\{filepath}')
+    logger.info(f'save screen: ...\\{filepath}')
 
     imagevalue = get_imagevalue(image)
     
@@ -2704,8 +2714,8 @@ if __name__ == '__main__':
     collectionuploader = CollectionUploader(setting, storage)
 
     newwindow.show('index.html')
-    handle = gethandle(windowtitle)
-    if handle is None:
+    hwnd_window = gethandle(windowtitle)
+    if hwnd_window is None:
         show_messagebox('起動に失敗しました。', windowtitle)
         exit()
     
@@ -2726,6 +2736,7 @@ if __name__ == '__main__':
     socket_server.stop()
     event_close.set()
 
+    del newwindow
     newwindow = None
     
     if socket_server is not None and socket_server.is_alive():
