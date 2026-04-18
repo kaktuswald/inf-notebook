@@ -2,5 +2,7 @@ numpy==2.4.4
 global_hotkeys==0.1.7
 pillow==12.2.0
 google-cloud-storage==3.10.1
+google-auth-oauthlib==1.2.4
+google-api-python-client==2.194.0
 websockets==16.0
 webui2==2.5.7
