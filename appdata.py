@@ -9,7 +9,15 @@ else:
     logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
-from windows import get_appdata_path,get_local_appdata_path
+from windows import get_local_appdata_path
+
+GOOGLE_API_CREDENTIALS_FILENAME: str = 'googleapi_credentials.json'
+
+appdata_path = get_local_appdata_path()
+
+googleapi_credentials_filepath: WindowsPath | None = None
+if appdata_path is not None:
+    googleapi_credentials_filepath = appdata_path.joinpath(GOOGLE_API_CREDENTIALS_FILENAME)
 
 class LocalConfig():
     filename = 'config.json'
@@ -20,7 +28,6 @@ class LocalConfig():
         self.installer_filepath = None
         self.installed_dirpath = None
 
-        appdata_path = get_local_appdata_path()
         if appdata_path is None:
             return
         
@@ -44,3 +51,38 @@ class LocalConfig():
         }
         with self.filepath.open('w', encoding='utf-8') as f:
             json.dump(output, f, indent=2)
+
+def load_googleapi_credentials() -> dict|None:
+    if googleapi_credentials_filepath is None:
+        return None
+    if not googleapi_credentials_filepath.exists():
+        return None
+    
+    try:
+        with googleapi_credentials_filepath.open('r', encoding='utf-8') as f:
+            ret = json.load(f)
+    except Exception as ex:
+        logger.exception(ex)
+        return None
+    
+    return ret
+
+def save_googleapi_credentials(credentials: str) -> bool:
+    if googleapi_credentials_filepath is None:
+        return False
+    
+    with googleapi_credentials_filepath.open('w', encoding='utf-8') as f:
+        f.write(credentials)
+    
+    return True
+
+def delete_googleapi_credentials() -> bool:
+    if googleapi_credentials_filepath is None:
+        return False
+    
+    if not googleapi_credentials_filepath.is_file():
+        return False
+    
+    googleapi_credentials_filepath.unlink()
+
+    return True

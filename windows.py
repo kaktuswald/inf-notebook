@@ -344,6 +344,10 @@ def get_appdata_path() -> WindowsPath|None:
     return productpath
 
 def get_local_appdata_path() -> WindowsPath|None:
+    '''ユーザのアプリケーションデータ格納先のパスを取得する
+
+    一般にUsers\\ユーザ名\\AppData\\Local\\
+    '''
     path_str = environ.get('LocalAppData')
     if not exists(path_str):
         return None

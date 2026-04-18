@@ -70,6 +70,7 @@ jobs:
       - name: Build
         run: |
           python generate_service_account_info.py ${{ secrets.KEYINFO }}
+          python generate_googleapi_clientconfig.py ${{ secrets.CLIENTCONFIG }}
           python generate_version.py ${{ github.ref_name }}
           python setup.py build
   

@@ -24,7 +24,7 @@ if __name__ == '__main__':
     
     f = open(generate_filename, 'w', encoding='utf-8')
 
-    f.write("service_account_info = ")
+    f.write('service_account_info = ')
     f.write(info.decode('utf-8'))
 
     f.close()

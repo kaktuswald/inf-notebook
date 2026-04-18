@@ -102,6 +102,7 @@ import twitter
 from socket_server import SocketServer
 from arcadecsv import import_arcadecsv,loadfiles_arcadedata,arcadedata
 from versioncheck import version_isold
+from googleapi import GoogleApiAccesor
 from collection_uploader import CollectionUploader
 
 windowtitle = f'インフィニタス リザルト手帳'
@@ -544,9 +545,10 @@ class GuiApi():
     def check_imagesavepath(event: webui.Event):
         event.return_string(dumps(isdir(setting.imagesave_path)))
 
-    def __init__(self, window: webui.Window, notebooks: Notebooks):
+    def __init__(self, window: webui.Window, notebooks: Notebooks, googleapi_accesor:GoogleApiAccesor):
         self.window = window
         self.notebooks = notebooks
+        self.googleapi_accesor = googleapi_accesor
 
         window.bind('get_version', GuiApi.get_version)
 
@@ -643,6 +645,11 @@ class GuiApi():
         window.bind('browse_file', self.browse_file)
         window.bind('browse_directory', self.browse_directory)
 
+        window.bind('googleapi_get_isauthenticated', self.googleapi_get_isauthenticated)
+        window.bind('googleapi_authenticate', self.googleapi_authenticate)
+        window.bind('googleapi_deletecredentials', self.googleapi_deletecredentials)
+        window.bind('googleapi_driveupload', self.googleapi_driveupload)
+
     def get_setting(self, event: webui.Event):
         '''現在の設定の取得
         '''
@@ -694,6 +701,7 @@ class GuiApi():
         setting.imagesave_path = values['imagesave_path']
         setting.startup_image = values['startup_image']
         setting.hashtags = values['hashtags']
+        setting.googleapi['driveupload']['use'] = values['googleapi']['driveupload']
         setting.data_collection = values['data_collection']
 
         for playmode, playmodevalues in setting.summaries.items():
@@ -1543,6 +1551,45 @@ class GuiApi():
             return
 
         event.return_string(dumps(directorypath))
+    
+    def googleapi_get_isauthenticated(self, event:webui.Event):
+        """Google APIの認証状態を返す
+
+        Returns:
+            bool: 認証済みの場合はTrue
+        """
+        event.return_string(dumps(self.googleapi_accesor.credentials is not None))
+    
+    def googleapi_authenticate(self, event: webui.Event):
+        """Google APIの認証を行う
+
+        Returns:
+            bool: 成功時はTrue
+        """
+        event.return_string(dumps(self.googleapi_accesor.get_credentials()))
+    
+    def googleapi_deletecredentials(self, event: webui.Event):
+        """Google APIの認証を行う
+
+        Returns:
+            bool: 成功時はTrue
+        """
+        result = self.googleapi_accesor.delete_credentialsfile()
+        event.return_string(dumps(result))
+
+        if result:
+            setting.googleapi['driveupload']['ids']['folderid'] = None
+            for key in setting.googleapi['driveupload']['ids']['fileids'].keys():
+                setting.googleapi['driveupload']['ids']['fileids'][key] = None
+            
+            setting.save()
+    
+    def googleapi_driveupload(self, event: webui.Event):
+        """Google DriveへCSVのアップロードを実行する
+        """
+        if self.googleapi_accesor.credentials is not None:
+            if self.googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
+                setting.save()
     
     def send_message(self, message: str, data:object = None):
         if newwindow is None:
@@ -2699,6 +2746,8 @@ if __name__ == '__main__':
     socket_server.musictable = resource.musictable
     socket_server.recents = notebook_recent
 
+    googleapi_accesor = GoogleApiAccesor()
+    
     webui.set_config(webui.Config.multi_client, True)
     webui.set_default_root_folder('web/')
 
@@ -2707,7 +2756,7 @@ if __name__ == '__main__':
     newwindow.set_port(setting.port['main'])
     newwindow.set_public(True)
 
-    api = GuiApi(newwindow, notebooks_music)
+    api = GuiApi(newwindow, notebooks_music, googleapi_accesor)
     api_export = GuiApiExport(newwindow)
     api_discordwebhook = GuiApiDiscordWebhook(newwindow)
 
@@ -2748,3 +2797,7 @@ if __name__ == '__main__':
     
     output_summary(notebook_summary)
     output_notesradarcsv(notesradar)
+    
+    if setting.googleapi['driveupload']['use']:
+        if googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
+            setting.save()

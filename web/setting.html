@@ -173,6 +173,17 @@
           </div>
           <div class="label highlight">Xのポストに付するハッシュタグ</div>
           <div class="setting_item"><input type="text" id="text_hashtags" class="text_hashtags" /></div>
+          <div class="label highlight">Google連携</div>
+          <div class="setting_item">
+            <button id="button_googleapi_authenticate">認証する</button>
+            <button id="button_googleapi_deletecredentials">認証情報を削除</button>
+            <span id="googleapi_authenticatedstate"></span>
+          </div>
+          <div class="setting_item">
+            <input type="checkbox" id="check_driveupload" />
+            <label for="check_driveupload">GoogleドライブへCSVをアップロードする</label>
+            <button id="button_googleapi_driveupload">実行</button>
+          </div>
           <div class="label highlight">リザルト画像の収集</div>
           <div class="setting_item">
             <input type="checkbox" id="check_data_collection" />

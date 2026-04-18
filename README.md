@@ -120,7 +120,7 @@ pip install google-cloud-storage
 
 リージョンがサウスカロライナ(us-east1)なら無料(のはず)
 
-### サービスアカウント
+### gcpのサービスアカウント
 作成したサービスアカウントのキーをソースに反映させる。
 
 - (方法1)ダウンロードしたファイルを指定する
@@ -263,3 +263,37 @@ python resources_upload.py -musicselect
 python resources_upload.py -notesradar
 python resources_upload.py -musicnamechanges
 ```
+
+## google APIの使用
+google OAuth2.0 クライアントIDを作成して、リザルト手帳で使用する。
+
+### OAuth2.0認証のクライアントを作成する
+- GCPのプロジェクトを作成
+- OAuth2.0 クライアントIDを作成
+- 生成されたクライアントシークレットをダウンロード
+
+### リザルト手帳への適用
+
+- (方法1)ダウンロードしたファイルを指定する
+```shell
+python generate_client_config.py ファイル名.json
+```
+
+- (方法2)base64でエンコードした文字列を引数にする
+```shell
+python generate_client_config.py 文字列
+```
+
+- (おまけ)ダウンロードしたファイルをエンコードする
+```shell
+python encode.py ファイル名.json
+```
+
+***
+方法1はローカルでビルドするときに使う
+
+方法2はGitHub上でActionsを利用してビルドするときに使う
+
+おまけでエンコードした文字列をGitHubのAction secretsに追加する(名称: CLIENTCONFIG)
+***
+

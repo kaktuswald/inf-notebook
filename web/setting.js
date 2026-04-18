@@ -12,6 +12,10 @@ $(function() {
   $('button.button_browse_file').on('click', onclick_browse_file);
   $('button.button_browse_directory').on('click', onclick_browse_directory);
   
+  $('button#button_googleapi_authenticate').on('click', onclick_button_googleapi_authenticate);
+  $('button#button_googleapi_deletecredentials').on('click', onclick_button_googleapi_deletecredentials);
+  $('button#button_googleapi_driveupload').on('click', onclick_button_googleapi_driveupload);
+
   $('button#button_save').on('click', onclick_button_save);
   $('button#button_close').on('click', onclick_button_close);
 
@@ -68,6 +72,9 @@ async function initialize() {
 
   $('#text_hashtags').val(setting['hashtags']);
   $('#check_data_collection').prop('checked', setting['data_collection']);
+
+  change_googleapi_authenticatedstate(JSON.parse(await webui.googleapi_get_isauthenticated()));
+  $('#check_driveupload').prop('checked', setting['googleapi']['driveupload']['use']);
 
   $('input#text_portmain').val(setting['port']['main']);
   $('input#text_portsocket').val(setting['port']['socket']);
@@ -189,6 +196,36 @@ async function onclick_browse_directory(e) {
 }
 
 /**
+ * Google APIの認証を行う
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_button_googleapi_authenticate(e) {
+  const result = JSON.parse(await webui.googleapi_authenticate());
+  if(result)
+    change_googleapi_authenticatedstate(true);
+}
+
+/**
+ * Google APIの認証情報を削除する
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_button_googleapi_deletecredentials(e) {
+  const result = JSON.parse(await webui.googleapi_deletecredentials());
+  if(result)
+    change_googleapi_authenticatedstate(false);
+}
+
+/**
+ * Google DriveのCSVアップロードを実行する
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_button_googleapi_driveupload(e) {
+  $(e.target).prop('disabled', true);
+  await webui.googleapi_driveupload();
+  $(e.target).prop('disabled', false);
+}
+
+/**
  * 設定の保存かキャンセルボタンを押す
  * @param {ce.Event} e イベントハンドラ
  */
@@ -274,6 +311,9 @@ async function onclick_button_save(e) {
     'imagesave_path': $('#text_imagesave_path').val(),
     'startup_image': startup_image,
     'hashtags': $('#text_hashtags').val(),
+    'googleapi': {
+      'driveupload': $('#check_driveupload').prop('checked'),
+    },
     'data_collection': $('#check_data_collection').prop('checked'),
     'port': {
       'main': $('input#text_portmain').val(),
@@ -293,4 +333,17 @@ async function onclick_button_save(e) {
  */
 function onclick_button_close(e) {
   window.parent.postMessage("setting_close", "*");
+}
+
+function change_googleapi_authenticatedstate(is_authenticated) {
+  if(is_authenticated) {
+    $('span#googleapi_authenticatedstate').text('認証済');
+    $('span#googleapi_authenticatedstate').removeClass('highlight_dark')
+    $('span#googleapi_authenticatedstate').addClass('highlight_light')
+  }
+  else {
+    $('span#googleapi_authenticatedstate').text('未認証');
+    $('span#googleapi_authenticatedstate').removeClass('highlight_light')
+    $('span#googleapi_authenticatedstate').addClass('highlight_dark')
+  }
 }

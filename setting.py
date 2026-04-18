@@ -75,6 +75,19 @@ default = {
         'seenevents': [],
         'joinedevents': {},
     },
+    'googleapi': {
+        'driveupload': {
+            'use': False,
+            'ids': {
+                'folderid': None,
+                'fileids': {
+                    'fileid_csv_sp': None,
+                    'fileid_csv_dp': None,
+                    'fileid_csv_dpbattle': None,
+                },
+            },
+        },
+    },
     'port': {
         'main': 52374,
         'socket': 57328,
@@ -151,7 +164,7 @@ class Setting():
             with open(setting_filepath, 'w') as f:
                 json.dump(self.json, f, indent=2)
         except Exception as ex:
-            print(f'setting json dump error: {ex}')
+            logger.exception(f'setting json dump error: {ex}')
     
     def has_key(self, key):
         return key in self.json.keys()
@@ -346,7 +359,17 @@ class Setting():
     @discord_webhook.setter
     def discord_webhook(self, value):
         self.set_value('discord_webhook', value)
-
+    
+    @property
+    def googleapi(self):
+        '''Google APIの設定
+        '''
+        return self.get_value('googleapi')
+    
+    @googleapi.setter
+    def googleapi(self, value:dict):
+        self.set_value('googleapi', value)
+    
     @property
     def port(self):
         '''ポート設定

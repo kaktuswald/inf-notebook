@@ -53,14 +53,15 @@ div.lineblock {
 }
 
 div.setting_item {
-    display: block;
+    display: flex;
+    flex-direction: row;
+    align-items: normal;
     padding: 2px 0px;
     margin-left: 30px;
     font-size: small;
 }
 
 div#setting_item_overlay {
-    display: flex;
     flex-direction: column;
 }
 
@@ -117,6 +118,20 @@ input.text_hotkey {
 
 input.text_hashtags {
     width: 400px;
+}
+
+span#googleapi_authenticatedstate {
+    display: inline-block;
+    border: 1px solid grey;
+    border-radius: 5px;
+}
+    
+span.highlight_light {
+    background-color: #800000;
+}
+
+span.highlight_dark {
+    background-color: #000080;
 }
 
 div.setting_annotation {
