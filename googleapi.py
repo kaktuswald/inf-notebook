@@ -93,7 +93,7 @@ class GoogleApiAccesor():
 
         try:
             result = self.service.files().get(
-                fileid=folderid,
+                fileId=folderid,
             ).execute()
         except Exception as ex:
             logger.exception(ex)

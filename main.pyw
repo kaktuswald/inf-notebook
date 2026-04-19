@@ -49,6 +49,11 @@ logger.getChild('urllib3').setLevel(WARNING)
 logger.getChild('PIL').setLevel(WARNING)
 logger.getChild('google').setLevel(WARNING)
 logger.getChild('websockets').setLevel(WARNING)
+logger.getChild('requests_oauthlib').setLevel(WARNING)
+logger.getChild('google_auth_oauthlib').setLevel(WARNING)
+logger.getChild('google_auth_httplib2').setLevel(WARNING)
+logger.getChild('googleapi').setLevel(WARNING)
+logger.getChild('googleapiclient').setLevel(WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
