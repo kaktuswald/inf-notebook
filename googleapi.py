@@ -11,6 +11,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import Resource,build
 from googleapiclient.http import MediaFileUpload
+from googleapiclient.errors import HttpError
 
 from infnotebook import productname
 from export import export_dirname
@@ -68,41 +69,49 @@ class GoogleApiAccesor():
             return False
         
         if ids['folderid'] is not None:
-            if not self.check_folder(ids['folderid']):
+            if not self.check_file(ids['folderid']):
                 ids['folderid'] = None
+                for key in ids['fileids']:
+                    ids['fileids'][key] = None
         
         if ids['folderid'] is None:
-            result = self.create_folder()
-            if result is None:
-                return False
-            
-            ids['folderid'] = result['id']
+            ids['folderid'] = self.create_folder()
         
         for key, filename in self.uploadtargets.items():
             filepath = export_dirpath.joinpath(filename)
-            if filepath.is_file():
-                result = self.upload_file(filepath, ids['folderid'], ids['fileids'][key])
-                if result is not None:
-                    ids['fileids'][key] = result['id'] if result is not None else None
+            if not filepath.is_file():
+                continue
+
+            if ids['fileids'][key]:
+                if self.check_file(ids['fileids'][key]):
+                    self.update_file(filepath, ids['fileids'][key])
+                else:
+                    ids['fileids'][key] = None
+            
+            if ids['fileids'][key] is None:
+                ids['fileids'][key] = self.create_file(filepath, ids['folderid'])
         
         return True
 
-    def check_folder(self, folderid=str):
+    def check_file(self, fileid=str) -> bool:
         if self.service is None:
             self.service = build("drive", "v3", credentials=self.credentials)
 
         try:
             result = self.service.files().get(
-                fileId=folderid,
+                fileId=fileid,
+                fields='id,trashed',
             ).execute()
+        except HttpError as ex:
+            logger.exception(ex.reason)
+            return False
         except Exception as ex:
             logger.exception(ex)
-            result = None
+            return False
 
-        logger.debug(result)
-        return result
+        return not result['trashed']
 
-    def create_folder(self) -> dict:
+    def create_folder(self) -> str|None:
         if self.service is None:
             self.service = build("drive", "v3", credentials=self.credentials)
 
@@ -111,42 +120,58 @@ class GoogleApiAccesor():
                 'name': productname,
                 'mimeType': 'application/vnd.google-apps.folder',
             },
+            fields='id',
         ).execute()
 
         logger.debug(result)
-        return result
+        return result['id']
 
-    def upload_file(self, filepath:WindowsPath, folderid:str|None = None, fileid:str|None = None) -> dict:
+    def create_file(self, filepath:WindowsPath, folderid:str) -> str|None:
         if self.service is None:
             self.service = build('drive', 'v3', credentials=self.credentials)
 
         media = MediaFileUpload(filepath, mimetype='text/plain')
 
-        if fileid is not None:
-            try:
-                result = self.service.files().update(
-                    fileId=fileid,
-                    body={
-                        'name': filepath.name,
-                    },
-                    media_body=media,
-                ).execute()
-            except Exception as ex:
-                logger.exception(ex)
-                fileid = None
-
-        if fileid is None:
-            try:
-                result = self.service.files().create(
-                    body={
-                        'name': filepath.name,
-                        'parents': [folderid],
-                    },
-                    media_body=media,
-                ).execute()
-            except Exception as ex:
-                logger.exception(ex)
-                result = None
+        try:
+            result = self.service.files().create(
+                body={
+                    'name': filepath.name,
+                    'parents': [folderid],
+                },
+                media_body=media,
+                fields='id',
+            ).execute()
+        except HttpError as ex:
+            logger.exception(ex.reason)
+            result = None
+        except Exception as ex:
+            logger.exception(ex)
+            result = None
 
         logger.debug(result)
-        return result
+        return result['id']
+    
+    def update_file(self, filepath:WindowsPath, fileid:str|None = None) -> bool:
+        if self.service is None:
+            self.service = build('drive', 'v3', credentials=self.credentials)
+
+        media = MediaFileUpload(filepath, mimetype='text/plain')
+
+        try:
+            self.service.files().update(
+                fileId=fileid,
+                media_body=media,
+                fields='id',
+            ).execute()
+        except HttpError as ex:
+            logger.exception(ex.reason)
+            return False
+        except Exception as ex:
+            logger.exception(ex)
+            return False
+
+        return True
+    
+    def __del__(self):
+        if self.service is not None:
+            self.service.close()

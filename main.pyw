@@ -2806,3 +2806,5 @@ if __name__ == '__main__':
     if setting.googleapi['driveupload']['use']:
         if googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
             setting.save()
+    
+    del googleapi_accesor
