@@ -77,10 +77,14 @@ jobs:
       - name: Rename
         working-directory: build\
         run: mv exe.win-amd64-3.12 inf-notebook
-  
-      - name: Delete no use file
+      
+      - name: Delete no use file PIL
         working-directory: build\inf-notebook\lib\PIL\
         run: del _avif.cp312-win_amd64.pyd
+      
+      - name: Delete no use file googleapi
+        working-directory: build\inf-notebook\lib\googleapiclient\discovery_cache\documents\
+        run: Get-ChildItem -Recurse -File | Where-Object { $_.Name -ne "drive.v3.json" } | Remove-Item -Force
       
       - name: Upload
         uses: actions/upload-artifact@v4
