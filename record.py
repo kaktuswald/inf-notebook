@@ -98,7 +98,7 @@ class NotebookRecent(Notebook):
             'playtype': result.playtype,
             'difficulty': result.informations.difficulty,
             'playspeed': result.informations.playspeed,
-            'music': result.informations.music,
+            'music': result.informations.songname,
             'clear_type_new': result.details.clear_type is not None and result.details.clear_type.new,
             'dj_level_new': result.details.dj_level is not None and result.details.dj_level.new,
             'score_new': result.details.score is not None and result.details.score.new,
@@ -108,8 +108,8 @@ class NotebookRecent(Notebook):
             'update_score': update_score,
             'update_miss_count': update_miss_count,
             'option': option,
-            'play_side': result.play_side,
-            'has_loveletter': result.rival,
+            'play_side': result.playside,
+            'has_loveletter': result.has_loveletter,
             'has_graphtargetname': result.details.graphtarget == 'rival',
             'saved': saved,
             'filtered': filtered,
@@ -380,7 +380,7 @@ class NotebookMusic(Notebook):
             options_value = None
 
         updated = False
-        if not result.dead or result.has_newrecord:
+        if not result.is_dead or result.has_newrecord:
             self.insert_latest(target, result, options_value)
             self.insert_history(target, result, options_value)
             updated = True

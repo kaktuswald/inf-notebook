@@ -877,7 +877,7 @@ if __name__ == '__main__':
 
     details: dict[str, Details] = load_details(labels)
     
-    report = Report('informations')
+    report = Report('details')
     
     table_graphtype = learning_graphtype(details, report)
     table_option = learning_option(details, report)

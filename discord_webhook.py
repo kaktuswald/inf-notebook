@@ -79,9 +79,9 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
     ]
 
     if setting['mode'] != DiscordwebhookModes.BATTLE:
-        if setting['targetscore']['musicname'] != informations.music:
+        if setting['targetscore']['musicname'] != informations.songname:
             return None, None
-        if setting['targetscore']['playmode'] != informations.play_mode:
+        if setting['targetscore']['playmode'] != informations.playmode:
             return None, None
         if setting['targetscore']['difficulty'] != informations.difficulty:
             return None, None
@@ -97,8 +97,8 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
                 return None, None
     
     if informations is not None:
-        if not None in [informations.music, informations.play_mode, informations.difficulty]:
-            contexts.append(f'**{informations.music}[{informations.play_mode}{informations.difficulty[0]}]**')
+        if not None in [informations.songname, informations.playmode, informations.difficulty]:
+            contexts.append(f'**{informations.songname}[{informations.playmode}{informations.difficulty[0]}]**')
     
     if setting['mode'] != DiscordwebhookModes.MISSCOUNT:
         if details.score is not None and details.score.current is not None:

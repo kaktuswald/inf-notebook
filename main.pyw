@@ -1418,7 +1418,7 @@ class GuiApi():
             if timestamp in results_today.keys() and not timestamp in timestamps_uploaded:
                 result = results_today[timestamp]
                 storage.start_uploadinformations(images_result[timestamp])
-                storage.start_uploaddetails(images_result[timestamp], result.play_side)
+                storage.start_uploaddetails(images_result[timestamp], result.playside)
                 timestamps_uploaded.append(timestamp)
 
     def delete_musicresult(self, event: webui.Event):
@@ -1979,15 +1979,15 @@ class ScoreSelection():
 
     プレイの種類・曲名・譜面難易度を持つ。
     '''
-    def __init__(self, playtype: str, musicname: str, difficulty: str):
+    def __init__(self, playtype: str, songname: str, difficulty: str):
         '''
         Args:
             playtype(str): プレイモード(SP or DP or DP BATTLE)
-            musicname(str): 曲名
+            songname(str): 曲名
             difficulty(str): 譜面難易度
         '''
         self.playtype = playtype
-        self.musicname = musicname
+        self.songname = songname
         self.difficulty = difficulty
 
 def mainloop():
@@ -2028,7 +2028,7 @@ def result_process(screen: Screen):
 
     playtype = result.playtype
 
-    musicname = result.informations.music
+    musicname = result.informations.songname
     difficulty = result.informations.difficulty
 
     if setting.display_result:
@@ -2046,7 +2046,7 @@ def result_process(screen: Screen):
 
     if 'playername' in setting.discord_webhook.keys() and setting.discord_webhook['playername'] is not None and len(setting.discord_webhook['playername']) > 0:
         if 'joinedevents' in setting.discord_webhook.keys() and len(setting.discord_webhook['joinedevents']) > 0:
-            imagevalue_discordwebhook = get_imagevalue(stamp(resultimage, result.play_side))
+            imagevalue_discordwebhook = get_imagevalue(stamp(resultimage, result.playside))
             Thread(target=post_discord_webhooks, args=(result, imagevalue_discordwebhook)).start()
     
     notebook = None
@@ -2068,9 +2068,9 @@ def result_process(screen: Screen):
     if setting.autosave_filtered:
         filteredimage = filter_resultimage(
             resultimage,
-            result.play_side,
+            result.playside,
             result.others.tab,
-            result.rival,
+            result.has_loveletter,
             result.details.graphtarget == 'rival',
             result.others.rival.rankposition if result.others.rival else None,
         )
@@ -2079,7 +2079,7 @@ def result_process(screen: Screen):
         save_filtered(
             filteredimage,
             result.playtype,
-            result.informations.music,
+            result.informations.songname,
             result.informations.difficulty,
             result.timestamp,
         )
@@ -2089,7 +2089,7 @@ def result_process(screen: Screen):
     notebook_recent.save()
     socket_server.update_recents()
 
-    if not result.dead or result.has_newrecord:
+    if not result.is_dead or result.has_newrecord:
         recent.insert(result)
 
     insert_results(result)
@@ -2149,7 +2149,7 @@ def musicselect_process(image:Image.Image, np_value: array):
         return
     
     if scoreselection is not None:
-        if scoreselection.playtype == playtype and scoreselection.musicname == musicname and scoreselection.difficulty == difficulty:
+        if chartselection.playtype == playtype and chartselection.songname == musicname and chartselection.difficulty == difficulty:
             return
     
     scoreselection = ScoreSelection(playtype, musicname, difficulty)
@@ -2276,8 +2276,8 @@ def post_discord_webhooks(result: Result, imagevalue: bytes):
             settingname = webhooksetting['name']
 
             if postresult:
-                if result.informations.music is not None:
-                    logs.append(f'{dt} {settingname}: {resultmessages}({result.informations.music})')
+                if result.informations.songname is not None:
+                    logs.append(f'{dt} {settingname}: {resultmessages}({result.informations.songname})')
                 else:
                     logs.append(f'{dt} {settingname}: {resultmessages}')
 
@@ -2308,7 +2308,7 @@ def save_result(result: Result, image: Image.Image):
     ret = None
     try:
         playtype = result.playtype
-        musicname = result.informations.music
+        musicname = result.informations.songname
         difficulty = result.informations.difficulty
         ret = save_resultimage(image, playtype, musicname, difficulty, result.timestamp, setting.imagesave_path, setting.savefilemusicname_right)
     except Exception as ex:
@@ -2381,7 +2381,7 @@ def insert_results(result: Result):
     newresult.playtype = result.playtype
 
     if result.informations is not None:
-        newresult.musicname = result.informations.music
+        newresult.musicname = result.informations.songname
         newresult.difficulty = result.informations.difficulty
     else:
         newresult.musicname = None
@@ -2494,7 +2494,7 @@ def upload_resultothers():
     if image is None:
         return
     
-    playside = recog.Result.get_play_side(screenshot.np_value)
+    playside = recog.Result.get_playside(screenshot.np_value)
 
     storage.start_uploadresultothers(image, playside)
 
@@ -2608,6 +2608,10 @@ def check_resource():
     if download_latestresource(storage, musictable_filename):
         resource.load_resource_musictable()
 
+    screenrecognition_filename = f'{define.screenrecognition_resourcename}.res'
+    if download_latestresource(storage, screenrecognition_filename):
+        resource.load_resource_screenrecognition()
+
     informations_filename = f'{define.informations_resourcename}.res'
     if download_latestresource(storage, informations_filename):
         resource.load_resource_informations()
@@ -2711,10 +2715,10 @@ if __name__ == '__main__':
 
     notesradar = NotesRadar()
 
-    results_today = {}
-    timestamps_saved = []
-    timestamps_filteredsaved = []
-    timestamps_uploaded = []
+    results_today: dict[str, Result] = {}
+    timestamps_saved: str = []
+    timestamps_filteredsaved: str = []
+    timestamps_uploaded: str = []
 
     images_result = {}
     images_filtered = {}

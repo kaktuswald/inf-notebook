@@ -141,9 +141,6 @@ images = {}
 encodedimages = {}
 labels = {}
 
-def update_annotation():
-    global labels
-
 def load_image(basedir, key):
     filepath = join(basedir, key)
 

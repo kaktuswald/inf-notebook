@@ -877,7 +877,7 @@ if __name__ == '__main__':
     
     organize(informations, report)
 
-    play_mode = learning_playmode(informations)
+    playmode = learning_playmode(informations)
     difficulty = learning_difficulty(informations)
     notes = learning_notes(informations)
     songname = learning_songname(informations)
@@ -888,7 +888,7 @@ if __name__ == '__main__':
     filename = f'informations{define.informations_recognition_version}.res'
 
     data = {
-        'play_mode': play_mode,
+        'play_mode': playmode,
         'difficulty': difficulty,
         'notes': notes,
         'playspeed': playspeed,

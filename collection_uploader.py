@@ -61,7 +61,7 @@ class CollectionUploader():
         
         def evaluate(self, npvalue:array) -> float:
             if self.playside is None:
-                self.playside = recog.Result.get_play_side(npvalue)
+                self.playside = recog.Result.get_playside(npvalue)
             
             if self.playside is None:
                 return None
@@ -72,7 +72,7 @@ class CollectionUploader():
             
             if self.informations is None:
                 return None
-            if self.informations.music is None:
+            if self.informations.songname is None:
                 return None
             if self.informations.difficulty is None:
                 return None
@@ -110,13 +110,13 @@ class CollectionUploader():
     def checkandupload_result(self, result:Result, image:Image.Image, force:bool) -> bool:
         upload_informations = force or result.informations is None
         if not upload_informations:
-            if result.informations.play_mode is None:
+            if result.informations.playmode is None:
                 upload_informations = True
             if result.informations.difficulty is None:
                 upload_informations = True
             if result.informations.level is None:
                 upload_informations = True
-            if result.informations.music is None:
+            if result.informations.songname is None:
                 upload_informations = True
 
         if upload_informations:
@@ -136,7 +136,7 @@ class CollectionUploader():
                 upload_details = True
         
         if upload_details:
-            self.storage.start_uploaddetails(image, result.play_side)
+            self.storage.start_uploaddetails(image, result.playside)
         
         return upload_informations and upload_details
 
@@ -159,7 +159,7 @@ class CollectionUploader():
             ]
 
         if not unrecognizeds or any(unrecognizeds):
-            self.storage.start_uploadresultothers(image, result.play_side)
+            self.storage.start_uploadresultothers(image, result.playside)
     
     def checkandupload_musicselect(self, image:Image):
         if self.musicselectchecker.evaluate():
@@ -168,8 +168,8 @@ class CollectionUploader():
     def checkandupload_notesradarvalue(self, npvalue:array):
         result = self.notesradarchecker.evaluate(npvalue)
         if result is not None:
-            playmode = self.notesradarchecker.informations.play_mode
-            songname = self.notesradarchecker.informations.music
+            playmode = self.notesradarchecker.informations.playmode
+            songname = self.notesradarchecker.informations.songname
             difficulty = self.notesradarchecker.informations.difficulty
             notes = self.notesradarchecker.informations.notes
             score = self.notesradarchecker.details.score.current

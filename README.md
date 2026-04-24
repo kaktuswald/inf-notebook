@@ -73,22 +73,14 @@ python setup.py build
 python manage.pyw
 ```
 
-#### いくつかのリソースを作る
+#### 画面認識のリソースを作る
 ```shell
-python resources_generate_fromraw.py -all
-python resources_learning_fromraw.py -all
+python resources_generate_screenrecognition.py
 ```
 エラーが出なければOK
 
-resourcesフォルダ内にいくつかのリソースファイルが作成される。
-- get_screen.res
-- is_savable.res
-- rival.npy
-- play_side.npy
-- dead.npy
-
 resourcesフォルダ内にリソースファイルが作成される。
-- musicselect(バージョン).res
+- screenrecognition(リソースバージョン).res
 
 ## リザルト画像の収集と学習
 

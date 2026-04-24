@@ -37,6 +37,13 @@ if __name__ == '__main__':
         if upload(filename_musictable, filepath_musictable): 
             print(f'Upload complete {filename_musictable}')
     
+    if '-all' in argv or '-screenrecognition' in argv:
+        filename_screenrecognition = f'{define.screenrecognition_resourcename}.res'
+        filepath_screenrecognition = join(resources_dirname, filename_screenrecognition)
+
+        if upload(filename_screenrecognition, filepath_screenrecognition): 
+            print(f'Upload complete {filename_screenrecognition}')
+
     if '-all' in argv or '-informations' in argv:
         filename_informations = f'{define.informations_resourcename}.res'
         filepath_informations = join(resources_dirname, filename_informations)

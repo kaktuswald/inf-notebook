@@ -13,13 +13,13 @@ results_dirname = 'results'
 filtereds_dirname = 'filtered'
 
 class ResultInformations():
-    def __init__(self, play_mode: str, difficulty: str, level: str, notes: int, playspeed: float | None, music: str):
-        self.play_mode = play_mode
+    def __init__(self, playmode: str, difficulty: str, level: str, notes: int, playspeed: float | None, songname: str):
+        self.playmode = playmode
         self.difficulty = difficulty
         self.level = level
         self.notes = notes
         self.playspeed = playspeed
-        self.music = music
+        self.songname = songname
 
 class ResultValues():
     def __init__(self, best: str | int, current: str | int, new: bool):
@@ -109,10 +109,10 @@ class Result():
 
     others: ResultOthers | None = None
 
-    def __init__(self, play_side: str, rival: bool, dead: bool, informations: ResultInformations | None, details: ResultDetails | None):
-        self.play_side: str = play_side
-        self.rival: bool = rival
-        self.dead: bool = dead
+    def __init__(self, playside: str, has_loveletter: bool, is_dead: bool, informations: ResultInformations | None, details: ResultDetails | None):
+        self.playside: str = playside
+        self.has_loveletter: bool = has_loveletter
+        self.is_dead: bool = is_dead
 
         self.informations: ResultInformations | None = informations
         self.details: ResultDetails | None = details
@@ -139,12 +139,12 @@ class Result():
 
         if self.informations is None:
             return
-        if self.informations.play_mode is None:
+        if self.informations.playmode is None:
             return
         if self.informations.difficulty is None:
             return
         
-        if self.informations.play_mode == Playmodes.SP:
+        if self.informations.playmode == Playmodes.SP:
             self.playtype = Playmodes.SP
             return
         

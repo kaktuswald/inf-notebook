@@ -165,11 +165,11 @@ class GuiApi():
             np_value[define.informations_trimsize[1] - informationimage.height:, :, :] = array(informationimage, dtype=uint8)
             result = recog.Result.get_informations(np_value)
             informations = {
-                'playmode': result.play_mode,
+                'playmode': result.playmode,
                 'difficulty': result.difficulty,
                 'level': result.level,
                 'notes': result.notes,
-                'musicname': result.music,
+                'musicname': result.songname,
             }
 
         details = None
@@ -231,9 +231,6 @@ class GuiApi():
 images = {}
 encodedimages = {}
 labels = {}
-
-def update_annotation():
-    global labels
 
 def load_image(basedir, key):
     filename = f'{key}.png'

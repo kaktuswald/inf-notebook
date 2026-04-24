@@ -14,7 +14,7 @@ import numpy as np
 from PIL import Image
 
 from define import define
-from resources import load_resource_serialized
+from resources import resource
 
 SRCCOPY = 0x00CC0020
 DIB_RGB_COLORS = 0
@@ -93,15 +93,14 @@ class Capture:
 
 class Screenshot:
     xy = None
-    screentable = load_resource_serialized('get_screen')
     np_value = None
 
     def __init__(self):
         self.checkscreens = []
-        for screenname, areas in define.screens.items():
-            lefttop = (areas['left'], areas['top'],)
-            capture = Capture(areas['width'], areas['height'])
-            self.checkscreens.append((screenname, lefttop, capture, self.screentable[screenname],))
+        for screenname, item in resource.screenrecognition['get_screen'].items():
+            lefttop = (item['area']['left'], item['area']['top'],)
+            capture = Capture(item['area']['width'], item['area']['height'])
+            self.checkscreens.append((screenname, lefttop, capture, item['value'],))
         
         self.capture = Capture(define.width, define.height)
 

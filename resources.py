@@ -30,12 +30,8 @@ images_stamp_filepath = join(images_dirpath, 'stamp.png')
 
 class Resource():
     def __init__(self):
-        self.is_savable = load_resource_serialized('is_savable')
-        self.play_side = load_resource_numpy('play_side')
-        self.dead = load_resource_numpy('dead')
-        self.rival = load_resource_numpy('rival')
-
         self.load_resource_musictable()
+        self.load_resource_screenrecognition()
         self.load_resource_informations()
         self.load_resource_details()
         self.load_resource_resultothers()
@@ -51,6 +47,11 @@ class Resource():
         resourcename = f'musictable{define.musictable_version}'
         
         self.musictable = load_resource_serialized(resourcename, True)
+
+    def load_resource_screenrecognition(self):
+        resourcename = f'screenrecognition{define.screenrecognition_version}'
+        
+        self.screenrecognition = load_resource_serialized(resourcename, True)
 
     def load_resource_informations(self):
         resourcename = f'informations{define.informations_recognition_version}'

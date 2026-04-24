@@ -15,32 +15,35 @@ from screenshot import Screen
 class Recognition():
     class Result():
         @staticmethod
-        def get_play_side(np_value):
-            for target in define.value_list['play_sides']:
-                trimmed = np_value[define.areas_np['play_side'][target]]
-                if np.all((resource.play_side==0)|(trimmed==resource.play_side)):
-                    return target
+        def get_playside(np_value):
+            value = resource.screenrecognition['result']['playside']['value']
+            for playside, trimarea in resource.screenrecognition['result']['playside']['trimareas'].items():
+                trimmed = np_value[trimarea]
+                if np.all((value==0)|(trimmed==value)):
+                    return playside
 
             return None
 
         @staticmethod
-        def get_has_dead(np_value, play_side):
-            trimmed = np_value[define.areas_np['dead'][play_side]]
-            if np.all((resource.dead==0)|(trimmed==resource.dead)):
+        def get_is_dead(np_value, playside):
+            trimmed = np_value[resource.screenrecognition['result']['is_dead']['trimareas'][playside]]
+            value = resource.screenrecognition['result']['is_dead']['value']
+            if np.all((value==0)|(trimmed==value)):
                 return True
             else:
                 return False
         
         @staticmethod
-        def get_has_rival(np_value):
-            trimmed = np_value[define.areas_np['rival']]
-            if np.all((resource.rival==0)|(trimmed==resource.rival)):
+        def get_has_loveletter(np_value):
+            trimmed = np_value[resource.screenrecognition['result']['loveletter']['trimarea']]
+            value = resource.screenrecognition['result']['loveletter']['value']
+            if np.all((value==0)|(trimmed==value)):
                 return True
             else:
                 return False
         
         @staticmethod
-        def get_play_mode(np_value_informations):
+        def get_playmode(np_value_informations):
             if resource.informations is None:
                 return None
             
@@ -121,7 +124,7 @@ class Recognition():
             return float(resource.informations['playspeed']['table'][tablekey])
 
         @staticmethod
-        def get_music(np_value_informations):
+        def get_songname(np_value_informations):
             '''曲名を取得する
 
             Args:
@@ -395,13 +398,13 @@ class Recognition():
 
         @classmethod
         def get_informations(cls, np_value):
-            play_mode = cls.get_play_mode(np_value)
+            playmode = cls.get_playmode(np_value)
             difficulty, level = cls.get_difficulty(np_value)
             notes = cls.get_notes(np_value)
             playspeed = cls.get_playspeed(np_value)
-            music = cls.get_music(np_value)
+            songname = cls.get_songname(np_value)
 
-            return ResultInformations(play_mode, difficulty, level, notes, playspeed, music)
+            return ResultInformations(playmode, difficulty, level, notes, playspeed, songname)
 
         @classmethod
         def get_details(cls, np_value):
@@ -837,34 +840,35 @@ class Recognition():
 
     @staticmethod
     def get_is_savable(np_value):
-        define_result_check = define.result_check
+        res = resource.screenrecognition['result']['is_savable']
 
-        pixel = np_value[resource.is_savable['keyposition']]
+        pixel = np_value[res['keyposition']]
         background_key = ''.join([format(v, '02x') for v in pixel])
-        if not background_key in resource.is_savable['areas'].keys():
+        if not background_key in res['checktable'].keys():
             return False
 
-        for area_key, area in define_result_check.items():
-            if not np.array_equal(np_value[area], resource.is_savable['areas'][background_key][area_key]):
+        targettable = resource.screenrecognition['result']['is_savable']['checktable'][background_key]
+        for area_key, area in res['checkareas'].items():
+            if not np.array_equal(np_value[area], targettable[area_key]):
                 return False
         
         return True
         
     @classmethod
     def get_result(cls, screen: Screen):
-        play_side = cls.Result.get_play_side(screen.np_value)
-        if play_side == None:
+        playside = cls.Result.get_playside(screen.np_value)
+        if playside == None:
             return None
 
         result = Result(
-            play_side,
-            cls.Result.get_has_rival(screen.np_value),
-            cls.Result.get_has_dead(screen.np_value, play_side),
+            playside,
+            cls.Result.get_has_loveletter(screen.np_value),
+            cls.Result.get_is_dead(screen.np_value, playside),
             cls.Result.get_informations(screen.np_value[define.areas_np['informations']]),
-            cls.Result.get_details(screen.np_value[define.areas_np['details'][play_side]]),
+            cls.Result.get_details(screen.np_value[define.areas_np['details'][playside]]),
         )
 
-        otherstrimmed = screen.np_value[define.areas_np['resultothers'][play_side]]
+        otherstrimmed = screen.np_value[define.areas_np['resultothers'][playside]]
 
         tab = cls.ResultOthers.get_tab(otherstrimmed)
         rival = None

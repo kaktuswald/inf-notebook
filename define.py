@@ -103,32 +103,6 @@ class Define():
     width = 1920
     height = 1080
 
-    screens = {
-        'loading': {
-            'left': 380,
-            'top': 120,
-            'width': 8,
-            'height': 2,
-        },
-        'result': {
-            'left': 1110,
-            'top': 1042,
-            'width': 4,
-            'height': 2,
-        },
-        'music_select': {
-            'left': 181,
-            'top': 84,
-            'width': 4,
-            'height': 2,
-        }
-    }
-
-    result_check = {
-        "horizontalline": (60, slice(156, 390), 1),
-        "verticalline": (slice(550, 760), 788, 1),
-    }
-
     value_list = {
         'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA',),
         'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',),
@@ -144,6 +118,7 @@ class Define():
     }
 
     musictable_version = '1.2'
+    screenrecognition_version = '1.0'
     informations_recognition_version = '4.1'
     details_recognition_version = '3.2'
     resultothers_recognition_version = '1.0'
@@ -223,15 +198,6 @@ class Define():
     }
 
     areas_np = {
-        'rival': (slice(858, 872), slice(842, 920), 0),
-        'play_side': {
-            '1P': (slice(26, 30), slice(20, 24), 0),
-            '2P': (slice(26, 30), slice(1860, 1864), 0),
-        },
-        'dead': {
-            '1P': (slice(300, 304), slice(573, 576), 0),
-            '2P': (slice(300, 304), slice(1145, 1148), 0),
-        },
         'informations': (slice(910, 1066), slice(560, 1360)),
         'details': {
             '1P': (slice(64, 1016), slice(10, 564)),
@@ -245,6 +211,7 @@ class Define():
 
     def __init__(self):
         self.musictable_resourcename = f'musictable{self.musictable_version}'
+        self.screenrecognition_resourcename = f'screenrecognition{self.screenrecognition_version}'
         self.informations_resourcename = f'informations{self.informations_recognition_version}'
         self.details_resourcename = f'details{self.details_recognition_version}'
         self.resultothers_resourcename = f'resultothers{self.resultothers_recognition_version}'
@@ -253,21 +220,21 @@ class Define():
         self.unofficialdifficulty_resourcename = f'unofficialdifficulty{self.unofficialdifficulty_version}'
 
         self.details_trimareas = {}
-        for play_side in self.details_trimpos.keys():
-            self.details_trimareas[play_side] = (
-                self.details_trimpos[play_side][0],
-                self.details_trimpos[play_side][1],
-                self.details_trimpos[play_side][0] + self.details_trimsize[0],
-                self.details_trimpos[play_side][1] + self.details_trimsize[1]
+        for playside in self.details_trimpos.keys():
+            self.details_trimareas[playside] = (
+                self.details_trimpos[playside][0],
+                self.details_trimpos[playside][1],
+                self.details_trimpos[playside][0] + self.details_trimsize[0],
+                self.details_trimpos[playside][1] + self.details_trimsize[1]
             )
 
         self.resultothers_trimareas = {}
-        for play_side in self.resultothers_trimpos.keys():
-            self.resultothers_trimareas[play_side] = (
-                self.resultothers_trimpos[play_side][0],
-                self.resultothers_trimpos[play_side][1],
-                self.resultothers_trimpos[play_side][0] + self.resultothers_trimsize[0],
-                self.resultothers_trimpos[play_side][1] + self.resultothers_trimsize[1]
+        for playside in self.resultothers_trimpos.keys():
+            self.resultothers_trimareas[playside] = (
+                self.resultothers_trimpos[playside][0],
+                self.resultothers_trimpos[playside][1],
+                self.resultothers_trimpos[playside][0] + self.resultothers_trimsize[0],
+                self.resultothers_trimpos[playside][1] + self.resultothers_trimsize[1]
             )
 
         for key in self.filter_ranking_position.keys():
