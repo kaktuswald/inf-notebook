@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
     api = GuiApi(window)
 
-    window.show('web_annotations/annotation_resultothers.html')
+    window.show('web_manage/annotation_resultothers.html')
     handle = gethandle(windowtitle)
     if handle:
         maximize(handle)

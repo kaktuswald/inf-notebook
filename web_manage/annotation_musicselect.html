@@ -4,11 +4,11 @@
     <meta charset="utf-8" />
     <title>選曲画像のアノテーション</title>
     <link rel="stylesheet" href="./web/general.css" />
-    <link rel="stylesheet" href="./web_annotations/annotation.css" />
-    <link rel="stylesheet" href="./web_annotations/annotation_musicselect.css" />
+    <link rel="stylesheet" href="./web_manage/general.css" />
+    <link rel="stylesheet" href="./web_manage/annotation_musicselect.css" />
     <script src="./webui.js"></script>
     <script src="./web/lib/jquery-3.7.1.slim.min.js"></script>
-    <script src="./web_annotations/annotation_musicselect.js"></script>
+    <script src="./web_manage/annotation_musicselect.js"></script>
   </head>
   <body>
     <div class="split_horizontal">
@@ -78,8 +78,8 @@
               <div>
                 <div class="label">曲名:</div>
               </div>
-              <div class="value_musicname">
-                <span id="text_resultmusicname"></span>
+              <div class="value_songname">
+                <span id="text_resultsongname"></span>
               </div>
               <div>
                 <div class="label">選択難易度:</div>
@@ -140,7 +140,7 @@
 
           <div>
             <div class="label">曲名の種別:</div>
-            <select id="select_musictype">
+            <select id="select_songnametype">
               <option />
               <option value="ARCADE">ARCADE</option>
               <option value="INFINITAS">INFINITAS</option>
@@ -150,7 +150,7 @@
 
           <div>
             <div class="label">曲名:</div>
-            <input type="text" id="text_musicname">
+            <input type="text" id="text_songname">
           </div>
 
           <div>
@@ -247,7 +247,7 @@
               <label><input type="checkbox" id="check_onlynotannotation" checked>未アノテーションのみ</label>
             </div>
             <div>
-              <label><input type="checkbox" id="check_onlyundefinedmusicname">曲名なしのみ</label>
+              <label><input type="checkbox" id="check_onlyundefinedsongname">曲名なしのみ</label>
             </div>
             <div>
               <label><input type="checkbox" id="check_onlyundefinedversion">バージョンなしのみ</label>
@@ -258,7 +258,7 @@
             
             <div>
               <label>曲名:</label>
-              <input type="text" id="text_musicnamefilter">
+              <input type="text" id="text_songnamefilter">
             </div>
             <div>
               <label>キー:</label>

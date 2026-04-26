@@ -125,7 +125,7 @@ def load_raws():
             continue
 
         label = labels.get(filename)
-        if not 'screen' in label.keys():
+        if not 'screenname' in label.keys():
             continue
 
         raws[filename] = RawData(np.array(Image.open(filepath).convert('RGB'), dtype=np.uint8), label)

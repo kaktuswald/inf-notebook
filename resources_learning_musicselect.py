@@ -143,7 +143,7 @@ def learning_levels():
 
         evaluate_targets[key] = target
 
-        songname = target.label['musicname']
+        songname = target.label['songname']
         if not songname in evaluate_musictable.keys():
             evaluate_musictable[songname] = {}
         
@@ -632,7 +632,7 @@ def learning_songname_arcade(targets:dict, report:Report):
         (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
     )
     for key, target in targets.items():
-        songname = target.label['musicname']
+        songname = target.label['songname']
 
         cropped = target.np_value[resource_target['trim']]
         masked = np.where((cropped[:,:,0]==cropped[:,:,1])&(cropped[:,:,0]==cropped[:,:,2]),cropped[:,:,0], 0)
@@ -688,7 +688,7 @@ def learning_songname_infinitas(targets:dict, report:Report):
         (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
     )
     for key, target in targets.items():
-        songname = target.label['musicname']
+        songname = target.label['songname']
 
         cropped = target.np_value[resource_target['trim']]
         filtereds = []
@@ -743,7 +743,7 @@ def learning_songname_leggendaria(targets:dict, report:Report):
         (resource_target['trim'][0].stop-resource_target['trim'][0].start) * (resource_target['trim'][1].stop-resource_target['trim'][1].start)
     )
     for key, target in targets.items():
-        songname = target.label['musicname']
+        songname = target.label['songname']
 
         cropped = target.np_value[resource_target['trim']]
         filtereds = []
@@ -788,7 +788,7 @@ def learning_songname_leggendaria(targets:dict, report:Report):
     report.output_list(output, 'leggendaria.txt')
 
 def learning_songname():
-    report_songname = Report('musicselect_musicname')
+    report_songname = Report('musicselect_songname')
 
     resource['musicname'] = {}
 
@@ -796,18 +796,18 @@ def learning_songname():
     
     targets = {}
     evaluate_targets = {}
-    for musictype in ['ARCADE', 'INFINITAS', 'LEGGENDARIA']:
-        targets[musictype] = {}
+    for songnametype in ['ARCADE', 'INFINITAS', 'LEGGENDARIA']:
+        targets[songnametype] = {}
 
     for key, target in imagevalues.items():
-        if not 'musictype' in target.label.keys() or target.label['musictype'] == '':
+        if not 'songnametype' in target.label.keys() or target.label['songnametype'] == '':
             continue
-        if not 'musicname' in target.label.keys() or target.label['musicname'] == '':
+        if not 'songname' in target.label.keys() or target.label['songname'] == '':
             continue
         if not 'after260312' in target.label.keys() or not target.label['after260312']:
             continue
 
-        targets[target.label['musictype']][key] = target
+        targets[target.label['songnametype']][key] = target
         evaluate_targets[key] = target
 
     learning_songname_arcade(targets['ARCADE'], report_songname)
@@ -815,7 +815,7 @@ def learning_songname():
     learning_songname_leggendaria(targets['LEGGENDARIA'], report_songname)
     
     for key, target in evaluate_targets.items():
-        songname = target.label['musicname']
+        songname = target.label['songname']
 
         resultsongname = None
 
@@ -951,8 +951,8 @@ def learning_version():
 
         evaluate_targets[key] = target
 
-        if 'musicname' in target.label.keys() and 'version' in target.label.keys():
-            songname = target.label['musicname']
+        if 'songname' in target.label.keys() and 'version' in target.label.keys():
+            songname = target.label['songname']
             version = target.label['version']
             if songname is not None and not songname in evaluate_musictable.keys():
                 evaluate_musictable[songname] = {}

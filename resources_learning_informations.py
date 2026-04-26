@@ -117,35 +117,35 @@ def organize(informations:dict, report:Report):
             continue
         if not 'level' in label.keys() or label['level'] != '':
             continue
-        if not 'music' in label.keys() or label['music'] != '':
+        if not 'songname' in label.keys() or label['songname'] != '':
             continue
         if not 'notes' in label.keys() or label['notes'] != '':
             continue
 
         difficulty = label['difficulty']
         level = label['level']
-        music = label['music']
+        songname = label['songname']
         notes = label['notes']
 
-        if not music in result.keys():
-            result[music] = {}
+        if not songname in result.keys():
+            result[songname] = {}
         
-        result[music][difficulty] = [level, notes]
+        result[songname][difficulty] = [level, notes]
 
-        if not music in difficulties[difficulty]:
-            difficulties[difficulty].append(music)
-        if not music in levels[level]:
-            levels[level].append(music)
+        if not songname in difficulties[difficulty]:
+            difficulties[difficulty].append(songname)
+        if not songname in levels[level]:
+            levels[level].append(songname)
     
     output = []
-    output.append(f'Song count: {len(result)}')
+    output.append(f'Songname count: {len(result)}')
     for key, value in difficulties.items():
         output.append(f'{key}: {len(value)}')
     for key, value in levels.items():
         output.append(f'{key}: {len(value)}')
-    for music, values in result.items():
+    for songname, values in result.items():
         for difficulty, values in values.items():
-            output.append(f'{music}: {difficulty} {values[0]} {values[1]}')
+            output.append(f'{songname}: {difficulty} {values[0]} {values[1]}')
 
     report.output_list(output, 'organize.txt')
 
@@ -157,10 +157,10 @@ def learning_playmode(informations:dict) -> dict:
     learning_targets = {}
     evaluate_targets = {}
     for key, target in informations.items():
-        if not 'play_mode' in target.label.keys() or target.label['play_mode'] == '':
+        if not 'playmode' in target.label.keys() or target.label['playmode'] == '':
             continue
         
-        value = target.label['play_mode']
+        value = target.label['playmode']
         trimmed = target.np_value[informations_define['play_mode']['trim']]
         if not value in learning_targets.keys():
             learning_targets[value] = {}
@@ -172,7 +172,7 @@ def learning_playmode(informations:dict) -> dict:
 
     table = learning_multivaluemask(learning_targets, report_playmode, informations_define['play_mode']['maskvalue'])
     if table is None:
-        report_playmode.report_playmode()
+        report_playmode.report()
         return
 
     for key, target in evaluate_targets.items():
@@ -185,7 +185,7 @@ def learning_playmode(informations:dict) -> dict:
         if tablekey in table.keys():
             result = table[tablekey]
         
-        if result == target.label['play_mode']:
+        if result == target.label['playmode']:
             report_playmode.through()
         else:
             report_playmode.saveimage_errorvalue(trimmed, f'{key}.png')
@@ -440,21 +440,21 @@ def learning_songname(informations:dict) -> dict:
     targets = {}
     count = 0
     for key, target in informations.items():
-        if not 'music' in target.label.keys() or target.label['music'] is None:
+        if not 'songname' in target.label.keys() or target.label['songname'] is None:
             continue
 
-        if not target.label['music'] in targets.keys():
-            targets[target.label['music']] = {}
-        targets[target.label['music']][key] = target.np_value[informations_define['music']['trim']]
+        if not target.label['songname'] in targets.keys():
+            targets[target.label['songname']] = {}
+        targets[target.label['songname']][key] = target.np_value[informations_define['music']['trim']]
         count += 1
     
     report_songname.append_log(f'Source count: {count}')
-    report_songname.append_log(f'Music count: {len(targets)}')
+    report_songname.append_log(f'Songname count: {len(targets)}')
 
-    for music in targets.keys():
-        encoded = music.encode('utf-8').hex()
+    for songname in targets.keys():
+        encoded = songname.encode('utf-8').hex()
         if len(encoded) > 240:
-            report_songname.error(f'Record file name too long: {music}')
+            report_songname.error(f'Record file name too long: {songname}')
 
     grays, blues, reds, factors = learning_songname_filter(
         targets,

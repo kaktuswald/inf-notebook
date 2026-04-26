@@ -9,7 +9,7 @@ logger.debug(f'loaded {__name__}')
 from PIL import ImageFilter
 from PIL.Image import Image
 
-from define import ResultTabs,define
+from define import Playsides,ResultTabs,define
 from resources import resource
 
 class StampDefine():
@@ -92,7 +92,7 @@ def stamp(image: Image, playside: str):
     Returns:
         (Image): スタンプを押した画像
     '''
-    if not playside in define.value_list['play_sides']:
+    if not playside in Playsides.values:
         return None
 
     ret = image.copy()

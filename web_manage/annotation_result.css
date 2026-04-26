@@ -7,7 +7,7 @@ div.label {
 }
 
 div.value_informations,
-div.value_musicname,
+div.value_songname,
 div.value_details,
 div.value_detailsbest,
 div.value_detailscurrent,
@@ -19,7 +19,7 @@ div.value_informations {
     width: 120px;
 }
 
-div.value_musicname {
+div.value_songname {
     width: 200px;
     word-wrap: break-word;
     word-break: break-all;
@@ -40,7 +40,7 @@ div.value_detailsnew {
     width: 40px;
 }
 
-input.text_musicname {
+input.text_songname {
     width: 200px;
 }
 

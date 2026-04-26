@@ -7,7 +7,7 @@ else:
     logger = getLogger(__name__)
 logger.debug(f'loaded {__name__}')
 
-from define import define,Graphtypes,Options,ResultTabs
+from define import Graphtypes,Options,ResultTabs,define
 from resources import resource
 from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,ResultOthers,Result
 from screenshot import Screen

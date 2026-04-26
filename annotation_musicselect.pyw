@@ -77,11 +77,11 @@ class GuiApi():
         if conditions['only_notannotation']:
             targetkeys = [key for key in targetkeys if not key in labels.keys()]
 
-        if conditions['only_undefinedmusicname'] or conditions['only_undefinedversion'] or conditions['musicnamefilter'] is not None:
+        if conditions['only_undefinedsongname'] or conditions['only_undefinedversion'] or conditions['songnamefilter'] is not None:
             targetkeys = [key for key in targetkeys if key in labels.keys()]
 
-        if conditions['only_undefinedmusicname']:
-            targetkeys = [key for key in targetkeys if not 'musicname' in labels[key].keys() or labels[key]['musicname'] in [None, '']]
+        if conditions['only_undefinedsongname']:
+            targetkeys = [key for key in targetkeys if not 'songname' in labels[key].keys() or labels[key]['songname'] in [None, '']]
 
         if conditions['only_undefinedversion']:
             targetkeys = [key for key in targetkeys if not 'version' in labels[key].keys() or labels[key]['version'] in [None, '']]
@@ -89,9 +89,9 @@ class GuiApi():
         if conditions['only_ignore']:
             targetkeys = [key for key in targetkeys if key in labels.keys() and 'ignore' in labels[key].keys() and labels[key]['ignore']]
 
-        if conditions['musicnamefilter'] is not None:
-            targetkeys = [key for key in targetkeys if 'musicname' in labels[key].keys() and labels[key]['musicname'] is not None]
-            targetkeys = [key for key in targetkeys if conditions['musicnamefilter'] in labels[key]['musicname']]
+        if conditions['songnamefilter'] is not None:
+            targetkeys = [key for key in targetkeys if 'songname' in labels[key].keys() and labels[key]['songname'] is not None]
+            targetkeys = [key for key in targetkeys if conditions['songnamefilter'] in labels[key]['songname']]
 
         if conditions['keyfilter'] is not None:
             targetkeys = [key for key in targetkeys if conditions['keyfilter'] in key]
@@ -131,7 +131,7 @@ class GuiApi():
         result = {
             'playmode': recog.MusicSelect.get_playmode(image_np),
             'version': recog.MusicSelect.get_version(image_np),
-            'musicname': recog.MusicSelect.get_musicname(image_np),
+            'songname': recog.MusicSelect.get_songname(image_np),
             'difficulty': recog.MusicSelect.get_difficulty(image_np),
             'hasscoredata': recog.MusicSelect.get_hasscoredata(image_np),
             'cleartype': recog.MusicSelect.get_cleartype(image_np),
@@ -192,7 +192,7 @@ if __name__ == '__main__':
 
     api = GuiApi(window)
 
-    window.show('web_annotations/annotation_musicselect.html')
+    window.show('web_manage/annotation_musicselect.html')
     handle = gethandle(windowtitle)
     if handle:
         maximize(handle)

@@ -8,6 +8,20 @@ logger.debug(f'loaded {__name__}')
 
 import numpy as np
 
+class Playsides():
+    '''プレイ再度
+
+    1P と 2P
+    '''
+    LEFT: str = '1P'
+    '''左側(1P)'''
+
+    RIGHT: str = '2P'
+    '''右側(2P)'''
+
+    values: tuple[str] = (LEFT, RIGHT,)
+    '''プレイサイドのリスト'''
+
 class Playmodes():
     '''プレイモード
 
@@ -19,7 +33,7 @@ class Playmodes():
     DP: str = 'DP'
     '''DOUBLE PLAY'''
 
-    values: list[str] = (SP, DP,)
+    values: tuple[str] = (SP, DP,)
     '''プレイモードのリスト'''
 
 class Playtypes():
@@ -30,7 +44,7 @@ class Playtypes():
     DPBATTLE: str = 'DP BATTLE'
     '''DOUBLE PLAY BATTLE'''
 
-    values: list[str] = (Playmodes.SP, Playmodes.DP, DPBATTLE,)
+    values: tuple[str] = (Playmodes.SP, Playmodes.DP, DPBATTLE,)
     '''プレイの種類のリスト'''
 
 class Graphtypes():
@@ -45,7 +59,7 @@ class Graphtypes():
     MEASURES: str = 'measures'
     '''小節ごとの精度の棒グラフ'''
 
-    values: list[str] = (GAUGE, LANES, MEASURES,)
+    values: tuple[str] = (GAUGE, LANES, MEASURES,)
     '''リザルトの表示グラフの種類のリスト'''
 
 class Options():
@@ -83,7 +97,7 @@ class ResultTabs():
     RADAR: str = 'radar'
     '''ノーツレーダー'''
 
-    values: list[str] = (RIVAL, RADAR,)
+    values: tuple[str] = (RIVAL, RADAR,)
     '''リザルト画面の反対側のタブリスト'''
 
 class NotesradarAttributes():
@@ -96,7 +110,7 @@ class NotesradarAttributes():
     SCRATCH: str = 'SCRATCH'
     SOFLAN: str = 'SOF-LAN'
 
-    values: list[str] = (NOTES, CHORD, PEAK, CHARGE, SCRATCH, SOFLAN,)
+    values: tuple[str] = (NOTES, CHORD, PEAK, CHARGE, SCRATCH, SOFLAN,)
     '''ノーツレーダー要素のリスト'''
 
 class Define():
@@ -107,7 +121,6 @@ class Define():
         'difficulties': ('BEGINNER', 'NORMAL', 'HYPER', 'ANOTHER', 'LEGGENDARIA',),
         'levels': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',),
         'dj_levels': ('F', 'E', 'D', 'C', 'B', 'A', 'AA', 'AAA',),
-        'play_sides': ('1P', '2P',),
         'options_arrange': ('RANDOM', 'R-RANDOM', 'S-RANDOM', 'MIRROR', 'H-RANDOM',),
         'options_arrange_dp': ('OFF', 'RAN', 'R-RAN', 'S-RAN', 'MIR', 'H-RAN',),
         'options_arrange_sync': ('SYNC-RAN', 'SYMM-RAN',),

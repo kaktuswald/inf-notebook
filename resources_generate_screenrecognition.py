@@ -13,7 +13,7 @@ logger.debug(f'loaded {__name__}')
 
 from PIL import Image
 
-from define import define
+from define import Playsides,define
 from resources_generate import Report,load_raws,save_resource_serialized,registries_dirname
 from resources_learning import learning
 
@@ -42,16 +42,17 @@ def load_define() -> dict:
         'result': {
             'is_savable': {
                 'patternarea': tuple(slice(ax[0], ax[1]) for ax in loaded['result']['is_savable']['patternarea']),
+                'keyslice': tuple(slice(sl[0], sl[1], sl[2]) for sl in loaded['result']['is_savable']['keyslice']),
                 'checkareas': {
                     key: tuple(
                         tuple(slice(sl[0], sl[1], sl[2]) for sl in ax)
                     ) for key, ax in loaded['result']['is_savable']['checkareas'].items()
                 },
             },
-            'loveletter': (
-                slice(loaded['result']['loveletter'][0][0], loaded['result']['loveletter'][0][1]),
-                slice(loaded['result']['loveletter'][1][0], loaded['result']['loveletter'][1][1]),
-                loaded['result']['loveletter'][2],
+            'has_loveletter': (
+                slice(loaded['result']['has_loveletter'][0][0], loaded['result']['has_loveletter'][0][1]),
+                slice(loaded['result']['has_loveletter'][1][0], loaded['result']['has_loveletter'][1][1]),
+                loaded['result']['has_loveletter'][2],
             ),
             'playside': {
                 playside: (
@@ -85,10 +86,10 @@ def generate_get_screen(raws):
 
     table = {}
     for filename, raw in raws.items():
-        if not 'screen' in raw.label.keys():
+        if not 'screenname' in raw.label.keys():
             continue
 
-        screen = raw.label['screen']
+        screen = raw.label['screenname']
         if not screen in recognition_define['get_screen'].keys():
             continue
         
@@ -107,10 +108,10 @@ def generate_get_screen(raws):
             break
         
     for filename, raw in raws.items():
-        if not 'screen' in raw.label.keys():
+        if not 'screenname' in raw.label.keys():
             continue
 
-        screen = raw.label['screen']
+        screen = raw.label['screenname']
         if not screen in table.keys():
             continue
 
@@ -160,11 +161,12 @@ def generate_is_savable(raws):
         mkdir(append_dirpath)
 
     patternarea = recognition_define['result']['is_savable']['patternarea']
+    keyslice: tuple[slice] = recognition_define['result']['is_savable']['keyslice']
     checkareas = recognition_define['result']['is_savable']['checkareas']
 
     targets1 = {}
     for filename, raw in raws.items():
-        if not 'screen' in raw.label.keys() or raw.label['screen'] != 'result':
+        if not 'screenname' in raw.label.keys() or raw.label['screenname'] != 'result':
             continue
         if not 'is_savable' in raw.label.keys() or not raw.label['is_savable']:
             continue
@@ -177,47 +179,57 @@ def generate_is_savable(raws):
     
     report_is_savable.append_log(f'count patterns: {len(targets1)}')
 
-    ylist = [*range(patternarea[0].start, patternarea[0].stop)]
-    xlist = [*range(patternarea[1].start, patternarea[1].stop)]
-    randoms = [(y, x) for y in ylist for x in xlist]
+    ylist = [*range(patternarea[0].start, patternarea[0].stop-(keyslice[0].stop-keyslice[0].start-1))]
+    xlist = [*range(patternarea[1].start, patternarea[1].stop-(keyslice[1].stop-keyslice[1].start-1))]
+    randoms = [
+        (
+            slice(y+keyslice[0].start, y+keyslice[0].stop, keyslice[0].step),
+            slice(x+keyslice[1].start, x+keyslice[1].stop, keyslice[1].step),
+        ) for y in ylist for x in xlist
+    ]
+
     shuffle(randoms)
     trycount = 0
-    for candidate in randoms:
+    for candidate in randoms[:1000]:
         trycount += 1
         targets2 = {}
         for target in targets1.values():
             pixel = [*target.values()][0].np_value[candidate]
-            key = ''.join([format(v, '02x') for v in pixel])
+            key = ''.join([format(v, '02x') for v in pixel.flatten()])
             targets2[key] = target
         if len(targets1) == len(set(targets2.keys())):
             break
-    keyposition = candidate
-
+    
     report_is_savable.append_log(f'key search try count: {trycount}')
 
-    sorted_keys = sorted([*targets2.keys()])
-    for background_key in sorted_keys:
-        report_is_savable.append_log(f'"{background_key}" {len(targets2[background_key])}({[*targets2[background_key].keys()][0]})')
-    
-    checktable = {}
-    for background_key, targets in targets2.items():
-        checktable[background_key] = {}
-        filename, raw = [*targets.items()][0]
+    if len(targets1) == len(set(targets2.keys())):
+        keyposition = candidate
 
-        image = Image.fromarray(raw.np_value[patternarea])
-        image.save(join(append_dirpath, filename))
+        sorted_keys = sorted([*targets2.keys()])
+        for background_key in sorted_keys:
+            report_is_savable.append_log(f'"{background_key}" {len(targets2[background_key])}({[*targets2[background_key].keys()][0]})')
+        
+        checktable = {}
+        for background_key, targets in targets2.items():
+            checktable[background_key] = {}
+            filename, raw = [*targets.items()][0]
 
-        for area_key, area in checkareas.items():
-            value = raw.np_value[area]
-            checktable[background_key][area_key] = value
+            image = Image.fromarray(raw.np_value[patternarea])
+            image.save(join(append_dirpath, filename))
 
-        for filename, raw in targets.items():
             for area_key, area in checkareas.items():
                 value = raw.np_value[area]
-                if np.array_equal(value, checktable[background_key][area_key]):
-                    report_is_savable.through()
-                else:
-                    report_is_savable.error(f'Mismatch {background_key} {area_key} {filename}')
+                checktable[background_key][area_key] = value
+
+            for filename, raw in targets.items():
+                for area_key, area in checkareas.items():
+                    value = raw.np_value[area]
+                    if np.array_equal(value, checktable[background_key][area_key]):
+                        report_is_savable.through()
+                    else:
+                        report_is_savable.error(f'Mismatch {background_key} {area_key} {filename}')
+    else:
+        report_is_savable.error('no valid position was found for the key.')
 
     report_is_savable.report()
 
@@ -226,53 +238,56 @@ def generate_is_savable(raws):
     else:
         report.error('error is_savable')
     
-    return {
-        'keyposition': keyposition,
-        'checkareas': checkareas,
-        'checktable': checktable,
-    }
+    if not report_is_savable.count_error:
+        return {
+            'keyposition': keyposition,
+            'checkareas': checkareas,
+            'checktable': checktable,
+        }
+    else:
+        return None
 
-def learning_loveletter(raws):
-    report_loveletter = Report('loveletter')
+def learning_has_loveletter(raws):
+    report_has_loveletter = Report('has_loveletter')
 
-    trimarea = recognition_define['result']['loveletter']
+    trimarea = recognition_define['result']['has_loveletter']
 
     learning_targets = {}
     evaluate_targets = {}
     for filename, raw in raws.items():
-        if not 'screen' in raw.label.keys() or raw.label['screen'] != 'result':
+        if not 'screenname' in raw.label.keys() or raw.label['screenname'] != 'result':
             continue
-        if not 'rival' in raw.label.keys():
+        if not 'has_loveletter' in raw.label.keys():
             continue
 
-        if raw.label['rival']:
+        if raw.label['has_loveletter']:
             trimmed = raw.np_value[trimarea]
             learning_targets[filename] = trimmed
         evaluate_targets[filename] = raw
     
-    report_loveletter.append_log(f'source count: {len(learning_targets)}')
+    report_has_loveletter.append_log(f'source count: {len(learning_targets)}')
 
-    result = learning(learning_targets, report_loveletter)
+    result = learning(learning_targets, report_has_loveletter)
     if result is None:
-        report_loveletter.report()
+        report_has_loveletter.report()
         return
 
     for filename, raw in evaluate_targets.items():
-        is_loveletter = raw.label['rival']
+        has_loveletter = raw.label['has_loveletter']
         trimmed = raw.np_value[trimarea]
         recoged = np.all((result==0)|(trimmed==result))
-        if (recoged and is_loveletter) or (not recoged and not is_loveletter):
-            report_loveletter.through()
+        if (recoged and has_loveletter) or (not recoged and not has_loveletter):
+            report_has_loveletter.through()
         else:
-            report_loveletter.saveimage_errorvalue(trimmed, filename)
-            report_loveletter.error(f'Mismatch {is_loveletter} {filename}')
+            report_has_loveletter.saveimage_errorvalue(trimmed, filename)
+            report_has_loveletter.error(f'Mismatch {has_loveletter} {filename}')
 
-    report_loveletter.report()
+    report_has_loveletter.report()
 
-    if not report_loveletter.count_error:
+    if not report_has_loveletter.count_error:
         report.through()
     else:
-        report.error('error loveletter')
+        report.error('error has_loveletter')
     
     return {
         'trimarea': trimarea,
@@ -287,14 +302,14 @@ def learning_playside(raws):
     learning_targets = {}
     evaluate_targets = {}
     for filename, raw in raws.items():
-        if not 'screen' in raw.label.keys() or raw.label['screen'] != 'result':
+        if not 'screenname' in raw.label.keys() or raw.label['screenname'] != 'result':
             continue
         if not 'is_savable' in raw.label.keys() or raw.label['is_savable']:
             continue
-        if not 'play_side' in raw.label.keys() or not raw.label['play_side'] in define.value_list['play_sides']:
+        if not 'playside' in raw.label.keys() or not raw.label['playside'] in Playsides.values:
             continue
 
-        playside = raw.label['play_side']
+        playside = raw.label['playside']
         trimmed = raw.np_value[trimareas[playside]]
         learning_targets[filename] = trimmed
 
@@ -312,7 +327,7 @@ def learning_playside(raws):
         for key, area in trimareas.items():
             if np.all((result==0)|(raw.np_value[area]==result)):
                 recoged = key
-        playside = raw.label['play_side']
+        playside = raw.label['playside']
         if recoged == playside:
             report_playside.through()
         else:
@@ -341,15 +356,15 @@ def learning_is_dead(raws):
     learning_targets = {}
     evaluate_targets = {}
     for filename, raw in raws.items():
-        if not 'screen' in raw.label.keys() or raw.label['screen'] != 'result':
+        if not 'screenname' in raw.label.keys() or raw.label['screenname'] != 'result':
             continue
-        if not 'dead' in raw.label.keys():
+        if not 'is_dead' in raw.label.keys():
             continue
-        if not 'play_side' in raw.label.keys() or not raw.label['play_side'] in define.value_list['play_sides']:
+        if not 'playside' in raw.label.keys() or not raw.label['playside'] in Playsides.values:
             continue
 
-        if raw.label['dead']:
-            playside = raw.label['play_side']
+        if raw.label['is_dead']:
+            playside = raw.label['playside']
             trimmed = raw.np_value[trimareas[playside]]
             learning_targets[filename] = trimmed
         evaluate_targets[filename] = raw
@@ -362,8 +377,8 @@ def learning_is_dead(raws):
         return
 
     for filename, raw in evaluate_targets.items():
-        is_dead = raw.label['dead']
-        playside = raw.label['play_side']
+        is_dead = raw.label['is_dead']
+        playside = raw.label['playside']
         trimmed = raw.np_value[trimareas[playside]]
         recoged = np.all((result==0)|(trimmed==result))
         if (recoged and is_dead) or (not recoged and not is_dead):
@@ -399,7 +414,7 @@ if __name__ == '__main__':
         'get_screen': generate_get_screen(raws),
         'result': {
             'is_savable': generate_is_savable(raws),
-            'loveletter': learning_loveletter(raws),
+            'has_loveletter': learning_has_loveletter(raws),
             'playside': learning_playside(raws),
             'is_dead': learning_is_dead(raws),
         },

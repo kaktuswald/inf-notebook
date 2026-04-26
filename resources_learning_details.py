@@ -12,7 +12,7 @@ logger.debug(f'loaded {__name__}')
 from PIL import Image
 import numpy as np
 
-from define import define,Graphtypes,Options
+from define import Playsides,Graphtypes,Options,define
 from data_collection import label_result_filepath,images_details_basepath
 from resources_generate import Report,save_resource_serialized,registries_dirname,report_dirname
 from resources_learning import learning
@@ -385,7 +385,7 @@ def learning_option(details: dict, report:Report) -> dict:
         if not len(keyresult[value]):
             report_option.error(f'Not key: {value}')
         else:
-            for playside in define.value_list['play_sides']:
+            for playside in Playsides.values:
                 report_option_keys.append(f'\t{playside}:')
                 if playside in keyresult[value].keys():
                     tablekeys = [*keyresult[value][playside].keys()]

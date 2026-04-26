@@ -11,13 +11,13 @@ $(function() {
   $('button#button_delete').on('click', onclick_delete);
 
   $('input#check_onlynotannotation').on('change', display_keytable);
-  $('input#check_onlyundefinedmusicname').on('change', display_keytable);
+  $('input#check_onlyundefinedsongname').on('change', display_keytable);
   $('input#check_onlyfullcombo').on('change', display_keytable);
   $('input#check_onlyignore').on('change', display_keytable);
-  $('input#text_musicnamefilter').on('input', display_keytable);
+  $('input#text_songnamefilter').on('input', display_keytable);
   $('input#text_keyfilter').on('input', display_keytable);
 
-  $('input#text_musicnamefilter').on('click', onclick_filter);
+  $('input#text_songnamefilter').on('click', onclick_filter);
   $('input#text_keyfilter').on('click', onclick_filter);
 });
 
@@ -161,11 +161,11 @@ async function onclick_keyitem(e) {
     if(images !== null && images.informations !== null) {
       $('fieldset#fieldset_labelinformations').prop('disabled', false);
 
-      $('select#select_playmode').val(labels.informations.play_mode);
+      $('select#select_playmode').val(labels.informations.playmode);
       $('select#select_difficulty').val(labels.informations.difficulty);
       $('select#select_level').val(labels.informations.level);
       $('input#text_notes').val(labels.informations.notes);
-      $('input#text_musicname').val(labels.informations.music);
+      $('input#text_songname').val(labels.informations.songname);
 
       $('input#check_informationsignore').prop('checked', labels.informations.ignore);
     }
@@ -235,14 +235,14 @@ async function onclick_keyitem(e) {
     $('span#text_resultdifficulty').text(recognitionresult.informations.difficulty);
     $('span#text_resultlevel').text(recognitionresult.informations.level);
     $('span#text_resultnotes').text(recognitionresult.informations.notes);
-    $('span#text_resultmusicname').text(recognitionresult.informations.musicname);
+    $('span#text_resultsongname').text(recognitionresult.informations.songname);
   }
   else {
     $('span#text_resultplaymode').empty();
     $('span#text_resultdifficulty').empty();
     $('span#text_resultlevel').empty();
     $('span#text_resultnotes').empty();
-    $('span#text_resultmusicname').empty();
+    $('span#text_resultsongname').empty();
   }
 
   if(recognitionresult !== null && recognitionresult.details !== null) {
@@ -298,7 +298,7 @@ function clearinput_informations() {
   $('select#select_difficulty').val(null);
   $('select#select_level').val(null);
   $('input#text_notes').val(null);
-  $('input#text_musicname').val(null);
+  $('input#text_songname').val(null);
 }
 
 function clearinput_details() {
@@ -337,11 +337,11 @@ async function onclick_labeloverwrite(e) {
   let informations = null;
   if(!$('fieldset#fieldset_labelinformations').prop('disabled')) {
     informations = {
-      'play_mode': $('select#select_playmode').val(),
+      'playmode': $('select#select_playmode').val(),
       'difficulty': $('select#select_difficulty').val(),
       'level': $('select#select_level').val(),
       'notes': $('input#text_notes').val(),
-      'music': $('input#text_musicname').val(),
+      'songname': $('input#text_songname').val(),
     }
 
     if($('input#check_informationsignore').prop('checked'))
@@ -402,9 +402,9 @@ async function onclick_citationrecog(e) {
     $('select#select_difficulty').val(recognitionresult.informations.difficulty);
     $('select#select_level').val(recognitionresult.informations.level);
     $('input#text_notes').val(recognitionresult.informations.notes);
-    $('input#text_musicname').val(recognitionresult.informations.musicname);
+    $('input#text_songname').val(recognitionresult.informations.songname);
 
-    $('input#text_musicname')
+    $('input#text_songname')
       .focus()
       .select();
   }
@@ -415,7 +415,7 @@ async function onclick_citationrecog(e) {
     $('select#select_difficulty').val(null);
     $('select#select_level').val(null);
     $('input#text_notes').val(null);
-    $('input#text_musicname').val(null);
+    $('input#text_songname').val(null);
   }
 
   if(recognitionresult !== null && recognitionresult.details !== null) {
@@ -517,18 +517,18 @@ async function display_keytable() {
   $('tr.keyitem').remove();
 
   const only_notannotation = $('input#check_onlynotannotation').prop('checked');
-  const only_undefinedmusicname = $('input#check_onlyundefinedmusicname').prop('checked');
+  const only_undefinedsongname = $('input#check_onlyundefinedsongname').prop('checked');
   const only_fullcombo = $('input#check_onlyfullcombo').prop('checked');
   const only_ignore = $('input#check_onlyignore').prop('checked');
-  const musicnamefilter = $('input#text_musicnamefilter').val();
+  const songnamefilter = $('input#text_songnamefilter').val();
   const keyfilter = $('input#text_keyfilter').val();
 
   keys = JSON.parse(await webui.get_collectionkeys(JSON.stringify({
     'only_notannotation': only_notannotation,
-    'only_undefinedmusicname': only_undefinedmusicname,
+    'only_undefinedsongname': only_undefinedsongname,
     'only_fullcombo': only_fullcombo,
     'only_ignore': only_ignore,
-    'musicnamefilter': musicnamefilter.length ? musicnamefilter : null,
+    'songnamefilter': songnamefilter.length ? songnamefilter : null,
     'keyfilter': keyfilter.length ? keyfilter : null,
   })));
   for(const key of keys) {

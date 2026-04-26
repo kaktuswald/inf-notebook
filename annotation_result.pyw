@@ -92,14 +92,14 @@ class GuiApi():
         if conditions['only_notannotation']:
             targetkeys = [key for key in targetkeys if not key in labels.keys()]
 
-        if conditions['only_undefinedmusicname'] or conditions['only_fullcombo'] or conditions['musicnamefilter'] is not None:
+        if conditions['only_undefinedsongname'] or conditions['only_fullcombo'] or conditions['songnamefilter'] is not None:
             targetkeys = [key for key in targetkeys if key in labels.keys()]
 
-        if conditions['only_undefinedmusicname'] or conditions['musicnamefilter'] is not None:
+        if conditions['only_undefinedsongname'] or conditions['songnamefilter'] is not None:
             targetkeys = [key for key in targetkeys if 'informations' in labels[key].keys() and labels[key]['informations'] is not None]
 
-        if conditions['only_undefinedmusicname']:
-            targetkeys = [key for key in targetkeys if not 'music' in labels[key]['informations'].keys() or labels[key]['informations']['music'] in [None, '']]
+        if conditions['only_undefinedsongname']:
+            targetkeys = [key for key in targetkeys if not 'songname' in labels[key]['informations'].keys() or labels[key]['informations']['songname'] in [None, '']]
 
         if conditions['only_ignore']:
             targetkeys = [key for key in targetkeys if key in labels.keys() and 'ignore' in labels[key].keys() and labels[key]['ignore']]
@@ -108,9 +108,9 @@ class GuiApi():
             targetkeys = [key for key in targetkeys if 'details' in labels[key].keys() and labels[key]['details'] is not None]
             targetkeys = [key for key in targetkeys if ('clear_type_best' in labels[key]['details'].keys() and labels[key]['details']['clear_type_best'] == 'F-COMBO') or ('clear_type_current' in labels[key]['details'].keys() and labels[key]['details']['clear_type_current'] == 'F-COMBO')]
 
-        if conditions['musicnamefilter'] is not None:
-            targetkeys = [key for key in targetkeys if 'music' in labels[key]['informations'].keys() and labels[key]['informations']['music'] is not None]
-            targetkeys = [key for key in targetkeys if conditions['musicnamefilter'] in labels[key]['informations']['music']]
+        if conditions['songnamefilter'] is not None:
+            targetkeys = [key for key in targetkeys if 'songname' in labels[key]['informations'].keys() and labels[key]['informations']['songname'] is not None]
+            targetkeys = [key for key in targetkeys if conditions['songnamefilter'] in labels[key]['informations']['songname']]
 
         if conditions['keyfilter'] is not None:
             targetkeys = [key for key in targetkeys if conditions['keyfilter'] in key]
@@ -169,7 +169,7 @@ class GuiApi():
                 'difficulty': result.difficulty,
                 'level': result.level,
                 'notes': result.notes,
-                'musicname': result.songname,
+                'songname': result.songname,
             }
 
         details = None
@@ -258,7 +258,7 @@ if __name__ == '__main__':
 
     api = GuiApi(window)
 
-    window.show('web_annotations/annotation_result.html')
+    window.show('web_manage/annotation_result.html')
     handle = gethandle(windowtitle)
     if handle:
         maximize(handle)

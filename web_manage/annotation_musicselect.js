@@ -11,13 +11,13 @@ $(function() {
   $('button#button_delete').on('click', onclick_delete);
 
   $('input#check_onlynotannotation').on('change', display_keytable);
-  $('input#check_onlyundefinedmusicname').on('change', display_keytable);
+  $('input#check_onlyundefinedsongname').on('change', display_keytable);
   $('input#check_onlyundefinedversion').on('change', display_keytable);
   $('input#check_onlyignore').on('change', display_keytable);
-  $('input#text_musicnamefilter').on('input', display_keytable);
+  $('input#text_songnamefilter').on('input', display_keytable);
   $('input#text_keyfilter').on('input', display_keytable);
 
-  $('input#text_musicnamefilter').on('click', onclick_filter);
+  $('input#text_songnamefilter').on('click', onclick_filter);
   $('input#text_keyfilter').on('click', onclick_filter);
 });
 
@@ -118,8 +118,8 @@ async function onclick_keyitem(e) {
   if(label !== null) {
     $('select#select_playmode').val(label.playmode);
     $('select#select_version').val(label.version);
-    $('select#select_musictype').val(label.musictype);
-    $('input#text_musicname').val(label.musicname);
+    $('select#select_songnametype').val(label.songnametype);
+    $('input#text_songname').val(label.songname);
     $('select#select_difficulty').val(label.difficulty);
     $('input#check_nohasscoredata').prop('checked', label.nohasscoredata);
     $('select#select_cleartype').val(label.cleartype);
@@ -137,8 +137,8 @@ async function onclick_keyitem(e) {
   else {
     $('select#select_playmode').val(null);
     $('select#select_version').val(null);
-    $('select#select_musictype').val(null);
-    $('input#text_musicname').val(null);
+    $('select#select_songnametype').val(null);
+    $('input#text_songname').val(null);
     $('select#select_difficulty').val(null);
     $('input#check_nohasscoredata').prop('checked', false);
     $('select#select_cleartype').val(null);
@@ -164,7 +164,7 @@ async function onclick_keyitem(e) {
 
     $('span#text_resultplaymode').text(recognitionresult.playmode);
     $('span#text_resultversion').text(recognitionresult.version);
-    $('span#text_resultmusicname').text(recognitionresult.musicname);
+    $('span#text_resultsongname').text(recognitionresult.songname);
     $('span#text_resultdifficulty').text(recognitionresult.difficulty);
     $('span#text_hasscoredata').text(recognitionresult.hasscoredata ? 'あり' : 'なし');
     $('span#text_resultcleartype').text(recognitionresult.cleartype);
@@ -181,7 +181,7 @@ async function onclick_keyitem(e) {
 
     $('span#text_resultplaymode').empty();
     $('span#text_resultversion').empty();
-    $('span#text_resultmusicname').empty();
+    $('span#text_resultsongname').empty();
     $('span#text_resultdifficulty').empty();
     $('span#text_hasscoredata').empty();
     $('span#text_resultcleartype').empty();
@@ -207,8 +207,8 @@ async function onclick_labeloverwrite(e) {
     'level_another': $('select#select_levelanother').val(),
     'level_leggendaria': $('select#select_levelleggendaria').val(),
     'version': $('select#select_version').val(),
-    'musictype': $('select#select_musictype').val(),
-    'musicname': $('input#text_musicname').val(),
+    'songnametype': $('select#select_songnametype').val(),
+    'songname': $('input#text_songname').val(),
     'nohasscoredata': $('input#check_nohasscoredata').prop('checked'),
     'cleartype': $('select#select_cleartype').val(),
     'djlevel': $('select#select_djlevel').val(),
@@ -237,13 +237,13 @@ async function onclick_citationrecog(e) {
   $('select#select_version').val(recognitionresult.version);
 
   if(recognitionresult.version != 'INFINITAS' && recognitionresult.difficulty != 'LEGGENDARIA')
-    $('select#select_musictype').val('ARCADE')
+    $('select#select_songnametype').val('ARCADE')
   if(recognitionresult.version == 'INFINITAS')
-    $('select#select_musictype').val('INFINITAS')
+    $('select#select_songnametype').val('INFINITAS')
   if(recognitionresult.difficulty == 'LEGGENDARIA')
-    $('select#select_musictype').val('LEGGENDARIA')
+    $('select#select_songnametype').val('LEGGENDARIA')
 
-  $('input#text_musicname').val(recognitionresult.musicname);
+  $('input#text_songname').val(recognitionresult.songname);
   $('select#select_difficulty').val(recognitionresult.difficulty);
   $('input#check_nohasscoredata').prop('checked', !recognitionresult.hasscoredata);
   $('select#select_cleartype').val(recognitionresult.cleartype);
@@ -256,7 +256,7 @@ async function onclick_citationrecog(e) {
   $('select#select_levelanother').val(recognitionresult.levels.ANOTHER);
   $('select#select_levelleggendaria').val(recognitionresult.levels.LEGGENDARIA);
 
-  $('input#text_musicname')
+  $('input#text_songname')
     .focus()
     .select();
 }
@@ -290,18 +290,18 @@ async function display_keytable() {
   $('tr.keyitem').remove();
 
   const only_notannotation = $('input#check_onlynotannotation').prop('checked');
-  const only_undefinedmusicname = $('input#check_onlyundefinedmusicname').prop('checked');
+  const only_undefinedsongname = $('input#check_onlyundefinedsongname').prop('checked');
   const only_undefinedversion = $('input#check_onlyundefinedversion').prop('checked');
   const only_ignore = $('input#check_onlyignore').prop('checked');
-  const musicnamefilter = $('input#text_musicnamefilter').val();
+  const songnamefilter = $('input#text_songnamefilter').val();
   const keyfilter = $('input#text_keyfilter').val();
 
   keys = JSON.parse(await webui.get_collectionkeys(JSON.stringify({
     'only_notannotation': only_notannotation,
-    'only_undefinedmusicname': only_undefinedmusicname,
+    'only_undefinedsongname': only_undefinedsongname,
     'only_undefinedversion': only_undefinedversion,
     'only_ignore': only_ignore,
-    'musicnamefilter': musicnamefilter.length ? musicnamefilter : null,
+    'songnamefilter': songnamefilter.length ? songnamefilter : null,
     'keyfilter': keyfilter.length ? keyfilter : null,
   })));
   for(const key of keys) {
