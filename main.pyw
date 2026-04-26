@@ -2155,7 +2155,7 @@ def musicselect_process(image:Image.Image, np_value: array):
         return
     
     if scoreselection is not None:
-        if chartselection.playtype == playtype and chartselection.songname == musicname and chartselection.difficulty == difficulty:
+        if scoreselection.playtype == playtype and scoreselection.musicname == musicname and scoreselection.difficulty == difficulty:
             return
     
     scoreselection = ScoreSelection(playtype, musicname, difficulty)
