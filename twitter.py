@@ -109,20 +109,20 @@ def post_results(values: list[dict], hashtags: str):
                 line.append(' '.join(v for v in [result['update_clear_type'], result['update_dj_level']] if v is not None))
             else:
                 if result['update_score'] is not None:
-                    line.append(f"自己ベスト+{result['update_score']}")
+                    line.append(f'自己ベスト+{result['update_score']}')
                 else:
                     if result['update_miss_count'] is not None:
-                        line.append(f"ミスカウント{result['update_miss_count']}")
+                        line.append(f'ミスカウント{result['update_miss_count']}')
                     else:
                         line.append('')
         else:
-            line.append(f"{result['playspeed']:.2f}倍")
+            line.append(f'{result['playspeed']:.2f}倍')
 
         if result['option'] is not None:
             if result['option'] == '':
                 line.append('(正規)')
             else:
-                line.append(f"({result['option']})")
+                line.append(f'({result['option']})')
         else:
             line.append('')
 
@@ -137,10 +137,10 @@ def post_scoreinformation(playtype: str, difficulty: str, musicname: str, record
     lines = [score_format(playtype, difficulty, musicname)]
 
     if 'timestamps' in record.keys():
-        lines.append(f"今までプレイ回数: {len(record['timestamps'])} 回")
+        lines.append(f'今までプレイ回数: {len(record['timestamps'])} 回')
     
     if 'latest' in record.keys() and 'timestamp' in record['latest'].keys() and record['latest']['timestamp'] is not None:
-        lines.append(f"最近のプレイ: {timestamp_format(record['latest']['timestamp'])}")
+        lines.append(f'最近のプレイ: {timestamp_format(record['latest']['timestamp'])}')
 
     if 'best' in record.keys():
         for key, label in [('score', 'スコア'), ('miss_count', 'ミスカウント'),]:
@@ -149,7 +149,7 @@ def post_scoreinformation(playtype: str, difficulty: str, musicname: str, record
                     dt = timestamp_format(record['best'][key]['timestamp'])
                 else:
                     dt = '日時不明'
-                lines.append(f"{label}: {record['best'][key]['value']}({dt})")
+                lines.append(f'{label}: {record['best'][key]['value']}({dt})')
 
     if 'achievement' in record.keys():
         for key, label in [('fixed', '正規orミラー'), ('S-RANDOM', 'S-RANDOM'),]:
@@ -161,7 +161,7 @@ def post_scoreinformation(playtype: str, difficulty: str, musicname: str, record
                     achievements.append(record['achievement'][key]['dj_level'])
                 if len(achievements) > 0:
                     lines.append('')
-                    lines.append(f"{label} で {' '.join(achievements)} 達成済み")
+                    lines.append(f'{label} で {' '.join(achievements)} 達成済み')
 
     text = quote('\n'.join((*lines, hashtags)))
     url = f'{post_url}?text={text}'

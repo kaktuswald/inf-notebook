@@ -27,7 +27,7 @@ def load_define() -> dict:
         with open(recognition_define_filepath) as f:
             loaded = load(f)
     except Exception:
-        print(f"{recognition_define_filepath}を読み込めませんでした。")
+        print(f'{recognition_define_filepath}を読み込めませんでした。')
         return None
     
     ret = {

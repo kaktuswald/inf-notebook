@@ -130,7 +130,7 @@ def load_raws():
 
         raws[filename] = RawData(np.array(Image.open(filepath).convert('RGB'), dtype=np.uint8), label)
     
-    print(f"raw count: {len(raws)}")
+    print(f'raw count: {len(raws)}')
 
     return raws
 

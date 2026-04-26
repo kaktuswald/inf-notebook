@@ -149,7 +149,7 @@ class NotebookMusic(Notebook):
             ファイル名から曲名にデコードする場合は
             bytes.fromhex('ファイル名').decode('utf-8')
         '''
-        self.filename = f"{musicname.encode('utf-8').hex()}.json"
+        self.filename = f'{musicname.encode('utf-8').hex()}.json'
         super().__init__()
     
     def get_scoreresult(self, playtype: str, difficulty: str):

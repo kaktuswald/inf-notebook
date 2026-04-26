@@ -59,7 +59,7 @@ def load_arcade_scorefiles(report):
     arcadedata = {}
 
     for playmode, dirpath in arcade_scorefile_dirpaths.items():
-        for filepath in glob(join(dirpath, "*.csv")):
+        for filepath in glob(join(dirpath, '*.csv')):
             report.append_log(f'load {playmode}: {filepath}')
             with open(filepath, 'r', encoding='utf-8') as f:
                 lines = f.read().split('\n')
@@ -99,7 +99,7 @@ def load_arcade_scorefiles(report):
 def load_versions():
     with open(versions_filepath, 'r', encoding='utf-8') as f:
         lines = f.read().split('\n')
-        lines.remove("")
+        lines.remove('')
 
     versions = {}
     for version in lines:
@@ -147,7 +147,7 @@ def reflect_collections(report, table):
         with open(label_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{label_filepath}を読み込めませんでした。")
+        print(f'{label_filepath}を読み込めませんでした。')
         exit()
 
     output = []
@@ -255,11 +255,11 @@ def evaluate_scoredata(report, table, arcadedata):
             values = ','.join(set([v['value'] for v in arcadedata[musicname]['version']]))
             arcade_only_music.append(f'- {musicname}({values})')
         if musicname in listed_infinitas_only_musics:
-            report.error(f"Infinitas only list error: {musicname}(Existing arcade.)")
+            report.error(f'Infinitas only list error: {musicname}(Existing arcade.)')
     
     for musicname in table['musics'].keys():
         if not musicname in arcadedata.keys():
-            infinitas_only_music.append(f"- {musicname} ({table['musics'][musicname]['version']})")
+            infinitas_only_music.append(f'- {musicname} ({table['musics'][musicname]['version']})')
             if not musicname in listed_infinitas_only_musics:
                 report.error(f'Infinitas only list error: {musicname}(Not included.)')
             continue
@@ -268,7 +268,7 @@ def evaluate_scoredata(report, table, arcadedata):
         if len(versions) != 1:
             report.error(f'Duplicate arcade version {musicname}')
             for v in arcadedata[musicname]['version']:
-                report.error(f"{v['filename']: v['value']}")
+                report.error(f'{v['filename']}: {v['value']}')
             continue
 
         version = versions[0]
@@ -283,7 +283,7 @@ def evaluate_scoredata(report, table, arcadedata):
                 reimportation_from_infinitas.append(f'- {musicname}({version})')
                 continue
 
-            report.error(f"Wrong version {musicname}: {target['version']}")
+            report.error(f'Wrong version {musicname}: {target['version']}')
             continue
 
         for playmode in Playmodes.values:
@@ -295,7 +295,7 @@ def evaluate_scoredata(report, table, arcadedata):
                             levels = ','.join(uniques)
                             mismatch_level.append(f'- {musicname}[{playmode}{difficulty[0]}]: {target[playmode][difficulty]} (ARCADE {levels} )')
                     else:
-                        infinitas_only_difficulty.append(f"- {musicname}[{playmode}{difficulty[0]}]")
+                        infinitas_only_difficulty.append(f'- {musicname}[{playmode}{difficulty[0]}]')
                 else:
                     if len(arcadedata[musicname][playmode][difficulty]) > 0:
                         levels = ','.join(set([v['value'] for v in arcadedata[musicname][playmode][difficulty]]))
@@ -332,10 +332,10 @@ def evaluate_categories(report, table):
     for version in versions.keys():
         if version in count_versions.keys():
             if len(versions[version]) != count_versions[version]:
-                report.error(f"{version} count NG: {len(versions[version])}, {count_versions[version]}")
+                report.error(f'{version} count NG: {len(versions[version])}, {count_versions[version]}')
         else:
             if len(versions[version]) > 0:
-                report.error(f"mismatch version {version}: {len(versions[version])}")
+                report.error(f'mismatch version {version}: {len(versions[version])}')
         filename = f'version-{version}.txt'
         filepath = join(report_basedir_musictable, filename)
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -353,13 +353,13 @@ def evaluate_categories(report, table):
     for playmode in Playmodes.values:
         for level in define.value_list['levels']:
             if len(levels[playmode][level]) == count_levels[playmode][level]:
-                report.append_log(f"{playmode} {level} count: {len(levels[playmode][level])}")
+                report.append_log(f'{playmode} {level} count: {len(levels[playmode][level])}')
             else:
-                report.error(f"{playmode} {level} count NG: {len(levels[playmode][level])}, {count_levels[playmode][level]}")
+                report.error(f'{playmode} {level} count NG: {len(levels[playmode][level])}, {count_levels[playmode][level]}')
             filename = f'category-{playmode}-{level}.txt'
             filepath = join(report_basedir_musictable, filename)
             with open(filepath, 'w', encoding='utf-8') as f:
-                f.write('\n'.join([f"{item['music']} {item['difficulty']}" for item in levels[playmode][level]]))
+                f.write('\n'.join([f'{item['music']} {item['difficulty']}' for item in levels[playmode][level]]))
     
     with open(categorycount_difficulties_filepath, 'r', encoding='utf-8') as f:
         count_difficulties = {}
@@ -372,7 +372,7 @@ def evaluate_categories(report, table):
     if len(beginners) == count_difficulties['SPB']:
         report.append_log(f'SP BEGINNER count: {len(beginners)}')
     else:
-        report.error(f"SP BEGINNER count NG: {len(beginners)}, {count_difficulties['SPB']}")
+        report.error(f'SP BEGINNER count NG: {len(beginners)}, {count_difficulties['SPB']}')
     filename = f'category-beginner.txt'
     filepath = join(report_basedir_musictable, filename)
     with open(filepath, 'w', encoding='utf-8') as f:
@@ -401,7 +401,7 @@ def filenametest(table):
         if not exists(filepath):
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(f'{music}\n')
-                f.write(f'{music.encode("utf-8").hex()}\n')
+                f.write(f'{music.encode('utf-8').hex()}\n')
 
 def generate_musictable():
     versions = load_versions()
@@ -420,7 +420,7 @@ def generate_musictable():
 
     evaluate_scoredata(report, table, arcadedata)
 
-    report.append_log(f"music count: {len(table['musics'])}")
+    report.append_log(f'music count: {len(table['musics'])}')
 
     evaluate_categories(report, table)
     

@@ -47,7 +47,7 @@ def load_define():
         with open(recognition_define_filepath) as f:
             ret = json.load(f)
     except Exception:
-        print(f"{recognition_define_filepath}を読み込めませんでした。")
+        print(f'{recognition_define_filepath}を読み込めませんでした。')
         return None
     
     return ret
@@ -552,7 +552,7 @@ if __name__ == '__main__':
         with open(label_resultothers_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{label_resultothers_filepath}を読み込めませんでした。")
+        print(f'{label_resultothers_filepath}を読み込めませんでした。')
         exit()
 
     resultothers_define = load_define()

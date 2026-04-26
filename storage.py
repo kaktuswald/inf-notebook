@@ -414,7 +414,7 @@ class StorageAccessor():
             if not 'enddatetime' in content.keys():
                 continue
 
-            enddt = datetime.strptime(content['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+            enddt = datetime.strptime(content['enddatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
             nowdt = datetime.now(timezone.utc)
 
             if nowdt <= enddt + timedelta(weeks=1):

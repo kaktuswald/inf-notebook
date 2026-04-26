@@ -19,7 +19,7 @@ from googleapi_clientconfig import googleapi_clientconfig
 from appdata import load_googleapi_credentials,save_googleapi_credentials,delete_googleapi_credentials
 
 SCOPES = [
-    "https://www.googleapis.com/auth/drive.file",
+    'https://www.googleapis.com/auth/drive.file',
 ]
 
 export_dirpath = WindowsPath(Path.cwd()).joinpath(export_dirname)
@@ -95,7 +95,7 @@ class GoogleApiAccesor():
 
     def check_file(self, fileid=str) -> bool:
         if self.service is None:
-            self.service = build("drive", "v3", credentials=self.credentials)
+            self.service = build('drive', 'v3', credentials=self.credentials)
 
         try:
             result = self.service.files().get(
@@ -113,7 +113,7 @@ class GoogleApiAccesor():
 
     def create_folder(self) -> str|None:
         if self.service is None:
-            self.service = build("drive", "v3", credentials=self.credentials)
+            self.service = build('drive', 'v3', credentials=self.credentials)
 
         result = self.service.files().create(
             body={

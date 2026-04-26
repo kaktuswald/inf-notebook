@@ -330,7 +330,7 @@ function onclick_button_dialogclose(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_button_close(e) {
-  window.parent.postMessage("export_close", "*");
+  window.parent.postMessage('export_close', '*');
 }
 
 function generatecss_recent() {
@@ -383,7 +383,7 @@ function generatecss_recent() {
   });
 
   $('span#csstarget').text('最近のデータ');
-  $("textarea#css").val(css.join("\n"));
+  $('textarea#css').val(css.join('\n'));
 
   update();
 }

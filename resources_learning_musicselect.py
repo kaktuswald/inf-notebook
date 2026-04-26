@@ -50,7 +50,7 @@ def load_define() -> dict:
         with open(recognition_define_filepath) as f:
             ret = json.load(f)
     except Exception:
-        print(f"{recognition_define_filepath}を読み込めませんでした。")
+        print(f'{recognition_define_filepath}を読み込めませんでした。')
         return None
     
     return ret
@@ -262,7 +262,7 @@ def learning_levels():
 
                 if tablekey in resource['levels'][selectstate][difficulty]['table'].keys():
                     levelresult = resource['levels'][selectstate][difficulty]['table'][tablekey]
-                    if level_key in target.label.keys() and target.label[level_key] != "" and levelresult == target.label[level_key]:
+                    if level_key in target.label.keys() and target.label[level_key] != '' and levelresult == target.label[level_key]:
                         report_levels.through()
                     else:
                         report_levels.saveimage_errorvalue(trimmed, f'{key}-{difficulty}-{target.label[level_key]}.png')
@@ -275,9 +275,9 @@ def learning_levels():
             if str.upper(selectdifficulty) == target.label['difficulty']:
                 report_levels.through()
             else:
-                report_levels.error(f'Mismatch {key} select {selectdifficulty} {target.label["difficulty"]}')
+                report_levels.error(f'Mismatch {key} select {selectdifficulty} {target.label['difficulty']}')
         else:
-            report_levels.error(f'Unrecognized {key} {target.label["difficulty"]}')
+            report_levels.error(f'Unrecognized {key} {target.label['difficulty']}')
 
     report_levels.report()
     
@@ -351,7 +351,7 @@ def learning_cleartype():
     table = {}
     evaluate_targets = {}
     for key, target in imagevalues.items():
-        if not 'cleartype' in target.label.keys() or target.label['cleartype'] == "":
+        if not 'cleartype' in target.label.keys() or target.label['cleartype'] == '':
             continue
 
         value = target.label['cleartype']
@@ -410,7 +410,7 @@ def learning_djlevel():
     table = {}
     evaluate_targets = {}
     for key, target in imagevalues.items():
-        if not 'djlevel' in target.label.keys() or target.label['djlevel'] == "":
+        if not 'djlevel' in target.label.keys() or target.label['djlevel'] == '':
             continue
 
         value = target.label['djlevel']
@@ -484,7 +484,7 @@ def learning_number():
     evaluate_targets = {}
     targetkeys = {}
     for key, target in imagevalues.items():
-        if 'score' in target.label.keys() and target.label['score'] != "":
+        if 'score' in target.label.keys() and target.label['score'] != '':
             value = int(target.label['score']) % 10
             trimmed = target.np_value[trim_score]
             splitted = np.hsplit(trimmed, digit_score)
@@ -498,7 +498,7 @@ def learning_number():
 
             evaluate_targets[f'score_{key}'] = target
 
-        if 'misscount' in target.label.keys() and target.label['misscount'] != "":
+        if 'misscount' in target.label.keys() and target.label['misscount'] != '':
             value = int(target.label['misscount']) % 10
             trimmed = target.np_value[trim_misscount]
             splitted = np.hsplit(trimmed, digit_misscount)
@@ -520,7 +520,7 @@ def learning_number():
             report_number.append_log(f'{value}: {keys} ({targetkeys[value]})')
 
     for key, target in evaluate_targets.items():
-        if 'score' in target.label.keys() and target.label['score'] != "":
+        if 'score' in target.label.keys() and target.label['score'] != '':
             trimmed = target.np_value[trim_score]
 
             result = 0
@@ -540,9 +540,9 @@ def learning_number():
                 report_number.through()
             else:
                 report_number.saveimage_errorvalue(trimmed, f'{key}.png')
-                report_number.error(f"Mismatch score {result} {target.label['score']} {key}")
+                report_number.error(f'Mismatch score {result} {target.label['score']} {key}')
 
-        if 'misscount' in target.label.keys() and target.label['misscount'] != "":
+        if 'misscount' in target.label.keys() and target.label['misscount'] != '':
             trimmed = target.np_value[trim_misscount]
 
             result = 0
@@ -560,7 +560,7 @@ def learning_number():
                 report_number.through()
             else:
                 report_number.saveimage_errorvalue(trimmed, f'{key}.png')
-                report_number.error(f"Mismatch miss count {result} {target.label['misscount']} {key}")
+                report_number.error(f'Mismatch miss count {result} {target.label['misscount']} {key}')
 
     resource['score'] = {
         'trim': trim_score,
@@ -800,9 +800,9 @@ def learning_songname():
         targets[musictype] = {}
 
     for key, target in imagevalues.items():
-        if not 'musictype' in target.label.keys() or target.label['musictype'] == "":
+        if not 'musictype' in target.label.keys() or target.label['musictype'] == '':
             continue
-        if not 'musicname' in target.label.keys() or target.label['musicname'] == "":
+        if not 'musicname' in target.label.keys() or target.label['musicname'] == '':
             continue
         if not 'after260312' in target.label.keys() or not target.label['after260312']:
             continue
@@ -901,7 +901,7 @@ def learning_version():
             for line in f.read().splitlines():
                 versions.extend(line.strip().split('&'))
     except Exception:
-        print(f"{versions_filepath}を読み込めませんでした。")
+        print(f'{versions_filepath}を読み込めませんでした。')
         return
     
     tables = []
@@ -1038,7 +1038,7 @@ def evaluate():
             report_evaluate.error(f'Not registered {songname}({escaped})')
     
     for songname in evaluate_musictable.keys():
-        if songname != "" and not songname in table.keys():
+        if songname != '' and not songname in table.keys():
             report_evaluate.error(f'Not exist {songname}')
     
     report_evaluate.report()
@@ -1053,7 +1053,7 @@ if __name__ == '__main__':
         with open(label_musicselect_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{label_musicselect_filepath}を読み込めませんでした。")
+        print(f'{label_musicselect_filepath}を読み込めませんでした。')
         exit()
 
     musicselect_define = load_define()

@@ -180,7 +180,7 @@ class Recognition():
                     intensity = unique[index]
                     bins = np.where(masked[height]==intensity, 1, 0)
                     hexs = bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-                    tablekey = f"{height:02d}{''.join([format(v, '0x') for v in hexs])}"
+                    tablekey = f'{height:02d}{''.join([format(v, '0x') for v in hexs])}'
                 else:
                     tablekey = f'{height:02d}'
                 if not tablekey in targettable.keys():

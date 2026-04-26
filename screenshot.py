@@ -70,7 +70,7 @@ class Capture:
         self.bmi.bmiHeader.biCompression = 0
         self.bmi.bmiHeader.biSizeImage = 0
 
-        self.screen = windll.gdi32.CreateDCW("DISPLAY", None, None, None)
+        self.screen = windll.gdi32.CreateDCW('DISPLAY', None, None, None)
         self.screen_copy = windll.gdi32.CreateCompatibleDC(self.screen)
         self.bitmap = windll.gdi32.CreateCompatibleBitmap(self.screen, self.width, self.height)
 
@@ -144,7 +144,7 @@ class Screenshot:
 
     def get_resultscreen(self):
         now = datetime.now()
-        filename = f"{now.strftime('%Y%m%d-%H%M%S-%f')}.png"
+        filename = f'{now.strftime('%Y%m%d-%H%M%S-%f')}.png'
 
         return Screen(self.np_value, filename)
 

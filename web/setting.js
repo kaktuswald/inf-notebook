@@ -322,7 +322,7 @@ async function onclick_button_save(e) {
     'summaries': summaries,
   }));
 
-  window.parent.postMessage("setting_close", "*");
+  window.parent.postMessage('setting_close', '*');
 }
 
 /**
@@ -332,7 +332,7 @@ async function onclick_button_save(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_button_close(e) {
-  window.parent.postMessage("setting_close", "*");
+  window.parent.postMessage('setting_close', '*');
 }
 
 function change_googleapi_authenticatedstate(is_authenticated) {

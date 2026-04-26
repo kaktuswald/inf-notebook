@@ -122,7 +122,7 @@ class Result():
         self.check_new()
 
         now = datetime.now()
-        self.timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
+        self.timestamp = f'{now.strftime('%Y%m%d-%H%M%S')}'
     
     @property
     def has_newrecord(self):

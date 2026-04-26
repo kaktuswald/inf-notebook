@@ -342,7 +342,7 @@ def generate_exportsettingcss(port: int):
     domain = 'localhost'
 
     if exists(settingcss_filepath):
-        with open(settingcss_filepath, "r", encoding="utf-8") as f:
+        with open(settingcss_filepath, 'r', encoding='utf-8') as f:
             css_content = f.read()
 
             pattern_url = r'\:root\s*{[^}]*--ws-url:\s*([^;]+);'
@@ -353,7 +353,7 @@ def generate_exportsettingcss(port: int):
                 if domainresult:
                     domain = domainresult.group(1)
     
-    with open(settingcss_filepath, "w", encoding="utf-8") as f:
+    with open(settingcss_filepath, 'w', encoding='utf-8') as f:
         f.write(':root {\n')
         f.write(f'    --ws-url: ws://{domain}:{port};\n')
         f.write('}\n')

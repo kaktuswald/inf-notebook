@@ -57,11 +57,11 @@ def load_define() -> dict:
         with open(recognition_define_filepath) as f:
             ret = json.load(f)
     except Exception:
-        print(f"{recognition_define_filepath}を読み込めませんでした。")
+        print(f'{recognition_define_filepath}を読み込めませんでした。')
         return None
     
     if not 'resourceversion' in ret.keys() or ret['resourceversion'] != define.details_recognition_version:
-        print(f"{recognition_define_filepath}のリソースバージョンが一致しません。")
+        print(f'{recognition_define_filepath}のリソースバージョンが一致しません。')
         return None
 
     graphtypes = {}
@@ -423,14 +423,14 @@ def learning_cleartype(details, report:Report) -> dict:
     table = {}
     evaluate_targets = {}
     for key, target in details.items():
-        if 'clear_type_best' in target.label.keys() and target.label['clear_type_best'] != "":
+        if 'clear_type_best' in target.label.keys() and target.label['clear_type_best'] != '':
             value = target.label['clear_type_best']
             trimmed = target.np_value[details_define['clear_type']['best']]
             uniques, counts = np.unique(trimmed, return_counts=True)
             color = uniques[np.argmax(counts)]
             table[color] = value
         
-        if 'clear_type_current' in target.label.keys() and target.label['clear_type_current'] != "":
+        if 'clear_type_current' in target.label.keys() and target.label['clear_type_current'] != '':
             value = target.label['clear_type_current']
             trimmed = target.np_value[details_define['clear_type']['current']]
             uniques, counts = np.unique(trimmed, return_counts=True)
@@ -446,7 +446,7 @@ def learning_cleartype(details, report:Report) -> dict:
         report_cleartype.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
-        if 'clear_type_best' in target.label.keys() and target.label['clear_type_best'] != "":
+        if 'clear_type_best' in target.label.keys() and target.label['clear_type_best'] != '':
             trimmed = target.np_value[details_define['clear_type']['best']]
             uniques, counts = np.unique(trimmed, return_counts=True)
             color = uniques[np.argmax(counts)]
@@ -461,7 +461,7 @@ def learning_cleartype(details, report:Report) -> dict:
                 report_cleartype.saveimage_errorvalue(trimmed, f'{key}-best.png')
                 report_cleartype.error(f'Mismatch best {result} {key}')
 
-        if 'clear_type_current' in target.label.keys() and target.label['clear_type_current'] != "":
+        if 'clear_type_current' in target.label.keys() and target.label['clear_type_current'] != '':
             trimmed = target.np_value[details_define['clear_type']['current']]
             uniques, counts = np.unique(trimmed, return_counts=True)
             color = uniques[np.argmax(counts)]
@@ -493,18 +493,18 @@ def learning_djlevel(details, report:Report) -> dict:
     table = {}
     evaluate_targets = {}
     for key, target in details.items():
-        if not 'dj_level_best' in target.label.keys() or target.label['dj_level_best'] == "":
+        if not 'dj_level_best' in target.label.keys() or target.label['dj_level_best'] == '':
             continue
-        if not 'dj_level_current' in target.label.keys() or target.label['dj_level_current'] == "":
+        if not 'dj_level_current' in target.label.keys() or target.label['dj_level_current'] == '':
             continue
 
-        if 'dj_level_best' in target.label.keys() and target.label['dj_level_best'] != "":
+        if 'dj_level_best' in target.label.keys() and target.label['dj_level_best'] != '':
             value = target.label['dj_level_best']
             trimmed = target.np_value[details_define['dj_level']['best']]
             count = np.count_nonzero(trimmed==details_define['dj_level']['maskvalue'])
             table[count] = value
         
-        if 'dj_level_current' in target.label.keys() and target.label['dj_level_current'] != "":
+        if 'dj_level_current' in target.label.keys() and target.label['dj_level_current'] != '':
             value = target.label['dj_level_current']
             trimmed = target.np_value[details_define['dj_level']['current']]
             count = np.count_nonzero(trimmed==details_define['dj_level']['maskvalue'])
@@ -519,7 +519,7 @@ def learning_djlevel(details, report:Report) -> dict:
         report_djlevel.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
-        if 'dj_level_best' in target.label.keys() and target.label['dj_level_best'] != "":
+        if 'dj_level_best' in target.label.keys() and target.label['dj_level_best'] != '':
             trimmed = target.np_value[details_define['dj_level']['best']]
             count = np.count_nonzero(trimmed==details_define['dj_level']['maskvalue'])
 
@@ -533,7 +533,7 @@ def learning_djlevel(details, report:Report) -> dict:
                 report_djlevel.saveimage_errorvalue(trimmed, f'{key}-best.png')
                 report_djlevel.error(f'Mismatch best {result} {key}({count})')
 
-        if 'dj_level_current' in target.label.keys() and target.label['dj_level_current'] != "":
+        if 'dj_level_current' in target.label.keys() and target.label['dj_level_current'] != '':
             trimmed = target.np_value[details_define['dj_level']['current']]
             count = np.count_nonzero(trimmed==details_define['dj_level']['maskvalue'])
 
@@ -564,7 +564,7 @@ def learning_numberbest(details, report:Report) -> dict:
     table = {}
     evaluate_targets = {}
     for key, target in details.items():
-        if 'score_best' in target.label.keys() and target.label['score_best'] != "":
+        if 'score_best' in target.label.keys() and target.label['score_best'] != '':
             value = int(target.label['score_best']) % 10
             trimmed = target.np_value[details_define['score']['best']]
             splitted = np.hsplit(trimmed, details_define['score']['digit'])
@@ -578,7 +578,7 @@ def learning_numberbest(details, report:Report) -> dict:
 
             evaluate_targets[f'score_{key}'] = target
 
-        if 'miss_count_best' in target.label.keys() and target.label['miss_count_best'] != "":
+        if 'miss_count_best' in target.label.keys() and target.label['miss_count_best'] != '':
             value = int(target.label['miss_count_best']) % 10
             trimmed = target.np_value[details_define['miss_count']['best']]
             splitted = np.hsplit(trimmed, details_define['miss_count']['digit'])
@@ -600,7 +600,7 @@ def learning_numberbest(details, report:Report) -> dict:
             report_numberbest.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
-        if 'score_best' in target.label.keys() and target.label['score_best'] != "":
+        if 'score_best' in target.label.keys() and target.label['score_best'] != '':
             trimmed = target.np_value[details_define['score']['best']]
 
             result = 0
@@ -620,10 +620,10 @@ def learning_numberbest(details, report:Report) -> dict:
                 report_numberbest.through()
             else:
                 report_numberbest.saveimage_errorvalue(trimmed, f'{key}.png')
-                report_numberbest.error(f"Mismatch score {result} {target.label['score_best']}")
+                report_numberbest.error(f'Mismatch score {result} {target.label['score_best']}')
                 report_numberbest.error(f'{keys}')
 
-        if 'miss_count_best' in target.label.keys() and target.label['miss_count_best'] != "":
+        if 'miss_count_best' in target.label.keys() and target.label['miss_count_best'] != '':
             trimmed = target.np_value[details_define['miss_count']['best']]
 
             result = 0
@@ -641,7 +641,7 @@ def learning_numberbest(details, report:Report) -> dict:
                 report_numberbest.through()
             else:
                 report_numberbest.saveimage_errorvalue(trimmed, f'{key}.png')
-                report_numberbest.error(f"Mismatch miss count {result} {target.label['miss_count_best']}")
+                report_numberbest.error(f'Mismatch miss count {result} {target.label['miss_count_best']}')
 
     report_numberbest.report()
 
@@ -660,7 +660,7 @@ def learning_numbercurrent(details, report:Report) -> dict:
     table = {}
     evaluate_targets = {}
     for key, target in details.items():
-        if 'score_current' in target.label.keys() and target.label['score_current'] != "":
+        if 'score_current' in target.label.keys() and target.label['score_current'] != '':
             value = int(target.label['score_current']) % 10
             trimmed = target.np_value[details_define['score']['current']]
             splitted = np.hsplit(trimmed, details_define['score']['digit'])
@@ -674,7 +674,7 @@ def learning_numbercurrent(details, report:Report) -> dict:
 
             evaluate_targets[f'score_{key}'] = target
 
-        if 'miss_count_current' in target.label.keys() and target.label['miss_count_current'] != "":
+        if 'miss_count_current' in target.label.keys() and target.label['miss_count_current'] != '':
             value = int(target.label['miss_count_current']) % 10
             trimmed = target.np_value[details_define['miss_count']['current']]
             splitted = np.hsplit(trimmed, details_define['miss_count']['digit'])
@@ -696,7 +696,7 @@ def learning_numbercurrent(details, report:Report) -> dict:
             report_numbercurrent.append_log(f'{value}: {keys}')
 
     for key, target in evaluate_targets.items():
-        if 'score_current' in target.label.keys() and target.label['score_current'] != "":
+        if 'score_current' in target.label.keys() and target.label['score_current'] != '':
             trimmed = target.np_value[details_define['score']['current']]
 
             result = 0
@@ -716,10 +716,10 @@ def learning_numbercurrent(details, report:Report) -> dict:
                 report_numbercurrent.through()
             else:
                 report_numbercurrent.saveimage_errorvalue(trimmed, f'{key}.png')
-                report_numbercurrent.error(f"Mismatch score {result} {target.label['score_current']}")
+                report_numbercurrent.error(f'Mismatch score {result} {target.label['score_current']}')
                 report_numbercurrent.error(f'{keys}')
 
-        if 'miss_count_current' in target.label.keys() and target.label['miss_count_current'] != "":
+        if 'miss_count_current' in target.label.keys() and target.label['miss_count_current'] != '':
             trimmed = target.np_value[details_define['miss_count']['current']]
 
             result = 0
@@ -737,7 +737,7 @@ def learning_numbercurrent(details, report:Report) -> dict:
                 report_numbercurrent.through()
             else:
                 report_numbercurrent.saveimage_errorvalue(trimmed, f'{key}.png')
-                report_numbercurrent.error(f"Mismatch miss count {result} {target.label['miss_count_current']}")
+                report_numbercurrent.error(f'Mismatch miss count {result} {target.label['miss_count_current']}')
 
     report_numbercurrent.report()
 
@@ -868,7 +868,7 @@ if __name__ == '__main__':
         with open(label_result_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{label_result_filepath}を読み込めませんでした。")
+        print(f'{label_result_filepath}を読み込めませんでした。')
         exit()
     
     details_define = load_define()

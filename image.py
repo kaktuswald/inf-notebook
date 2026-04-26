@@ -123,7 +123,7 @@ def get_scoreinformationimagepath(
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
     '''
     now = datetime.now()
-    timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
+    timestamp = f'{now.strftime('%Y%m%d-%H%M%S')}'
 
     return get_filepath(
         scoretype,
@@ -149,7 +149,7 @@ def get_scoregraphimagepath(
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
     '''
     now = datetime.now()
-    timestamp = f"{now.strftime('%Y%m%d-%H%M%S')}"
+    timestamp = f'{now.strftime('%Y%m%d-%H%M%S')}'
 
     return get_filepath(
         scoretype,

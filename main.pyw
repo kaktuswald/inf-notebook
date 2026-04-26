@@ -1491,11 +1491,11 @@ class GuiApi():
         event.return_string(dumps(import_arcadecsv(value)))
 
     def browse_file(self, event: webui.Event):
-        """ファイル選択ダイアログを開き、選択パスを返す
+        '''ファイル選択ダイアログを開き、選択パスを返す
 
         Returns:
             str | None: 選択されたファイルの絶対パス。未選択時は None
-        """
+        '''
         current = event.get_string_at(0)
         types = loads(event.get_string_at(1))
 
@@ -1526,11 +1526,11 @@ class GuiApi():
         event.return_string(dumps(filepath))
     
     def browse_directory(self, event: webui.Event):
-        """フォルダ選択ダイアログを開き、選択パスを返す
+        '''フォルダ選択ダイアログを開き、選択パスを返す
 
         Returns:
             str | None: 選択されたディレクトリの絶対パス。未選択時は None
-        """
+        '''
         current = event.get_string_at(0)
 
         root = Tk()
@@ -1558,27 +1558,27 @@ class GuiApi():
         event.return_string(dumps(directorypath))
     
     def googleapi_get_isauthenticated(self, event:webui.Event):
-        """Google APIの認証状態を返す
+        '''Google APIの認証状態を返す
 
         Returns:
             bool: 認証済みの場合はTrue
-        """
+        '''
         event.return_string(dumps(self.googleapi_accesor.credentials is not None))
-    
+
     def googleapi_authenticate(self, event: webui.Event):
-        """Google APIの認証を行う
+        '''Google APIの認証を行う
 
         Returns:
             bool: 成功時はTrue
-        """
+        '''
         event.return_string(dumps(self.googleapi_accesor.get_credentials()))
     
     def googleapi_deletecredentials(self, event: webui.Event):
-        """Google APIの認証を行う
+        '''Google APIの認証を行う
 
         Returns:
             bool: 成功時はTrue
-        """
+        '''
         result = self.googleapi_accesor.delete_credentialsfile()
         event.return_string(dumps(result))
 
@@ -1590,20 +1590,26 @@ class GuiApi():
             setting.save()
     
     def googleapi_driveupload(self, event: webui.Event):
-        """Google DriveへCSVのアップロードを実行する
-        """
+        '''Google DriveへCSVのアップロードを実行する
+        '''
         if self.googleapi_accesor.credentials is not None:
             if self.googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
                 setting.save()
     
     def send_message(self, message: str, data:object = None):
+        '''フロントエンドにメッセージを送信する
+
+        Args:
+            message(str): メッセージ名
+            data(object): 各種データ
+        '''
         if newwindow is None:
             return
         
         if data is None:
-            newwindow.run(f'communication_message("{message}");')
+            newwindow.run(f'communication_message(\'{message}\');')
         else:
-            newwindow.run(f'communication_message("{message}", {dumps(data)});')
+            newwindow.run(f'communication_message(\'{message}\', {dumps(data)});')
     
 class GuiApiExport():
     '''エクスポート画面のAPIクラス
@@ -1709,8 +1715,8 @@ class GuiApiDiscordWebhook():
             if not 'status' in value.keys():
                 value['status'] = DiscordwebhookStatuses.UPCOMING
             
-            startdt = datetime.strptime(value['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
-            enddt = datetime.strptime(value['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+            startdt = datetime.strptime(value['startdatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+            enddt = datetime.strptime(value['enddatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
 
             if nowdt > enddt + timedelta(weeks=1) or (value['mode'] == DiscordwebhookModes.BATTLE and nowdt > enddt):
                 deletetargets[key] = value
@@ -1801,12 +1807,12 @@ class GuiApiDiscordWebhook():
         for key, value in self.publicevents.items():
             published = not 'publishdatetime' in value.keys()
             if not published:
-                publishdt = datetime.strptime(value['publishdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+                publishdt = datetime.strptime(value['publishdatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
                 published = publishdt < nowdt
 
             if published:
-                startdt = datetime.strptime(value['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
-                enddt = datetime.strptime(value['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+                startdt = datetime.strptime(value['startdatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+                enddt = datetime.strptime(value['enddatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
                 
                 if nowdt >= enddt:
                     value['status'] = DiscordwebhookStatuses.ENDED
@@ -1865,8 +1871,8 @@ class GuiApiDiscordWebhook():
         webhook['targetscore'] = target['targetscore']
 
         nowdt = datetime.now(timezone.utc)
-        startdt = datetime.strptime(target['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
-        enddt = datetime.strptime(target['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        startdt = datetime.strptime(target['startdatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+        enddt = datetime.strptime(target['enddatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
         
         if nowdt >= enddt:
             event.return_string(dumps(False))
@@ -2250,8 +2256,8 @@ def post_discord_webhooks(result: Result, imagevalue: bytes):
         if not 'status' in webhooksetting.keys():
             webhooksetting['status'] = DiscordwebhookStatuses.UPCOMING
         
-        startdt = datetime.strptime(webhooksetting['startdatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
-        enddt = datetime.strptime(webhooksetting['enddatetime'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        startdt = datetime.strptime(webhooksetting['startdatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+        enddt = datetime.strptime(webhooksetting['enddatetime'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
         
         if webhooksetting['status'] != DiscordwebhookStatuses.ENDED:
             if nowdt_utc >= enddt:

@@ -60,7 +60,7 @@ def load_define() -> dict:
         with open(recognition_define_filepath) as f:
             ret = json.load(f)
     except Exception:
-        print(f"{recognition_define_filepath}を読み込めませんでした。")
+        print(f'{recognition_define_filepath}を読み込めませんでした。')
         return None
     
     ret['play_mode']['trim'] = (
@@ -285,7 +285,7 @@ def learning_difficulty(informations:dict) -> dict:
 
         if level != target.label['level']:
             report_difficulty.saveimage_errorvalue(trimmed, f'{key}.png')
-            report_difficulty.error(f"Mismatch level {difficulty} {level} {target.label['level']} {levelkey} {key}")
+            report_difficulty.error(f'Mismatch level {difficulty} {level} {target.label['level']} {levelkey} {key}')
             continue
 
         report_difficulty.through()
@@ -358,7 +358,7 @@ def learning_notes(informations:dict) -> dict:
             report_notes.through()
         else:
             report_notes.saveimage_errorvalue(trimmed, f'{key}.png')
-            report_notes.error(f"Mismatch {value} {target.label['notes']} {key}")
+            report_notes.error(f'Mismatch {value} {target.label['notes']} {key}')
 
     report_notes.report()
 
@@ -529,7 +529,7 @@ def learning_songname(informations:dict) -> dict:
                 intensity = unique[index]
                 bins = np.where(masked[height]==intensity, 1, 0)
                 hexs = bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-                tablekey = f"{height:02d}{''.join([format(v, '0x') for v in hexs])}"
+                tablekey = f'{height:02d}{''.join([format(v, '0x') for v in hexs])}'
             else:
                 tablekey = f'{height:02d}'
             if not tablekey in tabletarget.keys():
@@ -657,7 +657,7 @@ def learning_songname_generatemask(targets:dict, report:Report, name:str) -> arr
         output.append(music)
         for key, value in mask_report[music].items():
             if len(value) > 0:
-                output.append(f"{key}: ({len(value)}){' '.join([str(p) for p in value[:5]])}")
+                output.append(f'{key}: ({len(value)}){' '.join([str(p) for p in value[:5]])}')
 
     report.output_list(output, f'report_mask_{name}.txt')
 
@@ -689,7 +689,7 @@ def learning_songname_learning(targets:dict, report:Report, name:str) -> dict:
                     intensity = unique[index]
                     bins = np.where(value[height]==intensity, 1, 0)
                     hexs = bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-                    mapkeys.append(f"{height:02d}{''.join([format(v, '0x') for v in hexs])}")
+                    mapkeys.append(f'{height:02d}{''.join([format(v, '0x') for v in hexs])}')
                 else:
                     mapkeys.append(f'{height:02d}')
             
@@ -718,15 +718,15 @@ def learning_songname_learning(targets:dict, report:Report, name:str) -> dict:
     for tablekey, values in inspect.items():
         setted = set(values.keys())
         count = len(setted)
-        report_inspect.append(f"{tablekey}:")
+        report_inspect.append(f'{tablekey}:')
         for music, item in values.items():
-            report_inspect.append(f"  {music}: {item['key']}")
+            report_inspect.append(f'  {music}: {item['key']}')
         if count >= 2:
             report.error(f'duplicate key: {tablekey})')
             for k, v in values.items():
-                report.error(f"{v['key']}: {k})")
+                report.error(f'{v['key']}: {k})')
             for music, item in values.items():
-                report.saveimage_errorvalue(item['value'], f"_{item['key']}.png")
+                report.saveimage_errorvalue(item['value'], f'_{item['key']}.png')
 
     report.output_list(report_inspect, f'inspect_{name}.txt')
 
@@ -737,8 +737,8 @@ def learning_songname_learning(targets:dict, report:Report, name:str) -> dict:
         if count >= 2:
             report_notuniques.append(f'not unique: {music}({count})')
             for tablekey, item in values.items():
-                report_notuniques.append(f"  {tablekey}: {item['key']}")
-                report.saveimage_errorvalue(item['value'], f"_{item['key']}.png")
+                report_notuniques.append(f'  {tablekey}: {item['key']}')
+                report.saveimage_errorvalue(item['value'], f'_{item['key']}.png')
 
     report.output_list(report_notuniques, f'noteunique_{name}.txt')
 
@@ -748,11 +748,11 @@ def learning_songname_outputtable(table:dict, report:Report):
     def recursive(sp, t, output):
         for key, value in t.items():
             if type(value) is dict:
-                output.append(f"{' '*sp}{key}: {{")
+                output.append(f'{' '*sp}{key}: {{')
                 recursive(sp+2, value, output)
-                output.append(f"{' '*sp}}}")
+                output.append(f'{' '*sp}}}')
             else:
-                output.append(f"{' '*sp}{key}: {value}")
+                output.append(f'{' '*sp}{key}: {value}')
 
     output = []
     recursive(0, table, output)
@@ -764,9 +764,9 @@ def evaluate_songname(recognition:dict):
 
     musictable = load_resource_serialized(f'musictable{define.musictable_version}', True)
 
-    report_songnameevaluate.append_log(f"Registered count of arcade(gray color): {len(recognition['tables']['gray'])}")
-    report_songnameevaluate.append_log(f"Registered count of infinitas(blue color): {len(recognition['tables']['blue'])}")
-    report_songnameevaluate.append_log(f"Registered count of leggendaria(red color): {len(recognition['tables']['red'])}")
+    report_songnameevaluate.append_log(f'Registered count of arcade(gray color): {len(recognition['tables']['gray'])}')
+    report_songnameevaluate.append_log(f'Registered count of infinitas(blue color): {len(recognition['tables']['blue'])}')
+    report_songnameevaluate.append_log(f'Registered count of leggendaria(red color): {len(recognition['tables']['red'])}')
 
     def listup(list, target):
         if type(target) is str:
@@ -814,11 +814,11 @@ def evaluate_songname(recognition:dict):
             not_registereds_leggendaria.append(f'- {songname}({escaped})')
     
     output = []
-    output.append(f"Registered count of arcade(gray color): {len(recognition['tables']['gray'])}")
+    output.append(f'Registered count of arcade(gray color): {len(recognition['tables']['gray'])}')
     output.append('')
-    output.append(f"Registered count of infinitas(blue color): {len(recognition['tables']['blue'])}")
+    output.append(f'Registered count of infinitas(blue color): {len(recognition['tables']['blue'])}')
     output.append('')
-    output.append(f"Registered count of leggendaria(red color): {len(recognition['tables']['red'])}")
+    output.append(f'Registered count of leggendaria(red color): {len(recognition['tables']['red'])}')
     output.append('')
 
     if len(not_exists) > 0:
@@ -859,7 +859,7 @@ if __name__ == '__main__':
         with open(label_result_filepath) as f:
             labels = json.load(f)
     except Exception:
-        print(f"{label_result_filepath}を読み込めませんでした。")
+        print(f'{label_result_filepath}を読み込めませんでした。')
         exit()
     
     informations_define = load_define()

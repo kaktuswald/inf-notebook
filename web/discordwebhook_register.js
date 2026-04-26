@@ -485,5 +485,5 @@ async function onclick_confirmregister(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_close(e) {
-  window.parent.postMessage("discordwebhook_close", "*");
+  window.parent.postMessage('discordwebhook_close', '*');
 }

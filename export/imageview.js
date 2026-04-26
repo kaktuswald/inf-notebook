@@ -29,7 +29,7 @@ const DataTypes = Object.freeze({
   IMAGE_JPG: 'image/jpg',
 })
 
-let url = "ws://localhost:8765"
+let url = 'ws://localhost:8765';
 
 let socket = null;
 
@@ -46,15 +46,15 @@ async function connect() {
   socket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data);
 
-    if('s' in data && data['s'] === Statuses.SUCCESS) {
-      const payload = data['p']
-      if('t' in payload && payload['t'] === DataTypes.IMAGE_PNG) {
-        const binary = atob(payload['d']);
+    if('s' in data && data.s === Statuses.SUCCESS) {
+      const payload = data.p;
+      if('t' in payload && payload.t === DataTypes.IMAGE_PNG) {
+        const binary = atob(payload.d);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++)
           bytes[i] = binary.charCodeAt(i);
 
-        const blob = new Blob([bytes], {type: payload['t']});
+        const blob = new Blob([bytes], {type: payload.t});
         const url = URL.createObjectURL(blob);
         $('img#image').attr('src', url);
       }

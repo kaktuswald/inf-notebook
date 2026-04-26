@@ -16,13 +16,13 @@ from service_account_info import service_account_info
 URL = 'https://inf-notebook-eventdelete2-975441799295.asia-northeast2.run.app'
 
 def callfunction_eventdelete(filenames: list[str]):
-    """イベントファイルを削除する
+    '''イベントファイルを削除する
 
     Args:
         filenames(list[str]): 削除するファイル名のリスト
     Returns:
         bool: 削除に成功
-    """
+    '''
     credentials = IDTokenCredentials.from_service_account_info(service_account_info, target_audience=URL)
     credentials.refresh(Request())
 

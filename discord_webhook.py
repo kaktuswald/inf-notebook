@@ -46,7 +46,7 @@ def post_test(url: str, values):
 
     try:
         data = {'content': '\n'.join(contexts)}
-        response = requests.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"})
+        response = requests.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
         if response.status_code != 204:
             return f'Error {response.status_code}'
     except Exception as ex:
@@ -62,7 +62,7 @@ def post_registered(url: str, id: str):
 
     try:
         data = {'content': '\n'.join(contexts)}
-        requests.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"})
+        requests.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
     except Exception as ex:
         pass
     
@@ -75,7 +75,7 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
 
     contexts = [
         f'プレイヤー名: **{djname}**',
-        f"日時: **{nowdt.strftime('%y/%m/%d %H:%M')}**",
+        f'日時: **{nowdt.strftime('%y/%m/%d %H:%M')}**',
     ]
 
     if setting['mode'] != DiscordwebhookModes.BATTLE:
@@ -108,7 +108,7 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
             contexts.append(f'MISS COUNT: **{details.miss_count.current}**')
     if details.options is not None:
         option_arrange = details.options.arrange
-        contexts.append(f'option: **{option_arrange if option_arrange is not None else "正規"}**')
+        contexts.append(f'option: **{option_arrange if option_arrange is not None else '正規'}**')
     if informations.playspeed is not None:
         contexts.append(f'play speed: **{informations.playspeed}倍**')
     
@@ -117,7 +117,7 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
 
         url = setting['posturl'] if 'posturl' in setting.keys() else setting['url']
 
-        response = requests.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"})
+        response = requests.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
         if response.status_code != 204:
             return False, f'Error {response.status_code}'
         response = requests.post(url, files={'file': ('result.png', imagevalue)})
@@ -134,7 +134,7 @@ def post_leave(djname: str, setting: dict):
 
         url = setting['posturl'] if 'posturl' in setting.keys() else setting['url']
 
-        response = requests.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"})
+        response = requests.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
         if response.status_code != 204:
             return False, f'Error {response.status_code}'
     except Exception as ex:
