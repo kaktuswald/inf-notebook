@@ -26,6 +26,9 @@ class Recognition():
 
         @staticmethod
         def get_is_dead(np_value, playside):
+            if not playside in resource.screenrecognition['result']['is_dead']['trimareas'].keys():
+                return None
+            
             trimmed = np_value[resource.screenrecognition['result']['is_dead']['trimareas'][playside]]
             value = resource.screenrecognition['result']['is_dead']['value']
             if np.all((value==0)|(trimmed==value)):
@@ -35,8 +38,8 @@ class Recognition():
         
         @staticmethod
         def get_has_loveletter(np_value):
-            trimmed = np_value[resource.screenrecognition['result']['loveletter']['trimarea']]
-            value = resource.screenrecognition['result']['loveletter']['value']
+            trimmed = np_value[resource.screenrecognition['result']['has_loveletter']['trimarea']]
+            value = resource.screenrecognition['result']['has_loveletter']['value']
             if np.all((value==0)|(trimmed==value)):
                 return True
             else:
@@ -776,7 +779,7 @@ class Recognition():
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['misscount']['trim']]
-            score = None
+            misscount = None
             for dig in range(resource.musicselect['misscount']['digit']):
                 splitted = np.hsplit(trimmed, resource.musicselect['misscount']['digit'])
                 trimmed_once = splitted[-(dig+1)][resource.musicselect['number']['trim']]
@@ -785,11 +788,11 @@ class Recognition():
                 tablekey = ''.join([format(v, '0x') for v in hexs.flatten()])
                 if not tablekey in resource.musicselect['number']['table'].keys():
                     break
-                if score is None:
-                    score = 0
-                score += 10 ** dig * resource.musicselect['number']['table'][tablekey]
+                if misscount is None:
+                    misscount = 0
+                misscount += 10 ** dig * resource.musicselect['number']['table'][tablekey]
             
-            return score
+            return misscount
 
         @staticmethod
         def get_levels(np_value):
@@ -843,11 +846,11 @@ class Recognition():
         res = resource.screenrecognition['result']['is_savable']
 
         pixel = np_value[res['keyposition']]
-        background_key = ''.join([format(v, '02x') for v in pixel])
+        background_key = ''.join([format(v, '02x') for v in pixel.flatten()])
         if not background_key in res['checktable'].keys():
             return False
 
-        targettable = resource.screenrecognition['result']['is_savable']['checktable'][background_key]
+        targettable = res['checktable'][background_key]
         for area_key, area in res['checkareas'].items():
             if not np.array_equal(np_value[area], targettable[area_key]):
                 return False
