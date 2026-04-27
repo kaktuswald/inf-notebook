@@ -2355,7 +2355,7 @@ def save_filtered(filteredimage: Image.Image, playtype: str, musicname: str, dif
 
 def insert_recentnotebook_results():
     for timestamp in notebook_recent.timestamps:
-        target: dict[str, str | bool | None] = notebook_recent.get_result(timestamp)
+        target: dict[str, str|bool|None]|None = notebook_recent.get_result(timestamp)
         if target is None:
             continue
         

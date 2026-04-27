@@ -128,7 +128,7 @@ class NotebookRecent(Notebook):
             return []
         return self.json['timestamps']
     
-    def get_result(self, timestamp: str) -> dict:
+    def get_result(self, timestamp: str) -> dict|None:
         if not 'results' in self.json.keys() or not timestamp in self.json['results']:
             return None
         return self.json['results'][timestamp]

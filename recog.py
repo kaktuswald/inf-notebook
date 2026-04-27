@@ -15,7 +15,7 @@ from screenshot import Screen
 class Recognition():
     class Result():
         @staticmethod
-        def get_playside(np_value):
+        def get_playside(np_value) -> str|None:
             value = resource.screenrecognition['result']['playside']['value']
             for playside, trimarea in resource.screenrecognition['result']['playside']['trimareas'].items():
                 trimmed = np_value[trimarea]
@@ -25,7 +25,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_is_dead(np_value, playside):
+        def get_is_dead(np_value, playside) -> bool|None:
             if not playside in resource.screenrecognition['result']['is_dead']['trimareas'].keys():
                 return None
             
@@ -37,7 +37,7 @@ class Recognition():
                 return False
         
         @staticmethod
-        def get_has_loveletter(np_value):
+        def get_has_loveletter(np_value) -> bool:
             trimmed = np_value[resource.screenrecognition['result']['has_loveletter']['trimarea']]
             value = resource.screenrecognition['result']['has_loveletter']['value']
             if np.all((value==0)|(trimmed==value)):
@@ -46,7 +46,7 @@ class Recognition():
                 return False
         
         @staticmethod
-        def get_playmode(np_value_informations):
+        def get_playmode(np_value_informations) -> str|None:
             if resource.informations is None:
                 return None
             
@@ -59,7 +59,7 @@ class Recognition():
             return resource.informations['play_mode']['table'][tablekey]
 
         @staticmethod
-        def get_difficulty(np_value_informations):
+        def get_difficulty(np_value_informations) -> str|None:
             if resource.informations is None:
                 return None, None
             
@@ -86,7 +86,7 @@ class Recognition():
             return difficulty, level
 
         @staticmethod
-        def get_notes(np_value_informations):
+        def get_notes(np_value_informations) -> int|None:
             if resource.informations is None:
                 return None
             
@@ -114,7 +114,7 @@ class Recognition():
             return value
 
         @staticmethod
-        def get_playspeed(np_value_informations):
+        def get_playspeed(np_value_informations) -> float|None:
             if resource.informations is None:
                 return None
             
@@ -127,7 +127,7 @@ class Recognition():
             return float(resource.informations['playspeed']['table'][tablekey])
 
         @staticmethod
-        def get_songname(np_value_informations):
+        def get_songname(np_value_informations) -> str|None:
             '''曲名を取得する
 
             Args:
@@ -197,7 +197,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_options(np_value):
+        def get_options(np_value) -> ResultOptions|None:
             if resource.details is None:
                 return None
 
@@ -245,7 +245,7 @@ class Recognition():
             return ResultOptions(arrange, flip, assist, battle, allscratch, regularspeed)
 
         @staticmethod
-        def get_graphtype(np_value):
+        def get_graphtype(np_value) -> str|None:
             if resource.details is None:
                 return None
 
@@ -257,7 +257,7 @@ class Recognition():
             return Graphtypes.GAUGE
 
         @staticmethod
-        def get_clear_type(np_value):
+        def get_clear_type(np_value) -> ResultValues|None:
             if resource.details is None:
                 return None
 
@@ -278,7 +278,7 @@ class Recognition():
             return ResultValues(result['best'], result['current'], isnew)
 
         @staticmethod
-        def get_dj_level(np_value):
+        def get_dj_level(np_value) -> ResultValues|None:
             if resource.details is None:
                 return None
 
@@ -298,7 +298,7 @@ class Recognition():
             return ResultValues(result['best'], result['current'], isnew)
 
         @staticmethod
-        def get_score(np_value):
+        def get_score(np_value) -> ResultValues|None:
             if resource.details is None:
                 return None
 
@@ -339,7 +339,7 @@ class Recognition():
             return ResultValues(best, current, isnew)
 
         @staticmethod
-        def get_miss_count(np_value):
+        def get_miss_count(np_value) -> ResultValues|None:
             if resource.details is None:
                 return None
 
@@ -380,7 +380,7 @@ class Recognition():
             return ResultValues(best, current, isnew)
         
         @staticmethod
-        def get_graphtarget(np_value):
+        def get_graphtarget(np_value) -> str|None:
             if resource.details is None:
                 return None
 
@@ -400,7 +400,7 @@ class Recognition():
             return resource.details['graphtarget'][mode][tablekey]
 
         @classmethod
-        def get_informations(cls, np_value):
+        def get_informations(cls, np_value) -> ResultInformations|None:
             playmode = cls.get_playmode(np_value)
             difficulty, level = cls.get_difficulty(np_value)
             notes = cls.get_notes(np_value)
@@ -410,7 +410,7 @@ class Recognition():
             return ResultInformations(playmode, difficulty, level, notes, playspeed, songname)
 
         @classmethod
-        def get_details(cls, np_value):
+        def get_details(cls, np_value) -> ResultDetails|None:
             graphtype = cls.get_graphtype(np_value)
             if graphtype == Graphtypes.GAUGE:
                 options = cls.get_options(np_value)
@@ -427,7 +427,7 @@ class Recognition():
 
     class ResultOthers():
         @staticmethod
-        def get_tab(np_value):
+        def get_tab(np_value) -> str|None:
             if resource.resultothers is None:
                 return None
             if not 'tab' in resource.resultothers.keys():
@@ -441,7 +441,7 @@ class Recognition():
             return resource.resultothers['tab']['table'][tablekey]
         
         @staticmethod
-        def get_rankbefore(np_value):
+        def get_rankbefore(np_value) -> str|None:
             if resource.resultothers is None:
                 return None
             if not 'rankbefore' in resource.resultothers.keys():
@@ -457,7 +457,7 @@ class Recognition():
             return resource.resultothers['rankbefore']['table'][tablekey]
         
         @staticmethod
-        def get_ranknow(np_value):
+        def get_ranknow(np_value) -> str|None:
             if resource.resultothers is None:
                 return None
             if not 'ranknow' in resource.resultothers.keys():
@@ -473,7 +473,7 @@ class Recognition():
             return resource.resultothers['ranknow']['table'][tablekey]
         
         @staticmethod
-        def get_rankposition(np_value):
+        def get_rankposition(np_value) -> int|None:
             if resource.resultothers is None:
                 return None
             if not 'rankposition' in resource.resultothers.keys():
@@ -489,7 +489,7 @@ class Recognition():
             return resource.resultothers['rankposition']['table'][tablekey]
 
         @staticmethod
-        def get_notesradar_attribute(np_value):
+        def get_notesradar_attribute(np_value) -> str|None:
             if resource.resultothers is None:
                 return None
             if not 'notesradar_attribute' in resource.resultothers.keys():
@@ -505,7 +505,7 @@ class Recognition():
             return resource.resultothers['notesradar_attribute']['table'][tablekey]
 
         @staticmethod
-        def get_notesradar_chartvalue(np_value):
+        def get_notesradar_chartvalue(np_value) -> float|None:
             if resource.resultothers is None:
                 return None
             if not 'notesradar_chartvalue' in resource.resultothers.keys():
@@ -535,7 +535,7 @@ class Recognition():
             return float(f'{value/100:.2f}') if value is not None else None
         
         @staticmethod
-        def get_notesradar_value(np_value):
+        def get_notesradar_value(np_value) -> float|None:
             if resource.resultothers is None:
                 return None
             if not 'notesradar_value' in resource.resultothers.keys():
@@ -577,7 +577,7 @@ class Recognition():
             return float(f'{value/100:.2f}') if value is not None else None, is_updated
         
         @staticmethod
-        def get_notesradar_updatedvalue(np_value):
+        def get_notesradar_updatedvalue(np_value) -> str|None:
             if resource.resultothers is None:
                 return None
             if not 'notesradar_updatedvalue' in resource.resultothers.keys():
@@ -617,7 +617,7 @@ class Recognition():
         DIFFICULTY_MASKVALUE: tuple[int] = (255, 255, 255)
 
         @staticmethod
-        def get_playmode(np_value):
+        def get_playmode(np_value) -> str|None:
             if resource.musicselect is None:
                 return None
             if not 'playmode' in resource.musicselect.keys():
@@ -631,7 +631,7 @@ class Recognition():
             return resource.musicselect['playmode']['table'][tablekey]
         
         @staticmethod
-        def get_version(np_value):
+        def get_version(np_value) -> str|None:
             if resource.musicselect is None:
                 return None
             for table in resource.musicselect['version']:
@@ -645,7 +645,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_hasscoredata(np_value):
+        def get_hasscoredata(np_value) -> bool|None:
             if resource.musicselect is None:
                 return None
             
@@ -655,7 +655,7 @@ class Recognition():
             return bool(np.all((cropped==0)|(cropped==mask)))
 
         @staticmethod
-        def get_musicname(np_value):
+        def get_musicname(np_value) -> str|None:
             if resource.musicselect is None:
                 return None
             
@@ -713,7 +713,7 @@ class Recognition():
             return None
         
         @staticmethod
-        def get_difficulty(np_value):
+        def get_difficulty(np_value) -> str|None:
             if resource.musicselect is None:
                 return None
             targetresource = resource.musicselect['levels']['select']
@@ -732,7 +732,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_cleartype(np_value):
+        def get_cleartype(np_value) -> str|None:
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['cleartype']['trim']]
@@ -745,7 +745,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_djlevel(np_value):
+        def get_djlevel(np_value) -> str|None:
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['djlevel']['trim']]
@@ -755,7 +755,7 @@ class Recognition():
             return None
 
         @staticmethod
-        def get_score(np_value):
+        def get_score(np_value) -> int|None:
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['score']['trim']]
@@ -775,7 +775,7 @@ class Recognition():
             return score
 
         @staticmethod
-        def get_misscount(np_value):
+        def get_misscount(np_value) -> int|None:
             if resource.musicselect is None:
                 return None
             trimmed = np_value[resource.musicselect['misscount']['trim']]
@@ -795,7 +795,7 @@ class Recognition():
             return misscount
 
         @staticmethod
-        def get_levels(np_value):
+        def get_levels(np_value) -> int|None:
             if resource.musicselect is None:
                 return None
             
@@ -831,7 +831,7 @@ class Recognition():
             return ret
 
         @classmethod
-        def confirm_difficulty(cls, np_value):
+        def confirm_difficulty(cls, np_value) -> str|None:
             ret = None
             for key, trimarea in cls.DIFFICULTY_TRIMAREAS.items():
                 if np.all(np_value[trimarea]==cls.DIFFICULTY_MASKVALUE):
@@ -842,7 +842,7 @@ class Recognition():
             return ret
 
     @staticmethod
-    def get_is_savable(np_value):
+    def get_is_savable(np_value) -> bool|None:
         res = resource.screenrecognition['result']['is_savable']
 
         pixel = np_value[res['keyposition']]
@@ -858,7 +858,7 @@ class Recognition():
         return True
         
     @classmethod
-    def get_result(cls, screen: Screen):
+    def get_result(cls, screen: Screen) -> Result|None:
         playside = cls.Result.get_playside(screen.np_value)
         if playside == None:
             return None
