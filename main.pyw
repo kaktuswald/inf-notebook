@@ -587,6 +587,8 @@ class GuiApi():
 
         window.bind('upload_imagenothingimage', self.upload_imagenothingimage)
 
+        window.bind('change_selectchart', self.change_selectchart)
+
         window.bind('clear_scoreinformationimage', self.clear_scoreinformationimage)
         window.bind('clear_scoregraphimage', self.clear_scoregraphimage)
 
@@ -627,7 +629,7 @@ class GuiApi():
         window.bind('get_resultimage', self.get_resultimage)
         window.bind('get_resultimage_filtered', self.get_resultimage_filtered)
 
-        window.bind('get_scoreresult', self.get_scoreresult)
+        window.bind('get_chartresult', self.get_chartresult)
         window.bind('get_arcadedata', self.get_arcadedata)
         window.bind('get_playresult', self.get_playresult)
         
@@ -777,6 +779,34 @@ class GuiApi():
 
         socket_server.encodedimage_imagenothing = data
         socket_server.update_information(data)
+    
+    def change_selectchart(self, event: webui.Event):
+        '''選択譜面を変更する
+        '''
+        global selected_chart
+
+        playtype = event.get_string_at(0)
+        songname = event.get_string_at(1)
+        difficulty = event.get_string_at(2)
+        
+        playmode = playtype if 'SP' in playtype else 'DP'
+
+        if not songname in resource.musictable['musics'].keys():
+            songname = None
+        
+        if not difficulty in resource.musictable['musics'][songname][playmode].keys():
+            difficulty = None
+        
+        if songname and difficulty:
+            selected_chart = ChartSelection(
+                playtype=playtype,
+                songname=songname,
+                difficulty=difficulty,
+            )
+        else:
+            selected_chart = None
+        
+        self.send_change_selectedchart()
     
     def clear_scoreinformationimage(self, event: webui.Event):
         '''譜面情報画像のクリア
@@ -974,7 +1004,7 @@ class GuiApi():
         musicname = event.get_string_at(1)
         difficulty = event.get_string_at(2)
 
-        targetrecord = notebooks_music.get_notebook(musicname).get_scoreresult(playtype, difficulty)
+        targetrecord = notebooks_music.get_notebook(musicname).get_chartresult(playtype, difficulty)
 
         if targetrecord is None:
             return
@@ -1238,7 +1268,7 @@ class GuiApi():
         socket_server.update_screenshot(None)
         event.return_string(dumps(None))
 
-    def get_scoreresult(self, event: webui.Event):
+    def get_chartresult(self, event: webui.Event):
         '''対象の譜面の記録を返す
 
         Args:
@@ -1256,7 +1286,7 @@ class GuiApi():
             event.return_string(dumps(None))
             return
         
-        result = notebook.get_scoreresult(playtype, difficulty)
+        result = notebook.get_chartresult(playtype, difficulty)
         socket_server.scoreresult = {
             'music': {
                 'musicname': musicname,
@@ -1308,7 +1338,7 @@ class GuiApi():
             event.return_string(dumps(None))
             return
         
-        scoreresult = notebook.get_scoreresult(playtype, difficulty)
+        scoreresult = notebook.get_chartresult(playtype, difficulty)
         if scoreresult is None:
             event.return_string(dumps(None))
             return
@@ -1596,6 +1626,32 @@ class GuiApi():
             if self.googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
                 setting.save()
     
+    def send_change_selectedchart(self):
+        '''フロントエンドに譜面選択の変更を送信する
+        '''
+        if selected_chart:
+            selection = {
+                'playtype': selected_chart.playtype,
+                'songname': selected_chart.songname,
+                'difficulty': selected_chart.difficulty,
+            }
+
+            notebook = self.notebooks.get_notebook(selected_chart.songname)
+            chartresult = notebook.get_chartresult(
+                selected_chart.playtype,
+                selected_chart.difficulty
+            ) if notebook else None
+            if chartresult:
+                memo = chartresult['memo'] if 'memo' in chartresult.keys() else None
+            else:
+                memo = None
+            
+        else:
+            selection = None
+            memo = None
+
+        self.send_message('change_selectedchart', selection)
+
     def send_message(self, message: str, data:object = None):
         '''フロントエンドにメッセージを送信する
 
@@ -1980,7 +2036,7 @@ class GuiApiDiscordWebhook():
 
         event.return_string(dumps(None))
 
-class ScoreSelection():
+class ChartSelection():
     '''選択中の譜面
 
     プレイの種類・曲名・譜面難易度を持つ。
@@ -2017,7 +2073,7 @@ def result_process(screen: Screen):
     Args:
         screen (Screen): screen.py
     '''
-    global scoreselection
+    global selected_chart
 
     logger.debug('result process')
 
@@ -2039,9 +2095,9 @@ def result_process(screen: Screen):
 
     if setting.display_result:
         if(playtype is not None and musicname is not None and difficulty is not None):
-            scoreselection = ScoreSelection(playtype, musicname, difficulty)
+            selected_chart = ChartSelection(playtype, musicname, difficulty)
         else:
-            scoreselection = None
+            selected_chart = None
 
     if setting.data_collection or force_upload_enable:
         if collectionuploader.checkandupload_result(result, resultimage, force_upload_enable):
@@ -2122,7 +2178,7 @@ def musicselect_process(image:Image.Image, np_value: array):
         image (Image.Image): スクリーンショットが増
         np_value (Screen): 選曲画面のトリミング済みの画像データ
     '''
-    global scoreselection
+    global selected_chart
 
     hasscoredata = recog.MusicSelect.get_hasscoredata(np_value)
 
@@ -2154,11 +2210,11 @@ def musicselect_process(image:Image.Image, np_value: array):
 
         return
     
-    if scoreselection is not None:
-        if scoreselection.playtype == playtype and scoreselection.musicname == musicname and scoreselection.difficulty == difficulty:
+    if selected_chart is not None:
+        if selected_chart.playtype == playtype and selected_chart.songname == musicname and selected_chart.difficulty == difficulty:
             return
     
-    scoreselection = ScoreSelection(playtype, musicname, difficulty)
+    selected_chart = ChartSelection(playtype, musicname, difficulty)
 
     music_information = resource.musictable['musics'][musicname]
     version = recog.MusicSelect.get_version(np_value)
@@ -2169,7 +2225,7 @@ def musicselect_process(image:Image.Image, np_value: array):
         return
     
     levels = recog.MusicSelect.get_levels(np_value)
-    if scoreselection.playtype != 'DP BATTLE':
+    if selected_chart.playtype != 'DP BATTLE':
         if not difficulty in music_information[playmode].keys():
             return
         if not difficulty in levels.keys() or levels[difficulty] != music_information[playmode][difficulty]:
@@ -2208,7 +2264,7 @@ def musicselect_process(image:Image.Image, np_value: array):
     socket_server.update_scoreinformation(None)
     socket_server.update_scoregraph(None)
 
-    api.send_message('scoreselect', {'playtype': playtype, 'musicname': musicname, 'difficulty': difficulty})
+    api.send_change_selectedchart()
 
 def filter_resultimage(resultimage: Image.Image, playside:str, tab:str|None, has_loveletter:bool, has_graphtargetname:bool, unfilterrankposition:int|None) -> Image.Image:
     '''リザルト画像にフィルター加工をする
@@ -2731,7 +2787,7 @@ if __name__ == '__main__':
     imagevalues_result = {}
     imagevalues_filtered = {}
 
-    scoreselection: ScoreSelection = None
+    selected_chart: ChartSelection|None = None
 
     recent = Recent()
 

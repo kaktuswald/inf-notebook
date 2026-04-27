@@ -4,7 +4,7 @@
 class DrawerScoreinformation {
   static textcolor = 'white';
   static shadowcolor_basic = 'black';
-  static fontsize_musicname = 80;
+  static fontsize_songname = 80;
   static fontsize_basic = 50;
   static fontsize_value = 60;
   static fontsize_small = 30;
@@ -20,8 +20,8 @@ class DrawerScoreinformation {
   static shadowcolor_fcomboandaaa = 'rgb(240, 200, 80)';
   static shadowcolor_max = 'rgb(128, 255, 40)';
   
-  static musicname_x = 20;
-  static musicname_y = 10;
+  static songname_x = 20;
+  static songname_y = 10;
 
   static scoretype_y = 100;
   static playtype_x = 80;
@@ -72,10 +72,10 @@ class DrawerScoreinformation {
     },
   };
 
-  static drawtextargs_musicname = {
+  static drawtextargs_songname = {
     'textcolor': DrawerScoreinformation.textcolor,
     'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
-    'fontsize': DrawerScoreinformation.fontsize_musicname,
+    'fontsize': DrawerScoreinformation.fontsize_songname,
     'maxwidth': 1200,
   };
 
@@ -117,12 +117,12 @@ class DrawerScoreinformation {
    * 画像を描画する
    * @param {} values 譜面記録データ
    * @param {string} playtype プレイの種類
-   * @param {string} musicname 曲名
+   * @param {string} songname 曲名
    * @param {string} difficulty 譜面難易度
    * @param {boolean} battle バトルモード
    * @returns {blob} 画像データ
    */
-  async draw(values, playtype, musicname, difficulty, battle) {
+  async draw(values, playtype, songname, difficulty, battle) {
     const ctx = this.canvas.getContext('2d');
 
     const args_difficulty = {
@@ -137,13 +137,13 @@ class DrawerScoreinformation {
 
     ctx.textBaseline = 'top';
 
-    ctx.font = `${DrawerScoreinformation.fontsize_musicname}px ${this.fontfamily}`;
+    ctx.font = `${DrawerScoreinformation.fontsize_songname}px ${this.fontfamily}`;
     this.drawtext_left(
       ctx,
-      musicname,
-      DrawerScoreinformation.musicname_x,
-      DrawerScoreinformation.musicname_y,
-      DrawerScoreinformation.drawtextargs_musicname,
+      songname,
+      DrawerScoreinformation.songname_x,
+      DrawerScoreinformation.songname_y,
+      DrawerScoreinformation.drawtextargs_songname,
     );
 
     ctx.font = `${DrawerScoreinformation.fontsize_value}px ${this.fontfamily}`;

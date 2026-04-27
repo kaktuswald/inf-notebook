@@ -1,65 +1,67 @@
 
-setting = null;
+let setting = null;
 
-playmodes = null;
+let playmodes = null;
 
-musictable = null;
-notesradar = null;
+let musictable = null;
+let notesradar = null;
 
-drawer_imagenothing = null;
-drawer_simpletext = null;
-drawer_information = null;
-drawer_summary = null;
-drawer_notesradar = null;
-drawer_scoregraph = null;
-drawer_scoreinformation = null;
+let drawer_imagenothing = null;
+let drawer_simpletext = null;
+let drawer_information = null;
+let drawer_summary = null;
+let drawer_notesradar = null;
+let drawer_scoregraph = null;
+let drawer_scoreinformation = null;
 
-selected_playtype = null;
-selected_musicname = null;
-selected_difficulty = null;
-selected_timestamp = null;
+let selected_chart = {
+  playtype: null,
+  songname: null,
+  difficulty: null,
+};
+let selected_timestamp = null;
 
-reader_imagenothing = new FileReader();
+const reader_imagenothing = new FileReader();
 reader_imagenothing.onloadend = onloadend_imagenothingimage;
 reader_imagenothing.onerror = onerror_filereader;
 reader_imagenothing.onabort = onabort_filereader;
 
-reader_simpletext = new FileReader();
+const reader_simpletext = new FileReader();
 reader_simpletext.onloadend = onloadend_simpletextimage;
 reader_simpletext.onerror = onerror_filereader;
 reader_simpletext.onabort = onabort_filereader;
 
-reader_information = new FileReader();
+const reader_information = new FileReader();
 reader_information.onloadend = onloadend_informationimage;
 reader_information.onerror = onerror_filereader;
 reader_information.onabort = onabort_filereader;
 
-reader_summary = new FileReader();
+const reader_summary = new FileReader();
 reader_summary.onloadend = onloadend_summaryimage;
 reader_summary.onerror = onerror_filereader;
 reader_summary.onabort = onabort_filereader;
 
-reader_notesradar = new FileReader();
+const reader_notesradar = new FileReader();
 reader_notesradar.onloadend = onloadend_notesradarimage;
 reader_notesradar.onerror = onerror_filereader;
 reader_notesradar.onabort = onabort_filereader;
 
-reader_scoreinformation = new FileReader();
+const reader_scoreinformation = new FileReader();
 reader_scoreinformation.onloadend = onloadend_scoreinformationimage;
 reader_scoreinformation.onerror = onerror_filereader;
 reader_scoreinformation.onabort = onabort_filereader;
 
-reader_scoregraph = new FileReader();
+const reader_scoregraph = new FileReader();
 reader_scoregraph.onloadend = onloadend_scoregraphimage;
 reader_scoregraph.onerror = onerror_filereader;
 reader_scoregraph.onabort = onabort_filereader;
 
-imageblobs = {};
-imageurls = {};
+const imageblobs = {};
+const imageurls = {};
 
-selectcomponentname_afterloading = null;
+let selectcomponentname_afterloading = null;
 
-componentdefines = {
+const componentdefines = {
   'information': {
     type: 'component',
     componentName: 'information',
@@ -165,7 +167,7 @@ componentdefines = {
   },
 };
 
-var layoutconfig = {
+const layoutconfig = {
   settings: {
     // reorderEnabled: false,
     showPopoutIcon: false,
@@ -242,9 +244,9 @@ var layoutconfig = {
   }],
 };
 
-var allcomponentids = null;
-var layout = null;
-var components = {};
+let allcomponentids = null;
+let layout = null;
+const components = {};
 
 $(function() {
   allcomponentids = $('#components').children().map(function() { return this.id;}).get();
@@ -297,15 +299,15 @@ $(function() {
   $('button#button_recents_confirm_uploadcollectionimages').on('click', onclick_recents_confirm_uploadcollectionimages);
   $('button#button_recents_execute_uploadcollectionimages').on('click', onclick_recents_execute_uploadcollectionimages);
 
-  $('select#select_versions').on('change', onchange_scoreselect_version);
-  $('input#text_musicname_search').on('input', oninput_scoreselect_musicname);
-  $('select#select_playtypes').on('change', onchange_scoreresult_playtype);
-  $('select#select_difficulties').on('change', onchange_scoreresult_difficulty);
+  $('select#select_versions').on('change', onchange_chartselect_version);
+  $('input#text_songname_search').on('input', oninput_chartselect_songname);
+  $('select#select_playtypes').on('change', onchange_chartselect_playtype);
+  $('select#select_difficulties').on('change', onchange_chartselect_difficulty);
 
   $('button#button_confirm_deletemusicnotebook').on('click', onclick_confirm_deletemusicnotebook);
   $('button#button_execute_deletemusicnotebook').on('click', onclick_execute_deletemusicnotebook);
-  $('button#button_confirm_deletescoreresult').on('click', onclick_confirm_deletescoreresult);
-  $('button#button_execute_deletescoreresult').on('click', onclick_execute_deletescoreresult);
+  $('button#button_confirm_deletescoreresult').on('click', onclick_confirm_deletechartresult);
+  $('button#button_execute_deletechartresult').on('click', onclick_execute_deletechartresult);
   $('button#button_confirm_deleteplayresult').on('click', onclick_confirm_deleteplayresult);
   $('button#button_execute_deleteplayresult').on('click', onclick_execute_deleteplayresult);
 
@@ -549,8 +551,7 @@ async function discordwebhook_initialprocessing() {
 }
 
 async function load_setting() {
-  const setting = JSON.parse(await webui.get_setting());
-  globalThis.setting = setting;
+  setting = JSON.parse(await webui.get_setting());
 
   if(setting['data_collection'])
     $('#button_recents_confirm_uploadcollectionimages').css('display', 'block');
@@ -672,8 +673,8 @@ function communication_message(message, data = null) {
     case 'discordwebhook_append_log':
       discordwebhook_append_logs(data);
       break;
-    case 'scoreselect':
-      select_score(data.musicname, data.playtype, data.difficulty);
+    case 'change_selectedchart':
+      change_selectedchart(data);
       break;
     case 'error':
       display_errormessage(data);
@@ -745,7 +746,7 @@ async function loadresource_musictable() {
     );
   }
 
-  set_musicnames();
+  set_songnames();
 }
 
 /**
@@ -765,42 +766,40 @@ async function loadresource_unofficialdifficulty() {
 /**
  * 曲名リストをセットする
  */
-function set_musicnames() {
-  selected_musicname = null;
-
-  $('tr.musictableitem').off('click', onclick_musictableitem);
-  $('tr.musictableitem').remove();
+function set_songnames() {
+  $('tr.songnameitem').off('click', onclick_songnameitem);
+  $('tr.songnameitem').remove();
 
   const version = $('select#select_versions').val();
-  const musicname_pattern = $('input#text_musicname_search').val();
+  const songname_pattern = $('input#text_songname_search').val();
 
   const version_all = version == 'ALL';
 
   let reg = null;
-  if(musicname_pattern.length) {
-    const escaped = musicname_pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if(songname_pattern.length) {
+    const escaped = songname_pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     reg = new RegExp(escaped, 'i');
   }
 
-  for(const musicname in musictable.musics) {
-    if(!version_all && musictable.musics[musicname].version != version)
+  for(const songname in musictable.musics) {
+    if(!version_all && musictable.musics[songname].version != version)
       continue;
-    if(reg !== null && !reg.test(musicname))
+    if(reg !== null && !reg.test(songname))
       continue;
 
     const tr = $('<tr>');
-    tr.addClass('tableitem musictableitem');
+    tr.addClass('tableitem songnameitem');
 
-    const td_musicname = $('<td>').text(musicname);
-    td_musicname.addClass('music_cell_musicname');
-    tr.append(td_musicname);
+    const td_songname = $('<td>').text(songname);
+    td_songname.addClass('songname_cell_songname');
+    tr.append(td_songname);
 
-    const td_version = $('<td>').text(musictable['musics'][musicname]['version']);
-    td_version.addClass('music_cell_version');
+    const td_version = $('<td>').text(musictable['musics'][songname]['version']);
+    td_version.addClass('songname_cell_version');
     tr.append(td_version);
     
-    tr.on('click', onclick_musictableitem);
-    $('#table_musics').append(tr);
+    tr.on('click', onclick_songnameitem);
+    $('#table_songnames').append(tr);
   }
 }
 
@@ -902,379 +901,126 @@ function select_newest_recentresult() {
   $('tr.recentresultitem.select_first').removeClass('select_first');
   $('tr.recentresultitem.selected').removeClass('selected');
 
-  $('tr.recentresultitem:first').addClass('select_first');
-  $('tr.recentresultitem:first').addClass('selected');
+  const firstresult = $('tr.recentresultitem:first');
+  firstresult.addClass('select_first');
+  firstresult.addClass('selected');
 
-  display_scoredataandresult_and_playresult_from_recents();
+  selectchart_from_recents();
 }
 
 /**
  * 対象の譜面を選択状態にする
  * 
- * 選曲画面で譜面を認識したときに実行する。
- * @param {string} musicname 曲名
- * @param {string} playtype 譜面の種類(SP or DP or DP BATTLE)
- * @param {string} difficulty 譜面難易度
+ * バックエンドから選択譜面の変更を受け取る。
+ * 現在選択されている譜面と異なる場合は、更新する。
+ * @param {dict} 譜面の種類・曲名・難易度を含む
  */
-function select_score(musicname, playtype, difficulty) {
-  if(!change_selected_score(musicname, playtype, difficulty, false))
-    return;
+function change_selectedchart(data) {
+  if(data == null) return;
 
-  $('tr.recentresultitem.select_first').removeClass('select_first');
-  $('tr.recentresultitem.selected').removeClass('selected');
-
-  display_scoredataandresult();
+  const different_playtype = data.playtype != selected_chart.playtype;
+  const different_songname = data.songname != selected_chart.songname;
+  const different_difficulty = data.difficulty != selected_chart.difficulty;
+  if(different_playtype || different_songname || different_difficulty)
+    change_selected_chart(data.playtype, data.songname, data.difficulty);
 }
 
 /**
- * 最近のリザルトタブから選択された譜面の記録を表示する
+ * 最近のリザルトタブから譜面が選択された
  */
-function display_scoredataandresult_and_playresult_from_recents() {
+function selectchart_from_recents() {
   const targetitem = $('tr.recentresultitem.select_first')
 
-  const playtype = targetitem.children('td.recentresult_cell_playtype').text();
-  const musicname = targetitem.children('td.recentresult_cell_musicname').text();
-  const difficulty = targetitem.children('td.recentresult_cell_difficulty').text();
+  let playtype = targetitem.children('td.recentresult_cell_playtype').text();
+  let songname = targetitem.children('td.recentresult_cell_musicname').text();
+  let difficulty = targetitem.children('td.recentresult_cell_difficulty').text();
 
   if(playtype.lenth == 0) playtype = null;
-  if(musicname.lenth == 0) musicname = null;
+  if(songname.lenth == 0) songname = null;
   if(difficulty.lenth == 0) difficulty = null;
 
-  if(change_selected_score(musicname, playtype, difficulty, true))
-    display_scoredataandresult();
+  const timestamp = $('tr.recentresultitem.select_first').children('td.recentresult_cell_timestamp').text();
+  display_playresult(playtype, songname, difficulty, timestamp);
 
-  const timestamp = targetitem.children('td.recentresult_cell_timestamp').text();
-  display_playresult(timestamp);
+  send_selectchart(playtype, songname, difficulty);
 }
 
 /**
- * 検索タブから選択された譜面の記録を表示する
+ * 検索タブから譜面が選択された
  */
-function display_scoredataandresult_from_scoresearch() {
-  playtype = $('#select_playtypes option:selected').val();
-  musicname = $('tr.musictableitem.selected .music_cell_musicname').first().text();
-  difficulty = $('#select_difficulties option:selected').val();
+function selectchart_from_chartsearch() {
+  let playtype = $('#select_playtypes option:selected').val();
+  let songname = $('tr.songnameitem.selected .songname_cell_songname').first().text();
+  let difficulty = $('#select_difficulties option:selected').val();
 
-  selected_playtype = playtype.length > 0 ? playtype : null;
-  selected_musicname = musicname.length > 0 ? musicname : null;
-  selected_difficulty = difficulty.length > 0 ? difficulty : null;
-
-  display_scoredataandresult();
+  if(playtype.lenth == 0) playtype = null;
+  if(songname.lenth == 0) songname = null;
+  if(difficulty.lenth == 0) difficulty = null;
 
   selected_timestamp = null;
-  
   clear_playresult();
+
+  send_selectchart(playtype, songname, difficulty);
 }
 
 /**
- * ノーツレーダータブから選択された譜面の記録を表示する
+ * ノーツレーダータブから譜面が選択された
  */
-function display_scoredataandresult_from_notesradar() {
+function selectchart_from_notesradar() {
   const selected_playmode_id = $('input[name="notesradar_playmode"]:checked').attr('id');
-  playmode = $(`label[for="${selected_playmode_id}"]`).text();
-  
-  musicname = $('tr.notesradaritem.selected .notesradar_cell_musicname').first().text();
-  difficulty = $('tr.notesradaritem.selected .notesradar_cell_difficulty').first().text();
+
+  let playmode = $(`label[for="${selected_playmode_id}"]`).text();
+  let songname = $('tr.notesradaritem.selected .notesradar_cell_songname').first().text();
+  let difficulty = $('tr.notesradaritem.selected .notesradar_cell_difficulty').first().text();
 
   if(playmode.lenth == 0) playmode = null;
-  if(musicname.lenth == 0) musicname = null;
+  if(songname.lenth == 0) songname = null;
   if(difficulty.lenth == 0) difficulty = null;
 
-  if(change_selected_score(musicname, playmode, difficulty, true))
-    display_scoredataandresult();
-
   selected_timestamp = null;
-  
   clear_playresult();
+
+  send_selectchart(playmode, songname, difficulty)
 }
 
 /**
  * 対象の譜面を選択状態にする
- * @param {string} musicname 曲名
  * @param {string} playtype プレイの種類(SP or DP or DP BATTLE)
+ * @param {string} songname 曲名
  * @param {string} difficulty 譜面難易度
- * @param {bool} force 必ず選択する
- * @returns {boolean} 変更の有無
  */
-function change_selected_score(musicname, playtype, difficulty, force) {
-  if(!force && musicname == selected_musicname && playtype == selected_playtype && difficulty == selected_difficulty)
-    return false;
-
-  $('tr.musictableitem.selected').removeClass('selected');
-  const targetmusicitem = $('tr.musictableitem').filter(function() {
-    return $(this).children('td.music_cell_musicname').text() == musicname;
+function change_selected_chart(playtype, songname, difficulty) {
+  $('tr.songnameitem.selected').removeClass('selected');
+  const targetmusicitem = $('tr.songnameitem').filter(function() {
+    return $(this).children('td.songname_cell_songname').text() == songname;
   });
   targetmusicitem.addClass('selected');
 
   $('#select_playtypes').val(playtype);
   $('#select_difficulties').val(difficulty);
 
-  selected_playtype = playtype;
-  selected_musicname = musicname;
-  selected_difficulty = difficulty;
+  selected_chart.playtype = playtype;
+  selected_chart.songname = songname;
+  selected_chart.difficulty = difficulty;
 
-  return true;
+  display_chartdataandresult();
 }
 
 /**
- * 選択している譜面の情報を検索タブの状態から取得する
- */
-function get_selected_score() {
-  const playtype = $('#select_playtypes option:selected').val();
-  const musicname = $('tr.musictableitem.selected .music_cell_musicname').first().text();
-  const difficulty = $('#select_difficulties option:selected').val();
-
-  selected_playtype = playtype.length > 0 ? playtype : null;
-  selected_musicname = musicname.length > 0 ? musicname : null;
-  selected_difficulty = difficulty.length > 0 ? difficulty : null;
-}
-
-/**
- * 譜面の情報と記録表示を全てクリアする
- */
-function clear_scoredataandresult() {
-  clear_scoredata();
-
-  $('tr.timestampitem').off('click', onclick_timestampitem);
-  $('table#table_timestamps tr.timestampitem').remove();
-
-  $('#score_played_count').text('');
-  $('#score_latestplay_timestamp').text('');
-  
-  clear_bests();
-
-  clear_arcadedata();
-
-  $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
-  webui.clear_scoreinformationimage('scoreinformation')
-
-  $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
-  webui.clear_scoregraphimage('scoregraph')
-
-  $('textarea#textarea_memo').val('');
-}
-
-/**
- * 選択されている譜面の情報と記録を表示する
- */
-async function display_scoredataandresult() {
-  clear_scoredataandresult();
-
-  if(selected_musicname == null || selected_playtype == null || selected_difficulty == null)
-    return;
-
-  display_scoredata();
-
-  display_arcadedata();
-  display_scoreresult();
-}
-
-/**
- * 選択されている譜面の情報と記録を表示する
- */
-async function display_scoreresult() {
-  const battle = !playmodes.includes(selected_playtype);
-  let scoretype;
-  if(!battle)
-    scoretype = `${selected_playtype}${selected_difficulty[0]}`;
-  else
-    scoretype = `DB${selected_difficulty[0]}`;
-
-  const scoreresult = JSON.parse(await webui.get_scoreresult(selected_musicname, selected_playtype, selected_difficulty));
-  if(scoreresult == null) return;
-
-  const blob_scoreinformation = await drawer_scoreinformation.draw(
-    scoreresult,
-    selected_playtype,
-    selected_musicname,
-    selected_difficulty,
-    battle,
-  );
-
-  const url_scoreinformation = URL.createObjectURL(blob_scoreinformation);
-
-  update_imageurl('scoreinformation', 'image_scoreinformation', url_scoreinformation);
-
-  reader_scoreinformation.abort();
-  reader_scoreinformation.readAsDataURL(blob_scoreinformation);
-
-  if(scoreresult.timestamps != null && scoreresult.timestamps.length > 0) {
-    $('#score_played_count').text(scoreresult.timestamps.length);
-
-    const t = scoreresult.latest.timestamp;
-    $('#score_latestplay_timestamp').text([
-        `${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`,
-        `${t.slice(9, 11)}時${t.slice(11, 13)}分${t.slice(13, 15)}秒`,
-      ].join(' '));
-
-    const xvalues = [];
-    const scores = [];
-    const misscounts = [];
-
-    scoreresult.timestamps.reverse().forEach(timestamp => {
-      const tr = $('<tr>');
-      tr.addClass('tableitem timestampitem');
-      if(timestamp == selected_timestamp)
-        tr.addClass('selected');
-  
-      const td_musicname = $('<td>').text(timestamp);
-      td_musicname.addClass('timestamp_cell_timestamp');
-      tr.append(td_musicname);
-  
-      tr.on('click', onclick_timestampitem);
-      
-      $('table#table_timestamps').append(tr);
-
-      const targetresult = scoreresult['history'][timestamp];
-      if(targetresult.playspeed) return;
-      if(targetresult.options) {
-        const options = targetresult.options;
-        if(options.arrange && options.arrange.includes('H-RAN')) return;
-        if(options.allscratch) return;
-        if(options.regularspeed) return;
-      }
-
-      const date = timestamp.slice(0, 8);
-      const time = timestamp.slice(9, 15);
-
-      const year = date.slice(0, 4);
-      const month = date.slice(4, 6);
-      const day = date.slice(6, 8);
-
-      const hours = time.slice(0, 2);
-      const minutes = time.slice(2, 4);
-      const seconds = time.slice(4, 6);
-
-      xvalues.push(new Date(year, month - 1, day, hours, minutes, seconds));
-      scores.push(targetresult['score']['value']);
-      misscounts.push(targetresult.hasOwnProperty('miss_count') ? targetresult['miss_count']['value'] : null);
-    });
-
-    if(xvalues.length) {
-      const chartdata = [[], []];
-      for(let i = 0; i < xvalues.length; i++) {
-        chartdata[0].push({x: xvalues[i], y: scores[i]});
-        chartdata[1].push({x: xvalues[i], y: misscounts[i]});
-      }
-
-      const xvalue_max = new Date(xvalues[0]);
-      const xvalue_min = xvalues[xvalues.length - 1];
-      xvalue_max.setDate(xvalue_max.getDate() + 1);
-
-      const xrange = [
-        `${xvalue_min.getFullYear()}${String(xvalue_min.getMonth()+1).padStart(2, '0')}${String(xvalue_min.getDate()).padStart(2, '0')}`,
-        `${xvalue_max.getFullYear()}${String(xvalue_max.getMonth()+1).padStart(2, '0')}${String(xvalue_max.getDate()).padStart(2, '0')}`,
-      ];
-
-      const blob_scoregraph = await drawer_scoregraph.draw(
-        chartdata,
-        xrange,
-        scoreresult['notes'],
-        scoretype,
-        selected_musicname,
-      );
-
-      const url_scoregraph = URL.createObjectURL(blob_scoregraph);
-
-      update_imageurl('scoregraph', 'image_scoregraph', url_scoregraph);
-
-      reader_scoregraph.abort();
-      reader_scoregraph.readAsDataURL(blob_scoregraph);
-    }
-    else {
-      webui.clear_scoregraphimage();
-      $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
-    }
-  }
-  else {
-    webui.clear_scoregraphimage();
-    $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
-  }
-
-  if(scoreresult.best != null) {
-    display_best_cleartype(scoreresult.best.clear_type);
-    display_best_djlevel(scoreresult.best.dj_level);
-    display_best_score(scoreresult.best.score);
-    display_best_misscount(scoreresult.best.miss_count);
-  }
-  else {
-    clear_bests();
-  }
-
-  if(Object.hasOwn(scoreresult, 'memo') && scoreresult.memo !== null)
-    $('textarea#textarea_memo').val(scoreresult.memo);
-  else
-    $('textarea#textarea_memo').val('');
-}
-
-/**
- * 譜面情報をクリアする
- */
-function clear_scoredata() {
-  $('div#scoredata_musicname').text('');
-  $('div#scoredata_playmode').text('');
-  $('div#scoredata_difficulty').text('');
-  $('div#scoredata_version').text('');
-  $('div#scoredata_level').text('');
-  $('div#scoredata_notes').text('');
-  $('ul#unofficialdifficulties').empty();
-  
-  $('img#image_chartnotesradar_chart').removeAttr('src');
-}
-
-/**
- * 選択譜面の情報を表示する
+ * 選択した譜面をバックエンドに送信する
  * 
- * 選択された譜面の曲名・プレイモード・バージョン・レベル・ノーツ数を表示する。
- * @remarks
- *   将来的に収録パック情報やAC収録状況なども出したい。
+ * 選択中の譜面からの変更の有無を確認して、送信する。
+ * バックエンドはそれを受け付けた後、メッセージを送る。
+ * @param {string} playtype プレイの種類(SP or DP or DP BATTLE)
+ * @param {string} songname 曲名
+ * @param {string} difficulty 難易度
  */
-async function display_scoredata() {
-  const playmode = selected_playtype.includes('BATTLE') ? 'SP' : selected_playtype;
-
-  let version = null;
-  let level = null;
-  if(selected_musicname in musictable.musics) {
-    version = musictable.musics[selected_musicname].version;
-    if(playmode in musictable.musics[selected_musicname]) {
-      if(selected_difficulty in musictable.musics[selected_musicname][playmode])
-        level = musictable.musics[selected_musicname][playmode][selected_difficulty];
-    }
-  }
-
-  let notes = null
-  if(playmode in notesradar) {
-    if(selected_musicname in notesradar[playmode].musics) {
-      if(selected_difficulty in notesradar[playmode].musics[selected_musicname])
-        notes = notesradar[playmode].musics[selected_musicname][selected_difficulty].notes;
-    }
-  }
-
-  $('div#scoredata_musicname').text(selected_musicname);
-  $('div#scoredata_playmode').text(playmode);
-  $('div#scoredata_difficulty').text(selected_difficulty);
-  $('div#scoredata_version').text(version !== null ? version : '');
-  $('div#scoredata_level').text(level !== null ? level : '');
-  $('div#scoredata_notes').text(notes !== null ? notes : '');
-
-  if(unofficialdifficulty) {
-    let target = unofficialdifficulty;
-    if(Object.hasOwn(target, selected_musicname)) {
-      target = target[selected_musicname];
-      if(Object.hasOwn(target, selected_playtype)) {
-        target = target[selected_playtype];
-        if(Object.hasOwn(target, selected_difficulty)) {
-          target = target[selected_difficulty];
-          target.forEach(v => {
-            const value = $('<li>').text(v);
-            $('ul#unofficialdifficulties').append(value);
-          });
-        }
-      }
-    }
-  }
-
-  draw_notesradar_chart(playmode, selected_musicname, selected_difficulty);
+function send_selectchart(playtype, songname, difficulty) {
+  const different_playtype = playtype != selected_chart.playtype;
+  const different_songname = songname != selected_chart.songname;
+  const different_difficulty = difficulty != selected_chart.difficulty;
+  if(different_playtype || different_songname || different_difficulty)
+    webui.change_selectchart(playtype, songname, difficulty);
 }
 
 async function draw_notesradar_chart(playmode, musicname, difficutly) {
@@ -1312,12 +1058,15 @@ function clear_playresult() {
 
 /**
  * 選択されたリザルトの記録を表示する
+ * @param {string} playtype プレイの種類(SP or DP or DP BATTLE)
+ * @param {string} songname 曲名
+ * @param {string} difficulty 難易度
  * @param {string} timestamp リザルトのタイムスタンプ
  */
-async function display_playresult(timestamp) {
+async function display_playresult(playtype, songname, difficulty, timestamp) {
   clear_playresult();
   
-  if(selected_musicname == null || selected_playtype == null || selected_difficulty == null)
+  if(playtype == null || songname == null || difficulty == null)
     return;
 
   if(timestamp.length == 0) return;
@@ -1326,14 +1075,29 @@ async function display_playresult(timestamp) {
 
   let encodedimage = null;
   if(!setting.resultimage_filtered)
-    encodedimage = JSON.parse(await webui.get_resultimage(selected_musicname, selected_playtype, selected_difficulty, timestamp));
+    encodedimage = JSON.parse(await webui.get_resultimage(
+      songname,
+      playtype,
+      difficulty,
+      timestamp,
+    ));
   else
-    encodedimage = JSON.parse(await webui.get_resultimage_filtered(selected_musicname, selected_playtype, selected_difficulty, timestamp));
+    encodedimage = JSON.parse(await webui.get_resultimage_filtered(
+      songname,
+      playtype,
+      difficulty,
+      timestamp,
+    ));
 
   if(encodedimage !== null)
     display_encodedimage(encodedimage, 'image_screenshot');
 
-  const playresult = JSON.parse(await webui.get_playresult(selected_musicname, selected_playtype, selected_difficulty, timestamp));
+  const playresult = JSON.parse(await webui.get_playresult(
+    songname,
+    playtype,
+    difficulty,
+    timestamp,
+  ));
 
   if(playresult == null) return;
 
@@ -1403,20 +1167,6 @@ function clear_arcadedata() {
 }
 
 /**
- * 選択譜面のアーケード記録を表示する
- */
-async function display_arcadedata() {
-  const arcadedata = JSON.parse(await webui.get_arcadedata(selected_musicname, selected_playtype, selected_difficulty));
-
-  if(arcadedata == null) return;
-
-  $('div#arcade_cleartype').text(arcadedata.cleartype !== null ? arcadedata.cleartype : '');
-  $('div#arcade_djlevel').text(arcadedata.djlevel !== null ? arcadedata.djlevel : '');
-  $('div#arcade_score').text(arcadedata.score !== null ? arcadedata.score : '');
-  $('div#arcade_misscount').text(arcadedata.misscount !== null ? arcadedata.misscount : '');
-}
-
-/**
  * 指定のコンポーネントをアクティブ化する
  * 
  * タブ化されていて非アクティブの場合はアクティブになる
@@ -1461,9 +1211,9 @@ function onchange_layoutstate(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_save_scoreinformationimage(e) {
-  if(selected_playtype == null || selected_musicname == null || selected_difficulty == null) return;
+  if(selected_chart.playtype == null || selected_chart.songname == null || selected_chart.difficulty == null) return;
   
-  if(!await webui.save_scoreinformationimage(selected_playtype, selected_musicname, selected_difficulty))
+  if(!await webui.save_scoreinformationimage(selected_chart.playtype, selected_chart.songname, selected_chart.difficulty))
     display_errormessage(['画像の保存に失敗しました。']);
 }
 
@@ -1472,9 +1222,9 @@ async function onclick_save_scoreinformationimage(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_save_scoregraphimage(e) {
-  if(selected_playtype == null || selected_musicname == null || selected_difficulty == null) return;
+  if(selected_chart.playtype == null || selected_chart.songname == null || selected_chart.difficulty == null) return;
 
-  if(!await webui.save_scoregraphimage(selected_playtype, selected_musicname, selected_difficulty))
+  if(!await webui.save_scoregraphimage(selected_chart.playtype, selected_chart.songname, selected_chart.difficulty))
     display_errormessage(['画像の保存に失敗しました。']);
 }
 
@@ -1520,7 +1270,7 @@ function onclick_recentresultitem(e) {
 
   if(!$(this).hasClass('select_first')) return;
 
-  display_scoredataandresult_and_playresult_from_recents();
+  selectchart_from_recents();
 }
 
 /**
@@ -1551,9 +1301,9 @@ function onclick_post_notesradar(e) {
  */
 function onclick_post_scoreinformation(e) {
   webui.post_scoreinformation(
-    selected_playtype,
-    selected_musicname,
-    selected_difficulty,
+    selected_chart.playtype,
+    selected_chart.songname,
+    selected_chart.difficulty,
   );
 }
 
@@ -1627,7 +1377,12 @@ async function onclick_recents_save_resultimages_filtered(e) {
 
   await webui.recents_save_resultimages_filtered(JSON.stringify(timestamps));
 
-  const encodedimage = JSON.parse(await webui.get_resultimage_filtered(selected_musicname, selected_playtype, selected_difficulty, selected_timestamp));
+  const encodedimage = JSON.parse(await webui.get_resultimage_filtered(
+    selected_chart.songname,
+    selected_chart.playtype,
+    selected_chart.difficulty,
+    selected_timestamp
+  ));
 
   display_encodedimage(encodedimage, 'image_screenshot');
 }
@@ -1654,7 +1409,12 @@ async function onclick_displayresultimage_switch(e) {
 
   await load_setting();
 
-  display_playresult(selected_timestamp);
+  display_playresult(
+    selected_chart.playtype,
+    selected_chart.songname,
+    selected_chart.difficulty,
+    selected_timestamp,
+  );
 }
 
 /**
@@ -1686,10 +1446,10 @@ async function onclick_summary_setting(e) {
  */
 function onchange_memo(e) {
   webui.save_memo(
-    selected_musicname,
-    selected_playtype,
-    selected_difficulty,
-    this.value
+    selected_chart.songname,
+    selected_chart.playtype,
+    selected_chart.difficulty,
+    this.value,
   );
 }
 
@@ -1879,7 +1639,7 @@ function onclick_recents_execute_uploadcollectionimages(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 function onclick_confirm_deletemusicnotebook(e) {
-  if(selected_musicname == null) {
+  if(selected_chart.songname == null) {
     $('dialog#dialog_message_musicnameselect')[0].showModal();
     return;
   }
@@ -1892,12 +1652,12 @@ function onclick_confirm_deletemusicnotebook(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_execute_deletemusicnotebook(e) {
-  await webui.delete_musicresult(selected_musicname);
+  await webui.delete_musicresult(selected_chart.songname);
 
   selected_timestamp = null;
-
-  display_scoredataandresult();
   clear_playresult();
+
+  display_chartdataandresult();
 
   $(this).closest('dialog')[0].close();
 }
@@ -1906,26 +1666,26 @@ async function onclick_execute_deletemusicnotebook(e) {
  * 選択した譜面の記録を全て削除するか確認
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_confirm_deletescoreresult(e) {
-  if(selected_playtype == null || selected_musicname == null || selected_difficulty == null) {
-    $('dialog#dialog_message_scoreselect')[0].showModal();
+function onclick_confirm_deletechartresult(e) {
+  if(selected_chart.playtype == null || selected_chart.songname == null || selected_chart.difficulty == null) {
+    $('dialog#dialog_message_chartselect')[0].showModal();
     return;
   }
 
-  $('dialog#dialog_confirm_deletescoreresult')[0].showModal();
+  $('dialog#dialog_confirm_deletechartresult')[0].showModal();
 }
 
 /**
  * 選択した譜面の記録を全て削除する
  * @param {ce.Event} e イベントハンドラ
  */
-async function onclick_execute_deletescoreresult(e) {
-  await webui.delete_scoreresult(selected_playtype, selected_musicname, selected_difficulty);
+async function onclick_execute_deletechartresult(e) {
+  await webui.delete_scoreresult(selected_chart.playtype, selected_chart.songname, selected_chart.difficulty);
 
   selected_timestamp = null;
-  
-  display_scoredataandresult();
   clear_playresult();
+  
+  display_chartdataandresult();
 
   $(this).closest('dialog')[0].close();
 }
@@ -1948,57 +1708,340 @@ function onclick_confirm_deleteplayresult(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_execute_deleteplayresult(e) {
-  await webui.delete_playresult(selected_playtype, selected_musicname, selected_difficulty, selected_timestamp);
+  await webui.delete_playresult(
+    selected_chart.playtype,
+    selected_chart.songname,
+    selected_chart.difficulty,
+    selected_timestamp
+  );
 
   selected_timestamp = null;
-
-  display_scoredataandresult();
   clear_playresult();
 
+  display_chartdataandresult();
+
   $(this).closest('dialog')[0].close();
+}
+
+/**
+ * 選択されている譜面の情報と記録を表示する
+ */
+async function display_chartdataandresult() {
+  clear_chartdataandresult();
+
+  if(selected_chart.playtype == null || selected_chart.songname == null || selected_chart.difficulty == null)
+    return;
+
+  display_chartdata();
+  display_arcadedata();
+  display_chartresult();
+}
+
+/**
+ * 譜面の情報と記録表示を全てクリアする
+ */
+function clear_chartdataandresult() {
+  clear_chartdata();
+
+  $('tr.timestampitem').off('click', onclick_timestampitem);
+  $('table#table_timestamps tr.timestampitem').remove();
+
+  $('#score_played_count').text('');
+  $('#score_latestplay_timestamp').text('');
+  
+  clear_bests();
+
+  clear_arcadedata();
+
+  $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
+  webui.clear_scoreinformationimage('scoreinformation')
+
+  $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+  webui.clear_scoregraphimage('scoregraph')
+
+  $('textarea#textarea_memo').val('');
+}
+
+/**
+ * 譜面情報をクリアする
+ */
+function clear_chartdata() {
+  $('div#scoredata_musicname').text('');
+  $('div#scoredata_playmode').text('');
+  $('div#scoredata_difficulty').text('');
+  $('div#scoredata_version').text('');
+  $('div#scoredata_level').text('');
+  $('div#scoredata_notes').text('');
+  $('ul#unofficialdifficulties').empty();
+  
+  $('img#image_chartnotesradar_chart').removeAttr('src');
+}
+
+/**
+ * 選択譜面の情報を表示する
+ * 
+ * 選択された譜面の曲名・プレイモード・バージョン・レベル・ノーツ数を表示する。
+ * @remarks
+ *   将来的に収録パック情報やAC収録状況なども出したい。
+ */
+async function display_chartdata() {
+  const playmode = selected_chart.playtype.includes('BATTLE') ? 'SP' : selected_chart.playtype;
+
+  let version = null;
+  let level = null;
+  if(selected_chart.songname in musictable.musics) {
+    version = musictable.musics[selected_chart.songname].version;
+    if(playmode in musictable.musics[selected_chart.songname]) {
+      if(selected_chart.difficulty in musictable.musics[selected_chart.songname][playmode])
+        level = musictable.musics[selected_chart.songname][playmode][selected_chart.difficulty];
+    }
+  }
+
+  let notes = null
+  if(playmode in notesradar) {
+    if(selected_chart.songname in notesradar[playmode].musics) {
+      if(selected_chart.difficulty in notesradar[playmode].musics[selected_chart.songname])
+        notes = notesradar[playmode].musics[selected_chart.songname][selected_chart.difficulty].notes;
+    }
+  }
+
+  $('div#scoredata_musicname').text(selected_chart.songname);
+  $('div#scoredata_playmode').text(playmode);
+  $('div#scoredata_difficulty').text(selected_chart.difficulty);
+  $('div#scoredata_version').text(version !== null ? version : '');
+  $('div#scoredata_level').text(level !== null ? level : '');
+  $('div#scoredata_notes').text(notes !== null ? notes : '');
+
+  if(unofficialdifficulty) {
+    let target = unofficialdifficulty;
+    if(Object.hasOwn(target, selected_chart.songname)) {
+      target = target[selected_chart.songname];
+      if(Object.hasOwn(target, selected_chart.playtype)) {
+        target = target[selected_chart.playtype];
+        if(Object.hasOwn(target, selected_chart.difficulty)) {
+          target = target[selected_chart.difficulty];
+          target.forEach(v => {
+            const value = $('<li>').text(v);
+            $('ul#unofficialdifficulties').append(value);
+          });
+        }
+      }
+    }
+  }
+
+  draw_notesradar_chart(playmode, selected_chart.songname, selected_chart.difficulty);
+}
+
+/**
+ * 選択譜面のアーケード記録を表示する
+ */
+async function display_arcadedata() {
+  const arcadedata = JSON.parse(await webui.get_arcadedata(
+    selected_chart.songname,
+    selected_chart.playtype,
+    selected_chart.difficulty
+  ));
+
+  if(arcadedata == null) return;
+
+  $('div#arcade_cleartype').text(arcadedata.cleartype !== null ? arcadedata.cleartype : '');
+  $('div#arcade_djlevel').text(arcadedata.djlevel !== null ? arcadedata.djlevel : '');
+  $('div#arcade_score').text(arcadedata.score !== null ? arcadedata.score : '');
+  $('div#arcade_misscount').text(arcadedata.misscount !== null ? arcadedata.misscount : '');
+}
+
+/**
+ * 選択されている譜面の記録を表示する
+ */
+async function display_chartresult() {
+  const battle = !playmodes.includes(selected_chart.playtype);
+  let scoretype;
+  if(!battle)
+    scoretype = `${selected_chart.playtype}${selected_chart.difficulty[0]}`;
+  else
+    scoretype = `DB${selected_chart.difficulty[0]}`;
+
+  const chartresult = JSON.parse(await webui.get_chartresult(
+    selected_chart.songname,
+    selected_chart.playtype,
+    selected_chart.difficulty,
+  ));
+  if(chartresult == null) return;
+
+  const blob_chartinformation = await drawer_scoreinformation.draw(
+    chartresult,
+    selected_chart.playtype,
+    selected_chart.songname,
+    selected_chart.difficulty,
+    battle,
+  );
+
+  const url_chartinformation = URL.createObjectURL(blob_chartinformation);
+
+  update_imageurl('scoreinformation', 'image_scoreinformation', url_chartinformation);
+
+  reader_scoreinformation.abort();
+  reader_scoreinformation.readAsDataURL(blob_chartinformation);
+
+  if(chartresult.timestamps != null && chartresult.timestamps.length > 0) {
+    $('#score_played_count').text(chartresult.timestamps.length);
+
+    const t = chartresult.latest.timestamp;
+    $('#score_latestplay_timestamp').text([
+        `${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`,
+        `${t.slice(9, 11)}時${t.slice(11, 13)}分${t.slice(13, 15)}秒`,
+      ].join(' '));
+
+    const xvalues = [];
+    const scores = [];
+    const misscounts = [];
+
+    chartresult.timestamps.reverse().forEach(timestamp => {
+      const tr = $('<tr>');
+      tr.addClass('tableitem timestampitem');
+      if(timestamp == selected_timestamp)
+        tr.addClass('selected');
+  
+      const td_timestamp = $('<td>').text(timestamp);
+      td_timestamp.addClass('timestamp_cell_timestamp');
+      tr.append(td_timestamp);
+  
+      tr.on('click', onclick_timestampitem);
+      
+      $('table#table_timestamps').append(tr);
+
+      const targetresult = chartresult['history'][timestamp];
+      if(targetresult.playspeed) return;
+      if(targetresult.options) {
+        const options = targetresult.options;
+        if(options.arrange && options.arrange.includes('H-RAN')) return;
+        if(options.allscratch) return;
+        if(options.regularspeed) return;
+      }
+
+      const date = timestamp.slice(0, 8);
+      const time = timestamp.slice(9, 15);
+
+      const year = date.slice(0, 4);
+      const month = date.slice(4, 6);
+      const day = date.slice(6, 8);
+
+      const hours = time.slice(0, 2);
+      const minutes = time.slice(2, 4);
+      const seconds = time.slice(4, 6);
+
+      xvalues.push(new Date(year, month - 1, day, hours, minutes, seconds));
+      scores.push(targetresult['score']['value']);
+      misscounts.push(targetresult.hasOwnProperty('miss_count') ? targetresult['miss_count']['value'] : null);
+    });
+
+    if(xvalues.length) {
+      const chartdata = [[], []];
+      for(let i = 0; i < xvalues.length; i++) {
+        chartdata[0].push({x: xvalues[i], y: scores[i]});
+        chartdata[1].push({x: xvalues[i], y: misscounts[i]});
+      }
+
+      const xvalue_max = new Date(xvalues[0]);
+      const xvalue_min = xvalues[xvalues.length - 1];
+      xvalue_max.setDate(xvalue_max.getDate() + 1);
+
+      const xrange = [
+        `${xvalue_min.getFullYear()}${String(xvalue_min.getMonth()+1).padStart(2, '0')}${String(xvalue_min.getDate()).padStart(2, '0')}`,
+        `${xvalue_max.getFullYear()}${String(xvalue_max.getMonth()+1).padStart(2, '0')}${String(xvalue_max.getDate()).padStart(2, '0')}`,
+      ];
+
+      const blob_scoregraph = await drawer_scoregraph.draw(
+        chartdata,
+        xrange,
+        chartresult['notes'],
+        scoretype,
+        selected_chart.songname,
+      );
+
+      const url_scoregraph = URL.createObjectURL(blob_scoregraph);
+
+      update_imageurl('scoregraph', 'image_scoregraph', url_scoregraph);
+
+      reader_scoregraph.abort();
+      reader_scoregraph.readAsDataURL(blob_scoregraph);
+    }
+    else {
+      webui.clear_scoregraphimage();
+      $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+    }
+  }
+  else {
+    webui.clear_scoregraphimage();
+    $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+  }
+
+  if(chartresult.best != null) {
+    display_best_cleartype(chartresult.best.clear_type);
+    display_best_djlevel(chartresult.best.dj_level);
+    display_best_score(chartresult.best.score);
+    display_best_misscount(chartresult.best.miss_count);
+  }
+  else {
+    clear_bests();
+  }
+
+  if(Object.hasOwn(chartresult, 'memo') && chartresult.memo !== null)
+    $('textarea#textarea_memo').val(chartresult.memo);
+  else
+    $('textarea#textarea_memo').val('');
 }
 
 /**
  * 絞り込み対象のバージョンを選択する
  * @param {ce.Event} e イベントハンドラ
  */
-function onchange_scoreselect_version(e) {
-  set_musicnames();
+function onchange_chartselect_version(e) {
+  set_songnames();
 }
 
 /**
  * 絞り込み対象の曲名の文字列を入力する
  * @param {ce.Event} e イベントハンドラ
  */
-function oninput_scoreselect_musicname(e) {
-  set_musicnames();
+function oninput_chartselect_songname(e) {
+  set_songnames();
 }
 
 /**
  * 曲名を選択する
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_musictableitem(e) {
-  $('tr.musictableitem.selected').removeClass('selected');
+function onclick_songnameitem(e) {
+  $('tr.songnameitem.selected').removeClass('selected');
   $(this).addClass('selected');
 
-  display_scoredataandresult_from_scoresearch();
+  selected_timestamp = null;
+  clear_playresult();
+
+  selectchart_from_chartsearch();
 }
 
 /**
  * プレイの種類を選択する
  * @param {ce.Event} e イベントハンドラ
  */
-function onchange_scoreresult_playtype(e) {
-  display_scoredataandresult_from_scoresearch();
+function onchange_chartselect_playtype(e) {
+  selected_timestamp = null;
+  clear_playresult();
+
+  selectchart_from_chartsearch();
 }
 
 /**
  * 譜面難易度を選択する
  * @param {ce.Event} e イベントハンドラ
  */
-function onchange_scoreresult_difficulty(e) {
-  display_scoredataandresult_from_scoresearch();
+function onchange_chartselect_difficulty(e) {
+  selected_timestamp = null;
+  clear_playresult();
+
+  selectchart_from_chartsearch();
 }
 
 /**
@@ -2098,7 +2141,7 @@ function onclick_notesradaritem(e) {
   $('tr.notesradaritem.selected').removeClass('selected');
   $(this).addClass('selected');
 
-  display_scoredataandresult_from_notesradar();
+  selectchart_from_notesradar();
 }
 
 /**
@@ -2109,9 +2152,13 @@ function onclick_timestampitem(e) {
   $('tr.timestampitem.selected').removeClass('selected');
   $(this).addClass('selected');
 
-  const timestamp = $('tr.timestampitem.selected .timestamp_cell_timestamp').first().text();
-
-  display_playresult(timestamp);
+  const timestamp = $(this).find('td.timestamp_cell_timestamp').first().text();
+  display_playresult(
+    selected_chart.playtype,
+    selected_chart.songname,
+    selected_chart.difficulty,
+    timestamp,
+  );
 }
 
 
@@ -2474,9 +2521,9 @@ function onloadend_scoreinformationimage(e) {
 
   webui.upload_scoreinformationimage(
     e.target.result.split(',')[1],
-    selected_playtype,
-    selected_musicname,
-    selected_difficulty
+    selected_chart.playtype,
+    selected_chart.songname,
+    selected_chart.difficulty,
   );
 }
 
@@ -2485,9 +2532,9 @@ function onloadend_scoregraphimage(e) {
 
   webui.upload_scoregraphimage(
     e.target.result.split(',')[1],
-    selected_playtype,
-    selected_musicname,
-    selected_difficulty
+    selected_chart.playtype,
+    selected_chart.songname,
+    selected_chart.difficulty,
   );
 }
 
@@ -2536,9 +2583,9 @@ async function display_notesradar_ranking() {
       td_latest.addClass('notesradar_cell_rank');
       tr.append(td_latest);
   
-      const td_musicname = $('<td>').text(value['musicname']);
-      td_musicname.addClass('notesradar_cell_musicname');
-      tr.append(td_musicname);
+      const td_songname = $('<td>').text(value['musicname']);
+      td_songname.addClass('notesradar_cell_songname');
+      tr.append(td_songname);
   
       const td_displaydifficulty = $('<td>').text(value['difficulty'][0]);
       td_displaydifficulty.addClass('notesradar_cell_displaydifficulty');

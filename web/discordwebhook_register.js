@@ -135,25 +135,6 @@ async function set_musicnames() {
   }
 }
 
-
-/**
- * 検索タブから選択された譜面の情報を表示する
- */
-function check_selectscore() {
-  const musicname = $('tr.musicnameitem.selected .musicname_cell_musicname').first().text();
-  const playmode = $('#select_playmodes option:selected').val();
-  const difficulty = $('#select_difficulties option:selected').val();
-
-  if(!Object.keys(musics[musicname][playmode]).includes(difficulty)) {
-    $('span#message').text(`${playmode} の ${musicname} に ${difficulty} はありません。`);
-    return null;
-  }
-
-  $('span#message').text('');
-
-  return [playmode, difficulty, musicname];
-}
-
 /**
  * 入力された設定値を取得する。
  * @returns 

@@ -44,24 +44,24 @@ table#table_recents td:nth-child(9) {
     width: 15px;
 }
 
-div#scroll_musics {
+div#scroll_recents {
     min-height: 200px;
     flex: 1;
 }
 
-table#table_musics td:nth-child(2),
-table#table_musics th:nth-child(2) {
+table#table_songnames td:nth-child(2),
+table#table_songnames th:nth-child(2) {
     display: none;
 }
 
-div.pane_musicname_search_left {
+div.pane_songname_search_left {
     padding: 2px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
-div.pane_musicname_search_right {
+div.pane_songname_search_right {
     width: 130px;
     padding: 2px;
     display: flex;

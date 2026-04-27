@@ -152,7 +152,7 @@ class NotebookMusic(Notebook):
         self.filename = f'{musicname.encode('utf-8').hex()}.json'
         super().__init__()
     
-    def get_scoreresult(self, playtype: str, difficulty: str):
+    def get_chartresult(self, playtype: str, difficulty: str):
         '''対象のプレイモード・難易度の記録を取得する
 
         Args:
@@ -561,7 +561,7 @@ class NotebookSummary(Notebook):
                 if not difficulty in music_item[playmode].keys() or music_item[playmode][difficulty] is None:
                     continue
 
-                r = notebook.get_scoreresult(playtype, difficulty)
+                r = notebook.get_chartresult(playtype, difficulty)
                 if r is None:
                     continue
 

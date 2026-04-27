@@ -20,14 +20,14 @@ const Statuses = Object.freeze({
   SUCCESS: 'success',
   INVALID: 'invalid',
   FAILED: 'failed',
-})
+});
 
 const DataTypes = Object.freeze({
   TEXT_PLAIN: 'text/plain',
   APP_JSON: 'application/json',
   IMAGE_PNG: 'image/png',
   IMAGE_JPG: 'image/jpg',
-})
+});
 
 let url = 'ws://localhost:8765';
 

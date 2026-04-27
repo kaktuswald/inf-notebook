@@ -29,10 +29,10 @@ class DrawerScoregraph {
    * @param {Array<string} xrange X軸の範囲
    * @param {Bigint} notes スコアの最大値
    * @param {string} scoretype プレイの種類と譜面難易度の3文字
-   * @param {string} musicname 曲名
+   * @param {string} songname 曲名
    * @returns {blob} 画像データ
    */
-  async draw(values, xrange, notes, scoretype, musicname) {
+  async draw(values, xrange, notes, scoretype, songname) {
     const chart = new Chart(this.canvas.getContext('2d'), {
       type: 'scatter',
       data: {
@@ -133,7 +133,7 @@ class DrawerScoregraph {
         plugins: {
           title: {
             display: true,
-            text: `${musicname}[${scoretype}]`,
+            text: `${songname}[${scoretype}]`,
             font: {
               size: 50,
             },

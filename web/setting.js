@@ -30,8 +30,7 @@ $(function() {
 async function initialize() {
   document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
 
-  const setting = JSON.parse(await webui.get_setting());
-  globalThis.setting = setting;
+  setting = JSON.parse(await webui.get_setting());
   
   $('#check_newrecord_only').prop('checked', setting['newrecord_only']);
   $('#check_play_sound').prop('checked', setting['play_sound']);
