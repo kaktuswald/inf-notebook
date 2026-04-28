@@ -1684,7 +1684,9 @@ class GuiApi():
         '''
         if newwindow is None:
             return
-        if not newwindow.get_child_process_id() == 0:
+        if not newwindow.is_shown():
+            return
+        if newwindow.get_child_process_id() == 0:
             return
         
         if data is None:
