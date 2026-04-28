@@ -661,6 +661,9 @@ function communication_message(message, data = null) {
     case 'update_recentrecords':
       set_recentnotebook_results(data);
       break;
+    case 'update_chartresult':
+      update_chartresult(data);
+      break;
     case 'discordwebhook_refresh':
       reload_discordwebhook_settings();
       break;
@@ -672,9 +675,6 @@ function communication_message(message, data = null) {
       break;
     case 'discordwebhook_append_log':
       discordwebhook_append_logs(data);
-      break;
-    case 'change_selectedchart':
-      change_selectedchart(data);
       break;
     case 'error':
       display_errormessage(data);
@@ -909,13 +909,13 @@ function select_newest_recentresult() {
 }
 
 /**
- * 対象の譜面を選択状態にする
+ * 譜面記録の更新
  * 
- * バックエンドから選択譜面の変更を受け取る。
+ * バックエンドから譜面記録の更新を受け取る。
  * 現在選択されている譜面と異なる場合は、更新する。
  * @param {dict} 譜面の種類・曲名・難易度を含む
  */
-function change_selectedchart(data) {
+function update_chartresult(data) {
   if(data == null) return;
 
   const different_playtype = data.playtype != selected_chart.playtype;
@@ -923,6 +923,8 @@ function change_selectedchart(data) {
   const different_difficulty = data.difficulty != selected_chart.difficulty;
   if(different_playtype || different_songname || different_difficulty)
     change_selected_chart(data.playtype, data.songname, data.difficulty);
+  else
+    display_chartresult();
 }
 
 /**
@@ -990,7 +992,12 @@ function selectchart_from_notesradar() {
  * @param {string} difficulty 譜面難易度
  */
 function change_selected_chart(playtype, songname, difficulty) {
+  clear_chartdata();
+  clear_arcadedata();
+  clear_chartresult();
+
   $('tr.songnameitem.selected').removeClass('selected');
+
   const targetmusicitem = $('tr.songnameitem').filter(function() {
     return $(this).children('td.songname_cell_songname').text() == songname;
   });
@@ -1003,7 +1010,9 @@ function change_selected_chart(playtype, songname, difficulty) {
   selected_chart.songname = songname;
   selected_chart.difficulty = difficulty;
 
-  display_chartdataandresult();
+  display_chartdata();
+  display_arcadedata();
+  display_chartresult();
 }
 
 /**
@@ -1040,6 +1049,75 @@ async function draw_notesradar_chart(playmode, musicname, difficutly) {
 }
 
 /**
+ * 指定のコンポーネントをアクティブ化する
+ * 
+ * タブ化されていて非アクティブの場合はアクティブになる
+ * @param {str} componentname 対象のコンポーネント名
+ */
+function active_component(componentname) {
+  const target = components[componentname];
+  target.parent.setActiveContentItem(target);
+}
+
+/**
+ * インフィニタスの発見状態の切り替え
+ * @param {boolean} flag 発見状態
+ */
+function switch_detect_togglemessage(id, flag) {
+  if(flag)
+    $(`#${id}`).addClass('toggle_on');
+  else
+    $(`#${id}`).removeClass('toggle_on');
+}
+
+
+/**
+ * 譜面情報をクリアする
+ */
+function clear_chartdata() {
+  $('div#scoredata_musicname').text('');
+  $('div#scoredata_playmode').text('');
+  $('div#scoredata_difficulty').text('');
+  $('div#scoredata_version').text('');
+  $('div#scoredata_level').text('');
+  $('div#scoredata_notes').text('');
+  $('ul#unofficialdifficulties').empty();
+  
+  $('img#image_chartnotesradar_chart').removeAttr('src');
+}
+
+/**
+ * アーケード記録を全てクリアする
+ */
+function clear_arcadedata() {
+  $('div#arcade_cleartype').text('');
+  $('div#arcade_djlevel').text('');
+  $('div#arcade_score').text('');
+  $('div#arcade_misscount').text('');
+}
+
+/**
+ * 譜面記録の表示を全てクリアする
+ */
+function clear_chartresult() {
+  $('tr.timestampitem').off('click', onclick_timestampitem);
+  $('table#table_timestamps tr.timestampitem').remove();
+
+  $('#score_played_count').text('');
+  $('#score_latestplay_timestamp').text('');
+  
+  clear_bests();
+
+  $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
+  webui.clear_scoreinformationimage('scoreinformation')
+
+  $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+  webui.clear_scoregraphimage('scoregraph')
+
+  $('textarea#textarea_memo').val('');
+}
+
+/**
  * リザルトの記録表示を全てクリアする
  */
 function clear_playresult() {
@@ -1054,6 +1132,224 @@ function clear_playresult() {
 
   $('div#moredetailbox').css('display', 'none');
   $('div#moredetailbox').find('ul').empty();
+}
+
+/**
+ * 選択譜面の情報を表示する
+ * 
+ * 選択された譜面の曲名・プレイモード・バージョン・レベル・ノーツ数を表示する。
+ * @remarks
+ *   将来的に収録パック情報やAC収録状況なども出したい。
+ */
+async function display_chartdata() {
+  const playmode = selected_chart.playtype.includes('BATTLE') ? 'SP' : selected_chart.playtype;
+
+  let version = null;
+  let level = null;
+  if(selected_chart.songname in musictable.musics) {
+    version = musictable.musics[selected_chart.songname].version;
+    if(playmode in musictable.musics[selected_chart.songname]) {
+      if(selected_chart.difficulty in musictable.musics[selected_chart.songname][playmode])
+        level = musictable.musics[selected_chart.songname][playmode][selected_chart.difficulty];
+    }
+  }
+
+  let notes = null
+  if(playmode in notesradar) {
+    if(selected_chart.songname in notesradar[playmode].musics) {
+      if(selected_chart.difficulty in notesradar[playmode].musics[selected_chart.songname])
+        notes = notesradar[playmode].musics[selected_chart.songname][selected_chart.difficulty].notes;
+    }
+  }
+
+  $('div#scoredata_musicname').text(selected_chart.songname);
+  $('div#scoredata_playmode').text(playmode);
+  $('div#scoredata_difficulty').text(selected_chart.difficulty);
+  $('div#scoredata_version').text(version !== null ? version : '');
+  $('div#scoredata_level').text(level !== null ? level : '');
+  $('div#scoredata_notes').text(notes !== null ? notes : '');
+
+  if(unofficialdifficulty) {
+    let target = unofficialdifficulty;
+    if(Object.hasOwn(target, selected_chart.songname)) {
+      target = target[selected_chart.songname];
+      if(Object.hasOwn(target, selected_chart.playtype)) {
+        target = target[selected_chart.playtype];
+        if(Object.hasOwn(target, selected_chart.difficulty)) {
+          target = target[selected_chart.difficulty];
+          target.forEach(v => {
+            const value = $('<li>').text(v);
+            $('ul#unofficialdifficulties').append(value);
+          });
+        }
+      }
+    }
+  }
+
+  draw_notesradar_chart(playmode, selected_chart.songname, selected_chart.difficulty);
+}
+
+/**
+ * 選択譜面のアーケード記録を表示する
+ */
+async function display_arcadedata() {
+  const arcadedata = JSON.parse(await webui.get_arcadedata(
+    selected_chart.songname,
+    selected_chart.playtype,
+    selected_chart.difficulty
+  ));
+
+  if(arcadedata == null) return;
+
+  $('div#arcade_cleartype').text(arcadedata.cleartype !== null ? arcadedata.cleartype : '');
+  $('div#arcade_djlevel').text(arcadedata.djlevel !== null ? arcadedata.djlevel : '');
+  $('div#arcade_score').text(arcadedata.score !== null ? arcadedata.score : '');
+  $('div#arcade_misscount').text(arcadedata.misscount !== null ? arcadedata.misscount : '');
+}
+
+/**
+ * 選択されている譜面の記録を表示する
+ */
+async function display_chartresult() {
+  const battle = !playmodes.includes(selected_chart.playtype);
+  let scoretype;
+  if(!battle)
+    scoretype = `${selected_chart.playtype}${selected_chart.difficulty[0]}`;
+  else
+    scoretype = `DB${selected_chart.difficulty[0]}`;
+
+  const chartresult = JSON.parse(await webui.get_chartresult(
+    selected_chart.songname,
+    selected_chart.playtype,
+    selected_chart.difficulty,
+  ));
+  if(chartresult == null) return;
+
+  const blob_chartinformation = await drawer_scoreinformation.draw(
+    chartresult,
+    selected_chart.playtype,
+    selected_chart.songname,
+    selected_chart.difficulty,
+    battle,
+  );
+
+  const url_chartinformation = URL.createObjectURL(blob_chartinformation);
+
+  update_imageurl('scoreinformation', 'image_scoreinformation', url_chartinformation);
+
+  reader_scoreinformation.abort();
+  reader_scoreinformation.readAsDataURL(blob_chartinformation);
+
+  $('tr.timestampitem').off('click', onclick_timestampitem);
+  $('table#table_timestamps tr.timestampitem').remove();
+
+  if(chartresult.timestamps != null && chartresult.timestamps.length > 0) {
+    $('#score_played_count').text(chartresult.timestamps.length);
+
+    const t = chartresult.latest.timestamp;
+    $('#score_latestplay_timestamp').text([
+        `${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`,
+        `${t.slice(9, 11)}時${t.slice(11, 13)}分${t.slice(13, 15)}秒`,
+      ].join(' '));
+
+    const xvalues = [];
+    const scores = [];
+    const misscounts = [];
+
+    chartresult.timestamps.reverse().forEach(timestamp => {
+      const tr = $('<tr>');
+      tr.addClass('tableitem timestampitem');
+      if(timestamp == selected_timestamp)
+        tr.addClass('selected');
+  
+      const td_timestamp = $('<td>').text(timestamp);
+      td_timestamp.addClass('timestamp_cell_timestamp');
+      tr.append(td_timestamp);
+  
+      tr.on('click', onclick_timestampitem);
+      
+      $('table#table_timestamps').append(tr);
+
+      const targetresult = chartresult['history'][timestamp];
+      if(targetresult.playspeed) return;
+      if(targetresult.options) {
+        const options = targetresult.options;
+        if(options.arrange && options.arrange.includes('H-RAN')) return;
+        if(options.allscratch) return;
+        if(options.regularspeed) return;
+      }
+
+      const date = timestamp.slice(0, 8);
+      const time = timestamp.slice(9, 15);
+
+      const year = date.slice(0, 4);
+      const month = date.slice(4, 6);
+      const day = date.slice(6, 8);
+
+      const hours = time.slice(0, 2);
+      const minutes = time.slice(2, 4);
+      const seconds = time.slice(4, 6);
+
+      xvalues.push(new Date(year, month - 1, day, hours, minutes, seconds));
+      scores.push(targetresult['score']['value']);
+      misscounts.push(targetresult.hasOwnProperty('miss_count') ? targetresult['miss_count']['value'] : null);
+    });
+
+    if(xvalues.length) {
+      const chartdata = [[], []];
+      for(let i = 0; i < xvalues.length; i++) {
+        chartdata[0].push({x: xvalues[i], y: scores[i]});
+        chartdata[1].push({x: xvalues[i], y: misscounts[i]});
+      }
+
+      const xvalue_max = new Date(xvalues[0]);
+      const xvalue_min = xvalues[xvalues.length - 1];
+      xvalue_max.setDate(xvalue_max.getDate() + 1);
+
+      const xrange = [
+        `${xvalue_min.getFullYear()}${String(xvalue_min.getMonth()+1).padStart(2, '0')}${String(xvalue_min.getDate()).padStart(2, '0')}`,
+        `${xvalue_max.getFullYear()}${String(xvalue_max.getMonth()+1).padStart(2, '0')}${String(xvalue_max.getDate()).padStart(2, '0')}`,
+      ];
+
+      const blob_scoregraph = await drawer_scoregraph.draw(
+        chartdata,
+        xrange,
+        chartresult['notes'],
+        scoretype,
+        selected_chart.songname,
+      );
+
+      const url_scoregraph = URL.createObjectURL(blob_scoregraph);
+
+      update_imageurl('scoregraph', 'image_scoregraph', url_scoregraph);
+
+      reader_scoregraph.abort();
+      reader_scoregraph.readAsDataURL(blob_scoregraph);
+    }
+    else {
+      webui.clear_scoregraphimage();
+      $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+    }
+  }
+  else {
+    webui.clear_scoregraphimage();
+    $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
+  }
+
+  if(chartresult.best != null) {
+    display_best_cleartype(chartresult.best.clear_type);
+    display_best_djlevel(chartresult.best.dj_level);
+    display_best_score(chartresult.best.score);
+    display_best_misscount(chartresult.best.miss_count);
+  }
+  else {
+    clear_bests();
+  }
+
+  if(Object.hasOwn(chartresult, 'memo') && chartresult.memo !== null)
+    $('textarea#textarea_memo').val(chartresult.memo);
+  else
+    $('textarea#textarea_memo').val('');
 }
 
 /**
@@ -1156,36 +1452,284 @@ async function display_playresult(playtype, songname, difficulty, timestamp) {
   }
 }
 
+
 /**
- * アーケード記録を全てクリアする
+ * イベントの設定を読み出す
  */
-function clear_arcadedata() {
-  $('div#arcade_cleartype').text('');
-  $('div#arcade_djlevel').text('');
-  $('div#arcade_score').text('');
-  $('div#arcade_misscount').text('');
+async function reload_discordwebhook_settings() {
+  const values = JSON.parse(await webui.get_discordwebhook_settings());
+
+  refresh_discordwebhook_settings(values);
 }
 
 /**
- * 指定のコンポーネントをアクティブ化する
+ * スクリーンショットのパスを表示する
+ * @param {} path 
+ */
+function display_screenshot_filepath(path) {
+  $('span#path_screenshot').text(path);
+}
+
+/**
+ * イベントの設定を再表示する
+ * @param {*} settings 
+ */
+function refresh_discordwebhook_settings(settings) {
+  $('tr.discordwebhookitem').remove();
+
+  Object.keys(settings).forEach(function(key) {
+    const target = settings[key];
+
+    const targetscore = target.targetscore;
+
+    const tips = [];
+    if(target.mode != DiscordwebhookModes.BATTLE) {
+      tips.push(...[
+        `[${targetscore.playmode}${targetscore.difficulty[0]}]${targetscore.musicname}`,
+        '',
+      ]);
+    }
+    
+    tips.push(...[
+      `開催者: ${target.authorname}`,
+      `サイトURL: ${target.siteurl}`,
+      '',
+      target.comment,
+    ]);
+
+    const tr = $('<tr>');
+    tr.addClass('tableitem discordwebhookitem');
+    tr.attr('title', tips.join('\n'));
+
+    const td_name = $('<td>').text(target['name']);
+    td_name.addClass('discordwebhook_cell_name');
+    tr.append(td_name);
+
+    const start_localdt = new Date(target.startdatetime);
+    const start_month = (start_localdt.getMonth() + 1).toString().padStart(2, '0');
+    const start_day = start_localdt.getDate().toString().padStart(2, '0');
+    const start_hour = start_localdt.getHours().toString().padStart(2, '0');
+    const start_minute = start_localdt.getMinutes().toString().padStart(2, '0');
+    const td_startdt = $('<td>').text(`${start_month}/${start_day} ${start_hour}:${start_minute}`);
+    td_startdt.addClass('discordwebhook_cell_startdatetime');
+    tr.append(td_startdt);
+
+    const end_localdt = new Date(target.enddatetime);
+    const end_month = (end_localdt.getMonth() + 1).toString().padStart(2, '0');
+    const end_day = end_localdt.getDate().toString().padStart(2, '0');
+    const end_hour = end_localdt.getHours().toString().padStart(2, '0');
+    const end_minute = end_localdt.getMinutes().toString().padStart(2, '0');
+    const td_enddt = $('<td>').text(`${end_month}/${end_day} ${end_hour}:${end_minute}`);
+    td_enddt.addClass('discordwebhook_cell_enddatetime');
+    tr.append(td_enddt);
+
+    const td_status = $('<td>');
+    switch(target.status) {
+      case DiscordwebhookStatuses.UPCOMING:
+        td_status.text('予告');
+        break;
+      case DiscordwebhookStatuses.ONGOING:
+        td_status.text('開催中');
+        break;
+      case DiscordwebhookStatuses.ENDED:
+        td_status.text('終了');
+        break;
+    }
+    td_status.addClass('joineditem_cell_status');
+    tr.append(td_status);
+
+    $('#table_discordwebhooks').append(tr);
+  });
+}
+
+/**
+ * 譜面のベスト記録の表示をすべてクリアする
+ */
+function clear_bests() {
+  display_best_cleartype(null);
+  display_best_djlevel(null);
+  display_best_score(null);
+  display_best_misscount(null);
+}
+
+function display_best_cleartype(values) {
+  if(values != null) {
+    if(values.value != null)
+      $('#best_cleartype').text(values.value);
+    else
+      $('#best_cleartype').text('');
+
+    if(values.timestamp != null) {
+      const t = values.timestamp;
+      $('#best_cleartype_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
+    }
+    else {
+      $('#best_cleartype_timestamp').text('?????');
+    }
+
+    if(values.options != null) {
+      if(values.options.arrange != null)
+        $('#best_cleartype_option').text(values.options.arrange);
+      else
+        $('#best_cleartype_option').text('---------');
+    }
+    else {
+      $('#best_cleartype_option').text('?????');
+    }
+  }
+  else {
+    $('#best_cleartype').text('');
+    $('#best_cleartype_option').text('');
+    $('#best_cleartype_timestamp').text('');
+  }
+}
+
+function display_best_djlevel(values) {
+  if(values != null) {
+    if(values.value != null)
+      $('#best_djlevel').text(values.value);
+    else
+      $('#best_djlevel').text('');
+
+    if(values.timestamp != null) {
+      const t = values.timestamp;
+      $('#best_djlevel_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
+    }
+    else {
+      $('#best_djlevel_timestamp').text('?????');
+    }
+
+    if(values.options != null) {
+      if(values.options.arrange != null)
+        $('#best_djlevel_option').text(values.options.arrange);
+      else
+        $('#best_djlevel_option').text('---------');
+    }
+    else {
+      $('#best_djlevel_option').text('?????');
+    }
+  }
+  else {
+    $('#best_djlevel').text('');
+    $('#best_djlevel_option').text('');
+    $('#best_djlevel_timestamp').text('');
+  }
+}
+
+function display_best_score(values) {
+  if(values != null) {
+    if(values.value != null)
+      $('#best_score').text(values.value);
+    else
+      $('#best_score').text('');
+
+    if(values.timestamp != null) {
+      const t = values.timestamp;
+      $('#best_score_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
+    }
+    else {
+      $('#best_score_timestamp').text('?????');
+    }
+
+    if(values.options != null) {
+      if(values.options.arrange != null)
+        $('#best_score_option').text(values.options.arrange);
+      else
+        $('#best_score_option').text('---------');
+    }
+    else {
+      $('#best_score_option').text('?????');
+    }
+  }
+  else {
+    $('#best_score').text('');
+    $('#best_score_option').text('');
+    $('#best_score_timestamp').text('');
+  }
+}
+
+function display_best_misscount(values) {
+  if(values != null) {
+    if(values.value != null)
+      $('#best_misscount').text(values.value);
+    else
+      $('#best_misscount').text('');
+
+    if(values.timestamp != null) {
+      const t = values.timestamp;
+      $('#best_misscount_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
+    }
+    else {
+      $('#best_misscount_timestamp').text('?????');
+    }
+
+    if(values.options != null) {
+      if(values.options.arrange != null)
+        $('#best_misscount_option').text(values.options.arrange);
+      else
+        $('#best_misscount_option').text('---------');
+    }
+    else {
+      $('#best_misscount_option').text('?????');
+    }
+  }
+  else {
+    $('#best_misscount').text('');
+    $('#best_misscount_option').text('');
+    $('#best_misscount_timestamp').text('');
+  }
+}
+
+/**
+ * ノーツレーダーの更新
  * 
- * タブ化されていて非アクティブの場合はアクティブになる
- * @param {str} componentname 対象のコンポーネント名
+ * 上位から呼び出される。
  */
-function active_component(componentname) {
-  const target = components[componentname];
-  target.parent.setActiveContentItem(target);
+function update_notesradar() {
+  draw_notesradar();
+  display_notesradar_total();
+  display_notesradar_ranking();
+}
+
+async function draw_summary() {
+  if(setting == null) return;
+
+  const values = JSON.parse(await webui.get_summaryvalues());
+
+  if(values == null) return;
+
+  const blob = await drawer_summary.draw(values, setting.summary_countmethod_only);
+  const url = URL.createObjectURL(blob)
+
+  update_imageurl('summary', 'image_summary', url);
+
+  reader_summary.abort();
+  reader_summary.readAsDataURL(blob);
 }
 
 /**
- * インフィニタスの発見状態の切り替え
- * @param {boolean} flag 発見状態
+ * ノーツレーダー画像を更新する
+ * 
+ * 初期処理完了時のほか、更新時にPythonから呼び出される。
  */
-function switch_detect_togglemessage(id, flag) {
-  if(flag)
-    $(`#${id}`).addClass('toggle_on');
-  else
-    $(`#${id}`).removeClass('toggle_on');
+async function draw_notesradar() {
+  const values = JSON.parse(await webui.get_notesradar_chartvalues());
+
+  const blob = await drawer_notesradar.draw_playerradarchart(values);
+  const url = URL.createObjectURL(blob)
+
+  update_imageurl('notesradar', 'image_chartnotesradar', url);
+
+  reader_notesradar.abort();
+  reader_notesradar.readAsDataURL(blob);
+}
+
+function update_imageurl(name, tagid, url) {
+  if(imageurls[name] != null)
+    URL.revokeObjectURL(imageurls[name]);
+
+  imageurls[name] = url;
+  $(`img#${tagid}`).attr('src', url);
 }
 
 /**
@@ -1657,7 +2201,7 @@ async function onclick_execute_deletemusicnotebook(e) {
   selected_timestamp = null;
   clear_playresult();
 
-  display_chartdataandresult();
+  clear_chartresult();
 
   $(this).closest('dialog')[0].close();
 }
@@ -1685,7 +2229,7 @@ async function onclick_execute_deletechartresult(e) {
   selected_timestamp = null;
   clear_playresult();
   
-  display_chartdataandresult();
+  clear_chartresult();
 
   $(this).closest('dialog')[0].close();
 }
@@ -1718,278 +2262,9 @@ async function onclick_execute_deleteplayresult(e) {
   selected_timestamp = null;
   clear_playresult();
 
-  display_chartdataandresult();
+  display_chartresult();
 
   $(this).closest('dialog')[0].close();
-}
-
-/**
- * 選択されている譜面の情報と記録を表示する
- */
-async function display_chartdataandresult() {
-  clear_chartdataandresult();
-
-  if(selected_chart.playtype == null || selected_chart.songname == null || selected_chart.difficulty == null)
-    return;
-
-  display_chartdata();
-  display_arcadedata();
-  display_chartresult();
-}
-
-/**
- * 譜面の情報と記録表示を全てクリアする
- */
-function clear_chartdataandresult() {
-  clear_chartdata();
-
-  $('tr.timestampitem').off('click', onclick_timestampitem);
-  $('table#table_timestamps tr.timestampitem').remove();
-
-  $('#score_played_count').text('');
-  $('#score_latestplay_timestamp').text('');
-  
-  clear_bests();
-
-  clear_arcadedata();
-
-  $('img#image_scoreinformation').attr('src', imageurls['imagenothing']);
-  webui.clear_scoreinformationimage('scoreinformation')
-
-  $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
-  webui.clear_scoregraphimage('scoregraph')
-
-  $('textarea#textarea_memo').val('');
-}
-
-/**
- * 譜面情報をクリアする
- */
-function clear_chartdata() {
-  $('div#scoredata_musicname').text('');
-  $('div#scoredata_playmode').text('');
-  $('div#scoredata_difficulty').text('');
-  $('div#scoredata_version').text('');
-  $('div#scoredata_level').text('');
-  $('div#scoredata_notes').text('');
-  $('ul#unofficialdifficulties').empty();
-  
-  $('img#image_chartnotesradar_chart').removeAttr('src');
-}
-
-/**
- * 選択譜面の情報を表示する
- * 
- * 選択された譜面の曲名・プレイモード・バージョン・レベル・ノーツ数を表示する。
- * @remarks
- *   将来的に収録パック情報やAC収録状況なども出したい。
- */
-async function display_chartdata() {
-  const playmode = selected_chart.playtype.includes('BATTLE') ? 'SP' : selected_chart.playtype;
-
-  let version = null;
-  let level = null;
-  if(selected_chart.songname in musictable.musics) {
-    version = musictable.musics[selected_chart.songname].version;
-    if(playmode in musictable.musics[selected_chart.songname]) {
-      if(selected_chart.difficulty in musictable.musics[selected_chart.songname][playmode])
-        level = musictable.musics[selected_chart.songname][playmode][selected_chart.difficulty];
-    }
-  }
-
-  let notes = null
-  if(playmode in notesradar) {
-    if(selected_chart.songname in notesradar[playmode].musics) {
-      if(selected_chart.difficulty in notesradar[playmode].musics[selected_chart.songname])
-        notes = notesradar[playmode].musics[selected_chart.songname][selected_chart.difficulty].notes;
-    }
-  }
-
-  $('div#scoredata_musicname').text(selected_chart.songname);
-  $('div#scoredata_playmode').text(playmode);
-  $('div#scoredata_difficulty').text(selected_chart.difficulty);
-  $('div#scoredata_version').text(version !== null ? version : '');
-  $('div#scoredata_level').text(level !== null ? level : '');
-  $('div#scoredata_notes').text(notes !== null ? notes : '');
-
-  if(unofficialdifficulty) {
-    let target = unofficialdifficulty;
-    if(Object.hasOwn(target, selected_chart.songname)) {
-      target = target[selected_chart.songname];
-      if(Object.hasOwn(target, selected_chart.playtype)) {
-        target = target[selected_chart.playtype];
-        if(Object.hasOwn(target, selected_chart.difficulty)) {
-          target = target[selected_chart.difficulty];
-          target.forEach(v => {
-            const value = $('<li>').text(v);
-            $('ul#unofficialdifficulties').append(value);
-          });
-        }
-      }
-    }
-  }
-
-  draw_notesradar_chart(playmode, selected_chart.songname, selected_chart.difficulty);
-}
-
-/**
- * 選択譜面のアーケード記録を表示する
- */
-async function display_arcadedata() {
-  const arcadedata = JSON.parse(await webui.get_arcadedata(
-    selected_chart.songname,
-    selected_chart.playtype,
-    selected_chart.difficulty
-  ));
-
-  if(arcadedata == null) return;
-
-  $('div#arcade_cleartype').text(arcadedata.cleartype !== null ? arcadedata.cleartype : '');
-  $('div#arcade_djlevel').text(arcadedata.djlevel !== null ? arcadedata.djlevel : '');
-  $('div#arcade_score').text(arcadedata.score !== null ? arcadedata.score : '');
-  $('div#arcade_misscount').text(arcadedata.misscount !== null ? arcadedata.misscount : '');
-}
-
-/**
- * 選択されている譜面の記録を表示する
- */
-async function display_chartresult() {
-  const battle = !playmodes.includes(selected_chart.playtype);
-  let scoretype;
-  if(!battle)
-    scoretype = `${selected_chart.playtype}${selected_chart.difficulty[0]}`;
-  else
-    scoretype = `DB${selected_chart.difficulty[0]}`;
-
-  const chartresult = JSON.parse(await webui.get_chartresult(
-    selected_chart.songname,
-    selected_chart.playtype,
-    selected_chart.difficulty,
-  ));
-  if(chartresult == null) return;
-
-  const blob_chartinformation = await drawer_scoreinformation.draw(
-    chartresult,
-    selected_chart.playtype,
-    selected_chart.songname,
-    selected_chart.difficulty,
-    battle,
-  );
-
-  const url_chartinformation = URL.createObjectURL(blob_chartinformation);
-
-  update_imageurl('scoreinformation', 'image_scoreinformation', url_chartinformation);
-
-  reader_scoreinformation.abort();
-  reader_scoreinformation.readAsDataURL(blob_chartinformation);
-
-  if(chartresult.timestamps != null && chartresult.timestamps.length > 0) {
-    $('#score_played_count').text(chartresult.timestamps.length);
-
-    const t = chartresult.latest.timestamp;
-    $('#score_latestplay_timestamp').text([
-        `${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`,
-        `${t.slice(9, 11)}時${t.slice(11, 13)}分${t.slice(13, 15)}秒`,
-      ].join(' '));
-
-    const xvalues = [];
-    const scores = [];
-    const misscounts = [];
-
-    chartresult.timestamps.reverse().forEach(timestamp => {
-      const tr = $('<tr>');
-      tr.addClass('tableitem timestampitem');
-      if(timestamp == selected_timestamp)
-        tr.addClass('selected');
-  
-      const td_timestamp = $('<td>').text(timestamp);
-      td_timestamp.addClass('timestamp_cell_timestamp');
-      tr.append(td_timestamp);
-  
-      tr.on('click', onclick_timestampitem);
-      
-      $('table#table_timestamps').append(tr);
-
-      const targetresult = chartresult['history'][timestamp];
-      if(targetresult.playspeed) return;
-      if(targetresult.options) {
-        const options = targetresult.options;
-        if(options.arrange && options.arrange.includes('H-RAN')) return;
-        if(options.allscratch) return;
-        if(options.regularspeed) return;
-      }
-
-      const date = timestamp.slice(0, 8);
-      const time = timestamp.slice(9, 15);
-
-      const year = date.slice(0, 4);
-      const month = date.slice(4, 6);
-      const day = date.slice(6, 8);
-
-      const hours = time.slice(0, 2);
-      const minutes = time.slice(2, 4);
-      const seconds = time.slice(4, 6);
-
-      xvalues.push(new Date(year, month - 1, day, hours, minutes, seconds));
-      scores.push(targetresult['score']['value']);
-      misscounts.push(targetresult.hasOwnProperty('miss_count') ? targetresult['miss_count']['value'] : null);
-    });
-
-    if(xvalues.length) {
-      const chartdata = [[], []];
-      for(let i = 0; i < xvalues.length; i++) {
-        chartdata[0].push({x: xvalues[i], y: scores[i]});
-        chartdata[1].push({x: xvalues[i], y: misscounts[i]});
-      }
-
-      const xvalue_max = new Date(xvalues[0]);
-      const xvalue_min = xvalues[xvalues.length - 1];
-      xvalue_max.setDate(xvalue_max.getDate() + 1);
-
-      const xrange = [
-        `${xvalue_min.getFullYear()}${String(xvalue_min.getMonth()+1).padStart(2, '0')}${String(xvalue_min.getDate()).padStart(2, '0')}`,
-        `${xvalue_max.getFullYear()}${String(xvalue_max.getMonth()+1).padStart(2, '0')}${String(xvalue_max.getDate()).padStart(2, '0')}`,
-      ];
-
-      const blob_scoregraph = await drawer_scoregraph.draw(
-        chartdata,
-        xrange,
-        chartresult['notes'],
-        scoretype,
-        selected_chart.songname,
-      );
-
-      const url_scoregraph = URL.createObjectURL(blob_scoregraph);
-
-      update_imageurl('scoregraph', 'image_scoregraph', url_scoregraph);
-
-      reader_scoregraph.abort();
-      reader_scoregraph.readAsDataURL(blob_scoregraph);
-    }
-    else {
-      webui.clear_scoregraphimage();
-      $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
-    }
-  }
-  else {
-    webui.clear_scoregraphimage();
-    $('img#image_scoregraph').attr('src', imageurls['imagenothing']);
-  }
-
-  if(chartresult.best != null) {
-    display_best_cleartype(chartresult.best.clear_type);
-    display_best_djlevel(chartresult.best.dj_level);
-    display_best_score(chartresult.best.score);
-    display_best_misscount(chartresult.best.miss_count);
-  }
-  else {
-    clear_bests();
-  }
-
-  if(Object.hasOwn(chartresult, 'memo') && chartresult.memo !== null)
-    $('textarea#textarea_memo').val(chartresult.memo);
-  else
-    $('textarea#textarea_memo').val('');
 }
 
 /**
@@ -2205,285 +2480,6 @@ function onmessage_window(e) {
     $('dialog#dialog_discordwebhook')[0].close();
     $('iframe#inner_discordwebhook').removeAttr('src');
   }
-}
-
-/**
- * イベントの設定を読み出す
- */
-async function reload_discordwebhook_settings() {
-  const values = JSON.parse(await webui.get_discordwebhook_settings());
-
-  refresh_discordwebhook_settings(values);
-}
-
-/**
- * スクリーンショットのパスを表示する
- * @param {} path 
- */
-function display_screenshot_filepath(path) {
-  $('span#path_screenshot').text(path);
-}
-
-/**
- * イベントの設定を再表示する
- * @param {*} settings 
- */
-function refresh_discordwebhook_settings(settings) {
-  $('tr.discordwebhookitem').remove();
-
-  Object.keys(settings).forEach(function(key) {
-    const target = settings[key];
-
-    const targetscore = target.targetscore;
-
-    const tips = [];
-    if(target.mode != DiscordwebhookModes.BATTLE) {
-      tips.push(...[
-        `[${targetscore.playmode}${targetscore.difficulty[0]}]${targetscore.musicname}`,
-        '',
-      ]);
-    }
-    
-    tips.push(...[
-      `開催者: ${target.authorname}`,
-      `サイトURL: ${target.siteurl}`,
-      '',
-      target.comment,
-    ]);
-
-    const tr = $('<tr>');
-    tr.addClass('tableitem discordwebhookitem');
-    tr.attr('title', tips.join('\n'));
-
-    const td_name = $('<td>').text(target['name']);
-    td_name.addClass('discordwebhook_cell_name');
-    tr.append(td_name);
-
-    const start_localdt = new Date(target.startdatetime);
-    const start_month = (start_localdt.getMonth() + 1).toString().padStart(2, '0');
-    const start_day = start_localdt.getDate().toString().padStart(2, '0');
-    const start_hour = start_localdt.getHours().toString().padStart(2, '0');
-    const start_minute = start_localdt.getMinutes().toString().padStart(2, '0');
-    const td_startdt = $('<td>').text(`${start_month}/${start_day} ${start_hour}:${start_minute}`);
-    td_startdt.addClass('discordwebhook_cell_startdatetime');
-    tr.append(td_startdt);
-
-    const end_localdt = new Date(target.enddatetime);
-    const end_month = (end_localdt.getMonth() + 1).toString().padStart(2, '0');
-    const end_day = end_localdt.getDate().toString().padStart(2, '0');
-    const end_hour = end_localdt.getHours().toString().padStart(2, '0');
-    const end_minute = end_localdt.getMinutes().toString().padStart(2, '0');
-    const td_enddt = $('<td>').text(`${end_month}/${end_day} ${end_hour}:${end_minute}`);
-    td_enddt.addClass('discordwebhook_cell_enddatetime');
-    tr.append(td_enddt);
-
-    const td_status = $('<td>');
-    switch(target.status) {
-      case DiscordwebhookStatuses.UPCOMING:
-        td_status.text('予告');
-        break;
-      case DiscordwebhookStatuses.ONGOING:
-        td_status.text('開催中');
-        break;
-      case DiscordwebhookStatuses.ENDED:
-        td_status.text('終了');
-        break;
-    }
-    td_status.addClass('joineditem_cell_status');
-    tr.append(td_status);
-
-    $('#table_discordwebhooks').append(tr);
-  });
-}
-
-/**
- * 譜面のベスト記録の表示をすべてクリアする
- */
-function clear_bests() {
-  display_best_cleartype(null);
-  display_best_djlevel(null);
-  display_best_score(null);
-  display_best_misscount(null);
-}
-
-function display_best_cleartype(values) {
-  if(values != null) {
-    if(values.value != null)
-      $('#best_cleartype').text(values.value);
-    else
-      $('#best_cleartype').text('');
-
-    if(values.timestamp != null) {
-      const t = values.timestamp;
-      $('#best_cleartype_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
-    }
-    else {
-      $('#best_cleartype_timestamp').text('?????');
-    }
-
-    if(values.options != null) {
-      if(values.options.arrange != null)
-        $('#best_cleartype_option').text(values.options.arrange);
-      else
-        $('#best_cleartype_option').text('---------');
-    }
-    else {
-      $('#best_cleartype_option').text('?????');
-    }
-  }
-  else {
-    $('#best_cleartype').text('');
-    $('#best_cleartype_option').text('');
-    $('#best_cleartype_timestamp').text('');
-  }
-}
-
-function display_best_djlevel(values) {
-  if(values != null) {
-    if(values.value != null)
-      $('#best_djlevel').text(values.value);
-    else
-      $('#best_djlevel').text('');
-
-    if(values.timestamp != null) {
-      const t = values.timestamp;
-      $('#best_djlevel_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
-    }
-    else {
-      $('#best_djlevel_timestamp').text('?????');
-    }
-
-    if(values.options != null) {
-      if(values.options.arrange != null)
-        $('#best_djlevel_option').text(values.options.arrange);
-      else
-        $('#best_djlevel_option').text('---------');
-    }
-    else {
-      $('#best_djlevel_option').text('?????');
-    }
-  }
-  else {
-    $('#best_djlevel').text('');
-    $('#best_djlevel_option').text('');
-    $('#best_djlevel_timestamp').text('');
-  }
-}
-
-function display_best_score(values) {
-  if(values != null) {
-    if(values.value != null)
-      $('#best_score').text(values.value);
-    else
-      $('#best_score').text('');
-
-    if(values.timestamp != null) {
-      const t = values.timestamp;
-      $('#best_score_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
-    }
-    else {
-      $('#best_score_timestamp').text('?????');
-    }
-
-    if(values.options != null) {
-      if(values.options.arrange != null)
-        $('#best_score_option').text(values.options.arrange);
-      else
-        $('#best_score_option').text('---------');
-    }
-    else {
-      $('#best_score_option').text('?????');
-    }
-  }
-  else {
-    $('#best_score').text('');
-    $('#best_score_option').text('');
-    $('#best_score_timestamp').text('');
-  }
-}
-
-function display_best_misscount(values) {
-  if(values != null) {
-    if(values.value != null)
-      $('#best_misscount').text(values.value);
-    else
-      $('#best_misscount').text('');
-
-    if(values.timestamp != null) {
-      const t = values.timestamp;
-      $('#best_misscount_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
-    }
-    else {
-      $('#best_misscount_timestamp').text('?????');
-    }
-
-    if(values.options != null) {
-      if(values.options.arrange != null)
-        $('#best_misscount_option').text(values.options.arrange);
-      else
-        $('#best_misscount_option').text('---------');
-    }
-    else {
-      $('#best_misscount_option').text('?????');
-    }
-  }
-  else {
-    $('#best_misscount').text('');
-    $('#best_misscount_option').text('');
-    $('#best_misscount_timestamp').text('');
-  }
-}
-
-/**
- * ノーツレーダーの更新
- * 
- * 上位から呼び出される。
- */
-function update_notesradar() {
-  draw_notesradar();
-  display_notesradar_total();
-  display_notesradar_ranking();
-}
-
-async function draw_summary() {
-  if(setting == null) return;
-
-  const values = JSON.parse(await webui.get_summaryvalues());
-
-  if(values == null) return;
-
-  const blob = await drawer_summary.draw(values, setting.summary_countmethod_only);
-  const url = URL.createObjectURL(blob)
-
-  update_imageurl('summary', 'image_summary', url);
-
-  reader_summary.abort();
-  reader_summary.readAsDataURL(blob);
-}
-
-/**
- * ノーツレーダー画像を更新する
- * 
- * 初期処理完了時のほか、更新時にPythonから呼び出される。
- */
-async function draw_notesradar() {
-  const values = JSON.parse(await webui.get_notesradar_chartvalues());
-
-  const blob = await drawer_notesradar.draw_playerradarchart(values);
-  const url = URL.createObjectURL(blob)
-
-  update_imageurl('notesradar', 'image_chartnotesradar', url);
-
-  reader_notesradar.abort();
-  reader_notesradar.readAsDataURL(blob);
-}
-
-function update_imageurl(name, tagid, url) {
-  if(imageurls[name] != null)
-    URL.revokeObjectURL(imageurls[name]);
-
-  imageurls[name] = url;
-  $(`img#${tagid}`).attr('src', url);
 }
 
 function onloadend_imagenothingimage(e) {

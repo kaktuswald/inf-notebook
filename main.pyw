@@ -806,7 +806,7 @@ class GuiApi():
         else:
             selected_chart = None
         
-        self.send_change_selectedchart()
+        self.send_update_chartresult()
     
     def clear_scoreinformationimage(self, event: webui.Event):
         '''譜面情報画像のクリア
@@ -1626,8 +1626,10 @@ class GuiApi():
             if self.googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
                 setting.save()
     
-    def send_change_selectedchart(self):
-        '''フロントエンドに譜面選択の変更を送信する
+    def send_update_chartresult(self):
+        '''フロントエンドに選択譜面記録の更新を送信する
+
+        選択譜面が変更されたときと、譜面記録が更新されたときに実行する。
         '''
         if selected_chart:
             selection = {
@@ -1650,7 +1652,7 @@ class GuiApi():
             selection = None
             memo = None
 
-        self.send_message('change_selectedchart', selection)
+        self.send_message('update_chartresult', selection);
 
     def send_message(self, message: str, data:object = None):
         '''フロントエンドにメッセージを送信する
@@ -2170,6 +2172,8 @@ def result_process(screen: Screen):
                     notebook_summary.json['musics']
                 ):
                     api.send_message('update_notesradar')
+        
+        api.send_update_chartresult()
 
 def musicselect_process(image:Image.Image, np_value: array):
     '''選曲画面で譜面を認識したときの処理をする
@@ -2264,7 +2268,7 @@ def musicselect_process(image:Image.Image, np_value: array):
     socket_server.update_scoreinformation(None)
     socket_server.update_scoregraph(None)
 
-    api.send_change_selectedchart()
+    api.send_update_chartresult()
 
 def filter_resultimage(resultimage: Image.Image, playside:str, tab:str|None, has_loveletter:bool, has_graphtargetname:bool, unfilterrankposition:int|None) -> Image.Image:
     '''リザルト画像にフィルター加工をする
