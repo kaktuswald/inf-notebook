@@ -248,6 +248,8 @@ let allcomponentids = null;
 let layout = null;
 const components = {};
 
+let memourl = null;
+
 $(function() {
   allcomponentids = $('#components').children().map(function() { return this.id;}).get();
 
@@ -265,6 +267,8 @@ $(function() {
   $('button#button_post_notesradar').on('click', onclick_post_notesradar);
   $('button.button_post_scoreinformation').on('click', onclick_post_scoreinformation);
 
+  $('div#qrcode').on('click', onclick_open_memopage);
+
   $('button.button_openfolder_export').on('click', onclick_openfolder_export);
   $('button#button_openfolder_results').on('click', onclick_openfolder_results);
   $('button#button_openfolder_filtereds').on('click', onclick_openfolder_filtereds);
@@ -276,7 +280,7 @@ $(function() {
   $('button#button_summary_switch').on('click', onclick_summary_switch);
   $('button#button_summary_setting').on('click', onclick_summary_setting);
 
-  $('textarea#textarea_memo').on('change', onchange_memo);
+  $('button#button_memo_ok').on('click', onclick_memo_ok);
 
   $('button#button_setting_open').on('click', onclick_setting_open);
   $('iframe#inner_setting').on('load', onload_setting_window);
@@ -419,6 +423,8 @@ async function initialize() {
   const imagesavepathresult = JSON.parse(await webui.check_imagesavepath());
   if(!imagesavepathresult)
     display_errormessage(['画像ファイル保存先のパスが見つかりません。']);
+
+  generateqrcode_memo();
 }
 
 function refreshlayout() {
@@ -471,6 +477,20 @@ function initlayout(layoutconfig) {
   layout.init();
 
   return layout;
+}
+
+async function generateqrcode_memo() {
+  const url = await webui.get_url();
+  memourl = `${url}/memo.html`;
+
+  new QRCode($('div#qrcode')[0], {
+    text: memourl,
+    width: 200,
+    height: 200,
+    colorDark: 'black',
+    colorLight: 'white',
+    correctLevel: QRCode.CorrectLevel.L,
+  });
 }
 
 /**
@@ -664,6 +684,9 @@ function communication_message(message, data = null) {
     case 'update_chartresult':
       update_chartresult(data);
       break;
+    case 'update_memo':
+      update_memo(data);
+      break
     case 'discordwebhook_refresh':
       reload_discordwebhook_settings();
       break;
@@ -925,6 +948,19 @@ function update_chartresult(data) {
     change_selected_chart(data.playtype, data.songname, data.difficulty);
   else
     display_chartresult();
+}
+
+/**
+ * メモ内容の更新
+ * 
+ * バックエンドからメモ内容を受け取る。
+ * @param {string} メモ内容
+ */
+function update_memo(data) {
+  if(data !== null)
+    $('textarea#textarea_memo').val(data);
+  else
+    $('textarea#textarea_memo').val('');
 }
 
 /**
@@ -1838,6 +1874,17 @@ function onclick_post_notesradar(e) {
 }
 
 /**
+ * メモページを開く
+ * 
+ * ブラウザでXのポストのページを開く
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onclick_open_memopage(e) {
+  if(memourl)
+    webui.open_webpage(memourl);
+}
+
+/**
  * 譜面記録をポストする
  * 
  * ブラウザでXのポストのページを開く
@@ -1988,12 +2035,12 @@ async function onclick_summary_setting(e) {
  * 
  * @param {ce.Event} e イベントハンドラ
  */
-function onchange_memo(e) {
+function onclick_memo_ok(e) {
   webui.save_memo(
-    selected_chart.songname,
     selected_chart.playtype,
+    selected_chart.songname,
     selected_chart.difficulty,
-    this.value,
+    $('textarea#textarea_memo').val(),
   );
 }
 

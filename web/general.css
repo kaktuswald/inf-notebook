@@ -190,6 +190,10 @@ div.scroll {
     background-color: var(--scroll-background-color);
 }
 
+.fillflex {
+    flex: 1;
+}
+
 table {
     width: 100%;
     table-layout: fixed;

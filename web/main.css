@@ -46,7 +46,6 @@ table#table_recents td:nth-child(9) {
 
 div#scroll_recents {
     min-height: 200px;
-    flex: 1;
 }
 
 table#table_songnames td:nth-child(2),
@@ -68,35 +67,20 @@ div.pane_songname_search_right {
     flex-direction: column;
 }
 
-div#scroll_timestamps {
-    flex: 1;
-}
-
-div#component_information,
-div#component_summary,
-div#component_notesradar,
-div#component_screenshot,
-div#component_scoreinformation,
-div#component_chartscoreresult,
-div#component_memo,
-div#component_log,
 div#component_recents,
 div#component_search,
 div#component_discord,
 div#component_notesradars,
-div#component_scorebest,
-div#component_resultdetail {
-    flex: 1;
-}
-
-div#component_recents,
-div#component_search,
-div#component_discord,
-div#component_notesradars,
-div#component_memo,
 div#component_log {
     display: flex;
     flex-direction: column;
+    height: 100%;
+    overflow: auto;
+}
+
+div#component_memo {
+    display: flex;
+    flex-direction: row;
     height: 100%;
     overflow: auto;
 }
@@ -141,13 +125,6 @@ div#component_scoredata {
 }
 
 div#component_scorerecord {
-    display: flex;
-    flex-direction: column;
-
-    div {
-        display: inline-block;
-    }
-
     div.label {
         user-select: none;
         width: 80px;
@@ -169,13 +146,6 @@ div#component_scorerecord {
 }
 
 div#component_resultdetail {
-    display: flex;
-    flex-direction: column;
-    
-    div {
-        display: inline-block;
-    }
-
     div.label {
         user-select: none;
         width: 82px;
@@ -205,13 +175,6 @@ div#component_resultdetail {
 }
 
 div#component_arcadedata {
-    display: flex;
-    flex-direction: column;
-
-    div {
-        display: inline-block;
-    }
-
     div.label {
         width: 90px;
     }
@@ -240,10 +203,6 @@ table#table_discordwebhooks td:nth-child(4) {
     width: 34px;
 }
 
-div#scroll_discordwebhook_logs {
-    flex: 1;
-}
-
 ul#list_discordwebhook_logs {
     list-style-type: none;
     padding: 0px;
@@ -252,7 +211,6 @@ ul#list_discordwebhook_logs {
 
 div#scroll_notesradar_ranking {
     min-height: 165px;
-    flex: 1;
 }
 
 table#table_notesradar_ranking th:nth-child(1),
@@ -297,13 +255,20 @@ ul#list_errormessages {
 }
 
 textarea#textarea_memo {
-    flex: 1;
     resize: none;
     font-size: x-large;
 }
 
+div#qrcode {
+    cursor: pointer;
+    
+    img {
+        width: 80px;
+        height: 80px;
+    }
+}
+
 div#scroll_logs {
-    flex: 1;
     font-size: large;
     background-color: rgba(0, 0, 0, 0);
 }

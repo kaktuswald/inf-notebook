@@ -509,7 +509,7 @@ class NotebookMusic(Notebook):
         if not difficulty in self.json[playtype].keys():
             return None
 
-    def set_memo(self, playtype: str, difficulty: str, value: str) -> str:
+    def set_memo(self, playtype: str, difficulty: str, value: str):
         if not playtype in self.json.keys():
             self.json[playtype] = {}
         if not difficulty in self.json[playtype].keys():

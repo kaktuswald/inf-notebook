@@ -4,7 +4,6 @@ div.tabpage {
 
 div#setting_contents {
     border: 2px solid var(--toggle-message-color);
-    flex: 1;
 }
 
 div.label {
@@ -99,10 +98,6 @@ div.box_filter_overlay {
         width: 30px;
     }
 }
-
-/* div.box input.text_filepath {
-    width: 300px;
-} */
 
 input.text_filepath {
     width: 400px;

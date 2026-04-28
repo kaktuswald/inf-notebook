@@ -1,0 +1,24 @@
+html {
+    height: 90%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+}
+
+div.label {
+    width: 100px;
+}
+
+textarea {
+    resize: none;
+    font-size: x-large;
+}
+
+button {
+    height: 40px;
+    font-size: x-large;
+}

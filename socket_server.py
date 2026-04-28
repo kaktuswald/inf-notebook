@@ -31,6 +31,8 @@ class Events():
     '''最近のリザルトの更新'''
     UPDATE_SCORERESULT: str = 'update_scoreresult'
     '''譜面記録の更新'''
+    UPDATE_MEMO: str = 'update_memo'
+    '''メモの変更'''
 
 class Requests():
     '''リクエストの定義
@@ -53,6 +55,8 @@ class Requests():
     '''楽曲プレイ履歴の取得'''
     GET_RESENTS: str = 'get_recents'
     '''最近のリザルトの取得'''
+    GET_MEMO: str = 'get_memo'
+    '''選択中譜面のメモを取得'''
 
 class Statuses():
     '''レスポンス状態の定義
@@ -119,6 +123,8 @@ class SocketServer(Thread):
     scoreresult: dict[str, any] | None = None
     recents: NotebookRecent = None
 
+    memo: dict[str, dict[str, str]|str] | None = None
+
     def __init__(self, port: int = None):
         if port is not None:
             self.port = port
@@ -157,7 +163,9 @@ class SocketServer(Thread):
                         payload = self.response_json(self.scoreresult)
                     if request == Requests.GET_RESENTS:
                         payload = self.response_json(self.recents.json)
-                                        
+                    if request == Requests.GET_MEMO:
+                        payload = self.response_json(self.memo)
+                    
                     if payload is not None:
                         message = {
                             'r': request,
@@ -172,7 +180,8 @@ class SocketServer(Thread):
 
                     connection.send(dumps(message))
             finally:
-                del self.clients[connection.id]
+                if connection.id in self.clients:
+                    del self.clients[connection.id]
         
         try:
             self.server = serve(handler, '0.0.0.0', self.port)
@@ -229,6 +238,19 @@ class SocketServer(Thread):
     
     def update_scoreresult(self):
         self.broadcast(Events.UPDATE_SCORERESULT)
+    
+    def update_memo(self, chartselection: dict | None, memo: str):
+        if chartselection is not None:
+            self.memo = {
+                'playtype': chartselection['playtype'],
+                'songname': chartselection['songname'],
+                'difficulty': chartselection['difficulty'],
+                'memo': memo,
+            }
+        else:
+            self.memo = None
+        
+        self.broadcast(Events.UPDATE_MEMO)
 
     def broadcast(self, event: str, payload: any = None):
         if payload is not None:

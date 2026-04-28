@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>インフィニタス リザルト手帳 メモ</title>
+    <link rel="stylesheet" href="./general.css" />
+    <link rel="stylesheet" href="./memo.css" />
+    <link rel="stylesheet" href="./custom.css" />
+    <script src="./webui.js"></script>
+    <script src="./lib/jquery-3.7.1.slim.min.js"></script>
+    <script src="./memo.js"></script>
+  </head>
+  <body>
+    <div>
+      <div class="stack_vertical">
+        <div>
+          <div id="musicname"></div>
+        </div>
+        <div>
+          <div class="label highlight">プレイモード</div>
+          <div id="playmode"></div>
+        </div>
+        <div>
+          <div class="label highlight">難易度</div>
+          <div id="difficulty"></div>
+        </div>
+        <div>
+          <div class="label highlight">バージョン</div>
+          <div id="version"></div>
+        </div>
+        <div>
+          <div class="label highlight">レベル</div>
+          <div id="level"></div>
+        </div>
+      </div>
+    </div>
+    <textarea id="textarea_memo" class="fillflex" disabled></textarea>
+    <button type="submit" id="button_ok" disabled>OK</button>
+  </body>
+</html>

@@ -576,6 +576,8 @@ class GuiApi():
         window.bind('getresource_unofficialdifficulty', GuiApi.get_resource_unofficialdifficulty)
         window.bind('check_imagesavepath', GuiApi.check_imagesavepath)
 
+        window.bind('get_url', self.get_url)
+
         window.bind('get_setting', self.get_setting)
         window.bind('save_setting', self.save_setting)
 
@@ -606,6 +608,8 @@ class GuiApi():
         window.bind('post_summary', self.post_summary)
         window.bind('post_notesradar', self.post_notesradar)
         window.bind('post_scoreinformation', self.post_scoreinformation)
+
+        window.bind('open_webpage', self.open_webpage)
 
         window.bind('openfolder_export', self.openfolder_export)
         window.bind('openfolder_results', self.openfolder_results)
@@ -657,6 +661,9 @@ class GuiApi():
         window.bind('googleapi_deletecredentials', self.googleapi_deletecredentials)
         window.bind('googleapi_driveupload', self.googleapi_driveupload)
 
+    def get_url(self, event: webui.Event):
+        event.return_string(self.window.get_url())
+    
     def get_setting(self, event: webui.Event):
         '''現在の設定の取得
         '''
@@ -1010,6 +1017,9 @@ class GuiApi():
             return
 
         twitter.post_scoreinformation(playtype, difficulty, musicname, targetrecord, setting.hashtags)
+    
+    def open_webpage(self, event: webui.Event):
+        webbrowser.open(event.get_string_at(0))
 
     def openfolder_export(self, event: webui.Event):
         '''エクスポートフォルダを開く
@@ -1154,20 +1164,29 @@ class GuiApi():
     def save_memo(self, event: webui.Event):
         '''メモを保存する
         Args:
-            musicname(str): 曲名
             playtype(str): プレイの種類(SP or DP or DP BATTLE)
+            songname(str): 曲名
             difficulty(str): 難易度
         '''
-        musicname = event.get_string_at(0)
-        playtype = event.get_string_at(1)
+        playtype = event.get_string_at(0)
+        songname = event.get_string_at(1)
         difficulty = event.get_string_at(2)
         value = event.get_string_at(3)
 
-        notebook = self.notebooks.get_notebook(musicname)
+        notebook = self.notebooks.get_notebook(songname)
         if notebook is None:
             return
         
-        value = notebook.set_memo(playtype, difficulty, value)
+        notebook.set_memo(playtype, difficulty, value)
+
+        self.send_message('update_memo', value)
+
+        selection = {
+            'playtype': playtype,
+            'songname': songname,
+            'difficulty': difficulty,
+        }
+        socket_server.update_memo(selection, value)
 
     def get_resultimage(self, event: webui.Event):
         '''リザルト画像を表示する
@@ -1653,6 +1672,8 @@ class GuiApi():
             memo = None
 
         self.send_message('update_chartresult', selection);
+        
+        socket_server.update_memo(selection, memo)
 
     def send_message(self, message: str, data:object = None):
         '''フロントエンドにメッセージを送信する
@@ -1662,6 +1683,8 @@ class GuiApi():
             data(object): 各種データ
         '''
         if newwindow is None:
+            return
+        if not newwindow.get_child_process_id() == 0:
             return
         
         if data is None:
@@ -2054,9 +2077,22 @@ class ChartSelection():
         self.songname = songname
         self.difficulty = difficulty
 
+def get_hwnd_window() -> int|None:
+    hwnd = None
+    starttime = time.time()
+    while not hwnd and time.time() - starttime <= 5:
+        hwnd = gethandle(windowtitle)
+        time.sleep(0.1)
+    
+    logger.debug(f'get hwnd time {time.time() - starttime}')
+
+    return hwnd
+
 def mainloop():
     while not event_close.wait(timeout=1):
         if not newwindow.is_shown():
+            return
+        if newwindow.get_child_process_id() == 0:
             return
         if not queue_result_screen.empty():
             result_process(queue_result_screen.get_nowait())
@@ -2838,9 +2874,20 @@ if __name__ == '__main__':
     collectionuploader = CollectionUploader(setting, storage)
 
     newwindow.show('index.html')
-    hwnd_window = gethandle(windowtitle)
+    hwnd_window = get_hwnd_window()
     if hwnd_window is None:
         show_messagebox('起動に失敗しました。', windowtitle)
+
+        webui.clean()
+
+        socket_server.stop()
+        event_close.set()
+
+        if socket_server is not None and socket_server.is_alive():
+            socket_server.join()
+        if thread is not None and thread.is_alive():
+            thread.join()
+
         exit()
     
     logger.addHandler(LoggingHandler(lambda message: api.send_message('append_log', message)))
@@ -2856,13 +2903,12 @@ if __name__ == '__main__':
     hotkeys.stop()
 
     webui.clean()
+    del newwindow
+    newwindow = None
 
     socket_server.stop()
     event_close.set()
 
-    del newwindow
-    newwindow = None
-    
     if socket_server is not None and socket_server.is_alive():
         socket_server.join()
     if thread is not None and thread.is_alive():

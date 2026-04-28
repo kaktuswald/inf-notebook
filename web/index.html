@@ -13,6 +13,7 @@
     <script src="./lib/chart4.4.9.min.js"></script>
     <script src="./lib/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="./lib/goldenlayout1.5.9.min.js"></script>
+    <script src="./lib/qrcode.min.js"></script>
     <script src="./discordwebhook_constants.js"></script>
     <script src="./main.js"></script>
     <script src="./drawer_simpletext.js"></script>
@@ -35,17 +36,17 @@
     </div>
     <div id="container"></div>
     <div id="components">
-      <div id="component_buttons">
+      <div id="component_buttons" class="fillflex">
         <button id="button_setting_open">設定</button>
         <button id="button_export_open">エクスポート</button>
         <button id="button_confirm_outputcsv">CSV出力</button>
         <button id="button_confirm_clearrecent">最近のデータのリセット</button>
         <button id="button_confirm_importarcadecsv">アーケードのCSVをインポート</button>
       </div>
-      <div id="component_information">
+      <div id="component_information" class="fillflex">
         <img id="image_information" />
       </div>
-      <div id="component_summary">
+      <div id="component_summary" class="fillflex">
         <img id="image_summary" />
         <div class="buttons">
           <button id="button_summary_switch">カウント方式 切替</button>
@@ -54,14 +55,14 @@
           <button class="button_openfolder_export">エクスポートフォルダを開く</button>
         </div>
       </div>
-      <div id="component_notesradar">
+      <div id="component_notesradar" class="fillflex">
         <img id="image_chartnotesradar" />
         <div class="buttons">
           <button id="button_post_notesradar">ノーツレーダーのポスト</button>
           <button class="button_openfolder_export">エクスポートフォルダを開く</button>
         </div>
       </div>
-      <div id="component_screenshot">
+      <div id="component_screenshot" class="fillflex">
         <img id="image_screenshot" />
         <div class="buttons">
           <button id="button_openfolder_results">リザルトフォルダを開く</button>
@@ -70,7 +71,7 @@
           <span id="path_screenshot" class="filepath"></span>
         </div>
       </div>
-      <div id="component_scoreinformation">
+      <div id="component_scoreinformation" class="fillflex">
         <img id="image_scoreinformation" />
         <div class="buttons">
           <button id="button_save_scoreinformationimage">画像の保存</button>
@@ -78,7 +79,7 @@
           <button id="button_openfolder_scoreinformations">フォルダを開く</button>
         </div>
       </div>
-      <div id="component_chartscoreresult">
+      <div id="component_chartscoreresult" class="fillflex">
         <img id="image_scoregraph" />
         <div class="buttons">
           <button id="button_save_scoregraphimage">画像の保存</button>
@@ -86,16 +87,20 @@
           <button id="button_openfolder_scorecharts">フォルダを開く</button>
         </div>
       </div>
-      <div id="component_memo">
-        <textarea id="textarea_memo"></textarea>
+      <div id="component_memo" class="fillflex">
+        <div class="stack_vertical fillflex">
+          <textarea id="textarea_memo" class="fillflex"></textarea>
+          <button id="button_memo_ok">OK</button>
+        </div>
+        <div id="qrcode"></div>
       </div>
-      <div id="component_log">
-        <div id="scroll_logs" class="scroll">
+      <div id="component_log" class="fillflex">
+        <div id="scroll_logs" class="scroll fillflex">
           <ul id="logs"></ul>
         </div>
       </div>
-      <div id="component_recents">
-        <div id="scroll_recents" class="scroll">
+      <div id="component_recents" class="fillflex">
+        <div id="scroll_recents" class="scroll fillflex">
           <table id="table_recents">
             <tr class="tableheader">
               <th>T</th>
@@ -117,7 +122,7 @@
           <button id="button_recents_confirm_uploadcollectionimages">誤認識の通報</button>
           </div>
       </div>
-      <div id="component_search">
+      <div id="component_search" class="fillflex">
         <div>
           <div class="label highlight label_in_musicname_search">バージョン</div>
           <select id="select_versions">
@@ -146,7 +151,7 @@
             <div>
               <select id="select_difficulties"></select>
             </div>
-            <div id="scroll_timestamps" class="scroll">
+            <div id="scroll_timestamps" class="scroll fillflex">
               <table id="table_timestamps">
                 <tr class="tableheader">
                   <th>タイムスタンプ</th>
@@ -161,7 +166,7 @@
           <button id="button_confirm_deleteplayresult">選択記録の削除</button>
         </div>
       </div>
-      <div id="component_discord">
+      <div id="component_discord" class="fillflex">
         <div id="scroll_discordwebhook_events" class="scroll">
           <table id="table_discordwebhooks">
             <tr class="tableheader">
@@ -177,11 +182,11 @@
           <button id="button_discordwebhook_register">イベント登録</button>
           <button id="button_discordwebhook_delete">イベント削除</button>
         </div>
-        <div id="scroll_discordwebhook_logs" class="scroll">
+        <div id="scroll_discordwebhook_logs" class="scroll fillflex">
           <ul id="list_discordwebhook_logs"></ul>
         </div>
       </div>
-      <div id="component_notesradars">
+      <div id="component_notesradars" class="fillflex">
         <div>
           <div class="label highlight label_in_notesradar">プレイモード</div>
           <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_sp" />
@@ -202,7 +207,7 @@
           <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_tops" />
           <label class="notesradar_tablemode" for="radio_notesradar_tablemode_tops">上位50曲</label>
         </div>
-        <div id="scroll_notesradar_ranking" class="scroll">
+        <div id="scroll_notesradar_ranking" class="scroll fillflex">
           <table id="table_notesradar_ranking">
             <tr class="tableheader">
               <th>No.</th>
@@ -215,7 +220,7 @@
           </table>
         </div>
       </div>
-      <div id="component_scoredata">
+      <div id="component_scoredata" class="fillflex">
         <div id="chartnotesradar">
           <img id="image_chartnotesradar_chart" />
         </div>
@@ -248,7 +253,7 @@
           </div>
         </div>
       </div>
-      <div id="component_scorerecord">
+      <div id="component_scorerecord" class="fillflex stack_vertical">
         <div>
           <div class="label highlight">プレイ回数</div>
           <div id="score_played_count"></div>
@@ -282,7 +287,7 @@
           <div id="best_misscount_timestamp" class="timestamp"></div>
         </div>
       </div>
-      <div id="component_resultdetail">
+      <div id="component_resultdetail" class="fillflex stack_vertical">
         <div>
           <div class="label highlight">日時</div>
           <div id="playresult_datetime" class="datetime"></div>
@@ -316,7 +321,7 @@
           <div id="playresult_specialoptions" class="label"></div> -->
         </div>
       </div>
-      <div id="component_arcadedata">
+      <div id="component_arcadedata" class="fillflex stack_vertical">
         <div>
           <div class="label highlight">クリアタイプ</div>
           <div id="arcade_cleartype"></div>
