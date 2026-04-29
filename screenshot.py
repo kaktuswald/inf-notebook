@@ -57,7 +57,8 @@ class Screen:
         self.filename = filename
 
 class Capture:
-    def __init__(self, width, height):
+    def __init__(self, name, width, height):
+        self.name = name
         self.width = width
         self.height = height
 
@@ -89,7 +90,7 @@ class Capture:
         windll.gdi32.DeleteDC(self.screen_copy)
         windll.gdi32.DeleteDC(self.screen)
 
-        logger.debug('Called Screenshot destuctor.')
+        logger.debug(f'Called Screenshot({self.name}) destructor.')
 
 class Screenshot:
     xy = None
@@ -99,10 +100,10 @@ class Screenshot:
         self.checkscreens = []
         for screenname, item in resource.screenrecognition['get_screen'].items():
             lefttop = (item['area']['left'], item['area']['top'],)
-            capture = Capture(item['area']['width'], item['area']['height'])
+            capture = Capture(screenname, item['area']['width'], item['area']['height'])
             self.checkscreens.append((screenname, lefttop, capture, item['value'],))
         
-        self.capture = Capture(define.width, define.height)
+        self.capture = Capture('capture', define.width, define.height)
 
     def __del__(self):
         for screen, pos, capture, value in self.checkscreens:
