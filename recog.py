@@ -655,7 +655,7 @@ class Recognition():
             return bool(np.all((cropped==0)|(cropped==mask)))
 
         @staticmethod
-        def get_musicname(np_value) -> str|None:
+        def get_songname(np_value) -> str|None:
             if resource.musicselect is None:
                 return None
             

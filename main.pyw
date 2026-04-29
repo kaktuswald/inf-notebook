@@ -2245,20 +2245,20 @@ def musicselect_process(image:Image.Image, np_value: array):
         api.send_message('error', ['選曲画面認識でエラー発生', str(ex)])
         logger.exception(str(ex))
 
-    musicname = recog.MusicSelect.get_musicname(np_value)
-    if musicname is None or not musicname in resource.musictable['musics'].keys():
+    songname = recog.MusicSelect.get_songname(np_value)
+    if songname is None or not songname in resource.musictable['musics'].keys():
         if setting.data_collection:
             collectionuploader.checkandupload_musicselect(image)
 
         return
     
     if selected_chart is not None:
-        if selected_chart.playtype == playtype and selected_chart.songname == musicname and selected_chart.difficulty == difficulty:
+        if selected_chart.playtype == playtype and selected_chart.songname == songname and selected_chart.difficulty == difficulty:
             return
     
-    selected_chart = ChartSelection(playtype, musicname, difficulty)
+    selected_chart = ChartSelection(playtype, songname, difficulty)
 
-    music_information = resource.musictable['musics'][musicname]
+    music_information = resource.musictable['musics'][songname]
     version = recog.MusicSelect.get_version(np_value)
     if version != music_information['version'] and (version in ['1st', 'substream'] and music_information['version'] != '1st&substream'):
         return
@@ -2278,7 +2278,7 @@ def musicselect_process(image:Image.Image, np_value: array):
         if not difficulty in levels.keys() or levels[difficulty] != music_information['SP'][difficulty]:
             return
     
-    notebook = notebooks_music.get_notebook(musicname)
+    notebook = notebooks_music.get_notebook(songname)
     
     if hasscoredata:
         if notebook.update_best_musicselect({
@@ -2291,13 +2291,13 @@ def musicselect_process(image:Image.Image, np_value: array):
             'levels': recog.MusicSelect.get_levels(np_value)
         }):
             notebook.save()
-            notebook_summary.import_targetmusic(musicname, notebook)
+            notebook_summary.import_targetmusic(songname, notebook)
             notebook_summary.save()
             api.send_message('update_summary')
 
             if notesradar.insert(
                     playmode,
-                    musicname,
+                    songname,
                     difficulty,
                     notebook_summary.json['musics']
                 ):
