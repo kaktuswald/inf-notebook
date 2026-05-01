@@ -121,7 +121,7 @@ async function onclick_keyitem(e) {
     $('select#select_songnametype').val(label.songnametype);
     $('input#text_songname').val(label.songname);
     $('select#select_difficulty').val(label.difficulty);
-    $('input#check_nohasscoredata').prop('checked', label.nohasscoredata);
+    $('input#check_nohasscoredata').prop('checked', label.nohasscoredata == true);
     $('select#select_cleartype').val(label.cleartype);
     $('select#select_djlevel').val(label.djlevel);
     $('input#text_score').val(label.score);
@@ -131,8 +131,8 @@ async function onclick_keyitem(e) {
     $('select#select_levelhyper').val(label.level_hyper);
     $('select#select_levelanother').val(label.level_another);
     $('select#select_levelleggendaria').val(label.level_leggendaria);
-    $('input#check_ignore').prop('checked', Object.hasOwn(label, 'ignore') && label.ignore);
-    $('input#check_after260312').prop('checked', Object.hasOwn(label, 'after260312') && label.after260312);
+    $('input#check_ignore').prop('checked', label.ignore == true);
+    $('input#check_after260312').prop('checked', label.after260312 == true);
   }
   else {
     $('select#select_playmode').val(null);
@@ -245,7 +245,7 @@ async function onclick_citationrecog(e) {
 
   $('input#text_songname').val(recognitionresult.songname);
   $('select#select_difficulty').val(recognitionresult.difficulty);
-  $('input#check_nohasscoredata').prop('checked', !recognitionresult.hasscoredata);
+  $('input#check_nohasscoredata').prop('checked', recognitionresult.hasscoredata != true);
   $('select#select_cleartype').val(recognitionresult.cleartype);
   $('select#select_djlevel').val(recognitionresult.djlevel);
   $('input#text_score').val(recognitionresult.score);

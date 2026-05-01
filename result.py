@@ -26,6 +26,13 @@ class ResultValues():
         self.best = best
         self.current = current
         self.new = new
+    
+    def to_dict(self):
+        return {
+            'best': self.best,
+            'current': self.current,
+            'is_new': self.new,
+        }
 
 class ResultOptions():
     arrange: str | None = None
@@ -70,15 +77,25 @@ class ResultOptions():
                     self.record_achievements = True
             else:
                 self.record_achievements = True
+    
+    def to_dict(self):
+        return {
+            'arrange': self.arrange,
+            'flip': self.flip,
+            'assist': self.assist,
+            'battle': self.battle,
+            'allscratch': self.allscratch,
+            'regularspeed': self.regularspeed,
+        }
 
 class ResultDetails():
-    def __init__(self, graphtype: str, options: ResultOptions, clear_type: ResultValues, dj_level: ResultValues, score: ResultValues, miss_count: ResultValues, graphtarget: str):
+    def __init__(self, graphtype: str, options: ResultOptions, cleartype: ResultValues, djlevel: ResultValues, score: ResultValues, misscount: ResultValues, graphtarget: str):
         self.graphtype = graphtype
         self.options = options
-        self.clear_type = clear_type
-        self.dj_level = dj_level
+        self.cleartype = cleartype
+        self.djlevel = djlevel
         self.score = score
-        self.miss_count = miss_count
+        self.misscount = misscount
         self.graphtarget = graphtarget
 
 class ResultOthers():

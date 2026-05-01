@@ -167,7 +167,7 @@ async function onclick_keyitem(e) {
       $('input#text_notes').val(labels.informations.notes);
       $('input#text_songname').val(labels.informations.songname);
 
-      $('input#check_informationsignore').prop('checked', labels.informations.ignore);
+      $('input#check_informationsignore').prop('checked', labels.informations.ignore == true);
     }
     else {
       $('fieldset#fieldset_labelinformations').prop('disabled', true);
@@ -180,9 +180,9 @@ async function onclick_keyitem(e) {
       
       $('select#select_graphtype').val(labels.details.graphtype);
 
-      $('input#check_optionbattle').prop('checked', labels.details.option_battle);
-      $('input#check_optionallscratch').prop('checked', labels.details.option_allscratch);
-      $('input#check_optionregularspeed').prop('checked', labels.details.option_regularspeed);
+      $('input#check_optionbattle').prop('checked', labels.details.option_battle == true);
+      $('input#check_optionallscratch').prop('checked', labels.details.option_allscratch == true);
+      $('input#check_optionregularspeed').prop('checked', labels.details.option_regularspeed == true);
 
       $('select#select_optionarrange').val(labels.details.option_arrange);
 
@@ -209,14 +209,14 @@ async function onclick_keyitem(e) {
       $('select#select_djlevelcurrent').val(labels.details.dj_level_current);
       $('input#text_scorecurrent').val(labels.details.score_current);
       $('input#text_misscountcurrent').val(labels.details.miss_count_current);
-      $('input#check_cleartypenew').prop('checked', labels.details.clear_type_new);
-      $('input#check_djlevelnew').prop('checked', labels.details.dj_level_new);
-      $('input#check_scorenew').prop('checked', labels.details.score_new);
-      $('input#check_misscountnew').prop('checked', labels.details.miss_count_new);
+      $('input#check_cleartypenew').prop('checked', labels.details.clear_type_new == true);
+      $('input#check_djlevelnew').prop('checked', labels.details.dj_level_new == true);
+      $('input#check_scorenew').prop('checked', labels.details.score_new == true);
+      $('input#check_misscountnew').prop('checked', labels.details.miss_count_new == true);
 
       $('select#select_graphtarget').val(labels.details.graphtarget);
 
-      $('input#check_detailsignore').prop('checked', labels.details.ignore);
+      $('input#check_detailsignore').prop('checked', labels.details.ignore == true);
     }
     else {
       $('fieldset#fieldset_labeldetails').prop('disabled', true);
@@ -247,50 +247,99 @@ async function onclick_keyitem(e) {
 
   if(recognitionresult !== null && recognitionresult.details !== null) {
     $('span#text_resultgraphtype').text(recognitionresult.details.graphtype);
-    $('span#text_resultoptionbattle').text(recognitionresult.details.optionbattle ? 'BATTLE' : '');
-    $('span#text_resultoptionallscratch').text(recognitionresult.details.optionallscratch ? 'ALL-SCR' : '');
-    $('span#text_resultoptionregularspeed').text(recognitionresult.details.optionregularspeed ? 'REGUL-SPEED' : '');
-    $('span#text_resultoptionarrange').text(recognitionresult.details.optionarrange);
-    $('span#text_resultoptionflip').text(recognitionresult.details.optionflip);
-    $('span#text_resultoptionassist').text(recognitionresult.details.optionassist);
 
-    $('span#text_resultcleartypebest').text(recognitionresult.details.cleartypebest);
-    $('span#text_resultcleartypecurrent').text(recognitionresult.details.cleartypecurrent);
-    $('span#text_resultcleartypenew').text(recognitionresult.details.cleartypenew ? 'NEW': '');
-    $('span#text_resultdjlevelbest').text(recognitionresult.details.djlevelbest);
-    $('span#text_resultdjlevelcurrent').text(recognitionresult.details.djlevelcurrent);
-    $('span#text_resultdjlevelnew').text(recognitionresult.details.djlevelnew ? 'NEW': '');
-    $('span#text_resultscorebest').text(recognitionresult.details.scorebest);
-    $('span#text_resultscorecurrent').text(recognitionresult.details.scorecurrent);
-    $('span#text_resultscorenew').text(recognitionresult.details.scorenew ? 'NEW': '');
-    $('span#text_resultmisscountbest').text(recognitionresult.details.misscountbest);
-    $('span#text_resultmisscountcurrent').text(recognitionresult.details.misscountcurrent);
-    $('span#text_resultmisscountnew').text(recognitionresult.details.misscountnew ? 'NEW': '');
+    if(recognitionresult.details.options) {
+      $('span#text_resultoptionbattle').text(recognitionresult.details.options.battle ? 'BATTLE' : '');
+      $('span#text_resultoptionallscratch').text(recognitionresult.details.options.allscratch ? 'ALL-SCR' : '');
+      $('span#text_resultoptionregularspeed').text(recognitionresult.details.options.regularspeed ? 'REGUL-SPEED' : '');
+      $('span#text_resultoptionarrange').text(recognitionresult.details.options.arrange);
+      $('span#text_resultoptionflip').text(recognitionresult.details.options.flip);
+      $('span#text_resultoptionassist').text(recognitionresult.details.options.assist);
+    }
+    else {
+      clear_options();
+    }
+
+    if(recognitionresult.details.cleartype) {
+      $('span#text_resultcleartypebest').text(recognitionresult.details.cleartype.best);
+      $('span#text_resultcleartypecurrent').text(recognitionresult.details.cleartype.current);
+      $('span#text_resultcleartypenew').text(recognitionresult.details.cleartype.is_new ? 'NEW': '');
+    }
+    else {
+      clear_cleartype();
+    }
+    
+    if(recognitionresult.details.djlevel) {
+      $('span#text_resultdjlevelbest').text(recognitionresult.details.djlevel.best);
+      $('span#text_resultdjlevelcurrent').text(recognitionresult.details.djlevel.current);
+      $('span#text_resultdjlevelnew').text(recognitionresult.details.djlevel.is_new ? 'NEW': '');
+    }
+    else {
+      clear_djlevel();
+    }
+    
+    if(recognitionresult.details.score) {
+      $('span#text_resultscorebest').text(recognitionresult.details.score.best);
+      $('span#text_resultscorecurrent').text(recognitionresult.details.score.current);
+      $('span#text_resultscorenew').text(recognitionresult.details.score.is_new ? 'NEW': '');
+    }
+    else {
+      clear_score();
+    }
+    
+    if(recognitionresult.details.misscount) {
+      $('span#text_resultmisscountbest').text(recognitionresult.details.misscount.best);
+      $('span#text_resultmisscountcurrent').text(recognitionresult.details.misscount.current);
+      $('span#text_resultmisscountnew').text(recognitionresult.details.misscount.is_new ? 'NEW': '');
+    }
+    else {
+      clear_misscount();
+    }
 
     $('span#text_resultgraphtarget').text(recognitionresult.details.graphtarget);
   }
   else {
     $('span#text_resultgraphtype').empty();
-    $('span#text_resultoptionbattle').empty();
-    $('span#text_resultoptionallscratch').empty();
-    $('span#text_resultoptionregularspeed').empty();
-    $('span#text_resultoptionarrange').empty();
-    $('span#text_resultoptionflip').empty();
-    $('span#text_resultoptionassist').empty();
-    $('span#text_resultcleartypebest').empty();
-    $('span#text_resultcleartypecurrent').empty();
-    $('span#text_resultcleartypenew').empty();
-    $('span#text_resultdjlevelbest').empty();
-    $('span#text_resultdjlevelcurrent').empty();
-    $('span#text_resultdjlevelnew').empty();
-    $('span#text_resultscorebest').empty();
-    $('span#text_resultscorecurrent').empty();
-    $('span#text_resultscorenew').empty();
-    $('span#text_resultmisscountbest').empty();
-    $('span#text_resultmisscountcurrent').empty();
-    $('span#text_resultmisscountnew').empty();
+    clear_options();
+    clear_cleartype();
+    clear_djlevel();
+    clear_score();
+    clear_misscount();
     $('span#text_resultgraphtarget').empty();
   }
+}
+
+function clear_options() {
+  $('span#text_resultoptionbattle').empty();
+  $('span#text_resultoptionallscratch').empty();
+  $('span#text_resultoptionregularspeed').empty();
+  $('span#text_resultoptionarrange').empty();
+  $('span#text_resultoptionflip').empty();
+  $('span#text_resultoptionassist').empty();
+}
+
+function clear_cleartype() {
+  $('span#text_resultcleartypebest').empty();
+  $('span#text_resultcleartypecurrent').empty();
+  $('span#text_resultcleartypenew').empty();
+}
+
+function clear_djlevel() {
+  $('span#text_resultdjlevelbest').empty();
+  $('span#text_resultdjlevelcurrent').empty();
+  $('span#text_resultdjlevelnew').empty();
+}
+
+function clear_score() {
+  $('span#text_resultscorebest').empty();
+  $('span#text_resultscorecurrent').empty();
+  $('span#text_resultscorenew').empty();
+}
+
+function clear_misscount() {
+  $('span#text_resultmisscountbest').empty();
+  $('span#text_resultmisscountcurrent').empty();
+  $('span#text_resultmisscountnew').empty();
 }
 
 function clearinput_informations() {
@@ -421,41 +470,85 @@ async function onclick_citationrecog(e) {
   if(recognitionresult !== null && recognitionresult.details !== null) {
     $('fieldset#fieldset_labeldetails').prop('disabled', false);
     
-    $('select#select_graphtype').val(recognitionresult.details.graphtype);
+    if(recognitionresult.details.options) {
+      $('select#select_graphtype').val(recognitionresult.details.graphtype);
 
-    $('input#check_optionbattle').prop('checked', recognitionresult.details.optionbattle);
-    $('input#check_optionallscratch').prop('checked', recognitionresult.details.optionallscratch);
-    $('input#check_optionregularspeed').prop('checked', recognitionresult.details.optionregularspeed);
+      $('input#check_optionbattle').prop('checked', recognitionresult.details.options.battle);
+      $('input#check_optionallscratch').prop('checked', recognitionresult.details.options.allscratch);
+      $('input#check_optionregularspeed').prop('checked', recognitionresult.details.options.regularspeed);
 
-    $('select#select_optionarrange').val(recognitionresult.details.optionarrange);
+      $('select#select_optionarrange').val(recognitionresult.details.options.arrange);
 
-    if(recognitionresult.details.optionarrange !== null && recognitionresult.details.optionarrange.includes('/')) {
-      const parts = recognitionresult.details.optionarrange.split('/');
-      $('select#select_optionarrange1p').val(parts[0]);
-      $('select#select_optionarrange2p').val(parts[1]);
+      if(recognitionresult.details.options.arrange !== null && recognitionresult.details.options.arrange.includes('/')) {
+        const parts = recognitionresult.details.optionarrange.split('/');
+        $('select#select_optionarrange1p').val(parts[0]);
+        $('select#select_optionarrange2p').val(parts[1]);
+      }
+      else {
+        $('select#select_optionarrange1p').val(null);
+        $('select#select_optionarrange2p').val(null);
+      }
+
+      $('select#select_optionarrangesync').val(recognitionresult.details.options.arrange);
+
+      $('select#select_optionflip').val(recognitionresult.details.options.flip);
+      $('select#select_optionassist').val(recognitionresult.details.options.assist);
     }
     else {
+      $('input#check_optionbattle').prop('checked', false);
+      $('input#check_optionallscratch').prop('checked', false);
+      $('input#check_optionregularspeed').prop('checked', false);
+      $('select#select_optionarrange').val(null);
       $('select#select_optionarrange1p').val(null);
       $('select#select_optionarrange2p').val(null);
+      $('select#select_optionarrangesync').val(null);
+      $('select#select_optionflip').val(null);
+      $('select#select_optionassist').val(null);
     }
 
-    $('select#select_optionarrangesync').val(recognitionresult.details.optionarrange);
+    if(recognitionresult.details.cleartype) {
+      $('select#select_cleartypebest').val(recognitionresult.details.cleartype.best);
+      $('select#select_cleartypecurrent').val(recognitionresult.details.cleartype.current);
+      $('input#check_cleartypenew').prop('checked', recognitionresult.details.cleartype.is_new);
+    }
+    else {
+      $('select#select_cleartypebest').val(null);
+      $('select#select_cleartypecurrent').val(null);
+      $('select#select_cleartypenew').val(null);
+    }
 
-    $('select#select_optionflip').val(recognitionresult.details.optionflip);
-    $('select#select_optionassist').val(recognitionresult.details.optionassist);
+    if(recognitionresult.details.djlevel) {
+      $('select#select_djlevelbest').val(recognitionresult.details.djlevel.best);
+      $('select#select_djlevelcurrent').val(recognitionresult.details.djlevel.current);
+      $('input#check_djlevelnew').prop('checked', recognitionresult.details.djlevel.is_new);
+    }
+    else {
+      $('select#select_djlevelbest').val(null);
+      $('select#select_djlevelcurrent').val(null);
+      $('select#select_djlevelnew').val(null);
+    }
 
-    $('select#select_cleartypebest').val(recognitionresult.details.cleartypebest);
-    $('select#select_djlevelbest').val(recognitionresult.details.djlevelbest);
-    $('input#text_scorebest').val(recognitionresult.details.scorebest);
-    $('input#text_misscountbest').val(recognitionresult.details.misscountbest);
-    $('select#select_cleartypecurrent').val(recognitionresult.details.cleartypecurrent);
-    $('select#select_djlevelcurrent').val(recognitionresult.details.djlevelcurrent);
-    $('input#text_scorecurrent').val(recognitionresult.details.scorecurrent);
-    $('input#text_misscountcurrent').val(recognitionresult.details.misscountcurrent);
-    $('input#check_cleartypenew').prop('checked', recognitionresult.details.cleartypenew);
-    $('input#check_djlevelnew').prop('checked', recognitionresult.details.djlevelnew);
-    $('input#check_scorenew').prop('checked', recognitionresult.details.scorenew);
-    $('input#check_misscountnew').prop('checked', recognitionresult.details.misscountnew);
+    if(recognitionresult.details.score) {
+      $('input#text_scorebest').val(recognitionresult.details.score.best);
+      $('input#text_scorecurrent').val(recognitionresult.details.score.current);
+      $('input#check_scorenew').prop('checked', recognitionresult.details.score.is_new);
+    }
+    else {
+      $('input#text_scorebest').val(null);
+      $('input#text_scorecurrent').val(null);
+      $('input#text_scorenew').val(null);
+    }
+
+    if(recognitionresult.details.misscount) {
+      $('input#text_misscountbest').val(recognitionresult.details.misscount.best);
+      $('input#text_misscountcurrent').val(recognitionresult.details.misscount.current);
+      $('input#check_misscountnew').prop('checked', recognitionresult.details.misscount.is_new);
+    }
+    else {
+      $('input#text_misscountbest').val(null);
+      $('input#text_misscountcurrent').val(null);
+      $('input#text_misscountnew').val(null);
+    }
 
     $('select#select_graphtarget').val(recognitionresult.details.graphtarget);
   }
@@ -473,16 +566,16 @@ async function onclick_citationrecog(e) {
     $('select#select_optionflip').val(null);
     $('select#select_optionassist').val(null);
     $('select#select_cleartypebest').val(null);
-    $('select#select_djlevelbest').val(null);
-    $('input#text_scorebest').val(null);
-    $('input#text_misscountbest').val(null);
     $('select#select_cleartypecurrent').val(null);
-    $('select#select_djlevelcurrent').val(null);
-    $('input#text_scorecurrent').val(null);
-    $('input#text_misscountcurrent').val(null);
     $('select#select_cleartypenew').val(null);
+    $('select#select_djlevelbest').val(null);
+    $('select#select_djlevelcurrent').val(null);
     $('select#select_djlevelnew').val(null);
+    $('input#text_scorebest').val(null);
+    $('input#text_scorecurrent').val(null);
     $('input#text_scorenew').val(null);
+    $('input#text_misscountbest').val(null);
+    $('input#text_misscountcurrent').val(null);
     $('input#text_misscountnew').val(null);
     $('select#select_graphtarget').val(null);
   }

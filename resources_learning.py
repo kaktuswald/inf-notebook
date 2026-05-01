@@ -25,13 +25,13 @@ class RawLabel:
 
     def load(self):
         try:
-            with open(label_basics_filepath) as f:
+            with open(label_basics_filepath, encoding='utf-8') as f:
                 self.labels = json.load(f)
         except Exception:
             self.labels = {}
 
     def save(self):
-        with open(label_basics_filepath, 'w') as f:
+        with open(label_basics_filepath, 'w', encoding='utf-8') as f:
             json.dump(self.labels, f, indent=2)
 
     def get(self, filename):

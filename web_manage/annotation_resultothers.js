@@ -103,7 +103,7 @@ async function onclick_keyitem(e) {
     else
       $('select#select_radarupdated').val(label.radarupdated ? 'あり' : 'なし');
 
-    $('input#check_ignore').prop('checked', Object.hasOwn(label, 'ignore') && label.ignore);
+    $('input#check_ignore').prop('checked', label.ignore == true);
   }
   else {
     $('select#select_tab').val(null);
