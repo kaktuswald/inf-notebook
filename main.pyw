@@ -1709,17 +1709,15 @@ class GuiApiExport():
     def __init__(self, window: webui.Window):
         self.window = window
 
-        if not isfile(csssetting_filepath):
-            return None
-        
-        with open(csssetting_filepath) as f:
-            self.csssetting = load(f)
-
         window.bind('get_exportdirpath', GuiApiExport.get_exportdirpath)
 
         window.bind('get_csssetting', self.get_csssetting)
         window.bind('update_csssetting', self.update_csssetting)
         window.bind('save_csssetting', self.save_csssetting)
+
+        if isfile(csssetting_filepath):
+            with open(csssetting_filepath) as f:
+                self.csssetting = load(f)
 
     def get_csssetting(self, event: webui.Event):
         '''CSS設定値の取得
