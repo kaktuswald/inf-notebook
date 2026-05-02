@@ -89,24 +89,24 @@ class NotebookRecent(Notebook):
             if result.details.score.current is not None and result.details.score.best is not None:
                 update_score = result.details.score.current - result.details.score.best
         
-        update_miss_count = None
-        if result.details.miss_count is not None and result.details.miss_count.new:
-            if result.details.miss_count.current is not None and result.details.miss_count.best is not None:
-                update_miss_count = result.details.miss_count.current - result.details.miss_count.best
+        update_misscount = None
+        if result.details.misscount is not None and result.details.misscount.new:
+            if result.details.misscount.current is not None and result.details.misscount.best is not None:
+                update_misscount = result.details.misscount.current - result.details.misscount.best
         
         self.json['results'][result.timestamp] = {
             'playtype': result.playtype,
             'difficulty': result.informations.difficulty,
             'playspeed': result.informations.playspeed,
             'music': result.informations.songname,
-            'clear_type_new': result.details.clear_type is not None and result.details.clear_type.new,
-            'dj_level_new': result.details.dj_level is not None and result.details.dj_level.new,
+            'clear_type_new': result.details.cleartype is not None and result.details.cleartype.new,
+            'dj_level_new': result.details.djlevel is not None and result.details.djlevel.new,
             'score_new': result.details.score is not None and result.details.score.new,
-            'miss_count_new': result.details.miss_count is not None and result.details.miss_count.new,
-            'update_clear_type': result.details.clear_type.current if result.details.clear_type is not None and result.details.clear_type.new else None,
-            'update_dj_level': result.details.dj_level.current if result.details.dj_level is not None and result.details.dj_level.new else None,
+            'miss_count_new': result.details.misscount is not None and result.details.misscount.new,
+            'update_clear_type': result.details.cleartype.current if result.details.cleartype is not None and result.details.cleartype.new else None,
+            'update_dj_level': result.details.djlevel.current if result.details.djlevel is not None and result.details.djlevel.new else None,
             'update_score': update_score,
-            'update_miss_count': update_miss_count,
+            'update_miss_count': update_misscount,
             'option': option,
             'play_side': result.playside,
             'has_loveletter': result.has_loveletter,
@@ -189,20 +189,20 @@ class NotebookMusic(Notebook):
         target['latest'] = {
             'timestamp': result.timestamp,
             'clear_type': {
-                'value': result.details.clear_type.current,
-                'new': result.details.clear_type.new,
+                'value': result.details.cleartype.current,
+                'new': result.details.cleartype.new,
             },
             'dj_level': {
-                'value': result.details.dj_level.current,
-                'new': result.details.dj_level.new,
+                'value': result.details.djlevel.current,
+                'new': result.details.djlevel.new,
             },
             'score': {
                 'value': result.details.score.current,
                 'new': result.details.score.new,
             },
             'miss_count': {
-                'value': result.details.miss_count.current,
-                'new': result.details.miss_count.new,
+                'value': result.details.misscount.current,
+                'new': result.details.misscount.new,
             },
             'options': options,
             'playspeed': result.informations.playspeed,
@@ -217,20 +217,20 @@ class NotebookMusic(Notebook):
             target['history'] = {}
         target['history'][result.timestamp] = {
             'clear_type': {
-                'value': result.details.clear_type.current,
-                'new': result.details.clear_type.new,
+                'value': result.details.cleartype.current,
+                'new': result.details.cleartype.new,
             },
             'dj_level': {
-                'value': result.details.dj_level.current,
-                'new': result.details.dj_level.new,
+                'value': result.details.djlevel.current,
+                'new': result.details.djlevel.new,
             },
             'score': {
                 'value': result.details.score.current,
                 'new': result.details.score.new,
             },
             'miss_count': {
-                'value': result.details.miss_count.current,
-                'new': result.details.miss_count.new,
+                'value': result.details.misscount.current,
+                'new': result.details.misscount.new,
             },
             'options': options,
             'playspeed': result.informations.playspeed,
@@ -253,10 +253,10 @@ class NotebookMusic(Notebook):
         target['best']['latest'] = result.timestamp
 
         targets = {
-            'clear_type': result.details.clear_type,
-            'dj_level': result.details.dj_level,
+            'clear_type': result.details.cleartype,
+            'dj_level': result.details.djlevel,
             'score': result.details.score,
-            'miss_count': result.details.miss_count,
+            'miss_count': result.details.misscount,
         }
 
         updated = False

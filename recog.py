@@ -881,20 +881,20 @@ class Recognition():
 
         otherstrimmed = screen.np_value[define.areas_np['resultothers'][playside]]
 
-        tab = cls.ResultOthers.get_tab(otherstrimmed)
+        tab = cls.Result.Others.get_tab(otherstrimmed)
         rival = None
         notesradar = None
         if tab == ResultTabs.RIVAL:
             rival = ResultOthers.ResultOthersRival(
-                cls.ResultOthers.get_rankbefore(otherstrimmed),
-                cls.ResultOthers.get_ranknow(otherstrimmed),
-                cls.ResultOthers.get_rankposition(otherstrimmed),
+                cls.Result.Others.get_rankbefore(otherstrimmed),
+                cls.Result.Others.get_ranknow(otherstrimmed),
+                cls.Result.Others.get_rankposition(otherstrimmed),
             )
         if tab == ResultTabs.RADAR:
             notesradar = ResultOthers.ResultOthersNotesradar(
-                cls.ResultOthers.get_notesradar_attribute(otherstrimmed),
-                cls.ResultOthers.get_notesradar_chartvalue(otherstrimmed),
-                cls.ResultOthers.get_notesradar_value(otherstrimmed),
+                cls.Result.Others.get_notesradar_attribute(otherstrimmed),
+                cls.Result.Others.get_notesradar_chartvalue(otherstrimmed),
+                cls.Result.Others.get_notesradar_value(otherstrimmed),
             )
         
         result.others = ResultOthers(

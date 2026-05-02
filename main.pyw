@@ -2387,7 +2387,7 @@ def post_discord_webhooks(result: Result, imagevalue: bytes):
                     if webhooksetting['mode'] == DiscordwebhookModes.SCORE:
                         webhooksetting['mybest'] = result.details.score.current
                     if webhooksetting['mode'] == DiscordwebhookModes.MISSCOUNT:
-                        webhooksetting['mybest'] = result.details.miss_count.current
+                        webhooksetting['mybest'] = result.details.misscount.current
                     setting_updated = True
             else:
                 if type(resultmessages) == str:
@@ -2490,10 +2490,10 @@ def insert_results(result: Result):
         newresult.difficulty = None        
 
     if result.details is not None:
-        newresult.news.cleartype = result.details.clear_type.new
-        newresult.news.djlevel = result.details.dj_level.new
+        newresult.news.cleartype = result.details.cleartype.new
+        newresult.news.djlevel = result.details.djlevel.new
         newresult.news.score = result.details.score.new
-        newresult.news.misscount = result.details.miss_count.new
+        newresult.news.misscount = result.details.misscount.new
     else:
         newresult.news.cleartype = False
         newresult.news.djlevel = False

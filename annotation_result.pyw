@@ -106,7 +106,7 @@ class GuiApi():
 
         if conditions['only_fullcombo']:
             targetkeys = [key for key in targetkeys if 'details' in labels[key].keys() and labels[key]['details'] is not None]
-            targetkeys = [key for key in targetkeys if ('clear_type_best' in labels[key]['details'].keys() and labels[key]['details']['clear_type_best'] == 'F-COMBO') or ('clear_type_current' in labels[key]['details'].keys() and labels[key]['details']['clear_type_current'] == 'F-COMBO')]
+            targetkeys = [key for key in targetkeys if ('cleartype_best' in labels[key]['details'].keys() and labels[key]['details']['cleartype_best'] == 'F-COMBO') or ('cleartype_current' in labels[key]['details'].keys() and labels[key]['details']['cleartype_current'] == 'F-COMBO')]
 
         if conditions['songnamefilter'] is not None:
             targetkeys = [key for key in targetkeys if 'songname' in labels[key]['informations'].keys() and labels[key]['informations']['songname'] is not None]

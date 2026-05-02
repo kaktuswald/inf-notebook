@@ -201,18 +201,18 @@ async function onclick_keyitem(e) {
       $('select#select_optionflip').val(labels.details.option_flip);
       $('select#select_optionassist').val(labels.details.option_assist);
 
-      $('select#select_cleartypebest').val(labels.details.clear_type_best);
-      $('select#select_djlevelbest').val(labels.details.dj_level_best);
+      $('select#select_cleartypebest').val(labels.details.cleartype_best);
+      $('select#select_djlevelbest').val(labels.details.djlevel_best);
       $('input#text_scorebest').val(labels.details.score_best);
-      $('input#text_misscountbest').val(labels.details.miss_count_best);
-      $('select#select_cleartypecurrent').val(labels.details.clear_type_current);
-      $('select#select_djlevelcurrent').val(labels.details.dj_level_current);
+      $('input#text_misscountbest').val(labels.details.misscount_best);
+      $('select#select_cleartypecurrent').val(labels.details.cleartype_current);
+      $('select#select_djlevelcurrent').val(labels.details.djlevel_current);
       $('input#text_scorecurrent').val(labels.details.score_current);
-      $('input#text_misscountcurrent').val(labels.details.miss_count_current);
-      $('input#check_cleartypenew').prop('checked', labels.details.clear_type_new == true);
-      $('input#check_djlevelnew').prop('checked', labels.details.dj_level_new == true);
+      $('input#text_misscountcurrent').val(labels.details.misscount_current);
+      $('input#check_cleartypenew').prop('checked', labels.details.cleartype_new == true);
+      $('input#check_djlevelnew').prop('checked', labels.details.djlevel_new == true);
       $('input#check_scorenew').prop('checked', labels.details.score_new == true);
-      $('input#check_misscountnew').prop('checked', labels.details.miss_count_new == true);
+      $('input#check_misscountnew').prop('checked', labels.details.misscount_new == true);
 
       $('select#select_graphtarget').val(labels.details.graphtarget);
 
@@ -409,18 +409,18 @@ async function onclick_labeloverwrite(e) {
       'option_arrange_sync': $('select#select_optionarrangesync').val(),
       'option_flip': $('select#select_optionflip').val(),
       'option_assist': $('select#select_optionassist').val(),
-      'clear_type_best': $('select#select_cleartypebest').val(),
-      'clear_type_current': $('select#select_cleartypecurrent').val(),
-      'clear_type_new': $('input#check_cleartypenew').prop('checked'),
-      'dj_level_best': $('select#select_djlevelbest').val(),
-      'dj_level_current': $('select#select_djlevelcurrent').val(),
-      'dj_level_new': $('input#check_djlevelnew').prop('checked'),
+      'cleartype_best': $('select#select_cleartypebest').val(),
+      'cleartype_current': $('select#select_cleartypecurrent').val(),
+      'cleartype_new': $('input#check_cleartypenew').prop('checked'),
+      'djlevel_best': $('select#select_djlevelbest').val(),
+      'djlevel_current': $('select#select_djlevelcurrent').val(),
+      'djlevel_new': $('input#check_djlevelnew').prop('checked'),
       'score_best': $('input#text_scorebest').val(),
       'score_current': $('input#text_scorecurrent').val(),
       'score_new': $('input#check_scorenew').prop('checked'),
-      'miss_count_best': $('input#text_misscountbest').val(),
-      'miss_count_current': $('input#text_misscountcurrent').val(),
-      'miss_count_new': $('input#check_misscountnew').prop('checked'),
+      'misscount_best': $('input#text_misscountbest').val(),
+      'misscount_current': $('input#text_misscountcurrent').val(),
+      'misscount_new': $('input#check_misscountnew').prop('checked'),
       'graphtarget': $('select#select_graphtarget').val(),
     }
 

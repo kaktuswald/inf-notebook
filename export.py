@@ -90,15 +90,15 @@ class Recent():
             score_update = score_diff if score_diff > 0 else 0
         else:
             score_update = 0
-        if result.details.miss_count.best is not None and result.details.miss_count.current is not None:
-            misscount_diff = result.details.miss_count.best - result.details.miss_count.current
+        if result.details.misscount.best is not None and result.details.misscount.current is not None:
+            misscount_diff = result.details.misscount.best - result.details.misscount.current
             misscount_update = misscount_diff if misscount_diff is not None and misscount_diff > 0 else 0
         else:
             misscount_update = 0
 
         score = result.details.score.current
-        misscount = result.details.miss_count.current if result.details.miss_count.current is not None else 0
-        clear = result.details.clear_type.current != 'NO PLAY' and result.details.clear_type.current != 'FAILED'
+        misscount = result.details.misscount.current if result.details.misscount.current is not None else 0
+        clear = result.details.cleartype.current != 'NO PLAY' and result.details.cleartype.current != 'FAILED'
 
         self.json['list'].append({
             'timestamp': result.timestamp,

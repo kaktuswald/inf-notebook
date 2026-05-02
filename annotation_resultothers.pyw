@@ -100,14 +100,14 @@ class GuiApi():
 
         image_np = array(images[key], dtype=uint8)
 
-        radarvalue, is_updated = recog.ResultOthers.get_notesradar_value(image_np)
+        radarvalue, is_updated = recog.Result.Others.get_notesradar_value(image_np)
         result = {
-            'tab': recog.ResultOthers.get_tab(image_np),
-            'rankbefore': recog.ResultOthers.get_rankbefore(image_np),
-            'ranknow': recog.ResultOthers.get_ranknow(image_np),
-            'rankposition': recog.ResultOthers.get_rankposition(image_np),
-            'radarattribute': recog.ResultOthers.get_notesradar_attribute(image_np),
-            'radarchartvalue': recog.ResultOthers.get_notesradar_chartvalue(image_np),
+            'tab': recog.Result.Others.get_tab(image_np),
+            'rankbefore': recog.Result.Others.get_rankbefore(image_np),
+            'ranknow': recog.Result.Others.get_ranknow(image_np),
+            'rankposition': recog.Result.Others.get_rankposition(image_np),
+            'radarattribute': recog.Result.Others.get_notesradar_attribute(image_np),
+            'radarchartvalue': recog.Result.Others.get_notesradar_chartvalue(image_np),
             'radarvalue': radarvalue,
             'radarupdated': is_updated,
         }

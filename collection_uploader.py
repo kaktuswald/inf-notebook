@@ -89,16 +89,16 @@ class CollectionUploader():
                 return None
             
             npvalue_others = npvalue[define.areas_np['resultothers'][self.playside]]
-            if recog.ResultOthers.get_tab(npvalue_others) != ResultTabs.RADAR:
+            if recog.Result.Others.get_tab(npvalue_others) != ResultTabs.RADAR:
                 return None
             
-            attribute = recog.ResultOthers.get_notesradar_attribute(npvalue_others)
+            attribute = recog.Result.Others.get_notesradar_attribute(npvalue_others)
             if attribute is None or attribute in self.attributes:
                 return None
             
             self.attributes.append(attribute)
 
-            return (attribute, recog.ResultOthers.get_notesradar_chartvalue(npvalue_others),)
+            return (attribute, recog.Result.Others.get_notesradar_chartvalue(npvalue_others),)
     
     musicselectchecker = MusicSelectUnknownMusicNameChecker()
     notesradarchecker = ResultOthersNotesradarChecker()
@@ -124,9 +124,9 @@ class CollectionUploader():
         
         upload_details = force or result.details is None
         if not upload_details:
-            if result.details.clear_type is None or result.details.clear_type.current is None:
+            if result.details.cleartype is None or result.details.cleartype.current is None:
                 upload_details = True
-            if result.details.dj_level is None or result.details.dj_level.current is None:
+            if result.details.djlevel is None or result.details.djlevel.current is None:
                 upload_details = True
             if result.details.score is None or result.details.score.current is None:
                 upload_details = True
