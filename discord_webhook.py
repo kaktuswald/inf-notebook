@@ -93,7 +93,7 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
             if details.score.current is None or setting['mybest'] is not None and setting['mybest'] >= details.score.current:
                 return None, None
         if setting['mode'] == DiscordwebhookModes.MISSCOUNT:
-            if details.miss_count.current is None or setting['mybest'] is not None and setting['mybest'] <= details.miss_count.current:
+            if details.misscount.current is None or setting['mybest'] is not None and setting['mybest'] <= details.misscount.current:
                 return None, None
     
     if informations is not None:
@@ -104,8 +104,8 @@ def post_result(djname: str, nowdt: datetime, setting: dict, result: Result, ima
         if details.score is not None and details.score.current is not None:
             contexts.append(f'SCORE: **{details.score.current}**')
     if setting['mode'] != DiscordwebhookModes.SCORE:
-        if details.miss_count is not None and details.miss_count.current is not None:
-            contexts.append(f'MISS COUNT: **{details.miss_count.current}**')
+        if details.misscount is not None and details.misscount.current is not None:
+            contexts.append(f'MISS COUNT: **{details.misscount.current}**')
     if details.options is not None:
         option_arrange = details.options.arrange
         contexts.append(f'option: **{option_arrange if option_arrange is not None else '正規'}**')

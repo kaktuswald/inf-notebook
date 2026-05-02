@@ -23,7 +23,7 @@ radardata_dirpath = join(registries_dirname, 'notesradars')
 radardata2_filepath = join(collection_basepath, 'notesradarvalues.json')
 
 differentcharts_filepath = join(registries_dirname, 'different_chart.json')
-convertmusicnames_filepath = join(registries_dirname, 'notesradar_convertmusicnames.json')
+convertsongnames_filepath = join(registries_dirname, 'notesradar_convertsongnames.json')
 
 report_name = 'notesradar'
 
@@ -34,11 +34,12 @@ def generate():
     jsonradardata = load_collectiondata(radardata2_filepath)
 
     different_charts = load_json(differentcharts_filepath)
-    convertmusicnames = load_json(convertmusicnames_filepath)
+    convertsongnames = load_json(convertsongnames_filepath)
 
     result: dict[str, dict[str, dict[str, dict[str, int | dict[str, float]]]| dict[str, list[dict[str, str | int]]]]] = {}
 
     mismatch_notes = {}
+    nousedsongnames = []
     for playmode in csvradardata.keys():
         result[playmode] = {'musics': {}, 'attributes': {}}
         mismatch_notes[playmode] = {}
@@ -58,10 +59,12 @@ def generate():
                 except Exception as ex:
                     continue
                 
-                if songname in convertmusicnames.keys():
-                    songname = convertmusicnames[songname]
+                if songname in convertsongnames.keys():
+                    songname = convertsongnames[songname]
                 
                 if not songname in musics.keys():
+                    if not songname in nousedsongnames:
+                        nousedsongnames.append(songname)
                     continue
                 
                 if songname in different_charts.keys():
@@ -155,6 +158,8 @@ def generate():
     
     output_missings(musics, result)
 
+    report.output_list(nousedsongnames, 'nousedsongnames.txt')
+
     report.output_list(uncertains, 'uncertains.txt')
     if len(uncertains):
         report.append_log(f'Has uncertains {len(uncertains)}')
@@ -211,13 +216,11 @@ def load_collectiondata(filepath: str):
         score = values['score']
         chartvalue = Decimal(str(values['notesradar_chartvalue']))
 
-        if songname == 'BRING HER DOWN':
-            pass
         if not songname in musics.keys():
             report.error(f'Not exist from json data: {songname}({key})')
             continue
         if not difficulty in musics[songname][playmode].keys():
-            report.error(f'Not exist from json data:  {songname} {playmode} {difficulty}({key})')
+            report.error(f'Not exist from json data: {songname} {playmode} {difficulty}({key})')
             continue
         
         if not songname in data[playmode].keys():

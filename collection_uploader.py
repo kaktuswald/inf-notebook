@@ -124,9 +124,9 @@ class CollectionUploader():
         
         upload_details = force or result.details is None
         if not upload_details:
-            if result.details.clear_type is None or result.details.clear_type.current is None:
+            if result.details.cleartype is None or result.details.cleartype.current is None:
                 upload_details = True
-            if result.details.dj_level is None or result.details.dj_level.current is None:
+            if result.details.djlevel is None or result.details.djlevel.current is None:
                 upload_details = True
             if result.details.score is None or result.details.score.current is None:
                 upload_details = True

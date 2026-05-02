@@ -180,10 +180,10 @@ class Result():
             return
         
         self.has_new = any([
-            self.details.clear_type is not None and self.details.clear_type.new,
-            self.details.dj_level is not None and self.details.dj_level.new,
+            self.details.cleartype is not None and self.details.cleartype.new,
+            self.details.djlevel is not None and self.details.djlevel.new,
             self.details.score is not None and self.details.score.new,
-            self.details.miss_count is not None and self.details.miss_count.new,
+            self.details.misscount is not None and self.details.misscount.new,
         ])
     
     def battle_checknew(self, record: dict):
@@ -225,10 +225,10 @@ class Result():
             bests = record[self.playtype][difficulty]['best']
         
         targets = {
-            'clear_type': self.details.clear_type,
-            'dj_level': self.details.dj_level,
+            'clear_type': self.details.cleartype,
+            'dj_level': self.details.djlevel,
             'score': self.details.score,
-            'miss_count': self.details.miss_count,
+            'miss_count': self.details.misscount,
         }
 
         for key, value in targets.items():
