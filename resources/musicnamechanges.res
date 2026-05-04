@@ -4,5 +4,6 @@
     ["共犯へヴンズコード", "共犯ヘヴンズコード"],
     ["Dans la nuit de leternite", "Dans la nuit de l'eternite"],
     ["栄光のカンパネラ", "栄冠のカンパネラ"],
-    ["ウツミウツシ", "ウツシミウツシ"]
+    ["ウツミウツシ", "ウツシミウツシ"],
+    ["Destiny Lovers", "Destiny lovers"]
 ]
