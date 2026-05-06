@@ -526,36 +526,6 @@ class Recognition():
 
                 
                 return float(f'{value/100:.2f}') if value is not None else None, is_updated
-            
-            @staticmethod
-            def get_notesradar_updatedvalue(np_value) -> str|None:
-                if resource.resultothers is None:
-                    return None
-                if not 'notesradar_updatedvalue' in resource.resultothers.keys():
-                    return None
-
-                recognition = resource.resultothers['notesradar_updatedvalue']
-
-                trim = recognition['trim']
-                onedigitwidth = recognition['onedigitwidth']
-                leftpositions = recognition['leftpositions']
-                maskvalue = recognition['maskvalue']
-                table = recognition['table']
-
-                trimmed1 = np_value[trim]
-
-                value = None
-                for i in range(len(leftpositions)):
-                    trimmed2 = trimmed1[:, leftpositions[i]:leftpositions[i]+onedigitwidth]
-                    bins = np.where(trimmed2.flatten()==maskvalue, 1, 0)
-                    hexs=bins[::4]*8+bins[1::4]*4+bins[2::4]*2+bins[3::4]
-                    tablekey = ''.join([format(v, '0x') for v in hexs])
-                    if tablekey in table.keys():
-                        if value is None:
-                            value = 0
-                        value += table[tablekey] * (10 ** (len(leftpositions) - i - 1))
-                
-                return f'{value/100:.2f}' if value is not None else None
     
         @staticmethod
         def get_playside(np_value) -> str|None:
