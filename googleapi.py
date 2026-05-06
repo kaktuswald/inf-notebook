@@ -5,7 +5,7 @@ if __name__ == '__main__':
     logger = getLogger()
 else:
     logger = getLogger(__name__)
-logger.debug(f'loaded {__name__}')
+logger.debug(f'loaded {logger.name}')
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials

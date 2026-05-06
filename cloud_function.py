@@ -6,7 +6,7 @@ if __name__ == '__main__':
     logger = getLogger()
 else:
     logger = getLogger(__name__)
-logger.debug(f'loaded {__name__}')
+logger.debug(f'loaded {logger.name}')
 
 from google.auth.transport.requests import Request
 from google.oauth2.service_account import IDTokenCredentials

@@ -5,7 +5,7 @@ if __name__ == '__main__':
     logger = getLogger()
 else:
     logger = getLogger(__name__)
-logger.debug(f'loaded {__name__}')
+logger.debug(f'loaded {logger.name}')
 
 generate_python_filename = 'version.py'
 generate_text_filename = 'version.txt'

@@ -14,30 +14,32 @@ from base64 import b64decode,b64encode
 from hashlib import sha256
 from sys import exit
 from tkinter import Tk,filedialog
-from logging import LogRecord,basicConfig,getLogger,Handler,DEBUG,INFO,WARNING
+from dataclasses import dataclass
+from logging import LogRecord,Formatter,getLogger,Handler,StreamHandler,FileHandler,DEBUG,INFO,WARNING
 
 from setting import Setting
 
 setting = Setting()
 
-if setting.debug:
-    basicConfig(
-        level=DEBUG,
-        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s',
-    )
-else:
-    basicConfig(
-        level=INFO,
-        filename='log.txt',
-        filemode='w',
-        format='%(asctime)s - %(name)s %(levelname)-7s %(message)s',
-    )
+logger = getLogger()
+logger.setLevel(DEBUG if setting.debug else INFO)
 
-if __name__ == '__main__':
-    logger = getLogger()
-else:
-    logger = getLogger(__name__)
-logger.debug(f'loaded {__name__}')
+formatter = Formatter(
+    fmt='%(asctime)s - %(name)s %(levelname)-7s %(message)s',
+    # datefmt='%H:%M:%S',
+)
+
+logginghandler_std = StreamHandler()
+logginghandler_std.setFormatter(formatter)
+logger.addHandler(logginghandler_std)
+
+logginghandler_file = FileHandler('log.txt', mode='w', encoding='utf-8')
+logginghandler_file.setFormatter(formatter)
+logger.addHandler(logginghandler_file)
+
+logger.debug(f'loaded {logger.name}')
+
+logger.info('start inf-notebook')
 
 from webui import webui
 from PIL import Image
@@ -137,13 +139,15 @@ latest_url = urljoin(releases_url, 'latest')
 wiki_url = urljoin(base_url, 'wiki/')
 
 class LoggingHandler(Handler):
-    def __init__(self, output_func):
-        super().__init__()
-        self.output_func = output_func
-    
     def emit(self, record:LogRecord):
-        message = self.format(record)
-        self.output_func(message)
+        if newwindow is None:
+            return
+        if not newwindow.is_shown():
+            return
+        if newwindow.get_window_id == 0:
+            return
+        
+        api.send_message('append_log', f'{self.format(record)}')
 
 class ThreadCapture(Thread):
     handle: int = 0
@@ -531,6 +535,7 @@ class GuiApi():
 
     @staticmethod
     def start_capturing(event: webui.Event):
+        logger.debug('called start capturing')
         if not thread.is_alive():
             thread.start()
 
@@ -2890,7 +2895,7 @@ if __name__ == '__main__':
 
         exit()
     
-    logger.addHandler(LoggingHandler(lambda message: api.send_message('append_log', message)))
+    logger.addHandler(LoggingHandler())
 
     hotkeys = Hotkeys()
     if hotkeys.set_hotkeys():
@@ -2898,6 +2903,7 @@ if __name__ == '__main__':
 
     loadfiles_arcadedata()
 
+    logger.debug('start mainloop')
     mainloop()
 
     hotkeys.stop()

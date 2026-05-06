@@ -9,7 +9,7 @@ if __name__ == '__main__':
     logger = getLogger()
 else:
     logger = getLogger(__name__)
-logger.debug(f'loaded {__name__}')
+logger.debug(f'loaded {logger.name}')
 
 from numpy import array,uint8
 from PIL import Image
