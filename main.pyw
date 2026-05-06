@@ -806,8 +806,9 @@ class GuiApi():
         if not songname in resource.musictable['musics'].keys():
             songname = None
         
-        if not difficulty in resource.musictable['musics'][songname][playmode].keys():
-            difficulty = None
+        if songname is not None:
+            if not difficulty in resource.musictable['musics'][songname][playmode].keys():
+                difficulty = None
         
         if songname and difficulty:
             selected_chart = ChartSelection(
