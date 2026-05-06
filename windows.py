@@ -2,7 +2,6 @@ from ctypes import (
     windll,
     c_bool, c_int, c_ulong, c_double,
     Structure,
-    HRESULT,
     sizeof, byref,
     pointer, POINTER,
     WINFUNCTYPE,
@@ -28,13 +27,6 @@ else:
 logger.debug(f'loaded {logger.name}')
 
 from infnotebook import productname
-
-EVENT_OBJECT_LOCATIONCHANGE = 0x800B
-
-class PROCESS_DPI_AWARENESS:
-    PROCESS_DPI_UNAWARE             = 0
-    PROCESS_SYSTEM_DPI_AWARE        = 1
-    PROCESS_PER_MONITOR_DPI_AWARE   = 2
 
 class SHOWWINDOW_COMMANDS:
     SW_HIDE             = 0
@@ -119,6 +111,11 @@ class MB_TYPES:
 class MONITORINFOF:
     MONITORINFOF_PRIMARY = 1
 
+class MONITOR_FROM_FLAGS:
+    MONITOR_DEFAULTTONULL = 0
+    MONITOR_DEFAULTTOPRIMARY = 1
+    MONITOR_DEFAULTTONEAREST = 2
+
 class WINDOWPLACEMENT(Structure):
     _fields_ = [
         ('length', UINT),
@@ -177,10 +174,6 @@ MonitorEnumProc = WINFUNCTYPE(
     c_double,
 )
 
-SetProcessDpiAwareness = windll.shcore.SetProcessDpiAwareness
-SetProcessDpiAwareness.argtypes = (c_int,)
-SetProcessDpiAwareness.restype = HRESULT
-
 GetWindowThreadProcessId = windll.user32.GetWindowThreadProcessId
 GetWindowThreadProcessId.argtypes = (HWND, LPDWORD,)
 GetWindowThreadProcessId.restype = DWORD
@@ -229,6 +222,10 @@ FindWindowW = windll.user32.FindWindowW
 FindWindowW.argtypes = (LPCWSTR, LPCWSTR,)
 FindWindowW.restype = HWND
 
+MonitorFromWindow = windll.user32.MonitorFromWindow
+MonitorFromWindow.argtypes = (HWND, DWORD,)
+MonitorFromWindow.restype = HMONITOR
+
 EnumDisplayMonitors = windll.user32.EnumDisplayMonitors
 EnumDisplayMonitors.argtypes = (HDC, POINTER(RECT), MonitorEnumProc, LPARAM,)
 EnumDisplayMonitors.restype = BOOL
@@ -256,8 +253,6 @@ rectsizes = (
 ディスプレイの拡大/縮小設定によって取得できるINFINITASの画面サイズが変化するため、
 いずれかに一致していたらOKとする
 '''
-
-SetProcessDpiAwareness(PROCESS_DPI_AWARENESS.PROCESS_DPI_UNAWARE)
 
 def get_filename(hwnd:int) -> str:
     processid = c_ulong()
@@ -430,6 +425,9 @@ def get_monitors() -> dict[int, Monitor]|None:
         return None
     
     return monitors
+
+def get_monitorhandle(handle:int) -> int|None:
+    return windll.user32.MonitorFromWindow(handle, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST)
 
 if __name__ == '__main__':
     gamewindowtitle = 'beatmania IIDX INFINITAS'
