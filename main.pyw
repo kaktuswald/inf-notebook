@@ -1,6 +1,6 @@
 import time
 from threading import Thread,Event
-from queue import Queue,Full
+from queue import Queue
 import webbrowser
 from datetime import datetime,timezone,timedelta
 from urllib.parse import urljoin
@@ -61,7 +61,9 @@ from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
 from define import Playmodes,Playtypes,NotesradarAttributes,define
 from resources import resource,play_sound_result,download_latestresource
-from screenshot import Screen,Screenshot
+# from capture_winapi import ThreadCapture
+from capture import Screen
+from capture_winapi import ThreadCapture
 from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
@@ -77,17 +79,7 @@ from export import (
     csssetting_filepath,
 )
 from export import output as output_summary
-from windows import (
-    find_window,
-    get_rect,
-    check_rectsize,
-    gethandle,
-    show_messagebox,
-    maximize,
-    get_window_state,
-    move_window,
-    get_monitors,
-)
+from windows import gethandle,show_messagebox
 import image
 from image import (
     generate_scoretype,
@@ -118,12 +110,6 @@ windowheight = 720
 
 recent_maxcount = 100
 
-thread_time_wait_nonactive = 1  # INFINITASがアクティブでないときのスレッド周期
-thread_time_wait_loading = 30   # INFINITASがローディング中のときのスレッド周期
-thread_time_normal = 0.3        # 通常のスレッド周期
-thread_time_result = 0.12       # リザルトのときのスレッド周期
-thread_time_musicselect = 0.1   # 選曲のときのスレッド周期
-
 allimport_version_threshold = '0.21.3.7'    # 全曲の記録のインポートしたのがこのバージョンより前なら再インポートする
 
 gamewindowtitle = 'beatmania IIDX INFINITAS'
@@ -148,231 +134,6 @@ class LoggingHandler(Handler):
             return
         
         api.send_message('append_log', f'{self.format(record)}')
-
-class ThreadCapture(Thread):
-    handle: int = 0
-    active: bool = False
-    waiting: bool = False
-    musicselect: bool = False
-    confirmed_loading: bool = False
-    findtime_loading: float | None = None
-    confirmed_somescreen: bool = False
-    confirmed_processable: bool = False
-    findtime_processable: float | None = None
-    processed: bool = False
-    screen_latest = None
-    capturing_successful: bool | None = None
-    '''キャプチャーの成否
-    
-    None: 評価が終わっていない
-    True: キャプチャーできている
-    False: キャプチャーできていない
-    '''
-    capturing_checkstarttime = None
-    '''キャプチャーチェックの開始時間
-
-    一定時間真っ暗が続いた場合はキャプチャー不可とする。
-    '''
-
-    def __init__(self, event_close: Event, queues: dict[str, Queue]):
-        self.event_close = event_close
-        self.queues = queues
-
-        Thread.__init__(self)
-
-    def run(self):
-        self.sleep_time = thread_time_wait_nonactive
-        logger.debug('start capture thread.')
-        while not self.event_close.wait(timeout=self.sleep_time):
-            self.routine()
-
-    def routine(self):
-        if self.handle == 0:
-            self.handle = find_window(gamewindowtitle, exename)
-            if self.handle == 0:
-                return
-
-            logger.debug(f'infinitas find.')
-            api.send_message('switch_detect_infinitas', True)
-            self.active = False
-            screenshot.xy = None
-        
-        rect = get_rect(self.handle)
-
-        if rect is None or rect.width == 0 or rect.height == 0:
-            logger.debug(f'infinitas lost.')
-            api.send_message('switch_detect_infinitas', False)
-            api.send_message('switch_capturable', False)
-            self.sleep_time = thread_time_wait_nonactive
-
-            self.handle = 0
-            self.active = False
-            screenshot.xy = None
-
-            return
-
-        if not check_rectsize(rect):
-            if self.active:
-                self.sleep_time = thread_time_wait_nonactive
-                logger.debug(f'infinitas deactivate: {self.sleep_time}')
-                api.send_message('switch_capturable', False)
-
-            self.active = False
-            screenshot.xy = None
-            return
-        
-        if not self.active:
-            self.active = True
-            self.capturing_successful = None
-            self.capturing_checkstarttime = time.time()
-            self.waiting = False
-            self.musicselect = False
-            self.sleep_time = thread_time_normal
-            logger.debug(f'infinitas activate: {self.sleep_time}')
-            api.send_message('switch_capturable', True)
-        
-        screenshot.xy = (rect.left, rect.top)
-        screen = screenshot.get_screen()
-
-        shotted = False
-        if self.capturing_successful is None:
-            screenshot.shot()
-            shotted = True
-
-            if not screenshot.is_black():
-                self.capturing_successful = True
-            else:
-                if time.time() - self.capturing_checkstarttime >= 60:
-                    self.capturing_successful = False
-                    messages = [
-                        'キャプチャー画面がずっと真っ黒です。',
-                        '',
-                        'ゲーム実行ファイル(\\beatmania IIDX INFINITAS\\games\\app\\bm2dx.exe)のプロパティから「全画面表示の最適化を無効にする」のチェックを外すと正常化する可能性があります。',
-                    ]
-                    api.send_message('error', messages)
-
-        if not self.capturing_successful:
-            return
-        
-        if screen != self.screen_latest:
-            self.confirmed_somescreen = False
-            self.confirmed_processable = False
-            self.processed = False
-            self.screen_latest = screen
-
-        if screen == 'loading':
-            if self.waiting:
-                return
-            
-            if not self.confirmed_loading:
-                self.confirmed_loading = True
-                self.findtime_loading = time.time()
-                return
-            
-            if time.time() - self.findtime_loading <= thread_time_normal * 2 - 0.1:
-                return
-            
-            self.waiting = True
-            self.musicselect = False
-            self.sleep_time = thread_time_wait_loading
-            logger.debug(f'detect loading: start waiting: {self.sleep_time}')
-            self.queues['messages'].put('detect_loading')
-            return
-            
-        self.confirmed_loading = False
-
-        if self.waiting:
-            self.waiting = False
-            self.sleep_time = thread_time_normal
-            logger.debug(f'escape loading: end waiting: {self.sleep_time}')
-            self.queues['messages'].put('escape_loading')
-
-        # ここから先はローディング中じゃないときのみ
-        
-        if screen != 'music_select' and self.musicselect:
-            # 画面が選曲から抜けたとき
-            self.musicselect = False
-            self.sleep_time = thread_time_normal
-            logger.debug(f'screen out music select: {self.sleep_time}')
-
-        if screen == 'music_select':
-            if not self.musicselect:
-                # 画面が選曲に入ったとき
-                self.musicselect = True
-                self.sleep_time = thread_time_musicselect
-                logger.debug(f'screen in music select: {self.sleep_time}')
-
-            if not shotted:
-                screenshot.shot()
-                shotted = True
-
-            trimmed = screenshot.np_value[define.musicselect_trimarea_np]
-            if recog.MusicSelect.get_version(trimmed) is not None:
-                try:
-                    image = screenshot.get_image()
-                    self.queues['musicselect_screen'].put((image, trimmed,), block=False)
-                except Full as ex:
-                    pass
-            else:
-                if setting.data_collection:
-                    if recog.MusicSelect.get_hasscoredata(trimmed):
-                        collectionuploader.musicselectchecker_reset()
-
-            return
-
-        if screen != 'result':
-            self.confirmed_somescreen = False
-            self.confirmed_processable = False
-            self.processed = False
-
-            if setting.data_collection:
-                collectionuploader.notesradarchecker_reset()
-            
-            return
-        
-        # ここから先はリザルトのみ
-
-        if not self.confirmed_somescreen:
-            self.confirmed_somescreen = True
-
-            # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
-            self.sleep_time = thread_time_result
-            logger.debug(f'screen in result: {self.sleep_time}')
-        
-        if self.processed and not setting.data_collection:
-            return
-        
-        if not self.processed:
-            if not shotted:
-                screenshot.shot()
-            
-            if not recog.get_is_savable(screenshot.np_value):
-                return
-            
-            if not self.confirmed_processable:
-                self.confirmed_processable = True
-                self.findtime_processable = time.time()
-                return
-
-            if time.time() - self.findtime_processable <= thread_time_normal * 2 - 0.1:
-                return
-
-            resultscreen = screenshot.get_resultscreen()
-
-            try:
-                self.queues['result_screen'].put(resultscreen, block=False)
-            except Full as ex:
-                pass
-
-            self.sleep_time = thread_time_normal
-            logger.debug(f'processing result screen: {self.sleep_time}')
-            self.processed = True
-        
-        if self.processed and setting.data_collection:
-            if not shotted:
-                screenshot.shot()
-            
-            collectionuploader.checkandupload_notesradarvalue(screenshot.np_value)
 
 class Hotkeys():
     def __init__(self):
@@ -536,8 +297,8 @@ class GuiApi():
     @staticmethod
     def start_capturing(event: webui.Event):
         logger.debug('called start capturing')
-        if not thread.is_alive():
-            thread.start()
+        if not thread_capture.is_alive():
+            thread_capture.start()
 
     @staticmethod
     def get_resource_musictable(event: webui.Event):
@@ -2095,19 +1856,18 @@ def get_hwnd_window() -> int|None:
     return hwnd
 
 def mainloop():
-    while not event_close.wait(timeout=1):
+    while not thread_capture.event_close.wait(timeout=1):
         if not newwindow.is_shown():
             return
         if newwindow.get_child_process_id() == 0:
             return
-        if not queue_result_screen.empty():
-            result_process(queue_result_screen.get_nowait())
-        if not queue_musicselect_screen.empty():
-            musicselect_process(*queue_musicselect_screen.get_nowait())
-        if not queue_messages.empty():
-            queuemessage = queue_messages.get_nowait()
-            if queuemessage in ['detect_loading', 'escape_loading']:
-                api.send_message(queuemessage)
+        if not thread_capture.queue_resultscreen.empty():
+            result_process(thread_capture.queue_resultscreen.get_nowait())
+        if not thread_capture.queue_musicselectscreen.empty():
+            musicselect_process(*thread_capture.queue_musicselectscreen.get_nowait())
+        if not thread_capture.queue_message.empty():
+            queuemessage, data = thread_capture.queue_message.get_nowait()
+            api.send_message(queuemessage, data)
         if not queue_callfunction.empty():
             queue_callfunction.get_nowait()()
 
@@ -2524,13 +2284,13 @@ def update_resultflag(row_index, saved=False, filtered=False):
         recentresults[row_index].filtered = True
 
 def active_screenshot():
-    if not screenshot.shot():
+    if not thread_capture.screenshot.shot():
         return
     
     if setting.play_sound:
         play_sound_result()
 
-    image = screenshot.get_image()
+    image = thread_capture.screenshot.get_image()
     if image is None:
         return
     
@@ -2566,13 +2326,13 @@ def upload_musicselect():
     
     ショートカットキーで呼び出す
     '''
-    if not screenshot.shot():
+    if not thread_capture.screenshot.shot():
         return
     
     if setting.play_sound:
         play_sound_result()
 
-    image = screenshot.get_image()
+    image = thread_capture.screenshot.get_image()
     if image is None:
         return
     
@@ -2592,17 +2352,17 @@ def upload_resultothers():
     
     ショートカットキーで呼び出す
     '''
-    if not screenshot.shot():
+    if not thread_capture.screenshot.shot():
         return
     
     if setting.play_sound:
         play_sound_result()
 
-    image = screenshot.get_image()
+    image = thread_capture.screenshot.get_image()
     if image is None:
         return
     
-    playside = recog.Result.get_playside(screenshot.np_value)
+    playside = recog.Result.get_playside(thread_capture.screenshot.get_frame())
 
     storage.start_uploadresultothers(image, playside)
 
@@ -2815,8 +2575,6 @@ if __name__ == '__main__':
 
     force_upload_enable: bool = False
 
-    screenshot = Screenshot()
-
     notebook_recent = NotebookRecent(recent_maxcount)
     notebook_summary = NotebookSummary()
     notebooks_music = Notebooks()
@@ -2839,22 +2597,18 @@ if __name__ == '__main__':
 
     recentresults: list[RecentResult] = []
 
-    queue_result_screen = Queue(1)
-    queue_musicselect_screen = Queue(1)
-    queue_messages = Queue()
     queue_callfunction = Queue()
 
     storage = StorageAccessor()
 
-    event_close = Event()
-    thread = ThreadCapture(
-        event_close,
-        queues = {
-            'result_screen': queue_result_screen,
-            'musicselect_screen': queue_musicselect_screen,
-            'messages': queue_messages,
-        }
+    collectionuploader = CollectionUploader(setting, storage)
+
+    thread_capture = ThreadCapture(
+        gamewindowtitle,
+        exename,
     )
+    thread_capture.collectionuploader = collectionuploader
+    thread_capture.setting = setting
 
     insert_recentnotebook_results()
 
@@ -2877,7 +2631,6 @@ if __name__ == '__main__':
     api_export = GuiApiExport(newwindow)
     api_discordwebhook = GuiApiDiscordWebhook(newwindow)
 
-    collectionuploader = CollectionUploader(setting, storage)
 
     newwindow.show('index.html')
     hwnd_window = get_hwnd_window()
@@ -2887,12 +2640,12 @@ if __name__ == '__main__':
         webui.clean()
 
         socket_server.stop()
-        event_close.set()
+        thread_capture.event_close.set()
 
         if socket_server is not None and socket_server.is_alive():
             socket_server.join()
-        if thread is not None and thread.is_alive():
-            thread.join()
+        if thread_capture is not None and thread_capture.is_alive():
+            thread_capture.join()
 
         exit()
     
@@ -2914,14 +2667,14 @@ if __name__ == '__main__':
     newwindow = None
 
     socket_server.stop()
-    event_close.set()
+    thread_capture.event_close.set()
 
     if socket_server is not None and socket_server.is_alive():
         socket_server.join()
-    if thread is not None and thread.is_alive():
-        thread.join()
+    if thread_capture is not None and thread_capture.is_alive():
+        thread_capture.join()
 
-    del screenshot
+    del thread_capture.screenshot
     
     output_summary(notebook_summary)
     output_notesradarcsv(notesradar)

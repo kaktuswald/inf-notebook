@@ -10,7 +10,7 @@ logger.debug(f'loaded {logger.name}')
 from define import Graphtypes,Options,ResultTabs,define
 from resources import resource
 from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,ResultOthers,Result
-from screenshot import Screen
+from capture import Screen
 
 class Recognition():
     class Result():
@@ -101,7 +101,7 @@ class Recognition():
                 '''曲名を取得する
 
                 Args:
-                    np_value_informations (np.array): 対象のトリミングされたリザルト画像データ
+                    np_value_informations (np.ndarray): 対象のトリミングされたリザルト画像データ
 
                 Returns:
                     str: 曲名(認識失敗時はNone)
