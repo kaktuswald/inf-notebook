@@ -56,14 +56,15 @@ logger.getChild('google_auth_oauthlib').setLevel(WARNING)
 logger.getChild('google_auth_httplib2').setLevel(WARNING)
 logger.getChild('googleapi').setLevel(WARNING)
 logger.getChild('googleapiclient').setLevel(WARNING)
+logger.getChild('dxcam').setLevel(WARNING)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
 from define import Playmodes,Playtypes,NotesradarAttributes,define
 from resources import resource,play_sound_result,download_latestresource
-# from capture_winapi import ThreadCapture
 from capture import Screen
-from capture_winapi import ThreadCapture
+# from capture_winapi import ThreadCapture
+from capture_dxcam import ThreadCapture
 from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
