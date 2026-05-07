@@ -2571,7 +2571,7 @@ if __name__ == '__main__':
 
     load_overlayimages()
 
-    detect_infinitas: bool = False
+    detectinfinitas: bool = False
     capture_enable: bool = False
 
     force_upload_enable: bool = False

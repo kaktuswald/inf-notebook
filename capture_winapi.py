@@ -221,7 +221,7 @@ class ThreadCapture(Thread):
                 return
 
             logger.debug(f'infinitas find.')
-            self.queue_message.put(('switch_detect_infinitas', True,))
+            self.queue_message.put(('switch_detectinfinitas', True,))
             self.active = False
             self.screenshot.xy = None
         
@@ -229,7 +229,7 @@ class ThreadCapture(Thread):
 
         if rect is None or rect.width == 0 or rect.height == 0:
             logger.debug(f'infinitas lost.')
-            self.queue_message.put(('switch_detect_infinitas', False,))
+            self.queue_message.put(('switch_detectinfinitas', False,))
             self.queue_message.put(('switch_capturable', False,))
             self.sleep_time = thread_time_wait_nonactive
 
@@ -304,7 +304,7 @@ class ThreadCapture(Thread):
             self.musicselect = False
             self.sleep_time = thread_time_wait_loading
             logger.debug(f'detect loading: start waiting: {self.sleep_time}')
-            self.queue_message.put(('detect_loading',))
+            self.queue_message.put(('switch_loadingscreen', True))
             return
             
         self.confirmed_loading = False
@@ -313,7 +313,7 @@ class ThreadCapture(Thread):
             self.waiting = False
             self.sleep_time = thread_time_normal
             logger.debug(f'escape loading: end waiting: {self.sleep_time}')
-            self.queue_message.put(('escape_loading',))
+            self.queue_message.put(('switch_loadingscreen', False))
 
         # ここから先はローディング中じゃないときのみ
         

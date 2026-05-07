@@ -660,17 +660,17 @@ function communication_message(message, data = null) {
     case 'request_imagereload':
       request_imagereload(data.tagid, data.filename);
       break;
-    case 'switch_detect_infinitas':
-      switch_detect_togglemessage('detect_infinitas', data);
+    case 'switch_detectinfinitas':
+      switch_detect_togglemessage('detectinfinitas', data);
       break;
     case 'switch_capturable':
       switch_detect_togglemessage('capturable', data);
       break;
-    case 'detect_loading':
-      detect_loading();
-      break;
-    case 'escape_loading':
-      escape_loading();
+    case 'switch_loadingscreen':
+      if(data)
+        detect_loading();
+      else
+        escape_loading();
       break;
     case 'update_summary':
       draw_summary();
