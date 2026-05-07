@@ -144,8 +144,6 @@ class LoggingHandler(Handler):
             return
         if not newwindow.is_shown():
             return
-        if newwindow.get_window_id == 0:
-            return
         
         api.send_message('append_log', f'{self.format(record)}')
 
@@ -1692,8 +1690,6 @@ class GuiApi():
             return
         if not newwindow.is_shown():
             return
-        if newwindow.get_child_process_id() == 0:
-            return
         
         if data is None:
             newwindow.run(f'communication_message(\'{message}\');')
@@ -2098,7 +2094,7 @@ def mainloop():
     while not event_close.wait(timeout=1):
         if not newwindow.is_shown():
             return
-        if newwindow.get_child_process_id() == 0:
+        if not gethandle(windowtitle):
             return
         if not queue_result_screen.empty():
             result_process(queue_result_screen.get_nowait())
@@ -2909,6 +2905,9 @@ if __name__ == '__main__':
 
     hotkeys.stop()
 
+    if newwindow.is_shown():
+        newwindow.close()
+    
     webui.clean()
     del newwindow
     newwindow = None
