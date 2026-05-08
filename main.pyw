@@ -762,13 +762,14 @@ class GuiApi():
         
         最新バージョンが存在するなら、該当するアクションを実行するかをユーザに尋ねる
         '''
-        message, action = check_latest_version()
+        message, version, action = check_latest_version()
 
         if message is not None:
             self.findnewestversionaction = action
 
             ret = {
                 'message': message,
+                'version': version,
                 'error': action is None,
             }
         else:
@@ -2616,15 +2617,16 @@ def check_latest_version():
     最新バージョンが存在する場合は、該当するアクションを実行するかを確認する。
     取得に失敗した場合はその旨のメッセージのみを返す。
     Returns:
-        str: メッセージ
-        action: アクション
+        message(str): メッセージ
+        version(str): バージョン
+        action(func): アクション
     '''
     latest_version = get_latest_version()
     if latest_version is None:
-        return failed_to_get_latest_version_message, None
+        return failed_to_get_latest_version_message, None, None
 
     if not version_isold(version, latest_version):
-        return None, None
+        return None, None, None
     
     action = None
     config = LocalConfig()
@@ -2642,7 +2644,7 @@ def check_latest_version():
             webbrowser.open(wiki_url)
         message = find_latest_version_message_not_has_installer
     
-    return message, action
+    return message, latest_version, action
 
 def get_latest_version():
     '''GitHubから最新バージョン値を取得する

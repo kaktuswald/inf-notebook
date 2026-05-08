@@ -414,6 +414,7 @@ async function initialize() {
         display_errormessage([versionresult.message]);
       }
       else {
+        $('span#newestversion').text(versionresult.version);
         $('div#findnewestversion_message').text(versionresult.message);
         $('dialog#dialog_findnewestversion')[0].showModal();
       }
