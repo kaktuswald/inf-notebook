@@ -139,7 +139,12 @@ class DrawerInformation {
     });
     ctx.restore();
 
-    return await this.canvas.convertToBlob();
+    const timer = new PerformanceTimer();
+    const blob = await this.canvas.convertToBlob();
+    if(setting.debug)
+      console.log(`information convert blob time: ${timer.time} ms`);
+
+    return blob;
   }
 
   drawtext_left(ctx, text, x, y, args) {

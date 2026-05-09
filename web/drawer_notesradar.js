@@ -37,6 +37,8 @@ class DrawerNotesradar {
     this.canvas_playerradarchart = new OffscreenCanvas(width, height);
     this.canvas_playerradarcombined = new OffscreenCanvas(width * 2, height);
     this.canvas_chartradarchart = new OffscreenCanvas(width, height);
+
+    this.chart_chartradar = null;
   }
 
   /**
@@ -224,7 +226,12 @@ class DrawerNotesradar {
 
     ctx.restore();
 
-    return await this.canvas_playerradarcombined.convertToBlob();
+    const timer = new PerformanceTimer();
+    const blob = await this.canvas_playerradarcombined.convertToBlob();
+    if(setting.debug)
+      console.log(`player notesradar convert blob time: ${timer.time} ms`);
+
+    return blob;
   }
 
   /**
@@ -242,7 +249,12 @@ class DrawerNotesradar {
     const bordercolor = DrawerNotesradar.chart_notesradar_bordercolors[values.indexOf(maxvalue)];
     const backgroundcolor = DrawerNotesradar.chart_notesradar_backgroundcolors[values.indexOf(maxvalue)];
 
-    const chart = new Chart(this.canvas_chartradarchart, {
+    if(this.chart_chartradar !== null) {
+      const time = await release_wait(this.chart_chartradar);
+      console.log(`%cchart notesradar wait time: ${time} ms`, 'color: orange;');
+    }
+    
+    this.chart_chartradar = new Chart(this.canvas_chartradarchart, {
       type: 'radar',
       data: {
         labels: DrawerNotesradar.chart_notesradar_labels,
@@ -343,9 +355,13 @@ class DrawerNotesradar {
       ],
     });
 
+    const timer = new PerformanceTimer();
     const blob = await this.canvas_chartradarchart.convertToBlob();
+    if(setting.debug)
+      console.log(`chart notesradar convert blob time: ${timer.time} ms`);
 
-    chart.destroy();
+    this.chart_chartradar.destroy();
+    this.chart_chartradar = null;
 
     return blob;
   }

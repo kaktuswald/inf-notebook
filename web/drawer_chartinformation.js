@@ -1,7 +1,7 @@
 /**
  * 譜面記録を描画する
  */
-class DrawerScoreinformation {
+class DrawerChartinformation {
   static textcolor = 'white';
   static shadowcolor_basic = 'black';
   static fontsize_songname = 80;
@@ -23,7 +23,7 @@ class DrawerScoreinformation {
   static songname_x = 20;
   static songname_y = 10;
 
-  static scoretype_y = 100;
+  static charttype_y = 100;
   static playtype_x = 80;
   static difficulty_x = 190;
   static difficulty_x_battle = 480;
@@ -73,28 +73,28 @@ class DrawerScoreinformation {
   };
 
   static drawtextargs_songname = {
-    'textcolor': DrawerScoreinformation.textcolor,
-    'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
-    'fontsize': DrawerScoreinformation.fontsize_songname,
+    'textcolor': DrawerChartinformation.textcolor,
+    'shadowcolor': DrawerChartinformation.shadowcolor_basic,
+    'fontsize': DrawerChartinformation.fontsize_songname,
     'maxwidth': 1200,
   };
 
   static drawtextargs_basic = {
-    'textcolor': DrawerScoreinformation.textcolor,
-    'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
-    'fontsize': DrawerScoreinformation.fontsize_basic,
+    'textcolor': DrawerChartinformation.textcolor,
+    'shadowcolor': DrawerChartinformation.shadowcolor_basic,
+    'fontsize': DrawerChartinformation.fontsize_basic,
   };
 
   static drawtextargs_value = {
-    'textcolor': DrawerScoreinformation.textcolor,
-    'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
-    'fontsize': DrawerScoreinformation.fontsize_value,
+    'textcolor': DrawerChartinformation.textcolor,
+    'shadowcolor': DrawerChartinformation.shadowcolor_basic,
+    'fontsize': DrawerChartinformation.fontsize_value,
   };
 
   static drawtextargs_small = {
-    'textcolor': DrawerScoreinformation.textcolor,
-    'shadowcolor': DrawerScoreinformation.shadowcolor_basic,
-    'fontsize': DrawerScoreinformation.fontsize_small,
+    'textcolor': DrawerChartinformation.textcolor,
+    'shadowcolor': DrawerChartinformation.shadowcolor_basic,
+    'fontsize': DrawerChartinformation.fontsize_small,
   };
 
   canvas = null;
@@ -126,9 +126,9 @@ class DrawerScoreinformation {
     const ctx = this.canvas.getContext('2d');
 
     const args_difficulty = {
-      'textcolor': DrawerScoreinformation.textcolor,
-      'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
-      'fontsize': DrawerScoreinformation.fontsize_value,
+      'textcolor': DrawerChartinformation.textcolor,
+      'shadowcolor': DrawerChartinformation.shadowcolors_difficulty[difficulty],
+      'fontsize': DrawerChartinformation.fontsize_value,
     }
 
     ctx.save();
@@ -137,101 +137,101 @@ class DrawerScoreinformation {
 
     ctx.textBaseline = 'top';
 
-    ctx.font = `${DrawerScoreinformation.fontsize_songname}px ${this.fontfamily}`;
+    ctx.font = `${DrawerChartinformation.fontsize_songname}px ${this.fontfamily}`;
     this.drawtext_left(
       ctx,
       songname,
-      DrawerScoreinformation.songname_x,
-      DrawerScoreinformation.songname_y,
-      DrawerScoreinformation.drawtextargs_songname,
+      DrawerChartinformation.songname_x,
+      DrawerChartinformation.songname_y,
+      DrawerChartinformation.drawtextargs_songname,
     );
 
-    ctx.font = `${DrawerScoreinformation.fontsize_value}px ${this.fontfamily}`;
+    ctx.font = `${DrawerChartinformation.fontsize_value}px ${this.fontfamily}`;
 
     this.drawtext_left(
       ctx,
       playtype,
-      DrawerScoreinformation.playtype_x,
-      DrawerScoreinformation.scoretype_y,
-      DrawerScoreinformation.drawtextargs_value,
+      DrawerChartinformation.playtype_x,
+      DrawerChartinformation.charttype_y,
+      DrawerChartinformation.drawtextargs_value,
     );
     this.drawtext_left(
       ctx,
       difficulty,
-      !battle ? DrawerScoreinformation.difficulty_x : DrawerScoreinformation.difficulty_x_battle,
-      DrawerScoreinformation.scoretype_y,
+      !battle ? DrawerChartinformation.difficulty_x : DrawerChartinformation.difficulty_x_battle,
+      DrawerChartinformation.charttype_y,
       args_difficulty,
     );
 
     if(values.timestamps != null && values.timestamps.length > 0) {
-      ctx.font = `${DrawerScoreinformation.fontsize_basic}px ${this.fontfamily}`;
+      ctx.font = `${DrawerChartinformation.fontsize_basic}px ${this.fontfamily}`;
       this.drawtext_left(
         ctx,
         'Played count.',
-        DrawerScoreinformation.playedcount_xpositions.label,
-        DrawerScoreinformation.playedcount_ypositions.label,
-        DrawerScoreinformation.drawtextargs_basic,
+        DrawerChartinformation.playedcount_xpositions.label,
+        DrawerChartinformation.playedcount_ypositions.label,
+        DrawerChartinformation.drawtextargs_basic,
       );
 
-      ctx.font = `bold ${DrawerScoreinformation.fontsize_value}px ${this.fontfamily}`;
+      ctx.font = `bold ${DrawerChartinformation.fontsize_value}px ${this.fontfamily}`;
       this.drawtext_right(
         ctx,
         values.timestamps.length,
-        DrawerScoreinformation.playedcount_xpositions.value,
-        DrawerScoreinformation.playedcount_ypositions.value,
-        DrawerScoreinformation.drawtextargs_value,
+        DrawerChartinformation.playedcount_xpositions.value,
+        DrawerChartinformation.playedcount_ypositions.value,
+        DrawerChartinformation.drawtextargs_value,
       );
     }
 
     if(values.latest != null) {
-      ctx.font = `${DrawerScoreinformation.fontsize_basic}px ${this.fontfamily}`;
+      ctx.font = `${DrawerChartinformation.fontsize_basic}px ${this.fontfamily}`;
       this.drawtext_left(
         ctx,
         'Last time played.',
-        DrawerScoreinformation.lasttimeplayed_xpositions.label,
-        DrawerScoreinformation.lasttimeplayed_ypositions.label,
-        DrawerScoreinformation.drawtextargs_basic,
+        DrawerChartinformation.lasttimeplayed_xpositions.label,
+        DrawerChartinformation.lasttimeplayed_ypositions.label,
+        DrawerChartinformation.drawtextargs_basic,
       );
 
-      ctx.font = `bold ${DrawerScoreinformation.fontsize_value}px ${this.fontfamily}`;
+      ctx.font = `bold ${DrawerChartinformation.fontsize_value}px ${this.fontfamily}`;
       this.drawtext_left(
         ctx,
         values.latest.timestamp,
-        DrawerScoreinformation.lasttimeplayed_xpositions.value,
-        DrawerScoreinformation.lasttimeplayed_ypositions.value,
-        DrawerScoreinformation.drawtextargs_value,
+        DrawerChartinformation.lasttimeplayed_xpositions.value,
+        DrawerChartinformation.lasttimeplayed_ypositions.value,
+        DrawerChartinformation.drawtextargs_value,
       );
     }
 
     if(values.best != null) {
-      ctx.font = `${DrawerScoreinformation.fontsize_basic}px ${this.fontfamily}`;
+      ctx.font = `${DrawerChartinformation.fontsize_basic}px ${this.fontfamily}`;
       this.drawtext_left(
         ctx,
         'Options when update a new record.',
-        DrawerScoreinformation.newrecordlabel_x,
-        DrawerScoreinformation.newrecordlabel_y,
-        DrawerScoreinformation.drawtextargs_basic,
+        DrawerChartinformation.newrecordlabel_x,
+        DrawerChartinformation.newrecordlabel_y,
+        DrawerChartinformation.drawtextargs_basic,
       );
 
-      Object.keys(DrawerScoreinformation.newrecordkeys).forEach(key => {
-        ctx.font = `${DrawerScoreinformation.fontsize_basic}px ${this.fontfamily}`;
+      Object.keys(DrawerChartinformation.newrecordkeys).forEach(key => {
+        ctx.font = `${DrawerChartinformation.fontsize_basic}px ${this.fontfamily}`;
         this.drawtext_left(
           ctx,
           key.replace('_', ' '),
-          DrawerScoreinformation.newrecordkeys[key].label.x,
-          DrawerScoreinformation.newrecordkeys[key].label.y,
-          DrawerScoreinformation.drawtextargs_basic,
+          DrawerChartinformation.newrecordkeys[key].label.x,
+          DrawerChartinformation.newrecordkeys[key].label.y,
+          DrawerChartinformation.drawtextargs_basic,
         );
 
         if(values.best[key] == null || values.best[key].value == null) return;
 
-        ctx.font = `bold ${DrawerScoreinformation.fontsize_value}px ${this.fontfamily}`;
+        ctx.font = `bold ${DrawerChartinformation.fontsize_value}px ${this.fontfamily}`;
         this.drawtext_right(
           ctx,
           values.best[key].value,
-          DrawerScoreinformation.newrecordkeys[key].value.x,
-          DrawerScoreinformation.newrecordkeys[key].value.y,
-          DrawerScoreinformation.drawtextargs_value,
+          DrawerChartinformation.newrecordkeys[key].value.x,
+          DrawerChartinformation.newrecordkeys[key].value.y,
+          DrawerChartinformation.drawtextargs_value,
         );
 
         let option;
@@ -240,62 +240,56 @@ class DrawerScoreinformation {
         else
           option = '?????'
 
-        ctx.font = `bold ${DrawerScoreinformation.fontsize_value}px ${this.fontfamily}`;
+        ctx.font = `bold ${DrawerChartinformation.fontsize_value}px ${this.fontfamily}`;
         this.drawtext_left(
           ctx,
           option,
-          DrawerScoreinformation.newrecordkeys[key].option.x,
-          DrawerScoreinformation.newrecordkeys[key].option.y,
-          DrawerScoreinformation.drawtextargs_value,
+          DrawerChartinformation.newrecordkeys[key].option.x,
+          DrawerChartinformation.newrecordkeys[key].option.y,
+          DrawerChartinformation.drawtextargs_value,
         );
       });
     }
 
     if(values.achievement != null) {
-      ctx.font = `${DrawerScoreinformation.fontsize_basic}px ${this.fontfamily}`;
+      ctx.font = `${DrawerChartinformation.fontsize_basic}px ${this.fontfamily}`;
       this.drawtext_left(
         ctx,
         'Achievement status for each options.',
-        DrawerScoreinformation.achievementlabel_x,
-        DrawerScoreinformation.achievementlabel_y,
-        DrawerScoreinformation.drawtextargs_basic,
+        DrawerChartinformation.achievementlabel_x,
+        DrawerChartinformation.achievementlabel_y,
+        DrawerChartinformation.drawtextargs_basic,
       );
 
       const drawtextargs_special = {
-        'textcolor': DrawerScoreinformation.textcolor,
-        'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
-        'fontsize': DrawerScoreinformation.fontsize_small,
+        'textcolor': DrawerChartinformation.textcolor,
+        'shadowcolor': DrawerChartinformation.shadowcolors_difficulty[difficulty],
+        'fontsize': DrawerChartinformation.fontsize_small,
       };
     
-      Object.keys(DrawerScoreinformation.achievementkeys).forEach(key => {
+      Object.keys(DrawerChartinformation.achievementkeys).forEach(key => {
         if(!values.achievement.hasOwnProperty(key) || values.achievement[key] == null) return;
 
-        ctx.font = `${DrawerScoreinformation.fontsize_small}px ${this.fontfamily}`;
+        ctx.font = `${DrawerChartinformation.fontsize_small}px ${this.fontfamily}`;
 
-        let drawtextargs_text = DrawerScoreinformation.drawtextargs_small;
-        if(DrawerScoreinformation.achievementkeys[key].label.special)
+        let drawtextargs_text = DrawerChartinformation.drawtextargs_small;
+        if(DrawerChartinformation.achievementkeys[key].label.special)
           drawtextargs_text = drawtextargs_special;
         
         this.drawtext_center(
           ctx,
-          DrawerScoreinformation.achievementkeys[key].label.text,
-          DrawerScoreinformation.achievementkeys[key].label.x,
-          DrawerScoreinformation.achievementkeys[key].label.y,
+          DrawerChartinformation.achievementkeys[key].label.text,
+          DrawerChartinformation.achievementkeys[key].label.x,
+          DrawerChartinformation.achievementkeys[key].label.y,
           drawtextargs_text,
         );
 
         if(values.achievement[key]['MAX']) {
-          // const drawtextargs = {
-          //   'textcolor': DrawerScoreinformation.textcolor,
-          //   'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
-          //   'fontsize': DrawerScoreinformation.fontsize_small,
-          // };
-        
           this.drawtext_center(
             ctx,
             'MAX',
-            DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].x,
-            DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].y,
+            DrawerChartinformation.achievementkeys[key]['max and fcomboandaaa'].x,
+            DrawerChartinformation.achievementkeys[key]['max and fcomboandaaa'].y,
             drawtextargs_special,
           );
   
@@ -303,17 +297,11 @@ class DrawerScoreinformation {
         }
         
         if(values.achievement[key]['F-COMBO & AAA']) {
-          // const drawtextargs = {
-          //   'textcolor': DrawerScoreinformation.textcolor,
-          //   'shadowcolor': DrawerScoreinformation.shadowcolors_difficulty[difficulty],
-          //   'fontsize': DrawerScoreinformation.fontsize_small,
-          // };
-        
           this.drawtext_center(
             ctx,
             'F-COMBO & AAA',
-            DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].x,
-            DrawerScoreinformation.achievementkeys[key]['max and fcomboandaaa'].y,
+            DrawerChartinformation.achievementkeys[key]['max and fcomboandaaa'].x,
+            DrawerChartinformation.achievementkeys[key]['max and fcomboandaaa'].y,
             drawtextargs_special,
           );
   
@@ -326,16 +314,21 @@ class DrawerScoreinformation {
           this.drawtext_right(
             ctx,
             values.achievement[key][key2],
-            DrawerScoreinformation.achievementkeys[key][key2].x,
-            DrawerScoreinformation.achievementkeys[key][key2].y,
-            DrawerScoreinformation.drawtextargs_small,
+            DrawerChartinformation.achievementkeys[key][key2].x,
+            DrawerChartinformation.achievementkeys[key][key2].y,
+            DrawerChartinformation.drawtextargs_small,
           );
         });
       });
     }
     ctx.restore();
 
-    return await this.canvas.convertToBlob();
+    const timer = new PerformanceTimer();
+    const blob = await this.canvas.convertToBlob();
+    if(setting.debug)
+      console.log(`chart information convert blob time: ${timer.time} ms`);
+
+    return blob;
   }
 
   drawtext_left(ctx, text, x, y, args) {
