@@ -2092,11 +2092,20 @@ def get_hwnd_window() -> int|None:
     return hwnd
 
 def mainloop():
-    while not event_close.wait(timeout=1):
+    handlechecktime: float|None = None
+    while True:
+        if event_close.is_set():
+            return
+
         if not newwindow.is_shown():
             return
-        if not gethandle(windowtitle):
-            return
+        
+        now = time.time()
+        if not handlechecktime or now - handlechecktime > 1:
+            if not gethandle(windowtitle):
+                return
+            handlechecktime = now
+        
         if not queue_result_screen.empty():
             result_process(queue_result_screen.get_nowait())
         if not queue_musicselect_screen.empty():
@@ -2105,8 +2114,6 @@ def mainloop():
             queuemessage = queue_messages.get_nowait()
             if queuemessage in ['detect_loading', 'escape_loading']:
                 api.send_message(queuemessage)
-        if not queue_callfunction.empty():
-            queue_callfunction.get_nowait()()
 
 def result_process(screen: Screen):
     '''リザルトを記録するときの処理をする
@@ -2840,7 +2847,6 @@ if __name__ == '__main__':
     queue_result_screen = Queue(1)
     queue_musicselect_screen = Queue(1)
     queue_messages = Queue()
-    queue_callfunction = Queue()
 
     storage = StorageAccessor()
 
