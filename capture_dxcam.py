@@ -162,6 +162,8 @@ class ThreadCapture(Thread):
 
         Thread.__init__(self)
 
+        logger.info('capture method: DXCAM')
+
     def run(self):
         self.sleep_time = thread_time_wait_nonactive
         logger.debug('start capture thread.')

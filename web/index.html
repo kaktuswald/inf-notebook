@@ -15,13 +15,14 @@
     <script src="./lib/goldenlayout1.5.9.min.js"></script>
     <script src="./lib/qrcode.min.js"></script>
     <script src="./discordwebhook_constants.js"></script>
+    <script src="./general.js"></script>
     <script src="./main.js"></script>
     <script src="./drawer_simpletext.js"></script>
     <script src="./drawer_information.js"></script>
     <script src="./drawer_summary.js"></script>
     <script src="./drawer_notesradar.js"></script>
-    <script src="./drawer_scoreinformation.js"></script>
-    <script src="./drawer_scoregraph.js"></script>
+    <script src="./drawer_chartinformation.js"></script>
+    <script src="./drawer_chartgraph.js"></script>
   </head>
   <body>
     <div>
@@ -342,7 +343,7 @@
     </div>
     <dialog id="dialog_findnewestversion">
       <div>
-        <div>最新バージョンが見つかりました。</div>
+        <div>最新バージョンがあります。(<span id="newestversion"></span>)</div>
         <div id="findnewestversion_message"></div>
         <div class="buttons_in_dialog">
           <button id="button_execute_findnewestversionaction">Yes</button>

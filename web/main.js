@@ -11,8 +11,8 @@ let drawer_simpletext = null;
 let drawer_information = null;
 let drawer_summary = null;
 let drawer_notesradar = null;
-let drawer_scoregraph = null;
-let drawer_scoreinformation = null;
+let drawer_chartgraph = null;
+let drawer_chartinformation = null;
 
 let selected_chart = {
   playtype: null,
@@ -46,15 +46,15 @@ reader_notesradar.onloadend = onloadend_notesradarimage;
 reader_notesradar.onerror = onerror_filereader;
 reader_notesradar.onabort = onabort_filereader;
 
-const reader_scoreinformation = new FileReader();
-reader_scoreinformation.onloadend = onloadend_scoreinformationimage;
-reader_scoreinformation.onerror = onerror_filereader;
-reader_scoreinformation.onabort = onabort_filereader;
+const reader_chartinformation = new FileReader();
+reader_chartinformation.onloadend = onloadend_chartinformationimage;
+reader_chartinformation.onerror = onerror_filereader;
+reader_chartinformation.onabort = onabort_filereader;
 
-const reader_scoregraph = new FileReader();
-reader_scoregraph.onloadend = onloadend_scoregraphimage;
-reader_scoregraph.onerror = onerror_filereader;
-reader_scoregraph.onabort = onabort_filereader;
+const reader_chartgraph = new FileReader();
+reader_chartgraph.onloadend = onloadend_chartgraphimage;
+reader_chartgraph.onerror = onerror_filereader;
+reader_chartgraph.onabort = onabort_filereader;
 
 const imageblobs = {};
 const imageurls = {};
@@ -384,16 +384,16 @@ async function initialize() {
   drawer_information = new DrawerInformation(width, height, fontfamily);
   drawer_summary = new DrawerSummary(width, height, fontfamily);
   drawer_notesradar = new DrawerNotesradar(width / 2, height);
-  drawer_scoreinformation = new DrawerScoreinformation(width, height, fontfamily);
-  drawer_scoregraph = new DrawerScoregraph(width, height);
+  drawer_chartinformation = new DrawerChartinformation(width, height, fontfamily);
+  drawer_chartgraph = new DrawerChartgraph(width, height);
 
   drawer_imagenothing.draw_text = draw_text;
   drawer_simpletext.draw_text = draw_text;
   drawer_information.draw_text = draw_text;
   drawer_summary.draw_text = draw_text;
   drawer_notesradar.draw_text = draw_text;
-  drawer_scoreinformation.draw_text = draw_text;
-  drawer_scoregraph.draw_text = draw_text;
+  drawer_chartinformation.draw_text = draw_text;
+  drawer_chartgraph.draw_text = draw_text;
   
   await generate_imagenothingimage();
   await generate_loadingimage();
@@ -414,6 +414,7 @@ async function initialize() {
         display_errormessage([versionresult.message]);
       }
       else {
+        $('span#newestversion').text(versionresult.version);
         $('div#findnewestversion_message').text(versionresult.message);
         $('dialog#dialog_findnewestversion')[0].showModal();
       }
@@ -1261,7 +1262,7 @@ async function display_chartresult() {
   ));
   if(chartresult == null) return;
 
-  const blob_chartinformation = await drawer_scoreinformation.draw(
+  const blob_chartinformation = await drawer_chartinformation.draw(
     chartresult,
     selected_chart.playtype,
     selected_chart.songname,
@@ -1273,8 +1274,8 @@ async function display_chartresult() {
 
   update_imageurl('scoreinformation', 'image_scoreinformation', url_chartinformation);
 
-  reader_scoreinformation.abort();
-  reader_scoreinformation.readAsDataURL(blob_chartinformation);
+  reader_chartinformation.abort();
+  reader_chartinformation.readAsDataURL(blob_chartinformation);
 
   $('tr.timestampitem').off('click', onclick_timestampitem);
   $('table#table_timestamps tr.timestampitem').remove();
@@ -1332,10 +1333,23 @@ async function display_chartresult() {
     });
 
     if(xvalues.length) {
-      const chartdata = [[], []];
-      for(let i = 0; i < xvalues.length; i++) {
+      const chartdata = [[], [], [], []];
+      let scorebest = null;
+      let misscountbest = null;
+      for(let i = xvalues.length-1; i >= 0; i--) {
         chartdata[0].push({x: xvalues[i], y: scores[i]});
-        chartdata[1].push({x: xvalues[i], y: misscounts[i]});
+
+        if(scorebest == null || scores[i] > scorebest) {
+          chartdata[1].push({x: xvalues[i], y: scores[i]});
+          scorebest = scores[i];
+        }
+
+        chartdata[2].push({x: xvalues[i], y: misscounts[i]});
+
+        if(misscountbest == null || misscounts[i] < misscountbest) {
+          chartdata[3].push({x: xvalues[i], y: misscounts[i]});
+          misscountbest = misscounts[i];
+        }
       }
 
       const xvalue_max = new Date(xvalues[0]);
@@ -1347,7 +1361,7 @@ async function display_chartresult() {
         `${xvalue_max.getFullYear()}${String(xvalue_max.getMonth()+1).padStart(2, '0')}${String(xvalue_max.getDate()).padStart(2, '0')}`,
       ];
 
-      const blob_scoregraph = await drawer_scoregraph.draw(
+      const blob_chartgraph = await drawer_chartgraph.draw(
         chartdata,
         xrange,
         chartresult['notes'],
@@ -1355,12 +1369,12 @@ async function display_chartresult() {
         selected_chart.songname,
       );
 
-      const url_scoregraph = URL.createObjectURL(blob_scoregraph);
+      const url_scoregraph = URL.createObjectURL(blob_chartgraph);
 
       update_imageurl('scoregraph', 'image_scoregraph', url_scoregraph);
 
-      reader_scoregraph.abort();
-      reader_scoregraph.readAsDataURL(blob_scoregraph);
+      reader_chartgraph.abort();
+      reader_chartgraph.readAsDataURL(blob_chartgraph);
     }
     else {
       webui.clear_scoregraphimage();
@@ -2559,7 +2573,7 @@ function onloadend_notesradarimage(e) {
   webui.upload_notesradarimage(e.target.result.split(',')[1]);
 }
 
-function onloadend_scoreinformationimage(e) {
+function onloadend_chartinformationimage(e) {
   if(e.target.result == null) return;
 
   webui.upload_scoreinformationimage(
@@ -2570,7 +2584,7 @@ function onloadend_scoreinformationimage(e) {
   );
 }
 
-function onloadend_scoregraphimage(e) {
+function onloadend_chartgraphimage(e) {
   if(e.target.result == null) return;
 
   webui.upload_scoregraphimage(

@@ -3,11 +3,13 @@
  * 
  * 対象譜面の記録のスコアとミスカウントをグラフ化する。
  */
-class DrawerScoregraph {
+class DrawerChartgraph {
   static textcolor = 'white';
   static shadowcolor = 'black';
-  static scorecolor_data = 'rgba(64, 64, 192, 0.8)';
-  static misscountcolor_data = 'rgba(192, 64, 64, 0.8)';
+  static chartcolor_score = 'rgba(64, 64, 192, 0.8)';
+  static chartcolor_scorebest = 'rgba(64, 64, 255, 1)';
+  static chartcolor_misscount = 'rgba(192, 64, 64, 0.8)';
+  static chartcolor_misscountbest = 'rgba(255, 64, 64, 1)';
   static scorecolor = 'rgb(32, 64, 192)';
   static misscountcolor = 'rgb(192, 64, 32)';
 
@@ -21,6 +23,7 @@ class DrawerScoregraph {
    */
   constructor(width, height) {
     this.canvas = new OffscreenCanvas(width, height);
+    this.chart = null;
   }
 
   /**
@@ -28,38 +31,65 @@ class DrawerScoregraph {
    * @param {Array<Array<Object.<string, Date|Bigint>} values グラフデータ
    * @param {Array<string} xrange X軸の範囲
    * @param {Bigint} notes スコアの最大値
-   * @param {string} scoretype プレイの種類と譜面難易度の3文字
+   * @param {string} charttype プレイの種類と譜面難易度の3文字
    * @param {string} songname 曲名
    * @returns {blob} 画像データ
    */
-  async draw(values, xrange, notes, scoretype, songname) {
-    const chart = new Chart(this.canvas.getContext('2d'), {
+  async draw(values, xrange, notes, charttype, songname) {
+    if(this.chart !== null) {
+      const time = await release_wait(this.chart);
+      console.log(`%cchart graph wait time: ${time} ms`, 'color: orange;');
+    }
+    
+    this.chart = new Chart(this.canvas.getContext('2d'), {
       type: 'scatter',
       data: {
         datasets: [
           {
-            label: 'スコア',
+            label: '更新スコア',
             showLine: true,
             lineTension: 0,
             fill: false,
             pointRadius: 8,
-            borderColor: DrawerScoregraph.scorecolor_data,
+            borderColor: DrawerChartgraph.chartcolor_scorebest,
             borderWidth: 2,
+            data: values[1],
+            yAxisID: 'left-y-axis',
+            backgroundColor: DrawerChartgraph.chartcolor_scorebest,
+          },
+          {
+            label: '更新ミスカウント',
+            showLine: true,
+            lineTension: 0,
+            fill: false,
+            pointRadius: 8,
+            borderColor: DrawerChartgraph.chartcolor_misscountbest,
+            borderWidth: 2,
+            data: values[3],
+            yAxisID: 'right-y-axis',
+            backgroundColor: DrawerChartgraph.chartcolor_misscountbest,
+          },
+          {
+            label: 'スコア',
+            showLine: false,
+            lineTension: 0,
+            fill: false,
+            pointRadius: 4,
+            borderWidth: 0,
             data: values[0],
             yAxisID: 'left-y-axis',
-            backgroundColor: DrawerScoregraph.scorecolor_data,
+            backgroundColor: DrawerChartgraph.chartcolor_score,
           },
           {
             label: 'ミスカウント',
-            showLine: true,
+            showLine: false,
             lineTension: 0,
             fill: false,
-            pointRadius: 8,
-            borderColor: DrawerScoregraph.misscountcolor_data,
-            borderWidth: 2,
-            data: values[1],
+            pointRadius: 4,
+            borderWidth: 0,
+            data: values[2],
             yAxisID: 'right-y-axis',
-            backgroundColor: DrawerScoregraph.misscountcolor_data,
+            backgroundColor: DrawerChartgraph.chartcolor_misscount,
           },
         ],
       },
@@ -88,8 +118,8 @@ class DrawerScoregraph {
                 size: 30,
               },
               maxTicksLimit: 6,
-              color: DrawerScoregraph.textcolor,
-              textStrokeColor: DrawerScoregraph.shadowcolor,
+              color: DrawerChartgraph.textcolor,
+              textStrokeColor: DrawerChartgraph.shadowcolor,
               textStrokeWidth: 3,
             },
           },
@@ -103,8 +133,8 @@ class DrawerScoregraph {
               font: {
                 size: 30,
               },
-              color: DrawerScoregraph.textcolor,
-              textStrokeColor: DrawerScoregraph.scorecolor,
+              color: DrawerChartgraph.textcolor,
+              textStrokeColor: DrawerChartgraph.scorecolor,
               textStrokeWidth: 3,
             },
             grid: {
@@ -121,8 +151,8 @@ class DrawerScoregraph {
               font: {
                 size: 30,
               },
-              color: DrawerScoregraph.textcolor,
-              textStrokeColor: DrawerScoregraph.misscountcolor,
+              color: DrawerChartgraph.textcolor,
+              textStrokeColor: DrawerChartgraph.misscountcolor,
               textStrokeWidth: 3,
             },
             grid: {
@@ -133,11 +163,11 @@ class DrawerScoregraph {
         plugins: {
           title: {
             display: true,
-            text: `${songname}[${scoretype}]`,
+            text: `${songname}[${charttype}]`,
             font: {
               size: 50,
             },
-            color: DrawerScoregraph.textcolor,
+            color: DrawerChartgraph.textcolor,
           },
           legend: {
             labels: {
@@ -145,7 +175,7 @@ class DrawerScoregraph {
                 size: 28,
                 weight: 'bold',
               },
-              color: DrawerScoregraph.textcolor,
+              color: DrawerChartgraph.textcolor,
             },
           },
         },
@@ -183,31 +213,34 @@ class DrawerScoregraph {
 
             const labelfont = chart.legend.options.labels.font;
 
-            const linevalues = [
-              [
-                Math.floor(notes * 2 * 8 / 9),
-                Math.floor(notes * 2 * 7 / 9),
-                Math.floor(notes * 2 * 6 / 9),
-              ],
-              [
-                Math.floor(notes / 100),
-                Math.floor(notes / 25),
-              ],
+            const yaxisdefines = [
+              {
+                'dataset': chart.data.datasets[0],
+                'xposition': scalex.left,
+                'lines': [
+                  Math.floor(notes * 2 * 8 / 9),
+                  Math.floor(notes * 2 * 7 / 9),
+                  Math.floor(notes * 2 * 6 / 9),
+                ],
+              },
+              {
+                'dataset': chart.data.datasets[1],
+                'xposition': scalex.right,
+                'lines': [
+                  Math.floor(notes / 100),
+                  Math.floor(notes / 25),
+                ],
+              },
             ];
 
-            const legendlabel_xpositions = [
-              scalex.left,
-              scalex.right,
-            ];
-    
             const args_title = {
-              'textcolor': DrawerScoregraph.textcolor,
-              'shadowcolor': DrawerScoregraph.shadowcolor,
+              'textcolor': DrawerChartgraph.textcolor,
+              'shadowcolor': DrawerChartgraph.shadowcolor,
               'fontsize': titlefont.size,
             }
 
             const args_label = {
-              'textcolor': DrawerScoregraph.textcolor,
+              'textcolor': DrawerChartgraph.textcolor,
               'shadowcolor': null,
               'fontsize': labelfont.size,
             }
@@ -222,22 +255,22 @@ class DrawerScoregraph {
             ctx.font = `${labelfont.weight} ${labelfont.size}px ${Chart.defaults.font.family}`;
             ctx.textBaseline = 'bottom';
 
-            for(let i = 0; i < chart.data.datasets.length; i++) {
-              const data = chart.data.datasets[i];
+            yaxisdefines.forEach(target => {
+              const dataset = target.dataset;
 
-              const scale = chart.scales[data.yAxisID];
+              const scale = chart.scales[dataset.yAxisID];
 
-              args_label.shadowcolor = data.borderColor;
+              args_label.shadowcolor = dataset.borderColor;
               this.draw_text(
                 ctx,
-                data.label,
-                legendlabel_xpositions[i],
+                dataset.label,
+                target.xposition,
                 scale.top - labelfont.size,
                 args_label,
               );
 
               ctx.lineWidth = 0.5;
-              linevalues[i].forEach(v => {
+              target.lines.forEach(v => {
                 const ycoord = scale.getPixelForValue(v);
   
                 ctx.globalAlpha = 0.8 - i * 0.05;
@@ -248,7 +281,7 @@ class DrawerScoregraph {
                 ctx.closePath();
                 ctx.stroke();
               });
-            }
+            });
 
             ctx.restore();
           },
@@ -256,9 +289,13 @@ class DrawerScoregraph {
       ],
     });
 
+    const timer = new PerformanceTimer();
     const blob = await this.canvas.convertToBlob();
+    if(setting.debug)
+      console.log(`chart graph convert blob time: ${timer.time} ms`);
 
-    chart.destroy();
+    this.chart.destroy();
+    this.chart = null;
     
     return blob;
   }

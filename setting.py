@@ -1,5 +1,6 @@
 import json
 from os import getcwd
+from enum import Enum
 from logging import getLogger
 
 if __name__ == '__main__':
@@ -9,6 +10,14 @@ else:
 logger.debug(f'loaded {logger.name}')
 
 from define import Playmodes
+
+class CaptureMethods(Enum):
+    WINAPI: int = 1
+    DXCAM: int = 2
+
+    @staticmethod
+    def names():
+        return [m.name for m in CaptureMethods]
 
 setting_filepath = 'setting.json'
 
@@ -88,6 +97,7 @@ default = {
             },
         },
     },
+    'capturemethod': CaptureMethods.DXCAM.name,
     'port': {
         'main': 52374,
         'socket': 57328,
@@ -160,9 +170,13 @@ class Setting():
         self.save()
 
     def save(self):
+        def encode(obj):
+            if isinstance(obj, Enum):
+                return obj.name
+            raise TypeError
         try:
             with open(setting_filepath, 'w') as f:
-                json.dump(self.json, f, indent=2)
+                json.dump(self.json, f, indent=2, default=encode)
         except Exception as ex:
             logger.exception(f'setting json dump error: {ex}')
     
@@ -171,7 +185,7 @@ class Setting():
 
     def get_value(self, key):
         if not key in self.json.keys():
-            return False
+            return None
         
         return self.json[key]
 
@@ -359,6 +373,16 @@ class Setting():
     @discord_webhook.setter
     def discord_webhook(self, value):
         self.set_value('discord_webhook', value)
+    
+    @property
+    def capturemethod(self) -> CaptureMethods:
+        '''キャプチャー方法
+        '''
+        return CaptureMethods[self.json['capturemethod']]
+    
+    @capturemethod.setter
+    def capturemethod(self, value:CaptureMethods):
+        self.set_value('capturemethod', value.name)
     
     @property
     def googleapi(self):

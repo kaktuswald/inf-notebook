@@ -14,10 +14,9 @@ from base64 import b64decode,b64encode
 from hashlib import sha256
 from sys import exit
 from tkinter import Tk,filedialog
-from dataclasses import dataclass
 from logging import LogRecord,Formatter,getLogger,Handler,StreamHandler,FileHandler,DEBUG,INFO,WARNING
 
-from setting import Setting
+from setting import CaptureMethods,Setting
 
 setting = Setting()
 
@@ -63,8 +62,10 @@ from general import get_imagevalue,save_imagevalue,imagesize
 from define import Playmodes,Playtypes,NotesradarAttributes,define
 from resources import resource,play_sound_result,download_latestresource
 from capture import Screen
-from capture_winapi import ThreadCapture
-# from capture_dxcam import ThreadCapture
+if setting.capturemethod == CaptureMethods.WINAPI:
+    from capture_winapi import ThreadCapture
+if setting.capturemethod == CaptureMethods.DXCAM:
+    from capture_dxcam import ThreadCapture
 from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
@@ -130,8 +131,6 @@ class LoggingHandler(Handler):
         if newwindow is None:
             return
         if not newwindow.is_shown():
-            return
-        if newwindow.get_window_id == 0:
             return
         
         api.send_message('append_log', f'{self.format(record)}')
@@ -494,6 +493,8 @@ class GuiApi():
                 for djlevel in values['summaries'][playmode][level]['djlevels']:
                     levelvalues['djlevels'].append(djlevel)
 
+        setting.capturemethod = CaptureMethods[values['capturemethod']]
+
         if values['port']['main'].isdigit():
             mainport = int(values['port']['main'])
             if mainport > 1024:
@@ -526,13 +527,14 @@ class GuiApi():
         
         最新バージョンが存在するなら、該当するアクションを実行するかをユーザに尋ねる
         '''
-        message, action = check_latest_version()
+        message, version, action = check_latest_version()
 
         if message is not None:
             self.findnewestversionaction = action
 
             ret = {
                 'message': message,
+                'version': version,
                 'error': action is None,
             }
         else:
@@ -1454,8 +1456,6 @@ class GuiApi():
             return
         if not newwindow.is_shown():
             return
-        if newwindow.get_child_process_id() == 0:
-            return
         
         if data is None:
             newwindow.run(f'communication_message(\'{message}\');')
@@ -1857,11 +1857,20 @@ def get_hwnd_window() -> int|None:
     return hwnd
 
 def mainloop():
-    while not thread_capture.event_close.wait(timeout=1):
+    handlechecktime: float|None = None
+    while True:
+        if thread_capture.event_close.is_set():
+            return
+
         if not newwindow.is_shown():
             return
-        if newwindow.get_child_process_id() == 0:
-            return
+        
+        now = time.time()
+        if not handlechecktime or now - handlechecktime > 1:
+            if not gethandle(windowtitle):
+                return
+            handlechecktime = now
+        
         if not thread_capture.queue_resultscreen.empty():
             result_process(thread_capture.queue_resultscreen.get_nowait())
         if not thread_capture.queue_musicselectscreen.empty():
@@ -1869,8 +1878,6 @@ def mainloop():
         if not thread_capture.queue_message.empty():
             queuemessage, data = thread_capture.queue_message.get_nowait()
             api.send_message(queuemessage, data)
-        if not queue_callfunction.empty():
-            queue_callfunction.get_nowait()()
 
 def result_process(screen: Screen):
     '''リザルトを記録するときの処理をする
@@ -2381,15 +2388,16 @@ def check_latest_version():
     最新バージョンが存在する場合は、該当するアクションを実行するかを確認する。
     取得に失敗した場合はその旨のメッセージのみを返す。
     Returns:
-        str: メッセージ
-        action: アクション
+        message(str): メッセージ
+        version(str): バージョン
+        action(func): アクション
     '''
     latest_version = get_latest_version()
     if latest_version is None:
-        return failed_to_get_latest_version_message, None
+        return failed_to_get_latest_version_message, None, None
 
     if not version_isold(version, latest_version):
-        return None, None
+        return None, None, None
     
     action = None
     config = LocalConfig()
@@ -2407,7 +2415,7 @@ def check_latest_version():
             webbrowser.open(wiki_url)
         message = find_latest_version_message_not_has_installer
     
-    return message, action
+    return message, latest_version, action
 
 def get_latest_version():
     '''GitHubから最新バージョン値を取得する
@@ -2632,7 +2640,6 @@ if __name__ == '__main__':
     api_export = GuiApiExport(newwindow)
     api_discordwebhook = GuiApiDiscordWebhook(newwindow)
 
-
     newwindow.show('index.html')
     hwnd_window = get_hwnd_window()
     if hwnd_window is None:
@@ -2663,6 +2670,9 @@ if __name__ == '__main__':
 
     hotkeys.stop()
 
+    if newwindow.is_shown():
+        newwindow.close()
+    
     webui.clean()
     del newwindow
     newwindow = None

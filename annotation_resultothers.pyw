@@ -100,6 +100,7 @@ class GuiApi():
 
         image_np = array(images[key], dtype=uint8)
 
+        radarchartvalue = recog.Result.Others.get_notesradar_chartvalue(image_np)
         radarvalue, is_updated = recog.Result.Others.get_notesradar_value(image_np)
         result = {
             'tab': recog.Result.Others.get_tab(image_np),
@@ -107,8 +108,8 @@ class GuiApi():
             'ranknow': recog.Result.Others.get_ranknow(image_np),
             'rankposition': recog.Result.Others.get_rankposition(image_np),
             'radarattribute': recog.Result.Others.get_notesradar_attribute(image_np),
-            'radarchartvalue': recog.Result.Others.get_notesradar_chartvalue(image_np),
-            'radarvalue': radarvalue,
+            'radarchartvalue': f'{radarchartvalue:.2f}' if radarchartvalue else None,
+            'radarvalue': f'{radarvalue:.2f}' if radarchartvalue else None,
             'radarupdated': is_updated,
         }
 

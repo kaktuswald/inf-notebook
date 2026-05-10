@@ -304,6 +304,7 @@ input[type="radio"] {
 
 label {
     padding-left: 2px;
+    padding-right: 10px;
     user-select: none;
 }
 

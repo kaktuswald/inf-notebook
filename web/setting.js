@@ -75,6 +75,8 @@ async function initialize() {
   change_googleapi_authenticatedstate(JSON.parse(await webui.googleapi_get_isauthenticated()));
   $('#check_driveupload').prop('checked', setting['googleapi']['driveupload']['use']);
 
+  $(`input[name="capturemethod"][data-value="${setting['capturemethod']}"]`).prop('checked', true);
+  
   $('input#text_portmain').val(setting['port']['main']);
   $('input#text_portsocket').val(setting['port']['socket']);
 
@@ -314,6 +316,7 @@ async function onclick_button_save(e) {
       'driveupload': $('#check_driveupload').prop('checked'),
     },
     'data_collection': $('#check_data_collection').prop('checked'),
+    'capturemethod': $('input[name="capturemethod"]:checked').data('value'),
     'port': {
       'main': $('input#text_portmain').val(),
       'socket': $('input#text_portsocket').val(),

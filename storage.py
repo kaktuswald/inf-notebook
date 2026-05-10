@@ -251,7 +251,7 @@ class StorageAccessor():
         try:
             blob = self.bucket_notesradarvalue.blob(object_name)
             blob.upload_from_string(dumps(data))
-            logger.debug(f'upload notesradarvalue image {object_name}')
+            logger.debug(f'upload notesradar value {object_name}')
         except Exception as ex:
             logger.exception(ex)
 
@@ -477,30 +477,45 @@ class StorageAccessor():
 
         notesradarvalues_filepath = join(basedir, notesradarvalues_filename)
 
-        count = 0
+        count_informations = 0
         blobs = self.client.list_blobs(bucket_name_informations)
         for blob in blobs:
             self.save_image(informations_dirpath, blob)
             blob.delete()
-            count += 1
+            count_informations += 1
+        
+        if count_informations:
+            print(f'download informations count: {count_informations}')
 
+        count_details = 0
         blobs = self.client.list_blobs(bucket_name_details)
         for blob in blobs:
             self.save_image(details_dirpath, blob)
             blob.delete()
-            count += 1
+            count_details += 1
+        
+        if count_details:
+            print(f'download details count: {count_details}')
 
+        count_resultothers = 0
         blobs = self.client.list_blobs(bucket_name_resultothers)
         for blob in blobs:
             self.save_image(resultothers_dirpath, blob)
             blob.delete()
-            count += 1
+            count_resultothers += 1
+        
+        if count_resultothers:
+            print(f'download result others count: {count_resultothers}')
 
+        count_musicselect = 0
         blobs = self.client.list_blobs(bucket_name_musicselect)
         for blob in blobs:
             self.save_image(musicselect_dirpath, blob)
             blob.delete()
-            count += 1
+            count_musicselect += 1
+        
+        if count_musicselect:
+            print(f'download music select count: {count_musicselect}')
 
         try:
             with open(notesradarvalues_filepath, 'r') as f:
@@ -508,13 +523,16 @@ class StorageAccessor():
         except Exception as ex:
             notesradarvalues = {}
         
+        count_notesradarvalue = 0
         blobs = self.client.list_blobs(bucket_name_notesradarvalue)
         for blob in blobs:
             notesradarvalues[blob.name] = loads(blob.download_as_text())
             blob.delete()
-            count += 1
+            count_notesradarvalue += 1
+
+        if count_notesradarvalue:
+            print(f'download notesradar value count: {count_notesradarvalue}')
         
         with open(notesradarvalues_filepath, 'w') as f:
             dump(notesradarvalues, f, indent=2)
 
-        print(f'download count: {count}')

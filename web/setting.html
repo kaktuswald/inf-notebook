@@ -189,6 +189,16 @@
             <input type="checkbox" id="check_data_collection" />
             <label for="check_data_collection">画像の収集に協力する</label>
           </div>
+          <div class="label highlight">画面キャプチャー方法</div>
+          <div class="setting_item">
+            <input type="radio" name="capturemethod" id="radio_capturemethod_dxcam" data-value="DXCAM"/>
+            <label for="radio_capturemethod_dxcam">DXGI Desktop Duplication</label>
+            <input type="radio" name="capturemethod" id="radio_capturemethod_winapi" data-value="WINAPI"/>
+            <label for="radio_capturemethod_winapi">Windows API</label>
+          </div>
+          <div class="setting_item">
+            <span class="attension">リザルト手帳の次回起動時に反映されます。</span>
+          </div>
           <div class="label highlight">ポート</div>
           <div class="setting_item">
             <div class="port_label">メインサーバ</div>
@@ -199,7 +209,7 @@
             <input type="text" id="text_portsocket" class="number" />
           </div>
           <div class="setting_item">
-            <span class="setting_annotation">リザルト手帳の次回起動時に反映されます。</span>
+            <span class="attension">リザルト手帳の次回起動時に反映されます。</span>
           </div>
         </div>
       </div>

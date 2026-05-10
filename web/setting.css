@@ -134,6 +134,12 @@ div.setting_annotation {
     user-select: none;
 }
 
+span.attension {
+    font-size: small;
+    color: #ff5555;
+    user-select: none;
+}
+
 div.buttons {
     display: block;
     text-align: right;
