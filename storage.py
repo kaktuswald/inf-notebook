@@ -251,7 +251,7 @@ class StorageAccessor():
         try:
             blob = self.bucket_notesradarvalue.blob(object_name)
             blob.upload_from_string(dumps(data))
-            logger.debug(f'upload notesradarvalue image {object_name}')
+            logger.debug(f'upload notesradar value {object_name}')
         except Exception as ex:
             logger.exception(ex)
 
