@@ -83,7 +83,6 @@ def save_resultimage(image, playtype, musicname, difficulty, timestamp, destinat
         difficulty (str): 譜面難易度
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
-        scoretype (dict): プレイの種類と譜面難易度
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
 
     Returns:
@@ -101,7 +100,6 @@ def save_resultimage_filtered(image, playtype, musicname, difficulty, timestamp,
         difficulty (str): 譜面難易度
         timestamp (str): リザルトを記録したときのタイムスタンプ
         destination_dirpath (str): 画像保存先のパス
-        scoretype (dict): プレイの種類と譜面難易度
         musicname_right (bool, optional): 曲名をファイル名の後尾にする. Defaults to False.
 
     Returns:
