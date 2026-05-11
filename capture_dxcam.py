@@ -78,9 +78,9 @@ class Screenshot:
             return
         
         self.camera.stop()
+        self.camera.release()
 
         del self.camera
-        self.camera = None
     
     def shot(self) -> bool:
         if self.camera is None:

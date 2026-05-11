@@ -2672,10 +2672,10 @@ if __name__ == '__main__':
 
     if newwindow.is_shown():
         newwindow.close()
+    newwindow.destroy()
+    del newwindow
     
     webui.clean()
-    del newwindow
-    newwindow = None
 
     socket_server.stop()
     thread_capture.event_close.set()
