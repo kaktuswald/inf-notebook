@@ -75,6 +75,7 @@ class DrawerChartgraph {
             lineTension: 0,
             fill: false,
             pointRadius: 4,
+            borderColor: DrawerChartgraph.chartcolor_scorebest,
             borderWidth: 0,
             data: values[0],
             yAxisID: 'left-y-axis',
@@ -86,6 +87,7 @@ class DrawerChartgraph {
             lineTension: 0,
             fill: false,
             pointRadius: 4,
+            borderColor: DrawerChartgraph.chartcolor_misscountbest,
             borderWidth: 0,
             data: values[2],
             yAxisID: 'right-y-axis',
@@ -215,7 +217,7 @@ class DrawerChartgraph {
 
             const yaxisdefines = [
               {
-                'dataset': chart.data.datasets[0],
+                'dataset': chart.data.datasets[2],
                 'xposition': scalex.left,
                 'lines': [
                   Math.floor(notes * 2 * 8 / 9),
@@ -224,7 +226,7 @@ class DrawerChartgraph {
                 ],
               },
               {
-                'dataset': chart.data.datasets[1],
+                'dataset': chart.data.datasets[3],
                 'xposition': scalex.right,
                 'lines': [
                   Math.floor(notes / 100),
