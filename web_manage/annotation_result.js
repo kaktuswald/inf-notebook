@@ -165,6 +165,7 @@ async function onclick_keyitem(e) {
       $('select#select_difficulty').val(labels.informations.difficulty);
       $('select#select_level').val(labels.informations.level);
       $('input#text_notes').val(labels.informations.notes);
+      $('input#text_playspeed').val(labels.informations.playspeed);
       $('input#text_songname').val(labels.informations.songname);
 
       $('input#check_informationsignore').prop('checked', labels.informations.ignore == true);
@@ -235,6 +236,7 @@ async function onclick_keyitem(e) {
     $('span#text_resultdifficulty').text(recognitionresult.informations.difficulty);
     $('span#text_resultlevel').text(recognitionresult.informations.level);
     $('span#text_resultnotes').text(recognitionresult.informations.notes);
+    $('span#text_resultplayspeed').text(recognitionresult.informations.playspeed);
     $('span#text_resultsongname').text(recognitionresult.informations.songname);
   }
   else {
@@ -242,6 +244,7 @@ async function onclick_keyitem(e) {
     $('span#text_resultdifficulty').empty();
     $('span#text_resultlevel').empty();
     $('span#text_resultnotes').empty();
+    $('span#text_resultplayspeed').empty();
     $('span#text_resultsongname').empty();
   }
 
@@ -347,6 +350,7 @@ function clearinput_informations() {
   $('select#select_difficulty').val(null);
   $('select#select_level').val(null);
   $('input#text_notes').val(null);
+  $('input#text_playspeed').val(null);
   $('input#text_songname').val(null);
 }
 
@@ -390,6 +394,7 @@ async function onclick_labeloverwrite(e) {
       'difficulty': $('select#select_difficulty').val(),
       'level': $('select#select_level').val(),
       'notes': $('input#text_notes').val(),
+      'playspeed': $('input#text_playspeed').val(),
       'songname': $('input#text_songname').val(),
     }
 
@@ -451,6 +456,7 @@ async function onclick_citationrecog(e) {
     $('select#select_difficulty').val(recognitionresult.informations.difficulty);
     $('select#select_level').val(recognitionresult.informations.level);
     $('input#text_notes').val(recognitionresult.informations.notes);
+    $('input#text_playspeed').val(recognitionresult.informations.playspeed);
     $('input#text_songname').val(recognitionresult.informations.songname);
 
     $('input#text_songname')
@@ -464,6 +470,7 @@ async function onclick_citationrecog(e) {
     $('select#select_difficulty').val(null);
     $('select#select_level').val(null);
     $('input#text_notes').val(null);
+    $('input#text_playspeed').val(null);
     $('input#text_songname').val(null);
   }
 

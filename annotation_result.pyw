@@ -169,6 +169,7 @@ class GuiApi():
                 'difficulty': result.difficulty,
                 'level': result.level,
                 'notes': result.notes,
+                'playspeed': result.playspeed,
                 'songname': result.songname,
             }
 
