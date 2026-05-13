@@ -53,23 +53,26 @@ class Screenshot:
         if not handle:
             return False
 
+        logger.debug('start create camera')
         mhandle = get_monitorhandle(handle)
+        logger.debug(f'monitor handle: {mhandle}')
 
         for i_adapter, p_adapter in enumerate(enum_dxgi_adapters()):
             device = Device(p_adapter)
             for i_output, p_output in enumerate(device.enum_outputs()):
                 output = Output(p_output)
-                output.hmonitor
-                output.devicename
-                if output.hmonitor == mhandle:
+                logger.debug(f'monitor {output.devicename} handle: {output.hmonitor}')
+                if not self.camera and output.hmonitor == mhandle:
                     self.camera = create_camera(
                         device_idx=i_adapter,
                         output_idx=i_output,
                         processor_backend='numpy',
                     )
                     self.camera.start()
+                    logger.debug(f'created camera')
+                    logger.debug(f'capture target monitor handle: {output.hmonitor}')
 
-                    return True
+                    # return True
         
         return False
 
