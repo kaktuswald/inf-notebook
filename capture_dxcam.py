@@ -31,6 +31,8 @@ from capture import (
     thread_time_musicselect,
 )
 
+thread_time_capturefailure = 2
+
 class Screenshot:
     camera: DXCamera|None = None
     frame: np.ndarray = None
@@ -54,6 +56,7 @@ class Screenshot:
             return False
 
         logger.debug('start create camera')
+
         mhandle = get_monitorhandle(handle)
         logger.debug(f'monitor handle: {mhandle}')
 
@@ -63,18 +66,25 @@ class Screenshot:
                 output = Output(p_output)
                 logger.debug(f'monitor {output.devicename} handle: {output.hmonitor}')
                 if not self.camera and output.hmonitor == mhandle:
-                    self.camera = create_camera(
-                        device_idx=i_adapter,
-                        output_idx=i_output,
-                        processor_backend='numpy',
-                    )
-                    self.camera.start()
-                    logger.debug(f'created camera')
-                    logger.debug(f'capture target monitor handle: {output.hmonitor}')
+                    try:
+                        self.camera = create_camera(
+                            device_idx=i_adapter,
+                            output_idx=i_output,
+                            processor_backend='numpy',
+                        )
+                        logger.debug('created camera')
+
+                        self.camera.start()
+                        logger.debug('started camera')
+
+                        logger.debug(f'capture target monitor handle: {output.hmonitor}')
+                    except Exception as ex:
+                        logger.exeption(ex)
+                        logger.debug('create camera failed')
 
                     # return True
         
-        return False
+        return self.camera and self.camera.is_capturing
 
     def clear_camera(self):
         if self.camera is None:
@@ -206,13 +216,20 @@ class ThreadCapture(Thread):
             return
         
         if not self.screenshot.is_active:
+            if not self.screenshot.create_camera(self.handle):
+                self.queue_message.put(('error', [
+                    '画面キャプチャーの開始に失敗しました。',
+                    f'{thread_time_capturefailure}秒後にリトライします。'
+                ],))
+                
+                self.sleep_time = thread_time_capturefailure
+                return
+            
             self.waiting = False
             self.musicselect = False
             self.sleep_time = thread_time_normal
             logger.debug(f'infinitas activate: {self.sleep_time}')
             self.queue_message.put(('switch_capturable', True,))
-
-            self.screenshot.create_camera(self.handle)
         
         self.screenshot.shot()
 
