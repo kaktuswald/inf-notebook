@@ -57,32 +57,35 @@ class Screenshot:
 
         logger.debug('start create camera')
 
-        mhandle = get_monitorhandle(handle)
-        logger.debug(f'monitor handle: {mhandle}')
+        hmonitor = get_monitorhandle(handle)
+        logger.debug(f'monitor handle: {hmonitor}')
 
+        device_idx = None
+        output_idx = None
+        
         for i_adapter, p_adapter in enumerate(enum_dxgi_adapters()):
             device = Device(p_adapter)
             for i_output, p_output in enumerate(device.enum_outputs()):
                 output = Output(p_output)
                 logger.debug(f'monitor {output.devicename} handle: {output.hmonitor}')
-                if not self.camera and output.hmonitor == mhandle:
-                    try:
-                        self.camera = create_camera(
-                            device_idx=i_adapter,
-                            output_idx=i_output,
-                            processor_backend='numpy',
-                        )
-                        logger.debug('created camera')
+                if not self.camera and output.hmonitor == hmonitor:
+                    device_idx = i_adapter
+                    output_idx = i_output
 
-                        self.camera.start()
-                        logger.debug('started camera')
+        if device_idx is not None and output_idx is not None:
+            try:
+                self.camera = create_camera(
+                    device_idx=device_idx,
+                    output_idx=output_idx,
+                    processor_backend='numpy',
+                )
+                logger.debug('created camera')
 
-                        logger.debug(f'capture target monitor handle: {output.hmonitor}')
-                    except Exception as ex:
-                        logger.exeption(ex)
-                        logger.debug('create camera failed')
-
-                    # return True
+                self.camera.start()
+                logger.debug('started camera')
+            except Exception as ex:
+                logger.exception(ex)
+                logger.debug('create camera failed')
         
         return self.camera and self.camera.is_capturing
 
@@ -160,6 +163,7 @@ class ThreadCapture(Thread):
     screen_latest = None
 
     event_close = Event()
+    event_createcamera = Event()
     queue_message = Queue()
     queue_resultscreen = Queue(1)
     queue_musicselectscreen = Queue(1)
@@ -216,10 +220,13 @@ class ThreadCapture(Thread):
             return
         
         if not self.screenshot.is_active:
-            if not self.screenshot.create_camera(self.handle):
+            self.event_createcamera.set()
+            while self.event_createcamera.is_set():
+                pass
+            if not self.screenshot.camera or not self.screenshot.camera.is_capturing:
                 self.queue_message.put(('error', [
                     '画面キャプチャーの開始に失敗しました。',
-                    f'{thread_time_capturefailure}秒後にリトライします。'
+                    f'{thread_time_capturefailure} 秒後にリトライします。'
                 ],))
                 
                 self.sleep_time = thread_time_capturefailure

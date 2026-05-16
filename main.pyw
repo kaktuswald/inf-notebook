@@ -55,7 +55,7 @@ logger.getChild('google_auth_oauthlib').setLevel(WARNING)
 logger.getChild('google_auth_httplib2').setLevel(WARNING)
 logger.getChild('googleapi').setLevel(WARNING)
 logger.getChild('googleapiclient').setLevel(WARNING)
-logger.getChild('dxcam').setLevel(WARNING)
+logger.getChild('dxcam').setLevel(DEBUG)
 
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
@@ -1878,6 +1878,18 @@ def mainloop():
         if not thread_capture.queue_message.empty():
             queuemessage, data = thread_capture.queue_message.get_nowait()
             api.send_message(queuemessage, data)
+        
+        if hasattr(thread_capture, 'event_createcamera') and thread_capture.event_createcamera.is_set():
+            if not thread_capture.screenshot.create_camera(thread_capture.handle):
+                api.send_message(
+                    'error',
+                    [
+                        '画面キャプチャーの開始に失敗しました。',
+                        '2 秒後にリトライします。',
+                    ]
+                )
+
+            thread_capture.event_createcamera.clear()
 
 def result_process(screen: Screen):
     '''リザルトを記録するときの処理をする
