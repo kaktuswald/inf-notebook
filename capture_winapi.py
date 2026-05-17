@@ -23,11 +23,11 @@ from windows import find_window,get_rect,check_rectsize
 from collection_uploader import CollectionUploader
 from capture import (
     Screen,
-    thread_time_wait_nonactive,
-    thread_time_wait_loading,
-    thread_time_normal,
-    thread_time_result,
-    thread_time_musicselect,
+    threadtime_wait_nonactive,
+    threadtime_wait_loading,
+    threadtime_normal,
+    threadtime_result,
+    threadtime_musicselect,
 )
 
 SRCCOPY = 0x00CC0020
@@ -211,7 +211,7 @@ class ThreadCapture(Thread):
         logger.info('capture method: WINAPI')
 
     def run(self):
-        self.sleep_time = thread_time_wait_nonactive
+        self.sleep_time = threadtime_wait_nonactive
         logger.debug('start capture thread.')
         while not self.event_close.wait(timeout=self.sleep_time):
             self.routine()
@@ -233,7 +233,7 @@ class ThreadCapture(Thread):
             logger.debug(f'infinitas lost.')
             self.queue_message.put(('switch_detectinfinitas', False,))
             self.queue_message.put(('switch_capturable', False,))
-            self.sleep_time = thread_time_wait_nonactive
+            self.sleep_time = threadtime_wait_nonactive
 
             self.handle = 0
             self.active = False
@@ -243,7 +243,7 @@ class ThreadCapture(Thread):
 
         if not check_rectsize(rect):
             if self.active:
-                self.sleep_time = thread_time_wait_nonactive
+                self.sleep_time = threadtime_wait_nonactive
                 logger.debug(f'infinitas deactivate: {self.sleep_time}')
                 self.queue_message.put(('switch_capturable', False,))
 
@@ -257,7 +257,7 @@ class ThreadCapture(Thread):
             self.capturing_checkstarttime = time()
             self.waiting = False
             self.musicselect = False
-            self.sleep_time = thread_time_normal
+            self.sleep_time = threadtime_normal
             logger.debug(f'infinitas activate: {self.sleep_time}')
             self.queue_message.put(('switch_capturable', True,))
         
@@ -299,12 +299,12 @@ class ThreadCapture(Thread):
                 self.findtime_loading = time()
                 return
             
-            if time() - self.findtime_loading <= thread_time_normal * 2 - 0.1:
+            if time() - self.findtime_loading <= threadtime_normal * 2 - 0.1:
                 return
             
             self.waiting = True
             self.musicselect = False
-            self.sleep_time = thread_time_wait_loading
+            self.sleep_time = threadtime_wait_loading
             logger.debug(f'detect loading: start waiting: {self.sleep_time}')
             self.queue_message.put(('switch_loadingscreen', True))
             return
@@ -313,7 +313,7 @@ class ThreadCapture(Thread):
 
         if self.waiting:
             self.waiting = False
-            self.sleep_time = thread_time_normal
+            self.sleep_time = threadtime_normal
             logger.debug(f'escape loading: end waiting: {self.sleep_time}')
             self.queue_message.put(('switch_loadingscreen', False))
 
@@ -322,14 +322,14 @@ class ThreadCapture(Thread):
         if screen != 'music_select' and self.musicselect:
             # 画面が選曲から抜けたとき
             self.musicselect = False
-            self.sleep_time = thread_time_normal
+            self.sleep_time = threadtime_normal
             logger.debug(f'screen out music select: {self.sleep_time}')
 
         if screen == 'music_select':
             if not self.musicselect:
                 # 画面が選曲に入ったとき
                 self.musicselect = True
-                self.sleep_time = thread_time_musicselect
+                self.sleep_time = threadtime_musicselect
                 logger.debug(f'screen in music select: {self.sleep_time}')
 
             if not shotted:
@@ -369,7 +369,7 @@ class ThreadCapture(Thread):
             self.confirmed_somescreen = True
 
             # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
-            self.sleep_time = thread_time_result
+            self.sleep_time = threadtime_result
             logger.debug(f'screen in result: {self.sleep_time}')
         
         if self.processed and not self.setting and self.setting.data_collection:
@@ -387,7 +387,7 @@ class ThreadCapture(Thread):
                 self.findtime_processable = time()
                 return
 
-            if time() - self.findtime_processable <= thread_time_normal * 2 - 0.1:
+            if time() - self.findtime_processable <= threadtime_normal * 2 - 0.1:
                 return
 
             resultscreen = self.screenshot.get_resultscreen()
@@ -397,7 +397,7 @@ class ThreadCapture(Thread):
             except Full as ex:
                 pass
 
-            self.sleep_time = thread_time_normal
+            self.sleep_time = threadtime_normal
             logger.debug(f'processing result screen: {self.sleep_time}')
             self.processed = True
         

@@ -24,14 +24,16 @@ from windows import find_window,get_rect,check_rectsize
 from collection_uploader import CollectionUploader
 from capture import (
     Screen,
-    thread_time_wait_nonactive,
-    thread_time_wait_loading,
-    thread_time_normal,
-    thread_time_result,
-    thread_time_musicselect,
+    threadtime_wait_nonactive,
+    threadtime_wait_loading,
+    threadtime_normal,
+    threadtime_result,
+    threadtime_musicselect,
 )
 
-thread_time_capturefailure = 2
+threadtime_startcapture = 0.5
+timeouttime_startcapture = 5
+threadtime_afterstartcapturefailed = 1
 
 class Screenshot:
     camera: DXCamera|None = None
@@ -48,12 +50,10 @@ class Screenshot:
                 ),
                 item['value'],
             ))
-        
-        return
 
-    def create_camera(self, handle:int|None) -> bool:
+    def create_camera(self, handle:int|None):
         if not handle:
-            return False
+            return
 
         logger.debug('start create camera')
 
@@ -62,7 +62,6 @@ class Screenshot:
 
         device_idx = None
         output_idx = None
-        
         for i_adapter, p_adapter in enumerate(enum_dxgi_adapters()):
             device = Device(p_adapter)
             for i_output, p_output in enumerate(device.enum_outputs()):
@@ -72,31 +71,34 @@ class Screenshot:
                     device_idx = i_adapter
                     output_idx = i_output
 
-        if device_idx is not None and output_idx is not None:
-            try:
-                self.camera = create_camera(
-                    device_idx=device_idx,
-                    output_idx=output_idx,
-                    processor_backend='numpy',
-                )
-                logger.debug('created camera')
-
-                self.camera.start()
-                logger.debug('started camera')
-            except Exception as ex:
-                logger.exception(ex)
-                logger.debug('create camera failed')
+        if device_idx is None or output_idx is None:
+            return
         
-        return self.camera and self.camera.is_capturing
+        try:
+            self.camera = create_camera(
+                device_idx=device_idx,
+                output_idx=output_idx,
+                processor_backend='numpy',
+            )
+            logger.debug('created camera')
+
+            self.camera.start()
+            logger.debug('started camera')
+        except Exception as ex:
+            logger.exception(ex)
+            logger.debug('create camera failed')
+
+            self.clear_camera()
 
     def clear_camera(self):
         if self.camera is None:
             return
         
-        self.camera.stop()
+        if self.camera.is_capturing:
+            self.camera.stop()
+        
         self.camera.release()
-
-        del self.camera
+        self.camera = None
     
     def shot(self) -> bool:
         if self.camera is None:
@@ -152,6 +154,8 @@ class ThreadCapture(Thread):
     screenshot: Screenshot|None = None
 
     handle: int = 0
+    capturestart_starttime: float|None = None
+    capturestart_failed: bool|None = None
     waiting: bool = False
     musicselect: bool = False
     confirmed_loading: bool = False
@@ -182,7 +186,7 @@ class ThreadCapture(Thread):
         logger.info('capture method: DXCAM')
 
     def run(self):
-        self.sleep_time = thread_time_wait_nonactive
+        self.sleep_time = threadtime_wait_nonactive
         logger.debug('start capture thread.')
         while not self.event_close.wait(timeout=self.sleep_time):
             self.routine()
@@ -203,7 +207,7 @@ class ThreadCapture(Thread):
             logger.debug(f'infinitas lost.')
             self.queue_message.put(('switch_detectinfinitas', False,))
             self.queue_message.put(('switch_capturable', False,))
-            self.sleep_time = thread_time_wait_nonactive
+            self.sleep_time = threadtime_wait_nonactive
 
             self.handle = 0
             self.screenshot.clear_camera()
@@ -212,7 +216,7 @@ class ThreadCapture(Thread):
 
         if not check_rectsize(rect):
             if self.screenshot.is_active:
-                self.sleep_time = thread_time_wait_nonactive
+                self.sleep_time = threadtime_wait_nonactive
                 logger.debug(f'infinitas deactivate: {self.sleep_time}')
                 self.queue_message.put(('switch_capturable', False,))
                 self.screenshot.clear_camera()
@@ -220,21 +224,42 @@ class ThreadCapture(Thread):
             return
         
         if not self.screenshot.is_active:
+            if self.capturestart_failed:
+                return
+            
+            if self.capturestart_starttime is None:
+                self.capturestart_starttime = time()
+
+                # 一回目のキャプチャー開始処理はtimeout_time_startcapture後に実施
+                self.sleep_time = threadtime_startcapture
+                logger.debug(f'start capture: {self.sleep_time}')
+                return
+            
+            # キャプチャー開始処理はメインスレッドにて 実行されるのを待つ
             self.event_createcamera.set()
             while self.event_createcamera.is_set():
                 pass
-            if not self.screenshot.camera or not self.screenshot.camera.is_capturing:
-                self.queue_message.put(('error', [
-                    '画面キャプチャーの開始に失敗しました。',
-                    f'{thread_time_capturefailure} 秒後にリトライします。'
-                ],))
-                
-                self.sleep_time = thread_time_capturefailure
+
+            if not self.screenshot.camera:
+                # キャプチャーの開始に失敗している
+                if time() - self.capturestart_starttime > timeouttime_startcapture:
+                    self.capturestart_failed = True
+
+                    self.queue_message.put(('error', [
+                        '画面キャプチャーの開始に失敗しました。',
+                        '画面キャプチャー方法設定を変更して、アプリケーションを再起動してください。',
+                    ],))
+
+                    self.sleep_time = threadtime_afterstartcapturefailed
+                    logger.debug(f'start capture failed: {self.sleep_time}')
+
                 return
             
+            self.capturestart_starttime = None
+
             self.waiting = False
             self.musicselect = False
-            self.sleep_time = thread_time_normal
+            self.sleep_time = threadtime_normal
             logger.debug(f'infinitas activate: {self.sleep_time}')
             self.queue_message.put(('switch_capturable', True,))
         
@@ -257,12 +282,12 @@ class ThreadCapture(Thread):
                 self.findtime_loading = time()
                 return
             
-            if time() - self.findtime_loading <= thread_time_normal * 2 - 0.1:
+            if time() - self.findtime_loading <= threadtime_normal * 2 - 0.1:
                 return
             
             self.waiting = True
             self.musicselect = False
-            self.sleep_time = thread_time_wait_loading
+            self.sleep_time = threadtime_wait_loading
             logger.debug(f'detect loading: start waiting: {self.sleep_time}')
             self.queue_message.put(('switch_loadingscreen', True))
             return
@@ -271,7 +296,7 @@ class ThreadCapture(Thread):
 
         if self.waiting:
             self.waiting = False
-            self.sleep_time = thread_time_normal
+            self.sleep_time = threadtime_normal
             logger.debug(f'escape loading: end waiting: {self.sleep_time}')
             self.queue_message.put(('switch_loadingscreen', False))
 
@@ -280,14 +305,14 @@ class ThreadCapture(Thread):
         if screen != 'music_select' and self.musicselect:
             # 画面が選曲から抜けたとき
             self.musicselect = False
-            self.sleep_time = thread_time_normal
+            self.sleep_time = threadtime_normal
             logger.debug(f'screen out music select: {self.sleep_time}')
 
         if screen == 'music_select':
             if not self.musicselect:
                 # 画面が選曲に入ったとき
                 self.musicselect = True
-                self.sleep_time = thread_time_musicselect
+                self.sleep_time = threadtime_musicselect
                 logger.debug(f'screen in music select: {self.sleep_time}')
 
             trimmed = self.screenshot.frame[define.musicselect_trimarea_np]
@@ -323,7 +348,7 @@ class ThreadCapture(Thread):
             self.confirmed_somescreen = True
 
             # リザルトのときのみ、スレッド周期を短くして取込タイミングを高速化する
-            self.sleep_time = thread_time_result
+            self.sleep_time = threadtime_result
             logger.debug(f'screen in result: {self.sleep_time}')
         
         if self.processed and not self.setting and self.setting.data_collection:
@@ -338,7 +363,7 @@ class ThreadCapture(Thread):
                 self.findtime_processable = time()
                 return
 
-            if time() - self.findtime_processable <= thread_time_normal * 2 - 0.1:
+            if time() - self.findtime_processable <= threadtime_normal * 2 - 0.1:
                 return
 
             resultscreen = self.screenshot.get_resultscreen()
@@ -348,10 +373,14 @@ class ThreadCapture(Thread):
             except Full as ex:
                 pass
 
-            self.sleep_time = thread_time_normal
+            self.sleep_time = threadtime_normal
             logger.debug(f'processing result screen: {self.sleep_time}')
             self.processed = True
         
         if self.processed and self.setting and self.setting.data_collection:
             if self.collectionuploader:
                 self.collectionuploader.checkandupload_notesradarvalue(self.screenshot.frame)
+
+    def create_camera(self):
+        self.screenshot.create_camera(self.handle)
+    

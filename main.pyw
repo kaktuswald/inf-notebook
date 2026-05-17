@@ -1878,18 +1878,12 @@ def mainloop():
         if not thread_capture.queue_message.empty():
             queuemessage, data = thread_capture.queue_message.get_nowait()
             api.send_message(queuemessage, data)
-        
-        if hasattr(thread_capture, 'event_createcamera') and thread_capture.event_createcamera.is_set():
-            if not thread_capture.screenshot.create_camera(thread_capture.handle):
-                api.send_message(
-                    'error',
-                    [
-                        '画面キャプチャーの開始に失敗しました。',
-                        '2 秒後にリトライします。',
-                    ]
-                )
 
-            thread_capture.event_createcamera.clear()
+        # DXGI Desktop Duplicateのみ
+        if hasattr(thread_capture, 'event_createcamera'):
+            if thread_capture.event_createcamera.is_set():
+                thread_capture.create_camera()
+                thread_capture.event_createcamera.clear()
 
 def result_process(screen: Screen):
     '''リザルトを記録するときの処理をする
