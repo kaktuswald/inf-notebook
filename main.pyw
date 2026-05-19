@@ -2679,7 +2679,7 @@ if __name__ == '__main__':
     if newwindow.is_shown():
         newwindow.close()
     newwindow.destroy()
-    del newwindow
+    newwindow = None
     
     webui.clean()
 

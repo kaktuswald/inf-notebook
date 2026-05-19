@@ -104,7 +104,10 @@ class Screenshot:
         if self.camera is None:
             return False
         
-        self.frame = self.camera.grab()
+        try:
+            self.frame = self.camera.grab()
+        except Exception as ex:
+            self.frame = None
 
         return self.frame is not None
 
@@ -159,12 +162,18 @@ class ThreadCapture(Thread):
     waiting: bool = False
     musicselect: bool = False
     confirmed_loading: bool = False
-    findtime_loading: float | None = None
+    findtime_loading: float|None = None
     confirmed_somescreen: bool = False
     confirmed_processable: bool = False
-    findtime_processable: float | None = None
+    findtime_processable: float|None = None
     processed: bool = False
-    screen_latest = None
+    screen_latest: str = None
+    capturing_successful: bool|None = None
+    capturing_checkstarttime: float|None = None
+    '''キャプチャーチェックの開始時間
+
+    一定時間キャプチャー画像が取得できなかったらキャプチャー不可とする。
+    '''
 
     event_close = Event()
     event_createcamera = Event()
@@ -257,14 +266,28 @@ class ThreadCapture(Thread):
             
             self.capturestart_starttime = None
 
+            self.capturing_successful = None
+            self.capturing_checkstarttime = time()
             self.waiting = False
             self.musicselect = False
             self.sleep_time = threadtime_normal
             logger.debug(f'infinitas activate: {self.sleep_time}')
             self.queue_message.put(('switch_capturable', True,))
         
-        self.screenshot.shot()
+        if self.screenshot.shot():
+            self.capturing_successful = True
+        else:
+            if time() - self.capturing_checkstarttime >= 5:
+                self.capturing_successful = False
+                messages = [
+                    'キャプチャー画像が取得できません。',
+                    '画面キャプチャー方法設定を変更して、アプリケーションを再起動してください。',
+                ]
+                self.queue_message.put(('error', messages,))
 
+        if not self.capturing_successful:
+            return
+        
         screen = self.screenshot.get_screen()
 
         if screen != self.screen_latest:
