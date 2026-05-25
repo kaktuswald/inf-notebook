@@ -277,7 +277,7 @@ class ThreadCapture(Thread):
         if self.screenshot.shot():
             self.capturing_successful = True
         else:
-            if time() - self.capturing_checkstarttime >= 5:
+            if not self.capturing_successful and time() - self.capturing_checkstarttime >= 5:
                 self.capturing_successful = False
                 messages = [
                     'キャプチャー画像が取得できません。',

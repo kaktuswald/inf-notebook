@@ -97,7 +97,7 @@ default = {
             },
         },
     },
-    'capturemethod': CaptureMethods.DXCAM.name,
+    'capturemethod': CaptureMethods.WINAPI.name,
     'port': {
         'main': 52374,
         'socket': 57328,
