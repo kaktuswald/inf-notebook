@@ -940,7 +940,17 @@ function select_newest_recentresult() {
  * @param {dict} 譜面の種類・曲名・難易度を含む
  */
 function update_chartresult(data) {
-  if(data == null) return;
+  if(data == null) {
+    selected_chart.playtype = null;
+    selected_chart.songname = null;
+    selected_chart.difficulty = null;
+
+    clear_chartdata();
+    clear_arcadedata();
+    clear_chartresult();
+
+    return;
+  }
 
   const different_playtype = data.playtype != selected_chart.playtype;
   const different_songname = data.songname != selected_chart.songname;
