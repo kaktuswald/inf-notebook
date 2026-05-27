@@ -101,7 +101,8 @@ from notesradar import NotesRadar
 from appdata import LocalConfig
 import twitter
 from socket_server import SocketServer
-from arcadecsv import import_arcadecsv,loadfiles_arcadedata,arcadedata
+from arcadecsv import ArcadeData
+from arcadecsv import versions as arcadecsv_versions
 from versioncheck import version_isold
 from googleapi import GoogleApiAccesor
 from collection_uploader import CollectionUploader
@@ -313,6 +314,10 @@ class GuiApi():
         event.return_string(dumps(resource.unofficialdifficulty))
     
     @staticmethod
+    def get_arcadecsv_versions(event: webui.Event):
+        event.return_string(dumps(arcadecsv_versions))
+    
+    @staticmethod
     def check_imagesavepath(event: webui.Event):
         event.return_string(dumps(isdir(setting.imagesave_path)))
 
@@ -340,6 +345,7 @@ class GuiApi():
         window.bind('getresource_musictable', GuiApi.get_resource_musictable)
         window.bind('getresource_notesradar', GuiApi.get_resource_notesradar)
         window.bind('getresource_unofficialdifficulty', GuiApi.get_resource_unofficialdifficulty)
+        window.bind('get_arcadecsv_versions', GuiApi.get_arcadecsv_versions)
         window.bind('check_imagesavepath', GuiApi.check_imagesavepath)
 
         window.bind('get_url', self.get_url)
@@ -417,7 +423,7 @@ class GuiApi():
 
         window.bind('output_csv', self.output_csv)
         window.bind('clear_recent', self.clear_recent)
-        window.bind('import_arcadecsv', self.import_arcadecsv)
+        window.bind('arcadecsv_import', self.arcadecsv_import)
 
         window.bind('browse_file', self.browse_file)
         window.bind('browse_directory', self.browse_directory)
@@ -1092,21 +1098,22 @@ class GuiApi():
         '''対象の譜面のアーケードのデータを返す
 
         Args:
-            musicname(str): 曲名
             playtype(str): プレイの種類(SP or DP or DP BATTLE)
+            songname(str): 曲名
             difficulty(str): 難易度
         '''
-        musicname = event.get_string_at(0)
-        playtype = event.get_string_at(1)
+        playtype = event.get_string_at(0)
+        songname = event.get_string_at(1)
         difficulty = event.get_string_at(2)
 
-        if playtype in arcadedata.keys() and arcadedata[playtype] is not None:
-            if musicname in arcadedata[playtype].keys():
-                if difficulty in arcadedata[playtype][musicname].keys():
-                    event.return_string(dumps(arcadedata[playtype][musicname][difficulty]))
-                    return
-        
-        event.return_string(dumps(None))
+        if playtype in Playmodes.values:
+            event.return_string(dumps(arcadedata.get(
+                playtype,
+                songname,
+                difficulty,
+            )))
+        else:
+            event.return_string(dumps(None))
 
     def get_playresult(self, event: webui.Event):
         '''対象のリザルトの記録を返す
@@ -1304,11 +1311,13 @@ class GuiApi():
     def clear_recent(self, event: webui.Event):
         recent.clear()
 
-    def import_arcadecsv(self, event: webui.Event):
-        value = event.get_string_at(0)
+    def arcadecsv_import(self, event: webui.Event):
+        data = loads(event.get_string_at(0))
+        playmode = event.get_string_at(1)
+        version = event.get_string_at(2)
 
-        event.return_string(dumps(import_arcadecsv(value)))
-
+        event.return_string(dumps(arcadedata.import_csv(data, playmode, version)))
+    
     def browse_file(self, event: webui.Event):
         '''ファイル選択ダイアログを開き、選択パスを返す
 
@@ -2669,7 +2678,7 @@ if __name__ == '__main__':
     if hotkeys.set_hotkeys():
         hotkeys.start()
 
-    loadfiles_arcadedata()
+    arcadedata = ArcadeData()
 
     logger.debug('start mainloop')
     mainloop()

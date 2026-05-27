@@ -42,7 +42,7 @@
         <button id="button_export_open">エクスポート</button>
         <button id="button_confirm_outputcsv">CSV出力</button>
         <button id="button_confirm_clearrecent">最近のデータのリセット</button>
-        <button id="button_confirm_importarcadecsv">アーケードのCSVをインポート</button>
+        <button id="button_importarcadecsv_start">アーケードのCSVをインポート</button>
       </div>
       <div id="component_information" class="fillflex">
         <img id="image_information" />
@@ -325,20 +325,26 @@
       <div id="component_arcadedata" class="fillflex stack_vertical">
         <div>
           <div class="label highlight">クリアタイプ</div>
-          <div id="arcade_cleartype"></div>
+          <div id="arcade_cleartype_value" class="value"></div>
+          <div id="arcade_cleartype_version" class="version"></div>
         </div>
         <div>
           <div class="label highlight">DJレベル</div>
-          <div id="arcade_djlevel"></div>
+          <div id="arcade_djlevel_value" class="value"></div>
+          <div id="arcade_djlevel_version" class="version"></div>
         </div>
         <div>
           <div class="label highlight">スコア</div>
-          <div id="arcade_score"></div>
+          <div id="arcade_score_value" class="value"></div>
+          <div id="arcade_score_version" class="version"></div>
         </div>
         <div>
           <div class="label highlight">ミスカウント</div>
-          <div id="arcade_misscount"></div>
+          <div id="arcade_misscount_value" class="value"></div>
+          <div id="arcade_misscount_version" class="version"></div>
         </div>
+        <ul id="arcade_histories">
+        </ul>
       </div>
     </div>
     <dialog id="dialog_findnewestversion">
@@ -369,7 +375,7 @@
         </div>
       </div>
     </dialog>
-    <dialog id="dialog_confirm_importarcadecsv">
+    <dialog id="dialog_importarcadecsv_start">
       <div>
         <div>アーケードのCSVデータをクリップボードにコピーしてボタンを押すか、</div>
         <div>ダウンロードしたファイルを選択してください。</div>
@@ -381,7 +387,29 @@
         </div>
       </div>
     </dialog>
-    <dialog id="dialog_complete_importarcadecsv">
+    <dialog id="dialog_importarcadecsv_check">
+      <div>
+        <div>インポートしたCSVデータの確認を行います。</div>
+        <div>
+          <div>
+            <div class="label highlight label_in_importarcadecsv">プレイモード</div>
+            <input type="radio" name="importarcadecsv_playmode" id="radio_importarcadecsv_playmode_sp" />
+            <label class="importarcadecsv_playmode" for="radio_importarcadecsv_playmode_sp">SP</label>
+            <input type="radio" name="importarcadecsv_playmode" id="radio_importarcadecsv_playmode_dp" />
+            <label class="importarcadecsv_playmode" for="radio_importarcadecsv_playmode_dp">DP</label>
+          </div>
+          <div>
+            <div class="label highlight label_in_importarcadecsv">バージョン</div>
+            <select id="select_importarcadecsv_versions"></select>
+          </div>
+        </div>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">キャンセル</button>
+          <button id="button_importarcadecsv_confirming">OK</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_importarcadecsv_complete">
       <div>
         <div>アーケードのCSVデータのインポートが完了しました。</div>
         <div class="buttons_in_dialog">

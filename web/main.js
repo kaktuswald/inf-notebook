@@ -21,6 +21,8 @@ let selected_chart = {
 };
 let selected_timestamp = null;
 
+let importing_arcadecsv = null;
+
 const reader_imagenothing = new FileReader();
 reader_imagenothing.onloadend = onloadend_imagenothingimage;
 reader_imagenothing.onerror = onerror_filereader;
@@ -290,9 +292,10 @@ $(function() {
   $('button#button_execute_outputcsv').on('click', onclick_execute_outputcsv);
   $('button#button_confirm_clearrecent').on('click', onclick_confirm_clearrecent);
   $('button#button_execute_clearrecent').on('click', onclick_execute_clearrecent);
-  $('button#button_confirm_importarcadecsv').on('click', onclick_confirm_importarcadecsv);
+  $('button#button_importarcadecsv_start').on('click', onclick_importarcadecsv_start);
   $('button#button_importarcadecsv_fromclipboard').on('click', onclick_importarcadecsv_fromclipboard);
   $('button#button_importarcadecsv_fromfile').on('click', onclick_importarcadecsv_fromfile);
+  $('button#button_importarcadecsv_confirming').on('click', onclick_importarcadecsv_confirming);
   $('input#file_importarcadecsv').on('change', onchange_importarcadecsv_fromfile);
 
   $('button#button_reset_layout').on('click', onclick_reset_layout);
@@ -503,6 +506,8 @@ async function loadresourceafterprocessing() {
   await loadresource_musictable();
   await loadresource_notesradar();
   await loadresource_unofficialdifficulty();
+
+  await set_arcadecsvversions();
 
   await webui.execute_records_processing();
   await webui.execute_generate_notesradar();
@@ -828,6 +833,20 @@ function set_songnames() {
 }
 
 /**
+ * AC CSVインポートのバージョンリストをセットする
+ */
+async function set_arcadecsvversions() {
+  const versions = JSON.parse(await webui.get_arcadecsv_versions());
+
+  versions.forEach(version => {
+    $('#select_importarcadecsv_versions').append($('<option>')
+      .val(version)
+      .text(version)
+    );
+  });
+}
+
+/**
  * 最近のリザルトをセットする
  * @param {boolean} selectnewest 最新のリザルトを選択する
  * @param {{}[]} values 最近のリザルトのデータ
@@ -1137,10 +1156,16 @@ function clear_chartdata() {
  * アーケード記録を全てクリアする
  */
 function clear_arcadedata() {
-  $('div#arcade_cleartype').text('');
-  $('div#arcade_djlevel').text('');
-  $('div#arcade_score').text('');
-  $('div#arcade_misscount').text('');
+  $('div#arcade_cleartype_value').text('');
+  $('div#arcade_cleartype_version').text('');
+  $('div#arcade_djlevel_value').text('');
+  $('div#arcade_djlevel_version').text('');
+  $('div#arcade_score_value').text('');
+  $('div#arcade_score_version').text('');
+  $('div#arcade_misscount_value').text('');
+  $('div#arcade_misscount_version').text('');
+
+  $('ul#arcade_histories').empty();
 }
 
 /**
@@ -1241,17 +1266,33 @@ async function display_chartdata() {
  */
 async function display_arcadedata() {
   const arcadedata = JSON.parse(await webui.get_arcadedata(
-    selected_chart.songname,
     selected_chart.playtype,
+    selected_chart.songname,
     selected_chart.difficulty
   ));
 
   if(arcadedata == null) return;
 
-  $('div#arcade_cleartype').text(arcadedata.cleartype !== null ? arcadedata.cleartype : '');
-  $('div#arcade_djlevel').text(arcadedata.djlevel !== null ? arcadedata.djlevel : '');
-  $('div#arcade_score').text(arcadedata.score !== null ? arcadedata.score : '');
-  $('div#arcade_misscount').text(arcadedata.misscount !== null ? arcadedata.misscount : '');
+  $('div#arcade_cleartype_value').text(arcadedata.best.cleartype.value ?? '');
+  $('div#arcade_cleartype_version').text(arcadedata.best.cleartype.version ?? '');
+  $('div#arcade_djlevel_value').text(arcadedata.best.djlevel.value ?? '');
+  $('div#arcade_djlevel_version').text(arcadedata.best.djlevel.version ?? '');
+  $('div#arcade_score_value').text(arcadedata.best.score.value ?? '');
+  $('div#arcade_score_version').text(arcadedata.best.score.version ?? '');
+  $('div#arcade_misscount_value').text(arcadedata.best.misscount.value ?? '');
+  $('div#arcade_misscount_version').text(arcadedata.best.misscount.version ?? '');
+
+  Object.keys(arcadedata.histories).forEach(version => {
+    const li = $('<li>')
+      .append($('<div>').text(version ?? '').addClass('version'))
+      .append($('<div>').text(arcadedata.histories[version].cleartype ?? '').addClass('cleartype'))
+      .append($('<div>').text(arcadedata.histories[version].djlevel ?? '').addClass('djlevel'))
+      .append($('<div>').text(arcadedata.histories[version].score ?? '').addClass('score'))
+      .append($('<div>').text(arcadedata.histories[version].misscount ?? '').addClass('misscount'))
+    ;
+
+    $('ul#arcade_histories').append(li);
+  });
 }
 
 /**
@@ -2143,11 +2184,11 @@ function onclick_execute_clearrecent(e) {
 }
 
 /**
- * アーケードのCSVインポートの確認
+ * アーケードのCSVインポートの開始
  * @param {ce.Event} e イベントハンドラ
  */
-async function onclick_confirm_importarcadecsv(e) {
-  $('dialog#dialog_confirm_importarcadecsv')[0].showModal();
+async function onclick_importarcadecsv_start(e) {
+  $('dialog#dialog_importarcadecsv_start')[0].showModal();
 }
 
 /**
@@ -2159,9 +2200,7 @@ async function onclick_importarcadecsv_fromclipboard(e) {
     navigator.clipboard.readText().then(async text => {
       if(!text.length) return;
 
-      if(JSON.parse(await webui.import_arcadecsv(text)))
-        $('dialog#dialog_complete_importarcadecsv')[0].showModal();
-      else
+      if(!import_arcadecsv(text))
         display_errormessage(['クリップボードの読込に失敗しました。']);
     });
   }
@@ -2177,7 +2216,9 @@ async function onclick_importarcadecsv_fromclipboard(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_importarcadecsv_fromfile(e) {
-  $('input#file_importarcadecsv')[0].click();
+  const file = $('input#file_importarcadecsv')[0];
+  file.value = "";
+  file.click();
 }
 
 /**
@@ -2188,15 +2229,116 @@ function onchange_importarcadecsv_fromfile(e) {
   try {
     const reader = new FileReader();
     reader.onload = async () => {
-      if(JSON.parse(await webui.import_arcadecsv(reader.result)))
-        $('dialog#dialog_complete_importarcadecsv')[0].showModal();
-      else
+      if(!import_arcadecsv(reader.result))
         display_errormessage(['ファイルの読込に失敗しました。']);
     }
     reader.readAsText(e.target.files[0]);
   }
   catch(error) {
     display_errormessage(['ファイルの読込に失敗しました。']);
+  }
+
+  $(this).closest('dialog')[0].close();
+}
+
+/**
+ * 文字列データからのアーケードCSVの取込を実施する
+ * @param {string} text CSVデータ文字列
+ * @returns {boolean} 成功時はtrue
+ */
+function import_arcadecsv(text) {
+  const text_converted = text.replace('\r\n', '\n');
+
+  const lines = text_converted.split('\n');
+  while(!lines.at(-1).length)
+    lines.pop();
+
+  importing_arcadecsv = lines;
+
+  const headers = lines[0].split(',');
+
+  let index_songname = null;
+  let index_normallevel = null;
+  let index_hyperlevel = null;
+  for(let i = 0; i < headers.length; i++) {
+    if(headers[i] == 'タイトル')
+      index_songname = i;
+    if(headers[i] == 'NORMAL 難易度')
+      index_normallevel = i;
+    if(headers[i] == 'HYPER 難易度')
+      index_hyperlevel = i;
+  }
+
+  if(index_songname === null || index_normallevel === null || index_hyperlevel === null)
+    return false;
+
+  let playmode = null;
+  for(const line of lines.slice(1)) {
+    const values = line.split(',');
+
+    const songname = values[index_songname];
+    const spnormal = values[index_normallevel];
+    const sphyper = values[index_hyperlevel];
+    if(!(songname in musictable.musics))
+      continue;
+
+    const resourcespnormal = musictable.musics[songname]['SP']['NORMAL'];
+    const resourcedpnormal = musictable.musics[songname]['DP']['NORMAL'];
+    if(resourcespnormal != resourcedpnormal) {
+      if(spnormal == resourcespnormal)
+        playmode = 'SP';
+      if(spnormal == resourcedpnormal)
+        playmode = 'DP';
+    }
+
+    if(playmode) break;
+
+    const resourcesphyper = musictable.musics[songname]['SP']['HYPER'];
+    const resourcedphyper = musictable.musics[songname]['DP']['HYPER'];
+    if(resourcesphyper != resourcedphyper) {
+      if(sphyper == resourcesphyper)
+        playmode = 'SP';
+      if(sphyper == resourcedphyper)
+        playmode = 'DP';
+    }
+
+    if(playmode) break;
+  }
+
+  const version = lines.at(-1).split(',')[0];
+
+  if(playmode)
+    $(`input#radio_importarcadecsv_playmode_${playmode.toLowerCase()}`).prop('checked', true);
+  $('select#select_importarcadecsv_versions').val(version);
+
+  $('dialog#dialog_importarcadecsv_check')[0].showModal();
+
+  return true;
+}
+
+/**
+ * アーケードのCSVインポートのプレイモードとバージョンの確認
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_importarcadecsv_confirming(e) {
+  const checkedplaymode_id = $('input[name="importarcadecsv_playmode"]:checked').attr('id');
+  const playmode = $(`label[for=${checkedplaymode_id}`).text();
+  const version = $('select#select_importarcadecsv_versions').val();
+
+  if(playmode && version) {
+    const ret = JSON.parse(await webui.arcadecsv_import(
+      JSON.stringify(importing_arcadecsv),
+      playmode,
+      version
+    ));
+
+    if(ret)
+      $('dialog#dialog_importarcadecsv_complete')[0].showModal();
+    else
+      display_errormessage(['CSVのインポートに失敗しました。']);
+  }
+  else {
+    display_errormessage(['プレイモードとバージョンを選択してください。']);
   }
 
   $(this).closest('dialog')[0].close();

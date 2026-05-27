@@ -93,6 +93,10 @@ div.label_in_notesradar {
     width: 100px;
 }
 
+div.label_in_importarcadecsv {
+    width: 100px;
+}
+
 div#component_scoredata {
     display: flex;
     flex-direction: row;
@@ -177,6 +181,34 @@ div#component_resultdetail {
 div#component_arcadedata {
     div.label {
         width: 90px;
+    }
+
+    div.value {
+        width: 90px;
+    }
+
+    div.version {
+        width: 180px;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0px;
+        margin: 2px 10px;
+
+        div.version {
+            width: 120px;
+        }
+
+        div.cleartype {
+            width: 100px;
+        }
+
+        div.djlevel,
+        div.score,
+        div.misscount {
+            width: 60px;
+        }
     }
 }
 
