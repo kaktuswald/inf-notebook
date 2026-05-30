@@ -178,6 +178,7 @@ div.split_horizontal {
 div.stack_vertical {
     display: flex;
     flex-direction: column;
+    height: 100%;
 
     div {
         display: inline-block;

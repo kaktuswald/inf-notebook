@@ -335,6 +335,20 @@ iframe#inner_discordwebhook {
     height: 456px;
 }
 
-input[type="file"] {
+input#file_importarcadecsv {
     display:none;
+}
+
+dialog#dialog_inquiryform {
+    width: 600px;
+    height: 300px;
+
+    textarea {
+        flex: 1;
+        resize: none;
+    }
+
+    span {
+        font-size: small;
+    }
 }

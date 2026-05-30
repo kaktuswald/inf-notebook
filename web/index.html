@@ -43,6 +43,7 @@
         <button id="button_confirm_outputcsv">CSV出力</button>
         <button id="button_confirm_clearrecent">最近のデータのリセット</button>
         <button id="button_importarcadecsv_start">アーケードのCSVをインポート</button>
+        <button id="button_inquiryform_open">問い合わせフォーム</button>
       </div>
       <div id="component_information" class="fillflex">
         <img id="image_information" />
@@ -132,7 +133,7 @@
         </div>
         <div>
           <div class="label highlight label_in_musicname_search">曲名絞り込み</div>
-          <input type="text" id="text_songname_search"></select>
+          <input type="text" id="text_songname_search">
         </div>
         <div class="split_horizontal">
           <div class="pane_songname_search_left">
@@ -190,9 +191,9 @@
       <div id="component_notesradars" class="fillflex">
         <div>
           <div class="label highlight label_in_notesradar">プレイモード</div>
-          <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_sp" />
+          <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_sp">
           <label class="notesradar_playmode" for="radio_notesradar_playmode_sp">SP</label>
-          <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_dp" />
+          <input type="radio" name="notesradar_playmode" id="radio_notesradar_playmode_dp">
           <label class="notesradar_playmode" for="radio_notesradar_playmode_dp">DP</label>
         </div>
         <div>
@@ -203,9 +204,9 @@
           <select id="select_notesradar_attributes"></select>
         </div>
         <div>
-          <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_averagetarget" />
+          <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_averagetarget">
           <label class="notesradar_tablemode" for="radio_notesradar_tablemode_averagetarget">対象10位</label>
-          <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_tops" />
+          <input type="radio" name="notesradar_tablemode" id="radio_notesradar_tablemode_tops">
           <label class="notesradar_tablemode" for="radio_notesradar_tablemode_tops">上位50曲</label>
         </div>
         <div id="scroll_notesradar_ranking" class="scroll fillflex">
@@ -393,9 +394,9 @@
         <div>
           <div>
             <div class="label highlight label_in_importarcadecsv">プレイモード</div>
-            <input type="radio" name="importarcadecsv_playmode" id="radio_importarcadecsv_playmode_sp" />
+            <input type="radio" name="importarcadecsv_playmode" id="radio_importarcadecsv_playmode_sp">
             <label class="importarcadecsv_playmode" for="radio_importarcadecsv_playmode_sp">SP</label>
-            <input type="radio" name="importarcadecsv_playmode" id="radio_importarcadecsv_playmode_dp" />
+            <input type="radio" name="importarcadecsv_playmode" id="radio_importarcadecsv_playmode_dp">
             <label class="importarcadecsv_playmode" for="radio_importarcadecsv_playmode_dp">DP</label>
           </div>
           <div>
@@ -492,6 +493,42 @@
       <div>
         <div>イベントのお知らせ</div>
         <ul id="list_discordwebhookeventmessage"></ul>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">OK</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_inquiryform">
+      <div class="stack_vertical">
+        <div>
+          カテゴリ選択
+          <select id="select_inquirycategory">
+            <option value="bug_feature">不具合報告 機能</option>
+            <option value="bug_resource">不具合報告 曲データ・画像認識</option>
+            <option value="request">要望</option>
+            <option value="question">質問</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div>
+          メールアドレス
+          <input type="email" id="mail_inquirymailaddress">
+          <span>回答が必要の場合は入力してください。</span>
+        </div>
+        <textarea id="textarea_inquirymessage"></textarea>
+        <div>
+          <button id="button_inquiryform_seleftfile">ファイルを選択</button>
+          <span id="text_inquiryform_filepaths"></span>
+        </div>
+        <div class="buttons_in_dialog">
+          <button class="dialogclose">キャンセル</button>
+          <button id="button_inquiryform_send">送信</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="dialog_inquiryform_complete">
+      <div>
+        <div>送信しました。</div>
         <div class="buttons_in_dialog">
           <button class="dialogclose">OK</button>
         </div>

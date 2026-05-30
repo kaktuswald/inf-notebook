@@ -69,7 +69,7 @@ if setting.capturemethod == CaptureMethods.DXCAM:
 from recog import Recognition as recog
 from raw_image import save_raw
 from storage import StorageAccessor
-from cloud_function import callfunction_eventdelete
+from cloud_function import callfunction_eventdelete,callfunction_sendinquiry
 from record import NotebookRecent,NotebookSummary,Notebooks,rename_allfiles,rename_changemusicname,musicnamechanges_filename
 from filter import filter as filter_result
 from filter import stamp,filter_overlay
@@ -426,12 +426,15 @@ class GuiApi():
         window.bind('arcadecsv_import', self.arcadecsv_import)
 
         window.bind('browse_file', self.browse_file)
+        window.bind('browse_files', self.browse_files)
         window.bind('browse_directory', self.browse_directory)
 
         window.bind('googleapi_get_isauthenticated', self.googleapi_get_isauthenticated)
         window.bind('googleapi_authenticate', self.googleapi_authenticate)
         window.bind('googleapi_deletecredentials', self.googleapi_deletecredentials)
         window.bind('googleapi_driveupload', self.googleapi_driveupload)
+
+        window.bind('inquiry_send', self.inquiry_send)
 
     def get_url(self, event: webui.Event):
         event.return_string(self.window.get_url())
@@ -1353,6 +1356,41 @@ class GuiApi():
 
         event.return_string(dumps(filepath))
     
+    def browse_files(self, event: webui.Event):
+        '''ファイル選択ダイアログを開き、選択パスを返す(複数選択可)
+
+        Returns:
+            str | None: 選択されたファイルの絶対パス。未選択時は None
+        '''
+        current = event.get_string_at(0)
+        types = loads(event.get_string_at(1))
+
+        root = Tk()
+        try:
+            root.withdraw()
+            try:
+                root.attributes('-topmost', True)
+            except Exception:
+                pass
+
+            filepaths = filedialog.askopenfilenames(
+                initialdir=dirname(current),
+                initialfile=current,
+                filetypes=types,
+                title='ファイルを選択',
+            )
+        finally:
+            try:
+                root.destroy()
+            except Exception:
+                pass
+
+        if not filepaths or len(filepaths) == 0:
+            event.return_string(dumps(None))
+            return
+
+        event.return_string(dumps(filepaths))
+    
     def browse_directory(self, event: webui.Event):
         '''フォルダ選択ダイアログを開き、選択パスを返す
 
@@ -1424,6 +1462,28 @@ class GuiApi():
             if self.googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
                 setting.save()
     
+    def inquiry_send(self, event: webui.Event):
+        '''問い合わせフォームに入力された内容を送信する
+        '''
+        category = event.get_string_at(0)
+        mailaddress = event.get_string_at(1)
+        message = event.get_string_at(2)
+        filepaths = loads(event.get_string_at(3))
+
+        content = [
+            f'Category: {category}',
+            f'Mail Address: {mailaddress}',
+            'Message:',
+            message,
+        ]
+
+        if filepaths:
+            callfunction_sendinquiry('\n'.join(content), ['log.txt', *filepaths])
+        else:
+            callfunction_sendinquiry('\n'.join(content), ['log.txt'])
+        
+        logger.info('sent inquiry.')
+
     def send_update_chartresult(self):
         '''フロントエンドに選択譜面記録の更新を送信する
 

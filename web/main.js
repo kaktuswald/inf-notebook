@@ -23,6 +23,8 @@ let selected_timestamp = null;
 
 let importing_arcadecsv = null;
 
+let inquiry_selectedfilepaths = null;
+
 const reader_imagenothing = new FileReader();
 reader_imagenothing.onloadend = onloadend_imagenothingimage;
 reader_imagenothing.onerror = onerror_filereader;
@@ -297,6 +299,9 @@ $(function() {
   $('button#button_importarcadecsv_fromfile').on('click', onclick_importarcadecsv_fromfile);
   $('button#button_importarcadecsv_confirming').on('click', onclick_importarcadecsv_confirming);
   $('input#file_importarcadecsv').on('change', onchange_importarcadecsv_fromfile);
+  $('button#button_inquiryform_open').on('click', onclick_inquiryform_open);
+  $('button#button_inquiryform_seleftfile').on('click', onclick_inquiryform_selectfile);
+  $('button#button_inquiryform_send').on('click', onclick_inquiryform_send);
 
   $('button#button_reset_layout').on('click', onclick_reset_layout);
 
@@ -2237,6 +2242,60 @@ function onchange_importarcadecsv_fromfile(e) {
   catch(error) {
     display_errormessage(['ファイルの読込に失敗しました。']);
   }
+
+  $(this).closest('dialog')[0].close();
+}
+
+/**
+ * 問い合わせフォームを表示する
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onclick_inquiryform_open(e) {
+  inquiry_selectedfilepaths = null;
+
+  $('select#select_inquirycategory').prop('selectedIndex', 0);
+  $('input#mail_inquirymailaddress').val('');
+  $('textarea#textarea_inquirymessage').val('');
+  $('dialog#dialog_inquiryform button').prop('disabled', false);
+
+  $('dialog#dialog_inquiryform')[0].showModal();
+}
+
+/**
+ * 問い合わせフォームからアップロードするファイルを選択する
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_inquiryform_selectfile(e) {
+  inquiry_selectedfilepaths = JSON.parse(await webui.browse_files(
+    '',
+    JSON.stringify([['All file', '*']]),
+  ));
+
+  $('span#text_inquiryform_filepaths').empty();
+
+  if(inquiry_selectedfilepaths == null) return;
+
+  $('span#text_inquiryform_filepaths').text(`${inquiry_selectedfilepaths.length} 選択中`);
+}
+
+/**
+ * 問い合わせ内容を送信する
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_inquiryform_send(e) {
+  const message = $('textarea#textarea_inquirymessage').val();
+  if(!message) return;
+
+  $('dialog#dialog_inquiryform button').prop('disabled', true);
+
+  await webui.inquiry_send(
+    $('select#select_inquirycategory').val(),
+    $('input#mail_inquirymailaddress').val(),
+    message,
+    JSON.stringify(inquiry_selectedfilepaths),
+  );
+
+  $('dialog#dialog_inquiryform_complete')[0].showModal();
 
   $(this).closest('dialog')[0].close();
 }
