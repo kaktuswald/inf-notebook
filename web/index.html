@@ -43,7 +43,7 @@
         <button id="button_confirm_outputcsv">CSV出力</button>
         <button id="button_confirm_clearrecent">最近のデータのリセット</button>
         <button id="button_importarcadecsv_start">アーケードのCSVをインポート</button>
-        <button id="button_inquiryform_open">問い合わせフォーム</button>
+        <button id="button_inquiryform_open">報告・問い合わせ</button>
       </div>
       <div id="component_information" class="fillflex">
         <img id="image_information" />
@@ -517,8 +517,11 @@
         </div>
         <textarea id="textarea_inquirymessage"></textarea>
         <div>
-          <button id="button_inquiryform_seleftfile">ファイルを選択</button>
-          <span id="text_inquiryform_filepaths"></span>
+          <button id="button_inquiryform_selectfile">送信ファイルを追加</button>
+          <div id="inquiryfilenames"></div>
+        </div>
+        <div>
+          <span>ファイルの合計サイズは10MBまでです。</span>
         </div>
         <div class="buttons_in_dialog">
           <button class="dialogclose">キャンセル</button>

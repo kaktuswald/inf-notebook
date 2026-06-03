@@ -348,6 +348,21 @@ dialog#dialog_inquiryform {
         resize: none;
     }
 
+    div#inquiryfilenames {
+        font-size: small;
+
+        button {
+            font-size: xx-small;
+            height: 15px;
+            border-radius: 5px;
+            padding: 0 4px;
+        }
+
+        button:hover {
+            color: red;
+        }
+    }
+
     span {
         font-size: small;
     }

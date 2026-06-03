@@ -6,14 +6,13 @@ from datetime import datetime,timezone,timedelta
 from urllib.parse import urljoin
 from subprocess import Popen
 from os import sep
-from os.path import abspath,isfile,isdir,dirname
+from os.path import abspath,isfile,isdir,dirname,getsize
 from pathlib import Path
 from json import dump,dumps,load,loads
 from uuid import uuid1
 from base64 import b64decode,b64encode
 from hashlib import sha256
 from sys import exit
-from tkinter import Tk,filedialog
 from logging import LogRecord,Formatter,getLogger,Handler,StreamHandler,FileHandler,DEBUG,INFO,WARNING
 
 from setting import CaptureMethods,Setting
@@ -106,6 +105,7 @@ from arcadecsv import versions as arcadecsv_versions
 from versioncheck import version_isold
 from googleapi import GoogleApiAccesor
 from collection_uploader import CollectionUploader
+from tkdialogroot import TkDialogRoot
 
 windowtitle = f'インフィニタス リザルト手帳'
 windowwidth = 1200
@@ -126,6 +126,8 @@ base_url = 'https://github.com/kaktuswald/inf-notebook/'
 releases_url = urljoin(base_url, 'releases/')
 latest_url = urljoin(releases_url, 'latest')
 wiki_url = urljoin(base_url, 'wiki/')
+
+inquiry_maxfilesize = 1024 * 1024 * 10
 
 class LoggingHandler(Handler):
     def emit(self, record:LogRecord):
@@ -234,6 +236,9 @@ class GuiApi():
     image_activescreenshot: bytes = None
     image_scoreinformation: dict[str, str|bytes] = None
     image_scoregraph: dict[str, str|bytes] = None
+
+    inquiry_filepaths: list[str]|None = None
+    inquiry_filesize: int|None = None
 
     @staticmethod
     def get_version(event: Event):
@@ -426,7 +431,6 @@ class GuiApi():
         window.bind('arcadecsv_import', self.arcadecsv_import)
 
         window.bind('browse_file', self.browse_file)
-        window.bind('browse_files', self.browse_files)
         window.bind('browse_directory', self.browse_directory)
 
         window.bind('googleapi_get_isauthenticated', self.googleapi_get_isauthenticated)
@@ -434,6 +438,9 @@ class GuiApi():
         window.bind('googleapi_deletecredentials', self.googleapi_deletecredentials)
         window.bind('googleapi_driveupload', self.googleapi_driveupload)
 
+        window.bind('inquiry_clearfilepaths', self.inquiry_clearfilepaths)
+        window.bind('inquiry_browsefiles', self.inquiry_browsefiles)
+        window.bind('inquiry_removefile', self.inquiry_removefile)
         window.bind('inquiry_send', self.inquiry_send)
 
     def get_url(self, event: webui.Event):
@@ -1330,66 +1337,19 @@ class GuiApi():
         current = event.get_string_at(0)
         types = loads(event.get_string_at(1))
 
-        root = Tk()
-        try:
-            root.withdraw()
-            try:
-                root.attributes('-topmost', True)
-            except Exception:
-                pass
-
-            filepath = filedialog.askopenfilename(
+        with TkDialogRoot() as root:
+            filepath = root.opendialog_selectfile(
                 initialdir=dirname(current),
                 initialfile=current,
                 filetypes=types,
                 title='ファイルを選択',
             )
-        finally:
-            try:
-                root.destroy()
-            except Exception:
-                pass
-
+        
         if not filepath or len(filepath) == 0:
             event.return_string(dumps(None))
             return
 
         event.return_string(dumps(filepath))
-    
-    def browse_files(self, event: webui.Event):
-        '''ファイル選択ダイアログを開き、選択パスを返す(複数選択可)
-
-        Returns:
-            str | None: 選択されたファイルの絶対パス。未選択時は None
-        '''
-        current = event.get_string_at(0)
-        types = loads(event.get_string_at(1))
-
-        root = Tk()
-        try:
-            root.withdraw()
-            try:
-                root.attributes('-topmost', True)
-            except Exception:
-                pass
-
-            filepaths = filedialog.askopenfilenames(
-                initialdir=dirname(current),
-                initialfile=current,
-                filetypes=types,
-                title='ファイルを選択',
-            )
-        finally:
-            try:
-                root.destroy()
-            except Exception:
-                pass
-
-        if not filepaths or len(filepaths) == 0:
-            event.return_string(dumps(None))
-            return
-
-        event.return_string(dumps(filepaths))
     
     def browse_directory(self, event: webui.Event):
         '''フォルダ選択ダイアログを開き、選択パスを返す
@@ -1399,24 +1359,12 @@ class GuiApi():
         '''
         current = event.get_string_at(0)
 
-        root = Tk()
-        try:
-            root.withdraw()
-            try:
-                root.attributes('-topmost', True)
-            except Exception:
-                pass
-
-            directorypath = filedialog.askdirectory(
+        with TkDialogRoot() as root:
+            directorypath = root.opendialog_selectdirectory(
                 initialdir=current,
                 title='フォルダを選択',
             )
-        finally:
-            try:
-                root.destroy()
-            except Exception:
-                pass
-
+        
         if not directorypath or len(directorypath) == 0:
             event.return_string(dumps(None))
             return
@@ -1462,13 +1410,63 @@ class GuiApi():
             if self.googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
                 setting.save()
     
+    def inquiry_clearfilepaths(self, event: webui.Event):
+        '''問い合わせフォームから送信するファイルのリストをクリアする
+        '''
+        self.inquiry_filepaths = []
+        self.inquiry_filesize = 0
+
+    def inquiry_browsefiles(self, event: webui.Event):
+        '''複数選択可能のファイル選択ダイアログを開いて、問い合わせフォームから送信するファイルを選択する
+        Returns:
+            boolean: ファイルパスが追加されればTrue
+            list[str]|None: 選択されたファイルの絶対パスのリスト。未選択時は None
+        '''
+        with TkDialogRoot() as root:
+            filepaths = root.opendialog_selectfiles(
+                filetypes=(('All file', '*'),),
+                title='ファイルを選択',
+            )
+
+        notchanged = None
+        if not filepaths or len(filepaths) == 0:
+            notchanged = True
+
+        if not notchanged:
+            filepaths = [filepath for filepath in filepaths if not filepath in self.inquiry_filepaths]
+
+            filesizes = 0
+            for filepath in filepaths:
+                filesizes += getsize(filepath)
+            
+            if self.inquiry_filesize + filesizes > inquiry_maxfilesize:
+                notchanged = True
+
+        if not notchanged:
+            self.inquiry_filepaths.extend(filepaths)
+            self.inquiry_filesize += filesizes
+
+        event.return_string(dumps((
+            not notchanged,
+            [Path(filepath).name for filepath in self.inquiry_filepaths],
+        )))
+    
+    def inquiry_removefile(self, event: webui.Event):
+        '''選択中のファイルを一つ取り除く
+        Returns:
+            list[str]|None: 選択されたファイルの絶対パスのリスト。未選択時は None
+        '''
+        index = event.get_int_at(0)
+        del self.inquiry_filepaths[index]
+
+        event.return_string(dumps([Path(filepath).name for filepath in self.inquiry_filepaths]))
+
     def inquiry_send(self, event: webui.Event):
         '''問い合わせフォームに入力された内容を送信する
         '''
         category = event.get_string_at(0)
         mailaddress = event.get_string_at(1)
         message = event.get_string_at(2)
-        filepaths = loads(event.get_string_at(3))
 
         content = [
             f'Category: {category}',
@@ -1477,12 +1475,15 @@ class GuiApi():
             message,
         ]
 
-        if filepaths:
-            callfunction_sendinquiry('\n'.join(content), ['log.txt', *filepaths])
-        else:
-            callfunction_sendinquiry('\n'.join(content), ['log.txt'])
-        
+        callfunction_sendinquiry(
+            '\n'.join(content),
+            ['log.txt', 'setting.json', *self.inquiry_filepaths],
+        )
+
         logger.info('sent inquiry.')
+
+        self.inquiry_filepaths = None
+        self.inquiry_filesize = None
 
     def send_update_chartresult(self):
         '''フロントエンドに選択譜面記録の更新を送信する

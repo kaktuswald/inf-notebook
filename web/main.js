@@ -23,8 +23,6 @@ let selected_timestamp = null;
 
 let importing_arcadecsv = null;
 
-let inquiry_selectedfilepaths = null;
-
 const reader_imagenothing = new FileReader();
 reader_imagenothing.onloadend = onloadend_imagenothingimage;
 reader_imagenothing.onerror = onerror_filereader;
@@ -300,7 +298,7 @@ $(function() {
   $('button#button_importarcadecsv_confirming').on('click', onclick_importarcadecsv_confirming);
   $('input#file_importarcadecsv').on('change', onchange_importarcadecsv_fromfile);
   $('button#button_inquiryform_open').on('click', onclick_inquiryform_open);
-  $('button#button_inquiryform_seleftfile').on('click', onclick_inquiryform_selectfile);
+  $('button#button_inquiryform_selectfile').on('click', onclick_inquiryform_selectfile);
   $('button#button_inquiryform_send').on('click', onclick_inquiryform_send);
 
   $('button#button_reset_layout').on('click', onclick_reset_layout);
@@ -2250,12 +2248,13 @@ function onchange_importarcadecsv_fromfile(e) {
  * 問い合わせフォームを表示する
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_inquiryform_open(e) {
-  inquiry_selectedfilepaths = null;
+async function onclick_inquiryform_open(e) {
+  await webui.inquiry_clearfilepaths();
 
   $('select#select_inquirycategory').prop('selectedIndex', 0);
   $('input#mail_inquirymailaddress').val('');
   $('textarea#textarea_inquirymessage').val('');
+  $('div#inquiryfilenames').empty();
   $('dialog#dialog_inquiryform button').prop('disabled', false);
 
   $('dialog#dialog_inquiryform')[0].showModal();
@@ -2266,18 +2265,36 @@ function onclick_inquiryform_open(e) {
  * @param {ce.Event} e イベントハンドラ
  */
 async function onclick_inquiryform_selectfile(e) {
-  inquiry_selectedfilepaths = JSON.parse(await webui.browse_files(
-    '',
-    JSON.stringify([['All file', '*']]),
-  ));
+  const result = JSON.parse(await webui.inquiry_browsefiles());
 
-  $('span#text_inquiryform_filepaths').empty();
-
-  if(inquiry_selectedfilepaths == null) return;
-
-  $('span#text_inquiryform_filepaths').text(`${inquiry_selectedfilepaths.length} 選択中`);
+  if(result[0])
+    set_filenames(result[1]);
 }
 
+/**
+ * 対象を問い合わせフォームからアップロードするファイルから取り除く
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_inquiryform_removefile(e) {
+  const index = $(this).parent().index();
+  const filenames = JSON.parse(await webui.inquiry_removefile(index));
+  set_filenames(filenames);
+}
+
+function set_filenames(filenames) {
+  $('div#inquiryfilenames').empty();
+
+  for(const filename of filenames) {
+    $('div#inquiryfilenames').append(
+      $('<div>')
+        .text(filename)
+        .append($('<div>')
+          .append($('<button>').text('x'))
+          .on('click', onclick_inquiryform_removefile)
+        )
+    );
+  }
+}
 /**
  * 問い合わせ内容を送信する
  * @param {ce.Event} e イベントハンドラ
@@ -2292,7 +2309,6 @@ async function onclick_inquiryform_send(e) {
     $('select#select_inquirycategory').val(),
     $('input#mail_inquirymailaddress').val(),
     message,
-    JSON.stringify(inquiry_selectedfilepaths),
   );
 
   $('dialog#dialog_inquiryform_complete')[0].showModal();
