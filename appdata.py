@@ -1,6 +1,8 @@
-import json
+import gzip
+from json import load,dump
 from os.path import exists
 from pathlib import WindowsPath
+from typing import Any
 from logging import getLogger
 
 if __name__ == '__main__':
@@ -11,78 +13,108 @@ logger.debug(f'loaded {logger.name}')
 
 from windows import get_local_appdata_path
 
+LOCALCONFIG_FILENAME: str = 'config.json'
 GOOGLE_API_CREDENTIALS_FILENAME: str = 'googleapi_credentials.json'
 
 appdata_path = get_local_appdata_path()
 
-googleapi_credentials_filepath: WindowsPath | None = None
-if appdata_path is not None:
-    googleapi_credentials_filepath = appdata_path.joinpath(GOOGLE_API_CREDENTIALS_FILENAME)
-
 class LocalConfig():
-    filename = 'config.json'
+    filepath: WindowsPath|None = None
+
+    installer_filepath: str|None = None
+    installed_dirpath: str|None = None
 
     def __init__(self):
-        self.filepath = None
-
-        self.installer_filepath = None
-        self.installed_dirpath = None
-
-        if appdata_path is None:
+        if not appdata_path or not appdata_path.exists():
             return
         
-        self.filepath = appdata_path.joinpath(self.filename)
-        if self.filepath.exists():
-            with self.filepath.open('r', encoding='utf-8') as f:
-                loaded: dict = json.load(f)
-            
-            if 'installer_filepath' in loaded.keys() and loaded['installer_filepath'] is not None and exists(loaded['installer_filepath']):
-                self.installer_filepath = WindowsPath(loaded['installer_filepath']).absolute()
-            if 'installed_dirpath' in loaded.keys() and loaded['installed_dirpath'] is not None and exists(loaded['installed_dirpath']):
-                self.installed_dirpath = WindowsPath(loaded['installed_dirpath']).absolute()
+        self.filepath = appdata_path.joinpath(LOCALCONFIG_FILENAME)
+        if not self.filepath.is_file():
+            return
 
-    def save(self):
-        if self.filepath is None:
+        data = load_json(self.filepath)
+        if not data or not isinstance(data, dict):
             return
         
-        output = {
+        if 'installer_filepath' in data.keys() and data['installer_filepath']:
+            if exists(data['installer_filepath']):
+                self.installer_filepath = WindowsPath(data['installer_filepath']).absolute()
+        if 'installed_dirpath' in data.keys() and data['installed_dirpath']:
+            if exists(data['installed_dirpath']):
+                self.installed_dirpath = WindowsPath(data['installed_dirpath']).absolute()
+
+    def save(self) -> bool:
+        if not self.filepath:
+            return
+        
+        data = {
             'installer_filepath': str(self.installer_filepath) if self.installer_filepath is not None else None,
             'installed_dirpath': str(self.installed_dirpath) if self.installed_dirpath is not None else None,
         }
-        with self.filepath.open('w', encoding='utf-8') as f:
-            json.dump(output, f, indent=2)
 
-def load_googleapi_credentials() -> dict|None:
-    if googleapi_credentials_filepath is None:
-        return None
-    if not googleapi_credentials_filepath.exists():
-        return None
+        return save_json(self.filepath, data, indent=2)
+
+class GoogleApiCredentials():
+    filepath: WindowsPath|None = None
+
+    if appdata_path and appdata_path.exists():
+        filepath = appdata_path.joinpath(GOOGLE_API_CREDENTIALS_FILENAME)
     
+    @staticmethod
+    def load():
+        if GoogleApiCredentials.filepath and GoogleApiCredentials.filepath.is_file():
+            return load_json(GoogleApiCredentials.filepath)
+    
+    @staticmethod
+    def save(credentials:str):
+        if GoogleApiCredentials.filepath:
+            return save_text(GoogleApiCredentials.filepath, credentials)
+    
+    @staticmethod
+    def delete():
+        if GoogleApiCredentials.filepath and GoogleApiCredentials.filepath.is_file():
+            return delete_file(GoogleApiCredentials.filepath)
+
+def save_text(filepath:WindowsPath, data:str) -> bool:
     try:
-        with googleapi_credentials_filepath.open('r', encoding='utf-8') as f:
-            ret = json.load(f)
+        with filepath.open('w', encoding='utf-8') as f:
+            f.write(data)
+    except Exception as ex:
+        logger.exception(ex)
+        return False
+    
+    return True
+
+def save_json(filepath:WindowsPath, data:Any, **kwargs) -> bool:
+    try:
+        with filepath.open('w', encoding='utf-8') as f:
+            dump(data, f, **kwargs)
+    except Exception as ex:
+        logger.exception(ex)
+        return False
+    
+    return True
+
+def load_json(filepath:WindowsPath) -> Any|None:
+    if not filepath or not filepath.is_file():
+        return None
+
+    try:
+        with filepath.open('r', encoding='utf-8') as f:
+            ret = load(f)
     except Exception as ex:
         logger.exception(ex)
         return None
     
     return ret
 
-def save_googleapi_credentials(credentials: str) -> bool:
-    if googleapi_credentials_filepath is None:
+def delete_file(filepath:WindowsPath) -> bool:
+    if not filepath or not filepath.is_file():
         return False
-    
-    with googleapi_credentials_filepath.open('w', encoding='utf-8') as f:
-        f.write(credentials)
-    
-    return True
 
-def delete_googleapi_credentials() -> bool:
-    if googleapi_credentials_filepath is None:
+    if not filepath.is_file():
         return False
     
-    if not googleapi_credentials_filepath.is_file():
-        return False
-    
-    googleapi_credentials_filepath.unlink()
+    filepath.unlink()
 
     return True

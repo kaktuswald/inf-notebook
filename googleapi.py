@@ -16,7 +16,7 @@ from googleapiclient.errors import HttpError
 from infnotebook import productname
 from export import export_dirname
 from googleapi_clientconfig import googleapi_clientconfig
-from appdata import load_googleapi_credentials,save_googleapi_credentials,delete_googleapi_credentials
+from appdata import GoogleApiCredentials
 
 SCOPES = [
     'https://www.googleapis.com/auth/drive.file',
@@ -35,8 +35,8 @@ class GoogleApiAccesor():
     }
 
     def __init__(self):
-        userinfo = load_googleapi_credentials()
-        if userinfo is not None:
+        userinfo = GoogleApiCredentials.load()
+        if userinfo:
             self.credentials = Credentials.from_authorized_user_info(userinfo)
 
     def get_credentials(self) -> bool:
@@ -44,9 +44,7 @@ class GoogleApiAccesor():
             flow = InstalledAppFlow.from_client_config(googleapi_clientconfig, SCOPES)
             self.credentials = flow.run_local_server(port=0, timeout_seconds=60)
 
-            save_googleapi_credentials(self.credentials.to_json())
-
-            return True
+            return GoogleApiCredentials.save(self.credentials.to_json())
         except Exception as ex:
             logger.exception(ex)
         
@@ -56,7 +54,7 @@ class GoogleApiAccesor():
         if self.credentials is None:
             return False
         
-        if delete_googleapi_credentials():
+        if GoogleApiCredentials.delete():
             if self.service is not None:
                 self.service.close()
                 self.service = None
