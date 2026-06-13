@@ -1445,6 +1445,19 @@ async function display_chartresult() {
     display_best_djlevel(chartresult.best.dj_level);
     display_best_score(chartresult.best.score);
     display_best_misscount(chartresult.best.miss_count);
+
+    if(selected_chart.playtype == 'SP' && chartresult.best.score && chartresult.best.score.value) {
+      const bpi = JSON.parse(await webui.bpim2_calculate(
+        selected_chart.songname,
+        selected_chart.difficulty,
+        chartresult.best.score.value
+      ));
+
+      $('#best_bpi').text(bpi ?? '');
+    }
+    else {
+      $('#best_bpi').text('');
+    }
   }
   else {
     clear_bests();
@@ -1654,6 +1667,7 @@ function clear_bests() {
   display_best_djlevel(null);
   display_best_score(null);
   display_best_misscount(null);
+  $('#best_bpi').text('');
 }
 
 function display_best_cleartype(values) {

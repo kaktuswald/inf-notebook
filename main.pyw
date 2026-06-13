@@ -106,6 +106,7 @@ from versioncheck import version_isold
 from googleapi import GoogleApiAccesor
 from collection_uploader import CollectionUploader
 from tkdialogroot import TkDialogRoot
+from bpim2 import bpim2_getchartbpi,bpim2_savecache,bpim2_getcallcount
 
 windowtitle = f'インフィニタス リザルト手帳'
 windowwidth = 1200
@@ -442,6 +443,8 @@ class GuiApi():
         window.bind('inquiry_browsefiles', self.inquiry_browsefiles)
         window.bind('inquiry_removefile', self.inquiry_removefile)
         window.bind('inquiry_send', self.inquiry_send)
+
+        window.bind('bpim2_calculate', self.bpim2_calculate)
 
     def get_url(self, event: webui.Event):
         event.return_string(self.window.get_url())
@@ -1484,6 +1487,21 @@ class GuiApi():
 
         self.inquiry_filepaths = None
         self.inquiry_filesize = None
+
+    def bpim2_calculate(self, event: webui.Event):
+        songname = event.get_string_at(0)
+        difficulty = event.get_string_at(1)
+        score = event.get_int_at(2)
+
+        result = None
+        if songname in resource.musictable['musics'].keys():
+            targetsong = resource.musictable['musics'][songname]
+            if difficulty in targetsong['SP'].keys():
+                targetdifficulty = targetsong['SP'][difficulty]
+                if targetdifficulty in ('11', '12',):
+                    result = bpim2_getchartbpi(songname, difficulty, score)
+        
+        event.return_string(dumps(result))
 
     def send_update_chartresult(self):
         '''フロントエンドに選択譜面記録の更新を送信する
@@ -2771,3 +2789,6 @@ if __name__ == '__main__':
             setting.save()
     
     del googleapi_accesor
+
+    bpim2_savecache()
+    logger.debug(f'bpim2 API call count: {bpim2_getcallcount()}')

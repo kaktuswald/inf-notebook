@@ -1,5 +1,6 @@
 import gzip
-from json import load,dump
+import json
+import pickle
 from os.path import exists
 from pathlib import WindowsPath
 from typing import Any
@@ -15,6 +16,7 @@ from windows import get_local_appdata_path
 
 LOCALCONFIG_FILENAME: str = 'config.json'
 GOOGLE_API_CREDENTIALS_FILENAME: str = 'googleapi_credentials.json'
+BPIM2CHARTBPICACHE_FILENAME: str = 'bpim2_chartbpi.gz'
 
 appdata_path = get_local_appdata_path()
 
@@ -75,6 +77,25 @@ class GoogleApiCredentials():
         if GoogleApiCredentials.filepath and GoogleApiCredentials.filepath.is_file():
             return delete_file(GoogleApiCredentials.filepath)
 
+class Bpim2ChartBpiCache():
+    filepath: WindowsPath|None = None
+
+    if appdata_path and appdata_path.exists():
+        filepath = appdata_path.joinpath(BPIM2CHARTBPICACHE_FILENAME)
+    
+    @staticmethod
+    def load() -> Any|None:
+        # return None
+        if Bpim2ChartBpiCache.filepath and Bpim2ChartBpiCache.filepath.is_file():
+            return load_gz(Bpim2ChartBpiCache.filepath)
+        
+        return None
+    
+    @staticmethod
+    def save(data:dict) -> bool:
+        if Bpim2ChartBpiCache.filepath:
+            return save_gz(Bpim2ChartBpiCache.filepath, data)
+
 def save_text(filepath:WindowsPath, data:str) -> bool:
     try:
         with filepath.open('w', encoding='utf-8') as f:
@@ -88,7 +109,7 @@ def save_text(filepath:WindowsPath, data:str) -> bool:
 def save_json(filepath:WindowsPath, data:Any, **kwargs) -> bool:
     try:
         with filepath.open('w', encoding='utf-8') as f:
-            dump(data, f, **kwargs)
+            json.dump(data, f, **kwargs)
     except Exception as ex:
         logger.exception(ex)
         return False
@@ -101,7 +122,30 @@ def load_json(filepath:WindowsPath) -> Any|None:
 
     try:
         with filepath.open('r', encoding='utf-8') as f:
-            ret = load(f)
+            ret = json.load(f)
+    except Exception as ex:
+        logger.exception(ex)
+        return None
+    
+    return ret
+
+def save_gz(filepath:WindowsPath, data:Any, **kwargs) -> bool:
+    try:
+        with gzip.open(filepath, 'wb') as f:
+            pickle.dump(data, f, **kwargs)
+    except Exception as ex:
+        logger.exception(ex)
+        return False
+    
+    return True
+
+def load_gz(filepath:WindowsPath) -> Any|None:
+    if not filepath or not filepath.is_file():
+        return None
+
+    try:
+        with gzip.open(filepath, 'rb') as f:
+            ret = pickle.load(f)
     except Exception as ex:
         logger.exception(ex)
         return None
