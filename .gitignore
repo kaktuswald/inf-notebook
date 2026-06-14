@@ -156,3 +156,5 @@ _*.py
 _*.csv
 
 !web/lib/
+
+inquiries/
