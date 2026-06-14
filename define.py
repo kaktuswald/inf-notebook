@@ -136,7 +136,7 @@ class Define():
     details_recognition_version = '3.2'
     resultothers_recognition_version = '1.0'
     musicselect_recognition_version = '2.3'
-    notesradar_version = '1.1'
+    notesradar_version = '1.2'
     unofficialdifficulty_version = '1.0'
 
     informations_trimpos = (560, 910)

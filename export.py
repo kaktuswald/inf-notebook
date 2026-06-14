@@ -4,6 +4,7 @@ from datetime import datetime
 from csv import writer
 from decimal import Decimal
 import re
+from dataclasses import dataclass
 from logging import getLogger
 
 if __name__ == '__main__':
@@ -125,26 +126,35 @@ class Recent():
         with open(recent_filepath, 'w') as f:
             json.dump(self.json, f)
 
-def output(notebook: NotebookSummary):
-    '''CSVファイルを出力する
+class CsvRowData:
+    @dataclass
+    class Best:
+        value: str|int|None = None
+        option: str|None = None
     
-    Args:
-        notebook (NotebookSummary): 対象のデータ
-    '''
-    musictable = resource.musictable
+    @dataclass
+    class Achievement:
+        mixture: str|None = None
+        ''' MAX or F-COMBO & AAA'''
+        cleartype: str|None = None
+        djlevel: str|None = None
 
-    summary_filenames = {
-        'difficulties': {
-            'clear_types': '難易度-クリアタイプ',
-            'dj_levels': '難易度-DJレベル'
-        },
-        'levels': {
-            'clear_types': 'レベル-クリアタイプ',
-            'dj_levels': 'レベル-DJレベル'
-        }
-    }
+    version: str
+    songname: str
+    difficulty: str
+    level: int
+    latest: str|None
+    playcount: int|None
+    best_cleartype: Best
+    best_djlevel: Best
+    best_score: Best
+    best_misscount: Best
+    achievement_fixed: Achievement
+    achievement_srandom: Achievement
+    achievement_allscratch: Achievement
+    notesradar_attribute: str|None
 
-    all_header = [
+    COLUMNS = [
         'バージョン',
         '曲名',
         '難易度',
@@ -168,16 +178,81 @@ def output(notebook: NotebookSummary):
         'ALL-SCR実績',
         'ALL-SCRクリアタイプ',
         'ALL-SCRDJレベル',
+        'ノーツレーダー属性',
     ]
+
+    def __init__(self, **kwargs):
+        self.version = kwargs.get('version')
+        self.songname = kwargs.get('songname')
+        self.difficulty = kwargs.get('difficulty')
+        self.level = kwargs.get('level')
+        self.latest = None
+        self.playcount = None
+        self.best_cleartype = CsvRowData.Best()
+        self.best_djlevel = CsvRowData.Best()
+        self.best_score = CsvRowData.Best()
+        self.best_misscount = CsvRowData.Best()
+        self.achievement_fixed = CsvRowData.Achievement()
+        self.achievement_srandom = CsvRowData.Achievement()
+        self.achievement_allscratch = CsvRowData.Achievement()
+        self.notesradar_attribute = None
+
+    def expand(self) -> list[str]:
+        return [
+            self.version,
+            self.songname,
+            self.difficulty,
+            self.level,
+            self.latest,
+            self.playcount,
+            self.best_cleartype.value,
+            self.best_cleartype.option,
+            self.best_djlevel.value,
+            self.best_djlevel.option,
+            self.best_score.value,
+            self.best_score.option,
+            self.best_misscount.value,
+            self.best_misscount.option,
+            self.achievement_fixed.mixture,
+            self.achievement_fixed.cleartype,
+            self.achievement_fixed.djlevel,
+            self.achievement_srandom.mixture,
+            self.achievement_srandom.cleartype,
+            self.achievement_srandom.djlevel,
+            self.achievement_allscratch.mixture,
+            self.achievement_allscratch.cleartype,
+            self.achievement_allscratch.djlevel,
+            self.notesradar_attribute,
+        ]
+
+def output(notebook: NotebookSummary):
+    '''CSVファイルを出力する
+    
+    Args:
+        notebook (NotebookSummary): 対象のデータ
+    '''
+    musictable = resource.musictable
+    notesradar = resource.notesradar
+
+    summary_filenames = {
+        'difficulties': {
+            'clear_types': '難易度-クリアタイプ',
+            'dj_levels': '難易度-DJレベル'
+        },
+        'levels': {
+            'clear_types': 'レベル-クリアタイプ',
+            'dj_levels': 'レベル-DJレベル'
+        }
+    }
 
     summary_keys1 = ['difficulties', 'levels']
     summary_keys2 = ['clear_types', 'dj_levels']
 
     summary = {}
-    csv_output = {}
+    csv_output: dict[str, list[CsvRowData]] = {}
     for playtype in Playtypes.values:
         summary[playtype] = {}
-        csv_output[playtype] = [all_header]
+        csv_output[playtype] = []
         for summary_key1 in summary_keys1:
             summary[playtype][summary_key1] = {}
             for key in define.value_list[summary_key1]:
@@ -186,7 +261,7 @@ def output(notebook: NotebookSummary):
                     summary[playtype][summary_key1][key][summary_key2] = {}
                     for value_key in [*define.value_list[summary_key2], 'TOTAL']:
                         summary[playtype][summary_key1][key][summary_key2][value_key] = 0
-
+    
     for musicname, music_item in musictable['musics'].items():
         version = music_item['version']
         if 'musics' in notebook.json.keys() and musicname in notebook.json['musics'].keys():
@@ -206,21 +281,25 @@ def output(notebook: NotebookSummary):
                 summary[playtype]['levels'][level]['clear_types']['TOTAL'] += 1
                 summary[playtype]['levels'][level]['dj_levels']['TOTAL'] += 1
 
-                lines = [version, musicname, difficulty, level]
+                rowdata = CsvRowData(version=version, songname=musicname, difficulty=difficulty, level=level)
 
-                if notebook_target is None or not playtype in notebook_target.keys() or not difficulty in notebook_target[playtype].keys():
-                    lines.extend(('', '', '', '', '', '', '', '', '', '', '', '','', '', '', '', '', '', '',))
-                else:
+                if notebook_target and playtype in notebook_target.keys() and difficulty in notebook_target[playtype].keys():
                     record = notebook_target[playtype][difficulty]
 
-                    lines.append(record['latest'] if record['latest'] is not None else '')
-                    lines.append(record['playcount'] if record['playcount'] is not None else '')
+                    rowdata.latest = record.get('latest') or None
+                    rowdata.playcount = record.get('playcount') or 0
 
                     if 'best' in record.keys() and record['best'] is not None:
-                        for key in ('cleartype', 'djlevel', 'score', 'misscount',):
+                        besttargets: dict[str, CsvRowData.Best] = {
+                            'cleartype': rowdata.best_cleartype,
+                            'djlevel': rowdata.best_djlevel,
+                            'score': rowdata.best_score,
+                            'misscount': rowdata.best_misscount,
+                        }
+                        for key, target in besttargets.items():
                             if record['best'][key] is not None:
-                                value = record['best'][key]['value']
-                                
+                                target.value = record['best'][key]['value'] if record['best'][key]['value'] is not None else ''
+
                                 option = None
                                 if 'options' in record['best'][key].keys() and record['best'][key]['options'] is not None:
                                     optionvalues = [
@@ -231,47 +310,40 @@ def output(notebook: NotebookSummary):
                                     option = ','.join([v for v in optionvalues if v is not None])
                                     if option == '':
                                         option = '---'
-
-                                lines.append(value if value is not None else '')
-                                lines.append(option if option is not None else '???')
-
-                            else:
-                                lines.extend(('', '',))
+                                target.option = option or '???'
 
                         if record['best']['cleartype'] is not None:
                             value = record['best']['cleartype']['value']
                             summary[playtype]['difficulties'][difficulty]['clear_types'][value] += 1
                             summary[playtype]['levels'][level]['clear_types'][value] += 1
+                        
                         if record['best']['djlevel'] is not None:
                             value = record['best']['djlevel']['value']
                             summary[playtype]['difficulties'][difficulty]['dj_levels'][value] += 1
                             summary[playtype]['levels'][level]['dj_levels'][value] += 1
-                    else:
-                        lines.extend(('', '', '', '', '', '', '', '',))
                     
                     if 'achievement' in record.keys() and record['achievement'] is not None:
-                        for key1 in ('fixed', 'S-RANDOM', 'ALL-SCR'):
+                        achievementtargets: dict[str, CsvRowData.Achievement] = {
+                            'fixed': rowdata.achievement_fixed,
+                            'S-RANDOM': rowdata.achievement_srandom,
+                            'ALL-SCR': rowdata.achievement_allscratch,
+                        }
+                        for key1, target in achievementtargets.items():
                             if key1 in record['achievement'].keys():
                                 if 'MAX' in record['achievement'][key1].keys() or 'F-COMBO & AAA' in record['achievement'][key1].keys():
                                     if 'MAX' in record['achievement'][key1].keys():
-                                        lines.append('MAX')
+                                        target.mixture = 'MAX'
                                     else:
-                                        lines.append('F-COMBO & AAA')
-                                else:
-                                    lines.append('')
+                                        target.mixture = 'F-COMBO & AAA'
 
                                 if key1 in record['achievement'].keys():
-                                    for key2 in ('clear_type', 'dj_level',):
-                                        lines.append(record['achievement'][key1][key2] if record['achievement'][key1][key2] is not None else '')
-                                else:
-                                    lines.extend(('', '',))
-                            else:
-                                lines.extend(('', '', '',))
-
-                    else:
-                        lines.extend(('', '', '', '', '', '', '', '', '',))
+                                    target.cleartype = record['achievement'][key1]['clear_type'] or ''
+                                    target.djlevel = record['achievement'][key1]['dj_level'] or ''
+                    
+                    if musicname in notesradar[playmode]['musics'].keys() and difficulty in notesradar[playmode]['musics'][musicname].keys():
+                        rowdata.notesradar_attribute = '/'.join(notesradar[playmode]['musics'][musicname][difficulty]['attributes'])
                 
-                csv_output[playtype].append(lines)
+                csv_output[playtype].append(rowdata)
 
     for playtype in Playtypes.values:
         for summary_key1 in summary_keys1:
@@ -291,9 +363,11 @@ def output(notebook: NotebookSummary):
         filepath = join(export_dirname, f'{playtype}.csv')
         with open(filepath, 'w', encoding='utf-8', newline='\n') as f:
             w = writer(f)
+            w.writerow(CsvRowData.COLUMNS)
+
             for line in csv_output[playtype]:
                 try:
-                    w.writerow(line)
+                    w.writerow(line.expand())
                 except Exception as ex:
                     logger.exception('エンコードに失敗', line[0])
                     logger.exception(ex)

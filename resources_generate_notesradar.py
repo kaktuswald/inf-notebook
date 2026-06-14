@@ -135,6 +135,11 @@ def generate():
                     result[playmode]['musics'][songname][difficulty]['radars'][attribute] = predictedmaxlower
 
     for playmode in Playmodes.values:
+        for songradars in result[playmode]['musics'].values():
+            for chartvalue in songradars.values():
+                maxvalue = max(chartvalue['radars'].values())
+                chartvalue['attributes'] = [key for key, value in chartvalue['radars'].items() if value == maxvalue]
+
         result[playmode]['attributes'] = {}
         for attribute in NotesradarAttributes.values:
             rankingdata: dict[float, list[dict[str, str]]] = {}
