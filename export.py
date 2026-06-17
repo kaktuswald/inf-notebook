@@ -152,6 +152,7 @@ class CsvRowData:
     achievement_fixed: Achievement
     achievement_srandom: Achievement
     achievement_allscratch: Achievement
+    notes: int|None
     notesradar_attribute: str|None
 
     COLUMNS = [
@@ -178,6 +179,7 @@ class CsvRowData:
         'ALL-SCR実績',
         'ALL-SCRクリアタイプ',
         'ALL-SCRDJレベル',
+        'ノーツ数',
         'ノーツレーダー属性',
     ]
 
@@ -195,6 +197,7 @@ class CsvRowData:
         self.achievement_fixed = CsvRowData.Achievement()
         self.achievement_srandom = CsvRowData.Achievement()
         self.achievement_allscratch = CsvRowData.Achievement()
+        self.notes = None
         self.notesradar_attribute = None
 
     def expand(self) -> list[str]:
@@ -222,6 +225,7 @@ class CsvRowData:
             self.achievement_allscratch.mixture,
             self.achievement_allscratch.cleartype,
             self.achievement_allscratch.djlevel,
+            self.notes,
             self.notesradar_attribute,
         ]
 
@@ -341,6 +345,7 @@ def output(notebook: NotebookSummary):
                                     target.djlevel = record['achievement'][key1]['dj_level'] or ''
                     
                     if musicname in notesradar[playmode]['musics'].keys() and difficulty in notesradar[playmode]['musics'][musicname].keys():
+                        rowdata.notes = notesradar[playmode]['musics'][musicname][difficulty]['notes']
                         rowdata.notesradar_attribute = '/'.join(notesradar[playmode]['musics'][musicname][difficulty]['attributes'])
                 
                 csv_output[playtype].append(rowdata)
@@ -361,16 +366,16 @@ def output(notebook: NotebookSummary):
 
     for playtype in Playtypes.values:
         filepath = join(export_dirname, f'{playtype}.csv')
-        with open(filepath, 'w', encoding='utf-8', newline='\n') as f:
-            w = writer(f)
-            w.writerow(CsvRowData.COLUMNS)
+        try:
+            with open(filepath, 'w', encoding='utf-8', newline='\n') as f:
+                w = writer(f)
+                w.writerow(CsvRowData.COLUMNS)
 
-            for line in csv_output[playtype]:
-                try:
+                for line in csv_output[playtype]:
                     w.writerow(line.expand())
-                except Exception as ex:
-                    logger.exception('エンコードに失敗', line[0])
-                    logger.exception(ex)
+        except Exception as ex:
+            logger.exception(f'エンコードに失敗: {line}')
+            logger.exception(ex)
     
     with open(summary_timestamp_filepath, 'w') as f:
         f.write(str(datetime.now()))
