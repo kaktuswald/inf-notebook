@@ -183,6 +183,7 @@ class CollectionUploader():
             chartvalue = Decimal(str(result[1]))
 
             predictedmaxlower = float((chartvalue/ratio).quantize(Decimal('0.00'), rounding=ROUND_UP))
+            predictedmaxupper = float(((chartvalue+Decimal('0.01'))/ratio-Decimal('0.01')).quantize(Decimal('0.00'), rounding=ROUND_UP))
 
             resourcemax = None
             r1 = resource.notesradar[playmode]
@@ -191,7 +192,7 @@ class CollectionUploader():
                 if difficulty in r2.keys():
                     resourcemax = r2[difficulty]['radars'][attribute]
             
-            if resourcemax is None or predictedmaxlower > resourcemax:
+            if resourcemax is None or predictedmaxlower > resourcemax or predictedmaxupper < resourcemax:
                 self.storage.start_uploadnotesradarvalue({
                     'playmode': playmode,
                     'songname': songname,

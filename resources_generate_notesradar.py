@@ -108,9 +108,18 @@ def generate():
     overrides = []
     for playmode, target1 in jsonradardata.items():
         for songname, target2 in target1.items():
+            if not songname in result[playmode]['musics'].keys():
+                result[playmode]['musics'][songname] = {}
+            
             for difficulty, target3 in target2.items():
+                if not difficulty in result[playmode]['musics'][songname].keys():
+                    result[playmode]['musics'][songname][difficulty] = {
+                        'notes': notes,
+                        'radars': {attribute: 0 for attribute in NotesradarAttributes.values},
+                    }
+
                 notes = target3['notes']
-                for attribute in NotesradarAttributes.values:
+                for attribute in target3['attributes'].keys():
                     predictedmaxlower = target3['attributes'][attribute]['lower']
                     predictedmaxupper = target3['attributes'][attribute]['upper']
                     
@@ -118,14 +127,6 @@ def generate():
                         output = [songname, playmode, difficulty, attribute, f'{predictedmaxlower}～{predictedmaxupper}']
                         uncertains.append(' '.join(output))
                     
-                    if not songname in result[playmode]['musics'].keys():
-                        result[playmode]['musics'][songname] = {}
-                    if not difficulty in result[playmode]['musics'][songname].keys():
-                        result[playmode]['musics'][songname][difficulty] = {
-                            'notes': notes,
-                            'radars': {attribute: 0 for attribute in NotesradarAttributes.values},
-                        }
-
                     registeredvalue = result[playmode]['musics'][songname][difficulty]['radars'][attribute]
                     if registeredvalue != 0:
                         if registeredvalue < predictedmaxlower:
@@ -232,11 +233,11 @@ def load_collectiondata(filepath: str):
             data[playmode][songname] = {}
         if not difficulty in data[playmode][songname].keys():
             data[playmode][songname][difficulty] = {'notes': notes, 'attributes': {}}
-            for attribute1 in NotesradarAttributes.values:
-                data[playmode][songname][difficulty]['attributes'][attribute1] = {
-                    'lower': 0.00,
-                    'upper': 200.00,
-                }
+        if not attribute in data[playmode][songname][difficulty]['attributes'].keys():
+            data[playmode][songname][difficulty]['attributes'][attribute] = {
+                'lower': 0.00,
+                'upper': 200.00,
+            }
         
         ratio = Decimal(str(score / (notes * 2)))
 
