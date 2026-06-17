@@ -16,11 +16,11 @@ BASE_URL: str = 'https://bpi2.poyashi.me/api/v1'
 FIREBASE_WEB_API_KEY: str = None
 API_KEY: str = None
 
-REREQUEST_MINSPAN: int = 1 * 60 * 60 * 24
+REREQUEST_MINSPAN: int = 2 * 60 * 60 * 24
 '''前回リクエストからの再リクエストの最小スパン(秒)
 '''
 
-CACHESAVE_MINSPAN: float = 1 * 60
+CACHESAVE_MINSPAN: float = 10 * 60
 '''キャッシュファイル保存の最小スパン(秒)
 '''
 
@@ -68,7 +68,10 @@ def bpim2_getchartbpi(songname:str, difficulty:str, score:int) -> float:
 
         return result['bpi']
 
-    return chartbpicache[songname][difficulty]['bpi']
+    if not difficulty in chartbpicache[songname].keys():
+        return None
+    
+    return  chartbpicache[songname][difficulty]['bpi']
 
 def bpim2_savecache():
     Bpim2ChartBpiCache.save(chartbpicache)
@@ -183,7 +186,8 @@ def calculate_bpi(songname:str, difficulty:str, score:int) -> dict:
         params={'title': songname, 'difficulty': difficulty, 'exScore': score}
     )
 
-    logger.debug(f'calculated {songname} {difficulty}: {result["bpi"]}')
+    if result:
+        logger.debug(f'calculated {songname} {difficulty}: {result["bpi"]}')
 
     return result
 
