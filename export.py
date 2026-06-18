@@ -343,10 +343,10 @@ def output(notebook: NotebookSummary):
                                 if key1 in record['achievement'].keys():
                                     target.cleartype = record['achievement'][key1]['clear_type'] or ''
                                     target.djlevel = record['achievement'][key1]['dj_level'] or ''
-                    
-                    if musicname in notesradar[playmode]['musics'].keys() and difficulty in notesradar[playmode]['musics'][musicname].keys():
-                        rowdata.notes = notesradar[playmode]['musics'][musicname][difficulty]['notes']
-                        rowdata.notesradar_attribute = '/'.join(notesradar[playmode]['musics'][musicname][difficulty]['attributes'])
+                
+                if musicname in notesradar[playmode]['musics'].keys() and difficulty in notesradar[playmode]['musics'][musicname].keys():
+                    rowdata.notes = notesradar[playmode]['musics'][musicname][difficulty]['notes']
+                    rowdata.notesradar_attribute = '/'.join(notesradar[playmode]['musics'][musicname][difficulty]['attributes'])
                 
                 csv_output[playtype].append(rowdata)
 
