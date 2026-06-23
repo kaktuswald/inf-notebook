@@ -38,6 +38,7 @@ class Resource():
         self.load_resource_musicselect()
         self.load_resource_notesradar()
         self.load_resource_unofficialdifficulty()
+        self.load_resource_deeper()
 
         self.imagevalue_musictableinformation = None
 
@@ -82,6 +83,11 @@ class Resource():
         resourcename = f'unofficialdifficulty{define.unofficialdifficulty_version}'
         
         self.unofficialdifficulty: dict = load_resource_serialized(resourcename, True)
+    
+    def load_resource_deeper(self):
+        resourcename = f'deeper{define.deeper_version}'
+
+        self.deeper: dict = load_resource_serialized(resourcename, True)
 
 class ResourceTimestamp():
     def __init__(self, resourcename):

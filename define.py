@@ -138,6 +138,7 @@ class Define():
     musicselect_recognition_version = '2.3'
     notesradar_version = '1.2'
     unofficialdifficulty_version = '1.0'
+    deeper_version = '0.2'
 
     informations_trimpos = (560, 910)
     informations_trimsize = (800, 156)
@@ -231,6 +232,7 @@ class Define():
         self.musicselect_resourcename = f'musicselect{self.musicselect_recognition_version}'
         self.notesradar_resourcename = f'notesradar{self.notesradar_version}'
         self.unofficialdifficulty_resourcename = f'unofficialdifficulty{self.unofficialdifficulty_version}'
+        self.deeper_resourcename = f'deeper{self.deeper_version}'
 
         self.details_trimareas = {}
         for playside in self.details_trimpos.keys():

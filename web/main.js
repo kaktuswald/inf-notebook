@@ -1,10 +1,11 @@
-
 let setting = null;
 
 let playmodes = null;
 
 let musictable = null;
 let notesradar = null;
+let unofficialdifficulty = null;
+let deeper = null;
 
 let drawer_imagenothing = null;
 let drawer_simpletext = null;
@@ -509,6 +510,7 @@ async function loadresourceafterprocessing() {
   await loadresource_musictable();
   await loadresource_notesradar();
   await loadresource_unofficialdifficulty();
+  await loadresource_deeper();
 
   await set_arcadecsvversions();
 
@@ -793,6 +795,13 @@ async function loadresource_notesradar() {
  */
 async function loadresource_unofficialdifficulty() {
   unofficialdifficulty = JSON.parse(await webui.getresource_unofficialdifficulty());
+}
+
+/**
+ * DEEPERリソースデータを読み出す
+ */
+async function loadresource_deeper() {
+  deeper = JSON.parse(await webui.getresource_deeper());
 }
 
 /**
@@ -1251,12 +1260,37 @@ async function display_chartdata() {
       if(Object.hasOwn(target, selected_chart.playtype)) {
         target = target[selected_chart.playtype];
         if(Object.hasOwn(target, selected_chart.difficulty)) {
-          target = target[selected_chart.difficulty];
-          target.forEach(v => {
-            const value = $('<li>').text(v);
-            $('ul#unofficialdifficulties').append(value);
+          const content = $('<li>');
+          target[selected_chart.difficulty].forEach(v => {
+            content.append($('<div>').text(v));
           });
+          $('ul#unofficialdifficulties').append(content);
         }
+      }
+    }
+  }
+
+  if(selected_chart.playtype == 'DP' && deeper) {
+    let target = deeper;
+    if(Object.hasOwn(target, selected_chart.songname)) {
+      target = target[selected_chart.songname];
+      if(Object.hasOwn(target, selected_chart.difficulty)) {
+        target = target[selected_chart.difficulty];
+
+        const content = $('<li>');
+        content.append($('<div>').text(`DEEPER Level ${target.unofficial_level} (generated ${new Date(target.generated_at).toLocaleString()})`));
+        content.append($('<div>').text([
+          'Rates',
+          `ASSIST:${parseInt(target.assist_rate*100)}%`,
+          `EASY:${parseInt(target.easy_rate*100)}%`,
+        ].join(' ')));
+        content.append($('<div>').text([
+          `CLEAR:${parseInt(target.normal_rate*100)}%`,
+          `HARD:${parseInt(target.hard_rate*100)}%`,
+          `EX-HARD:${parseInt(target.exhard_rate*100)}%`,
+          `FC:${parseInt(target.fc_rate*100)}%`,
+        ].join(' ')));
+        $('ul#unofficialdifficulties').append(content);
       }
     }
   }

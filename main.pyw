@@ -320,6 +320,10 @@ class GuiApi():
         event.return_string(dumps(resource.unofficialdifficulty))
     
     @staticmethod
+    def get_resource_deeper(event: webui.Event):
+        event.return_string(dumps(resource.deeper))
+    
+    @staticmethod
     def get_arcadecsv_versions(event: webui.Event):
         event.return_string(dumps(arcadecsv_versions))
     
@@ -351,6 +355,7 @@ class GuiApi():
         window.bind('getresource_musictable', GuiApi.get_resource_musictable)
         window.bind('getresource_notesradar', GuiApi.get_resource_notesradar)
         window.bind('getresource_unofficialdifficulty', GuiApi.get_resource_unofficialdifficulty)
+        window.bind('getresource_deeper', GuiApi.get_resource_deeper)
         window.bind('get_arcadecsv_versions', GuiApi.get_arcadecsv_versions)
         window.bind('check_imagesavepath', GuiApi.check_imagesavepath)
 
@@ -2606,6 +2611,10 @@ def check_resource():
     unofficialdifficulty_filename = f'{define.unofficialdifficulty_resourcename}.res'
     if download_latestresource(storage, unofficialdifficulty_filename):
         resource.load_resource_unofficialdifficulty()
+
+    deeper_filename = f'{define.deeper_resourcename}.res'
+    if download_latestresource(storage, deeper_filename):
+        resource.load_resource_deeper()
     
     download_latestresource(storage, musicnamechanges_filename)
     
