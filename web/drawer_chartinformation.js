@@ -323,10 +323,7 @@ class DrawerChartinformation {
     }
     ctx.restore();
 
-    const timer = new PerformanceTimer();
     const blob = await this.canvas.convertToBlob();
-    if(setting.debug)
-      console.log(`chart information convert blob time: ${timer.time} ms`);
 
     return blob;
   }

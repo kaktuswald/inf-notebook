@@ -36,10 +36,8 @@ class DrawerChartgraph {
    * @returns {blob} 画像データ
    */
   async draw(values, xrange, notes, charttype, songname) {
-    if(this.chart !== null) {
-      const time = await release_wait(this.chart);
-      console.log(`%cchart graph wait time: ${time} ms`, 'color: orange;');
-    }
+    if(this.chart !== null)
+      await release_wait(this.chart);
     
     this.chart = new Chart(this.canvas.getContext('2d'), {
       type: 'scatter',
@@ -291,10 +289,7 @@ class DrawerChartgraph {
       ],
     });
 
-    const timer = new PerformanceTimer();
     const blob = await this.canvas.convertToBlob();
-    if(setting.debug)
-      console.log(`chart graph convert blob time: ${timer.time} ms`);
 
     this.chart.destroy();
     this.chart = null;

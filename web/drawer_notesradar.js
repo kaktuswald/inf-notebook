@@ -226,10 +226,7 @@ class DrawerNotesradar {
 
     ctx.restore();
 
-    const timer = new PerformanceTimer();
     const blob = await this.canvas_playerradarcombined.convertToBlob();
-    if(setting.debug)
-      console.log(`player notesradar convert blob time: ${timer.time} ms`);
 
     return blob;
   }
@@ -249,10 +246,8 @@ class DrawerNotesradar {
     const bordercolor = DrawerNotesradar.chart_notesradar_bordercolors[values.indexOf(maxvalue)];
     const backgroundcolor = DrawerNotesradar.chart_notesradar_backgroundcolors[values.indexOf(maxvalue)];
 
-    if(this.chart_chartradar !== null) {
-      const time = await release_wait(this.chart_chartradar);
-      console.log(`%cchart notesradar wait time: ${time} ms`, 'color: orange;');
-    }
+    if(this.chart_chartradar !== null)
+      await release_wait(this.chart_chartradar);
     
     this.chart_chartradar = new Chart(this.canvas_chartradarchart, {
       type: 'radar',
@@ -355,10 +350,7 @@ class DrawerNotesradar {
       ],
     });
 
-    const timer = new PerformanceTimer();
     const blob = await this.canvas_chartradarchart.convertToBlob();
-    if(setting.debug)
-      console.log(`chart notesradar convert blob time: ${timer.time} ms`);
 
     this.chart_chartradar.destroy();
     this.chart_chartradar = null;
