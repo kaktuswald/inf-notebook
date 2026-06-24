@@ -1281,14 +1281,14 @@ async function display_chartdata() {
         content.append($('<div>').text(`DEEPER Level ${target.unofficial_level} (generated ${new Date(target.generated_at).toLocaleString()})`));
         content.append($('<div>').text([
           'Rates',
-          `ASSIST:${parseInt(target.assist_rate*100)}%`,
-          `EASY:${parseInt(target.easy_rate*100)}%`,
+          `ASSIST:${target.assist_rate}%`,
+          `EASY:${target.easy_rate}%`,
         ].join(' ')));
         content.append($('<div>').text([
-          `CLEAR:${parseInt(target.normal_rate*100)}%`,
-          `HARD:${parseInt(target.hard_rate*100)}%`,
-          `EX-HARD:${parseInt(target.exhard_rate*100)}%`,
-          `FC:${parseInt(target.fc_rate*100)}%`,
+          `CLEAR:${target.normal_rate}%`,
+          `HARD:${target.hard_rate}%`,
+          `EX-HARD:${target.exhard_rate}%`,
+          `FC:${target.fc_rate}%`,
         ].join(' ')));
         $('ul#unofficialdifficulties').append(content);
       }
