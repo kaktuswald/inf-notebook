@@ -1,5 +1,6 @@
-from os.path import join,exists
 import json
+from os import listdir
+from os.path import join,exists,isdir
 from decimal import Decimal,ROUND_UP
 from logging import getLogger
 
@@ -18,9 +19,10 @@ from data_collection import collection_basepath
 
 resource_filename = f'notesradar{define.notesradar_version}.res'
 
-radardata_dirpath = join(registries_dirname, 'notesradars')
+registerdata_dirpath = join(registries_dirname, 'notesradars')
+registerdata_filepath = join(registerdata_dirpath, 'notesradar.csv')
 
-radardata2_filepath = join(collection_basepath, 'notesradarvalues.json')
+collectiondata_filepath = join(collection_basepath, 'notesradarvalues.json')
 
 differentcharts_filepath = join(registries_dirname, 'different_chart.json')
 convertsongnames_filepath = join(registries_dirname, 'notesradar_convertsongnames.json')
@@ -30,83 +32,74 @@ report_name = 'notesradar'
 def generate():
     musics: dict = resource.musictable['musics']
 
-    csvradardata = load_csvfiles()
-    jsonradardata = load_collectiondata(radardata2_filepath)
+    registerdata = []
+    for filename in listdir(registerdata_dirpath):
+        filepath = join(registerdata_dirpath, filename)
+        if isdir(filepath):
+            registerdata.append(
+                pd.read_csv(
+                    join(filepath, 'notesradar.csv'),
+                    keep_default_na=False,
+                    encoding='utf-8',
+                )
+            )
+    
+    collectiondata = load_collectiondata(collectiondata_filepath)
 
     different_charts = load_json(differentcharts_filepath)
     convertsongnames = load_json(convertsongnames_filepath)
 
     result: dict[str, dict[str, dict[str, dict[str, int | dict[str, float]]]| dict[str, list[dict[str, str | int]]]]] = {}
 
-    mismatch_notes = {}
     nousedsongnames = []
-    for playmode in csvradardata.keys():
-        result[playmode] = {'musics': {}, 'attributes': {}}
-        mismatch_notes[playmode] = {}
+    for data in registerdata:
+        for i, row in data.iterrows():
+            playmode = row['playmode']
+            if not playmode in result.keys():
+                result[playmode] = {'musics': {}}
+            
+            title = row['title']
+            songname = convertsongnames[title] if title in convertsongnames.keys() else title
 
-        result_musics = result[playmode]['musics']
-        for attribute in csvradardata[playmode].keys():
-            result[playmode]['attributes'][attribute] = []
+            if not songname in musics.keys():
+                if not songname in nousedsongnames:
+                    nousedsongnames.append(songname)
+                continue
 
-            df: pd.DataFrame = csvradardata[playmode][attribute]
+            if not songname in result[playmode]['musics'].keys():
+                result[playmode]['musics'][songname] = {}
 
-            for row in df.itertuples():
-                try:
-                    songname = str(row.タイトル)
-                    difficulty = str(row.難易度)
-                    notes = int(row.ノーツ数)
-                    value = float(row.MAX)
-                except Exception as ex:
-                    continue
-                
-                if songname in convertsongnames.keys():
-                    songname = convertsongnames[songname]
-                
-                if not songname in musics.keys():
-                    if not songname in nousedsongnames:
-                        nousedsongnames.append(songname)
-                    continue
-                
-                if songname in different_charts.keys():
-                    if playmode in different_charts[songname].keys():
-                        if difficulty in different_charts[songname][playmode]:
-                            continue
-                
-                if not songname in result_musics.keys():
-                    result_musics[songname] = {}
+            difficulty = row['difficulty']
+            if not difficulty in musics[songname][playmode].keys():
+                continue
 
-                if difficulty in result_musics[songname].keys():
-                    if result_musics[songname][difficulty]['notes'] != notes:
-                        if not songname in mismatch_notes[playmode].keys():
-                            mismatch_notes[playmode][songname] = {}
-                        if not difficulty in mismatch_notes[playmode][songname].keys():
-                            mismatch_notes[playmode][songname][difficulty] = [result_musics[songname][difficulty]['notes']]
-
-                        mismatch_notes[playmode][songname][difficulty].append(notes)
-                        
+            if songname in different_charts.keys():
+                if playmode in different_charts[songname].keys():
+                    if difficulty in different_charts[songname][playmode]:
                         continue
-                
-                if not difficulty in result_musics[songname].keys():
-                    result_musics[songname][difficulty] = {
-                        'notes': notes,
-                        'radars': {}
-                    }
 
-                    for attribute1 in NotesradarAttributes.values:
-                        result_musics[songname][difficulty]['radars'][attribute1] = 0
-                
-                result_musics[songname][difficulty]['radars'][attribute] = value
+            if not songname in result[playmode]['musics'].keys():
+                result[playmode]['musics'][songname] = {}
+            
+            notes = row['notes']
+            if not notes:
+                continue
 
-    for playmode in mismatch_notes.keys():
-        if len(mismatch_notes[playmode]):
-            report.error(f'Mismatch notes count: {playmode} {len(mismatch_notes[playmode])}')
-            for songname in mismatch_notes[playmode].keys():
-                for difficulty, value in mismatch_notes[playmode][songname].items():
-                    report.append_log(f'  {songname}({difficulty}): {value}')
+            result[playmode]['musics'][songname][difficulty] = {
+                'notes': int(notes),
+                'radars': {
+                    'NOTES': float(row['NOTES']) if row['NOTES'] else 0,
+                    'CHORD': float(row['CHORD']) if row['CHORD'] else 0,
+                    'PEAK': float(row['PEAK']) if row['PEAK'] else 0,
+                    'CHARGE': float(row['CHARGE']) if row['CHARGE'] else 0,
+                    'SCRATCH': float(row['SCRATCH']) if row['SCRATCH'] else 0,
+                    'SOF-LAN': float(row['SOF-LAN']) if row['SOF-LAN'] else 0,
+                },
+            }
 
     uncertains = []
     overrides = []
-    for playmode, target1 in jsonradardata.items():
+    for playmode, target1 in collectiondata.items():
         for songname, target2 in target1.items():
             if not songname in result[playmode]['musics'].keys():
                 result[playmode]['musics'][songname] = {}
@@ -114,11 +107,10 @@ def generate():
             for difficulty, target3 in target2.items():
                 if not difficulty in result[playmode]['musics'][songname].keys():
                     result[playmode]['musics'][songname][difficulty] = {
-                        'notes': notes,
+                        'notes': target3['notes'],
                         'radars': {attribute: 0 for attribute in NotesradarAttributes.values},
                     }
 
-                notes = target3['notes']
                 for attribute in target3['attributes'].keys():
                     predictedmaxlower = target3['attributes'][attribute]['lower']
                     predictedmaxupper = target3['attributes'][attribute]['upper']
@@ -175,21 +167,6 @@ def generate():
         report.append_log(f'Has overrides {len(overrides)}')
 
     save_resource_serialized(resource_filename, result, True)
-
-def load_csvfiles():
-    data = {}
-    for playmode in Playmodes.values:
-        data[playmode] = {}
-        for attribute in NotesradarAttributes.values:
-            filename = join(radardata_dirpath, f'{playmode} {attribute}.csv')
-            if exists(filename):
-                data[playmode][attribute] = pd.read_csv(
-                    filename,
-                    keep_default_na=False,
-                    encoding='utf-8',
-                )
-
-    return data
 
 def load_json(filepath: str):
     if not exists(filepath):
