@@ -127,11 +127,20 @@ def generate():
 
                     result[playmode]['musics'][songname][difficulty]['radars'][attribute] = predictedmaxlower
 
+    allnothings = []
     for playmode in Playmodes.values:
-        for songradars in result[playmode]['musics'].values():
-            for chartvalue in songradars.values():
+        for songname, songradars in result[playmode]['musics'].items():
+            removedifficulties = []
+            for difficulty, chartvalue in songradars.items():
                 maxvalue = max(chartvalue['radars'].values())
-                chartvalue['attributes'] = [key for key, value in chartvalue['radars'].items() if value == maxvalue]
+                if maxvalue:
+                    chartvalue['attributes'] = [key for key, value in chartvalue['radars'].items() if value == maxvalue]
+                else:
+                    removedifficulties.append(difficulty)
+                    allnothings.append(f'{playmode} {songname} {difficulty}')
+            
+            for difficulty in removedifficulties:
+                del songradars[difficulty]
 
         result[playmode]['attributes'] = {}
         for attribute in NotesradarAttributes.values:
@@ -157,6 +166,12 @@ def generate():
     output_missings(musics, result)
 
     report.output_list(nousedsongnames, 'nousedsongnames.txt')
+    if len(nousedsongnames):
+        report.append_log(f'Has no used songnames {len(uncertains)}')
+
+    report.output_list(allnothings, 'allnothings.txt')
+    if len(uncertains):
+        report.append_log(f'Has allnothings {len(uncertains)}')
 
     report.output_list(uncertains, 'uncertains.txt')
     if len(uncertains):
