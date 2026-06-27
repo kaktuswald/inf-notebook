@@ -34,31 +34,28 @@ def bpim2_getchartbpi(songname:str, difficulty:str, score:int) -> float:
 
     nowdt = datetime.now()
 
-    shouldrequest = not songname in chartbpicache.keys()
-    if not shouldrequest and chartbpicache[songname]:
-        shouldrequest = not difficulty in chartbpicache[songname].keys()
-        if not shouldrequest and chartbpicache[songname][difficulty]:
-            shouldrequest = chartbpicache[songname][difficulty]['score'] > score
+    shouldrequest = not chartbpicache.get(songname)
+    if not shouldrequest:
+        shouldrequest = not chartbpicache[songname].get(difficulty)
         if not shouldrequest:
-            shouldrequest = (nowdt - chartbpicache[songname][difficulty]['dt']).seconds > REREQUEST_MINSPAN
+            shouldrequest = any([
+                chartbpicache[songname][difficulty]['score'] > score,
+                (nowdt - chartbpicache[songname][difficulty]['dt']).seconds > REREQUEST_MINSPAN,
+            ])
     
     if shouldrequest:
         if not songname in chartbpicache.keys():
             chartbpicache[songname] = {}
         
         result = calculate_bpi(songname, difficulty, score)
+        bpi = result['bpi'] if result else None
         callcount += 1
-
-        if not result:
-            chartbpicache[songname][difficulty] = None
-            return None
-
         nowtime = time()
 
         chartbpicache[songname][difficulty] = {
             'dt': nowdt,
             'score': score,
-            'bpi': result['bpi'],
+            'bpi': bpi,
         }
 
         if cachesaved_datetime is None or nowtime - cachesaved_datetime > CACHESAVE_MINSPAN:
@@ -66,7 +63,7 @@ def bpim2_getchartbpi(songname:str, difficulty:str, score:int) -> float:
             cachesaved_datetime = nowtime
             logger.debug(f'saved bpim2 chartbpi cache: {nowdt}')
 
-        return result['bpi']
+        return bpi
 
     if not difficulty in chartbpicache[songname].keys():
         return None
