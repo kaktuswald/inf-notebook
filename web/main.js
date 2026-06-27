@@ -346,7 +346,10 @@ $(function() {
 async function initialize() {
   document.body.addEventListener('contextmenu', e => e.stopPropagation(), true);
 
+  webui.check_useragent(JSON.stringify(navigator.userAgent));
+
   const version = await webui.get_version();
+  $('title').text(`${$('title').text()} ${version}`);
   $('span#version').text(version);
 
   const fontfamily = $('body').css('font-family');
