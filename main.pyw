@@ -46,6 +46,7 @@ from PIL import Image
 from global_hotkeys import register_hotkeys,clear_hotkeys,start_checking_hotkeys
 import requests
 from numpy import array
+from psutil import process_iter
 
 logger.getChild('urllib3').setLevel(WARNING)
 logger.getChild('PIL').setLevel(WARNING)
@@ -78,11 +79,12 @@ from export import (
 )
 from export import output as output_summary
 from windows import (
-    find_window,
+    find_mywindow,
+    find_gamewindow,
     get_rect,
     check_rectsize,
-    gethandle,
     show_messagebox,
+    get_filename,
     maximize,
     get_window_state,
     move_window,
@@ -138,6 +140,8 @@ releases_url = urljoin(base_url, 'releases/')
 latest_url = urljoin(releases_url, 'latest')
 wiki_url = urljoin(base_url, 'wiki/')
 
+browser_exename = None
+
 class LoggingHandler(Handler):
     def emit(self, record:LogRecord):
         if newwindow is None:
@@ -186,7 +190,7 @@ class ThreadCapture(Thread):
 
     def routine(self):
         if self.handle == 0:
-            self.handle = find_window(gamewindowtitle, exename)
+            self.handle = find_gamewindow(gamewindowtitle, exename)
             if self.handle == 0:
                 return
 
@@ -472,6 +476,10 @@ class GuiApi():
     image_scoregraph: dict[str, str|bytes] = None
 
     @staticmethod
+    def check_useragent(event: Event):
+        logger.info(event.get_string_at(0))
+    
+    @staticmethod
     def get_version(event: Event):
         event.return_string(version)
 
@@ -558,8 +566,8 @@ class GuiApi():
         self.notebooks = notebooks
         self.googleapi_accesor = googleapi_accesor
 
+        window.bind('check_useragent', GuiApi.check_useragent)
         window.bind('get_version', GuiApi.get_version)
-
         window.bind('get_imagesize', GuiApi.get_imagesize)
 
         window.bind('get_playmodes', GuiApi.get_playmodes)
@@ -2080,22 +2088,27 @@ class ChartSelection():
         self.songname = songname
         self.difficulty = difficulty
 
-def get_hwnd_window() -> int|None:
-    hwnd = None
-    starttime = time.time()
-    while not hwnd and time.time() - starttime <= 5:
-        hwnd = gethandle(windowtitle)
-        time.sleep(0.1)
-    
-    logger.debug(f'get hwnd time {time.time() - starttime}')
+def check_windowopend() -> bool:
+    '''自身のウィンドウの有無を確認する
+    '''
+    return find_mywindow(browser_exename, ['インフィニタス', 'リザルト手帳', version])
 
-    return hwnd
+def wait_windowopen() -> bool:
+    '''自身のウィンドウが確認できるのを待つ'''
+    is_find = False
+    starttime = time.time()
+    while not is_find and time.time() - starttime <= 10:
+        is_find = check_windowopend()
+    
+    logger.debug(f'confirm my window time: {time.time() - starttime} sec')
+
+    return is_find
 
 def mainloop():
     while not event_close.wait(timeout=1):
         if not newwindow.is_shown():
             return
-        if not gethandle(windowtitle):
+        if not check_windowopend():
             return
         if not queue_result_screen.empty():
             result_process(queue_result_screen.get_nowait())
@@ -2800,7 +2813,12 @@ def load_overlayimages():
         }
 
 if __name__ == '__main__':
-    if gethandle(windowtitle) is not None:
+    processes = []
+    for process in process_iter(['name']):
+        if process.info['name'] and process.info['name'] == 'infnotebook.exe':
+            processes.append(process)
+    
+    if len(processes) >= 2:
         show_messagebox('多重起動はできません。', windowtitle)
         exit()
     
@@ -2877,9 +2895,18 @@ if __name__ == '__main__':
 
     collectionuploader = CollectionUploader(setting, storage)
 
+    logger.debug(f'best browser: {newwindow.get_best_browser()}({newwindow.get_best_browser().name})')
+
+    browser = newwindow.get_best_browser()
     newwindow.show('index.html')
-    hwnd_window = get_hwnd_window()
-    if hwnd_window is None:
+
+    myhandle = newwindow.win32_get_hwnd()
+    logger.debug(f'webui2 getted hwnd: {myhandle}')
+
+    browser_exename = get_filename(myhandle)
+    logger.debug(f'browse exe name: {browser_exename}')
+
+    if not wait_windowopen():
         show_messagebox('起動に失敗しました。', windowtitle)
 
         webui.clean()

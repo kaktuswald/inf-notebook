@@ -177,6 +177,12 @@ MonitorEnumProc = WINFUNCTYPE(
     c_double,
 )
 
+WindowEnumProc = WINFUNCTYPE(
+    c_bool,
+    HWND,
+    POINTER(LPARAM),
+)
+
 SetProcessDpiAwareness = windll.shcore.SetProcessDpiAwareness
 SetProcessDpiAwareness.argtypes = (c_int,)
 SetProcessDpiAwareness.restype = HRESULT
@@ -245,6 +251,10 @@ GetWindowPlacement = windll.user32.GetWindowPlacement
 GetWindowPlacement.argtypes = (HWND, POINTER(WINDOWPLACEMENT),)
 GetWindowPlacement.restype = BOOL
 
+EnumChildWindows = windll.user32.EnumChildWindows
+EnumChildWindows.argtypes = (HWND, WindowEnumProc, LPARAM,)
+EnumChildWindows.restype = BOOL
+
 rectsizes = (
     (1920, 1080),
     (1536, 864),
@@ -260,6 +270,11 @@ rectsizes = (
 SetProcessDpiAwareness(PROCESS_DPI_AWARENESS.PROCESS_DPI_UNAWARE)
 
 def get_filename(hwnd:int) -> str:
+    '''ウィンドウのハンドルから実行ファイル名を取得
+    
+    Args:
+        hwnd(int): 対象のウィンドウのハンドル
+    '''
     processid = c_ulong()
     threadid = GetWindowThreadProcessId(hwnd, pointer(processid))
     if not threadid or not processid:
@@ -281,7 +296,64 @@ def get_filename(hwnd:int) -> str:
     except:
         return None
 
-def find_window(title:str, filename:str) -> int:
+def get_windowtitle(hwnd:HWND) -> str:
+    '''ウィンドウのハンドルからウィンドウのタイトルを取得
+    
+    Args:
+        hwnd(int): 対象のウィンドウのハンドル
+    '''
+    length = GetWindowTextLengthW(hwnd)
+    if not length:
+        return None
+    
+    title = create_unicode_buffer(length + 1)
+    length = GetWindowTextW(hwnd, title, length + 1)
+
+    return title.value
+
+def find_mywindow(filename:str, keywords: list[str]) -> bool:
+    '''条件に一致するウィンドウを探す
+    
+    Args:
+        filename(str): 実行ファイル名
+        keywords(list): タイトルに含まれるキーワードのリスト
+    '''
+    def foreach_window(hwnd:HWND, lParam:LPARAM) -> bool:
+        if IsHungAppWindow(hwnd):
+            return True
+        
+        targetfilename = get_filename(hwnd)
+        if targetfilename != filename:
+            return True
+        
+        length = GetWindowTextLengthW(hwnd)
+        if not length:
+            return True
+        
+        title = create_unicode_buffer(length + 1)
+        length = GetWindowTextW(hwnd, title, length + 1)
+
+
+        if all([keyword in title.value for keyword in keywords]):
+            handles.append(hwnd)
+
+        return True
+    
+    handles = []
+    EnumWindows(enumWindowsProc(foreach_window), 0)
+
+    return len(handles) > 0
+
+def find_gamewindow(title:str, filename:str) -> int:
+    '''条件に一致するウィンドウを探す
+    
+    Args:
+        title(str): ウィンドウのタイトル
+        filename(str): 実行ファイル名
+    
+    Returns:
+        (int) ウィンドウのハンドル
+    '''
     def foreach_window(hwnd:HWND, lParam:LPARAM) -> bool:
         if IsHungAppWindow(hwnd):
             return True
@@ -408,7 +480,7 @@ def move_window(hwnd:int, left:int, top:int, width:int, height:int) -> bool:
     return ret
 
 def get_monitors() -> dict[int, Monitor]|None:
-    def callback(hMonitor:HMONITOR, hdcMonitor:HDC, lprcMonitor:POINTER(RECT), dwData:LPARAM) -> BOOL:
+    def callback(hMonitor:HMONITOR, hdcMonitor:HDC, lprcMonitor:POINTER, dwData:LPARAM) -> BOOL:
         info = MONITORINFO()
         info.cbSize = sizeof(MONITORINFO)
         GetMonitorInfoW(hMonitor, byref(info))
@@ -431,8 +503,19 @@ def get_monitors() -> dict[int, Monitor]|None:
     
     return monitors
 
+def get_child_windows(hwnd: int) -> any:
+    childs = []
+    
+    def callback(hwnd:HWND, lParam:POINTER):
+        childs.append(hwnd)
+        return True
+    
+    EnumChildWindows(hwnd, WindowEnumProc(callback), 0)
+
+    return childs
+
 if __name__ == '__main__':
     gamewindowtitle = 'beatmania IIDX INFINITAS'
     exename = 'bm2dx.exe'
 
-    print(find_window(gamewindowtitle, exename))
+    print(find_gamewindow(gamewindowtitle, exename))

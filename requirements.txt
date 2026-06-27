@@ -6,3 +6,4 @@ google-auth-oauthlib==1.2.4
 google-api-python-client==2.194.0
 websockets==16.0
 webui2==2.5.8
+psutil==7.2.2
