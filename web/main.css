@@ -376,3 +376,15 @@ dialog#dialog_inquiryform {
         font-size: small;
     }
 }
+
+dialog#dialog_specialthanks {
+    div.split_horizontal {
+        div.pane {
+            margin: 10px;
+        }
+    }
+
+    a {
+        color: #739c35;
+    }
+}

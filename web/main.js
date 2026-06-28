@@ -301,6 +301,7 @@ $(function() {
   $('button#button_inquiryform_open').on('click', onclick_inquiryform_open);
   $('button#button_inquiryform_selectfile').on('click', onclick_inquiryform_selectfile);
   $('button#button_inquiryform_send').on('click', onclick_inquiryform_send);
+  $('button#button_specialthanks_open').on('click', onclick_specialthanks_open);
 
   $('button#button_reset_layout').on('click', onclick_reset_layout);
 
@@ -2346,6 +2347,7 @@ function set_filenames(filenames) {
     );
   }
 }
+
 /**
  * 問い合わせ内容を送信する
  * @param {ce.Event} e イベントハンドラ
@@ -2365,6 +2367,14 @@ async function onclick_inquiryform_send(e) {
   $('dialog#dialog_inquiryform_complete')[0].showModal();
 
   $(this).closest('dialog')[0].close();
+}
+
+/**
+ * スペシャルサンクスを表示する
+ * @param {ce.Event} e イベントハンドラ
+ */
+async function onclick_specialthanks_open(e) {
+  $('dialog#dialog_specialthanks')[0].showModal();
 }
 
 /**
