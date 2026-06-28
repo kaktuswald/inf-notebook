@@ -11,6 +11,7 @@ else:
 logger.debug(f'loaded {logger.name}')
 
 import pandas as pd
+import json5
 
 from define import Playmodes,NotesradarAttributes,define
 from resources import resource
@@ -20,50 +21,45 @@ from data_collection import collection_basepath
 resource_filename = f'notesradar{define.notesradar_version}.res'
 
 registerdata_dirpath = join(registries_dirname, 'notesradars')
-registerdata_filepath = join(registerdata_dirpath, 'notesradar.csv')
 
 collectiondata_filepath = join(collection_basepath, 'notesradarvalues.json')
 
-differentcharts_filepath = join(registries_dirname, 'different_chart.json')
-convertsongnames_filepath = join(registries_dirname, 'notesradar_convertsongnames.json')
+differentcharts_filepath = join(registries_dirname, 'different_chart.json5')
 
 report_name = 'notesradar'
 
 def generate():
     musics: dict = resource.musictable['musics']
 
-    registerdata = []
+    registerdata = {}
     for filename in listdir(registerdata_dirpath):
         filepath = join(registerdata_dirpath, filename)
         if isdir(filepath):
-            registerdata.append(
-                pd.read_csv(
-                    join(filepath, 'notesradar.csv'),
-                    keep_default_na=False,
-                    encoding='utf-8',
-                )
+            registerdata[filename] = pd.read_csv(
+                join(filepath, 'notesradar.csv'),
+                keep_default_na=False,
+                encoding='utf-8',
             )
     
     collectiondata = load_collectiondata(collectiondata_filepath)
 
-    different_charts = load_json(differentcharts_filepath)
-    convertsongnames = load_json(convertsongnames_filepath)
+    different_charts = load_json5(differentcharts_filepath)
 
     result: dict[str, dict[str, dict[str, dict[str, int | dict[str, float]]]| dict[str, list[dict[str, str | int]]]]] = {}
 
     nousedsongnames = []
-    for data in registerdata:
+    for key, data in registerdata.items():
         for i, row in data.iterrows():
             playmode = row['playmode']
             if not playmode in result.keys():
                 result[playmode] = {'musics': {}}
             
-            title = row['title']
-            songname = convertsongnames[title] if title in convertsongnames.keys() else title
+            songname = row['title']
 
             if not songname in musics.keys():
-                if not songname in nousedsongnames:
-                    nousedsongnames.append(songname)
+                text = f'({key})\t{songname}'
+                if not text in nousedsongnames:
+                    nousedsongnames.append(text)
                 continue
 
             if not songname in result[playmode]['musics'].keys():
@@ -167,11 +163,11 @@ def generate():
 
     report.output_list(nousedsongnames, 'nousedsongnames.txt')
     if len(nousedsongnames):
-        report.append_log(f'Has no used songnames {len(uncertains)}')
+        report.append_log(f'Has nousedsongnames {len(nousedsongnames)}')
 
     report.output_list(allnothings, 'allnothings.txt')
     if len(uncertains):
-        report.append_log(f'Has allnothings {len(uncertains)}')
+        report.append_log(f'Has allnothings {len(allnothings)}')
 
     report.output_list(uncertains, 'uncertains.txt')
     if len(uncertains):
@@ -183,12 +179,12 @@ def generate():
 
     save_resource_serialized(resource_filename, result, True)
 
-def load_json(filepath: str):
+def load_json5(filepath: str):
     if not exists(filepath):
         return {}
     
     with open(filepath, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+        data = json5.load(f)
     
     return data
     
