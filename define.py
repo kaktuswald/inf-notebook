@@ -138,7 +138,7 @@ class Define():
     musicselect_recognition_version = '2.3'
     notesradar_version = '1.2'
     unofficialdifficulty_version = '1.0'
-    deeper_version = '0.3'
+    deeper_version = '1.0'
 
     informations_trimpos = (560, 910)
     informations_trimsize = (800, 156)
