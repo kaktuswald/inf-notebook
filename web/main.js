@@ -2309,6 +2309,7 @@ async function onclick_inquiryform_open(e) {
   $('input#mail_inquirymailaddress').val('');
   $('textarea#textarea_inquirymessage').val('');
   $('div#inquiryfilenames').empty();
+  $('span#inquiry_message').empty();
   $('dialog#dialog_inquiryform button').prop('disabled', false);
 
   $('dialog#dialog_inquiryform')[0].showModal();
@@ -2321,8 +2322,13 @@ async function onclick_inquiryform_open(e) {
 async function onclick_inquiryform_selectfile(e) {
   const result = JSON.parse(await webui.inquiry_browsefiles());
 
-  if(result[0])
-    set_filenames(result[1]);
+  if(!result[0]) {
+    $('span#inquiry_message').text('送信ファイルの合計サイズが10MBを超えます。');
+    return;
+  }
+
+  $('span#inquiry_message').empty();
+  inquiry_setfilenames(result[1]);
 }
 
 /**
@@ -2332,10 +2338,14 @@ async function onclick_inquiryform_selectfile(e) {
 async function onclick_inquiryform_removefile(e) {
   const index = $(this).parent().index();
   const filenames = JSON.parse(await webui.inquiry_removefile(index));
-  set_filenames(filenames);
+  inquiry_setfilenames(filenames);
 }
 
-function set_filenames(filenames) {
+/**
+ * 問い合わせフォームの、選択中のファイル名のリストを表示する
+ * @param {*} filenames ファイル名のリスト
+ */
+function inquiry_setfilenames(filenames) {
   $('div#inquiryfilenames').empty();
 
   for(const filename of filenames) {
@@ -2356,19 +2366,29 @@ function set_filenames(filenames) {
  */
 async function onclick_inquiryform_send(e) {
   const message = $('textarea#textarea_inquirymessage').val();
-  if(!message) return;
+  if(!message) {
+    $('span#inquiry_message').text('メッセージを入力してください。');
+    return;
+  }
+
+  const category = $('select#select_inquirycategory').val();
+  const mailaddress = $('input#mail_inquirymailaddress').val();
+  if(category == 'question' && !mailaddress) {
+    $('span#inquiry_message').text('質問の場合はメールアドレスを入力してください。');
+    return;
+  }
 
   $('dialog#dialog_inquiryform button').prop('disabled', true);
+  $('span#inquiry_message').text('送信中...');
 
   await webui.inquiry_send(
-    $('select#select_inquirycategory').val(),
-    $('input#mail_inquirymailaddress').val(),
+    category,
+    mailaddress,
     message,
   );
 
-  $('dialog#dialog_inquiryform_complete')[0].showModal();
-
-  $(this).closest('dialog')[0].close();
+  $('span#inquiry_message').text('送信が完了しました。');
+  $('dialog#dialog_inquiryform button.dialogclose').prop('disabled', false);
 }
 
 /**

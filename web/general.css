@@ -255,6 +255,15 @@ span.toggle_on {
     background-color: var(--toggle-on-background-color);
 }
 
+span.warning {
+    color: var(--message-color);
+    font-size: small;
+}
+
+span.message {
+    color: var(--message-color);
+}
+
 .tableheader {
     font-size: x-small;
 }

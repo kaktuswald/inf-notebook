@@ -165,17 +165,8 @@ textarea#faildtestpostmessage {
     height: 70px;
 }
 
-span.message {
-    color: var(--message-color);
-}
-
 dialog#dialog_confirmregister {
     width: 400px;
-}
-
-div.warning {
-    color: var(--message-color);
-    font-size: small;
 }
 
 div#box_geteventsstatus {
