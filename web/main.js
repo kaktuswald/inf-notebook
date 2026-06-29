@@ -1280,9 +1280,11 @@ async function display_chartdata() {
       target = target[selected_chart.songname];
       if(Object.hasOwn(target, selected_chart.difficulty)) {
         target = target[selected_chart.difficulty];
+        
+        const dstar = target.d_star;
 
         const content = $('<li>');
-        content.append($('<div>').text(`DEEPER Level ${target.unofficial_level} (generated ${new Date(target.generated_at).toLocaleString()})`));
+        content.append($('<div>').text(`DEEPER D★${Number.isFinite(dstar) ? dstar.toFixed(2) : '??'} (generated ${new Date(target.generated_at).toLocaleString()})`));
         content.append($('<div>').text([
           'Rates',
           `ASSIST:${target.assist_rate}%`,
