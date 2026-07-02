@@ -51,11 +51,20 @@ def generate():
     for key, data in registerdata.items():
         for i, row in data.iterrows():
             playmode = row['playmode']
+            songname = row['title']
+            notescount = int(row['notes']) if row['notes'] != '' and row['notes'] != '#N/A' else None
+            notes = float(row['NOTES']) if row['NOTES'] != '' else None
+            chord = float(row['CHORD']) if row['CHORD'] != '' else None
+            peak = float(row['PEAK']) if row['PEAK'] != '' else None
+            charge = float(row['CHARGE']) if row['CHARGE'] != '' else None
+            scratch = float(row['SCRATCH']) if row['SCRATCH'] != '' else None
+            soflan = float(row['SOF-LAN']) if row['SOF-LAN'] != '' else None
+            if not all(v is not None for v in [playmode, songname, notescount, notes, chord, peak, charge, scratch, soflan]):
+                continue
+
             if not playmode in result.keys():
                 result[playmode] = {'musics': {}}
             
-            songname = row['title']
-
             if not songname in musics.keys():
                 text = f'({key})\t{songname}'
                 if not text in nousedsongnames:
@@ -77,19 +86,18 @@ def generate():
             if not songname in result[playmode]['musics'].keys():
                 result[playmode]['musics'][songname] = {}
             
-            notes = row['notes']
             if not notes:
                 continue
 
             result[playmode]['musics'][songname][difficulty] = {
-                'notes': int(notes),
+                'notes': notescount,
                 'radars': {
-                    'NOTES': float(row['NOTES']) if row['NOTES'] else 0,
-                    'CHORD': float(row['CHORD']) if row['CHORD'] else 0,
-                    'PEAK': float(row['PEAK']) if row['PEAK'] else 0,
-                    'CHARGE': float(row['CHARGE']) if row['CHARGE'] else 0,
-                    'SCRATCH': float(row['SCRATCH']) if row['SCRATCH'] else 0,
-                    'SOF-LAN': float(row['SOF-LAN']) if row['SOF-LAN'] else 0,
+                    'NOTES': notes or 0,
+                    'CHORD': chord or 0,
+                    'PEAK': peak or 0,
+                    'CHARGE': charge or 0,
+                    'SCRATCH': scratch or 0,
+                    'SOF-LAN': soflan or 0,
                 },
             }
 
