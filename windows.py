@@ -306,39 +306,6 @@ def get_windowtitle(hwnd:HWND) -> str:
 
     return title.value
 
-def find_mywindow(filename:str, keywords: list[str]) -> bool:
-    '''条件に一致するウィンドウを探す
-    
-    Args:
-        filename(str): 実行ファイル名
-        keywords(list): タイトルに含まれるキーワードのリスト
-    '''
-    def foreach_window(hwnd:HWND, lParam:LPARAM) -> bool:
-        if IsHungAppWindow(hwnd):
-            return True
-        
-        targetfilename = get_filename(hwnd)
-        if targetfilename != filename:
-            return True
-        
-        length = GetWindowTextLengthW(hwnd)
-        if not length:
-            return True
-        
-        title = create_unicode_buffer(length + 1)
-        length = GetWindowTextW(hwnd, title, length + 1)
-
-
-        if all([keyword in title.value for keyword in keywords]):
-            handles.append(hwnd)
-
-        return True
-    
-    handles = []
-    EnumWindows(enumWindowsProc(foreach_window), 0)
-
-    return len(handles) > 0
-
 def find_gamewindow(title:str, filename:str) -> int:
     '''条件に一致するウィンドウを探す
     

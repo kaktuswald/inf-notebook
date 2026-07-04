@@ -1,4 +1,3 @@
-import time
 from threading import Thread,Event
 from queue import Queue
 import webbrowser
@@ -82,7 +81,6 @@ from export import (
 )
 from export import output as output_summary
 from windows import (
-    find_mywindow,
     show_messagebox,
     get_filename,
 )
@@ -1949,37 +1947,15 @@ class ChartSelection():
         self.songname = songname
         self.difficulty = difficulty
 
-def check_windowopend() -> bool:
-    '''自身のウィンドウの有無を確認する
-    '''
-    return find_mywindow(browser_exename, ['インフィニタス', 'リザルト手帳', version])
-
-def wait_windowopen() -> bool:
-    '''自身のウィンドウが確認できるのを待つ'''
-    is_find = False
-    starttime = time.time()
-    while not is_find and time.time() - starttime <= 10:
-        is_find = check_windowopend()
-    
-    logger.debug(f'confirm my window time: {time.time() - starttime} sec')
-
-    return is_find
-
 def mainloop():
-    handlechecktime: float|None = None
     while True:
-        if thread_capture.event_close.is_set():
-            return
-
+        if not newwindow.get_hwnd():
+            webui.exit()
         if not newwindow.is_shown():
             return
         
-        now = time.time()
-        if not handlechecktime or now - handlechecktime > 1:
-            if not check_windowopend():
-                return
-            handlechecktime = now
-        
+        if thread_capture.event_close.is_set():
+            return
         if not thread_capture.queue_resultscreen.empty():
             result_process(thread_capture.queue_resultscreen.get_nowait())
         if not thread_capture.queue_musicselectscreen.empty():
@@ -2775,21 +2751,7 @@ if __name__ == '__main__':
     browser_exename = get_filename(myhandle)
     logger.debug(f'browse exe name: {browser_exename}')
 
-    if not wait_windowopen():
-        show_messagebox('起動に失敗しました。', windowtitle)
 
-        webui.clean()
-
-        socket_server.stop()
-        thread_capture.event_close.set()
-
-        if socket_server is not None and socket_server.is_alive():
-            socket_server.join()
-        if thread_capture is not None and thread_capture.is_alive():
-            thread_capture.join()
-
-        exit()
-    
     logger.addHandler(LoggingHandler())
 
     hotkeys = Hotkeys()
