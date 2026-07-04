@@ -334,6 +334,8 @@ $(function() {
 
   $('button#button_execute_findnewestversionaction').on('click', onclick_execute_findnewestversionaction);
 
+  $('a').on('click', onclick_link);
+
   $('button.dialogclose').on('click', onclick_button_dialogclose);
 
   $(window).on('message', onmessage_window);
@@ -2817,6 +2819,15 @@ function onclick_execute_findnewestversionaction(e) {
   $(this).closest('dialog')[0].close();
 }
 
+/**
+ * バックエンドを介してリンクを開く
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onclick_link(e) {
+  e.preventDefault();
+
+  webui.open_webpage($(this).attr('href'));
+}
 /**
  * ダイアログを閉じる
  * @param {ce.Event} e イベントハンドラ
