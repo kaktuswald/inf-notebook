@@ -152,6 +152,8 @@ def generate():
             for songname in result[playmode]['musics'].keys():
                 for difficulty in result[playmode]['musics'][songname].keys():
                     value = result[playmode]['musics'][songname][difficulty]['radars'][attribute]
+                    if not value:
+                        continue
                     if not value in rankingdata.keys():
                         rankingdata[value] = []
                     rankingdata[value].append({
