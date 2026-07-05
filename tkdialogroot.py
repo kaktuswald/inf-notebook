@@ -10,6 +10,8 @@ logger.debug(f'loaded {logger.name}')
 
 from infnotebook import title,icon_filename
 
+font = 'Meiryo'
+
 class TkDialogRoot():
     def __enter__(self):
         self.root = Tk()
@@ -64,10 +66,10 @@ class ProcessingMessage():
         top = self.root.winfo_screenheight() // 2 - height // 2
         self.root.geometry(f'{width}x{height}+{left}+{top}')
 
-        label_title = Label(self.root, text=title, font=('Arial', 20))
+        label_title = Label(self.root, text=title, font=(font, 20))
         label_title.pack(pady=20)
 
-        self.label_message = Label(self.root, text=self.message, font=('Arial', 16))
+        self.label_message = Label(self.root, text=self.message, font=(font, 16))
         self.label_message.pack(expand=True)
 
         return self

@@ -12,6 +12,7 @@ from uuid import uuid1
 from base64 import b64decode,b64encode
 from hashlib import sha256
 from sys import exit
+from time import time,sleep
 from logging import LogRecord,Formatter,getLogger,Handler,StreamHandler,FileHandler,DEBUG,INFO,WARNING
 
 from setting import CaptureMethods,Setting
@@ -2775,6 +2776,8 @@ if __name__ == '__main__':
     
     with ProcessingMessage(message_end) as endwindow:
         def task():
+            starttime = time()
+
             try:
                 hotkeys.stop()
             except Exception as ex:
@@ -2797,6 +2800,10 @@ if __name__ == '__main__':
 
             bpim2_savecache()
             logger.debug(f'bpim2 API call count: {bpim2_getcallcount()}')
+
+            elapsedtime = time() - starttime
+            if elapsedtime < 1:
+                sleep(1 - elapsedtime)
         
         endwindow.open(task)
 
