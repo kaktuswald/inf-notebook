@@ -1,4 +1,5 @@
-from tkinter import Tk,filedialog 
+from tkinter import Tk,Label,filedialog 
+from typing import Callable
 from logging import getLogger
 
 if __name__ == '__main__':
@@ -6,6 +7,8 @@ if __name__ == '__main__':
 else:
     logger = getLogger(__name__)
 logger.debug(f'loaded {logger.name}')
+
+from infnotebook import title,icon_filename
 
 class TkDialogRoot():
     def __enter__(self):
@@ -43,3 +46,41 @@ class TkDialogRoot():
         filepaths = filedialog.askdirectory(**kwargs)
         
         return filepaths if filepaths else None
+
+class ProcessingMessage():
+    def __init__(self, message:str):
+        self.message = message
+    
+    def __enter__(self):
+        self.root = Tk()
+        self.root.iconbitmap(icon_filename)
+        self.root.resizable(0, 0)
+        self.root.attributes('-topmost', True)
+        self.root.overrideredirect(True)
+
+        width = 350
+        height = 150
+        left = self.root.winfo_screenwidth() // 2 - width // 2
+        top = self.root.winfo_screenheight() // 2 - height // 2
+        self.root.geometry(f'{width}x{height}+{left}+{top}')
+
+        label_title = Label(self.root, text=title, font=('Arial', 20))
+        label_title.pack(pady=20)
+
+        self.label_message = Label(self.root, text=self.message, font=('Arial', 16))
+        self.label_message.pack(expand=True)
+
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if self.root:
+            self.root.destroy()
+    
+    def open(self, task:Callable):
+        def func():
+            task()
+            self.root.destroy()
+            self.root = None
+        
+        self.root.after(100, func)
+        self.root.mainloop()

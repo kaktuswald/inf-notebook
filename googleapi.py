@@ -170,6 +170,6 @@ class GoogleApiAccesor():
 
         return True
     
-    def __del__(self):
+    def close(self):
         if self.service is not None:
             self.service.close()

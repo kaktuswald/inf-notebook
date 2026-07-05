@@ -146,6 +146,9 @@ class Screenshot:
 
         return Screen(self.frame, filename)
     
+    def delete(self):
+        pass
+    
     @property
     def is_active(self) -> bool:
         return self.camera is not None

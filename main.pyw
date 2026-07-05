@@ -108,7 +108,7 @@ from arcadecsv import versions as arcadecsv_versions
 from versioncheck import version_isold
 from googleapi import GoogleApiAccesor
 from collection_uploader import CollectionUploader
-from tkdialogroot import TkDialogRoot
+from tkdialogroot import TkDialogRoot,ProcessingMessage
 from bpim2 import bpim2_getchartbpi,bpim2_savecache,bpim2_getcallcount
 
 windowtitle = f'インフィニタス リザルト手帳'
@@ -133,7 +133,7 @@ wiki_url = urljoin(base_url, 'wiki/')
 
 inquiry_maxfilesize = 1024 * 1024 * 10
 
-browser_exename = None
+message_end = '終了しています...'
 
 class LoggingHandler(Handler):
     def emit(self, record:LogRecord):
@@ -2674,6 +2674,10 @@ if __name__ == '__main__':
     if len(processes) >= 2:
         show_messagebox('多重起動はできません。', windowtitle)
         exit()
+
+    if setting.debug:
+        from time import time
+        initializestarttime = time()
     
     generate_exportsettingcss(setting.port['socket'])
 
@@ -2727,7 +2731,10 @@ if __name__ == '__main__':
     socket_server.recents = notebook_recent
 
     googleapi_accesor = GoogleApiAccesor()
-    
+
+    if setting.debug:
+        logger.debug(f'initialize: {time()-initializestarttime:.2f} s')
+
     webui.set_config(webui.Config.multi_client, True)
     webui.set_default_root_folder('web/')
 
@@ -2745,13 +2752,6 @@ if __name__ == '__main__':
     browser = newwindow.get_best_browser()
     newwindow.show('index.html')
 
-    myhandle = newwindow.win32_get_hwnd()
-    logger.debug(f'webui2 getted hwnd: {myhandle}')
-
-    browser_exename = get_filename(myhandle)
-    logger.debug(f'browse exe name: {browser_exename}')
-
-
     logger.addHandler(LoggingHandler())
 
     hotkeys = Hotkeys()
@@ -2763,15 +2763,6 @@ if __name__ == '__main__':
     logger.debug('start mainloop')
     mainloop()
 
-    hotkeys.stop()
-
-    if newwindow.is_shown():
-        newwindow.close()
-    newwindow.destroy()
-    newwindow = None
-    
-    webui.clean()
-
     socket_server.stop()
     thread_capture.event_close.set()
 
@@ -2780,16 +2771,32 @@ if __name__ == '__main__':
     if thread_capture is not None and thread_capture.is_alive():
         thread_capture.join()
 
-    del thread_capture.screenshot
+    thread_capture.screenshot.delete()
     
-    output_summary(notebook_summary)
-    output_notesradarcsv(notesradar)
-    
-    if setting.googleapi['driveupload']['use']:
-        if googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
-            setting.save()
-    
-    del googleapi_accesor
+    with ProcessingMessage(message_end) as endwindow:
+        def task():
+            try:
+                hotkeys.stop()
+            except Exception as ex:
+                logger.exception(ex)
+            
+            if newwindow.is_shown():
+                newwindow.close()
+            newwindow.destroy()
+            
+            webui.clean()
 
-    bpim2_savecache()
-    logger.debug(f'bpim2 API call count: {bpim2_getcallcount()}')
+            output_summary(notebook_summary)
+            output_notesradarcsv(notesradar)
+
+            if setting.googleapi['driveupload']['use']:
+                if googleapi_accesor.upload_googledrive(setting.googleapi['driveupload']['ids']):
+                    setting.save()
+            
+            googleapi_accesor.close()
+
+            bpim2_savecache()
+            logger.debug(f'bpim2 API call count: {bpim2_getcallcount()}')
+        
+        endwindow.open(task)
+

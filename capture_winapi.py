@@ -92,7 +92,7 @@ class Capture:
 
         return np.array(bytearray(self.buffer), dtype=np.uint8).reshape(self.height, self.width, 3)
 
-    def __del__(self):
+    def delete(self):
         windll.gdi32.DeleteObject(self.bitmap)
         windll.gdi32.DeleteDC(self.screen_copy)
         windll.gdi32.DeleteDC(self.screen)
@@ -157,10 +157,10 @@ class Screenshot:
 
         return Screen(self.np_value, filename)
 
-    def __del__(self):
+    def delete(self):
         for screen, pos, capture, value in self.checkscreens:
-            del capture
-        del self.capture
+            capture.delete()
+        self.capture.delete()
 
 class ThreadCapture(Thread):
     windottitle: str|None = None

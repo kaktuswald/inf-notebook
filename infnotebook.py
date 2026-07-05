@@ -4,6 +4,11 @@ productname: str = 'inf-notebook'
 各所のトップレベルのフォルダ名に使用する
 '''
 
+title: str = 'リザルト手帳'
+'''タイトル
+
+'''
+
 exe_filename: str = 'infnotebook.exe'
 '''実行ファイル名
 
