@@ -1950,7 +1950,7 @@ class ChartSelection():
 
 def mainloop():
     while True:
-        if not newwindow.get_hwnd():
+        if not newwindow.win32_get_hwnd():
             webui.exit()
         if not newwindow.is_shown():
             return
