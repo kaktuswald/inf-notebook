@@ -5,5 +5,6 @@
     ["Dans la nuit de leternite", "Dans la nuit de l'eternite"],
     ["栄光のカンパネラ", "栄冠のカンパネラ"],
     ["ウツミウツシ", "ウツシミウツシ"],
-    ["Destiny Lovers", "Destiny lovers"]
+    ["Destiny Lovers", "Destiny lovers"],
+    ["uan", "uen"]
 ]
