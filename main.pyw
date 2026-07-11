@@ -5,7 +5,7 @@ from datetime import datetime,timezone,timedelta
 from urllib.parse import urljoin
 from subprocess import Popen
 from os import sep
-from os.path import abspath,isfile,isdir,dirname,getsize
+from os.path import abspath,isfile,isdir,dirname,getsize,exists
 from pathlib import Path
 from json import dump,dumps,load,loads
 from uuid import uuid1
@@ -20,8 +20,7 @@ from setting import CaptureMethods,Setting
 setting = Setting()
 
 logger = getLogger()
-logger.setLevel(DEBUG if setting.debug else INFO)
-
+logger.setLevel(DEBUG if exists('DEBUG') or setting.debug else INFO)
 formatter = Formatter(
     fmt='%(asctime)s - %(name)s %(levelname)-7s %(message)s',
     # datefmt='%H:%M:%S',

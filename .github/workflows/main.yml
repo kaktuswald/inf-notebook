@@ -41,11 +41,14 @@ jobs:
         working-directory: build\
         run: mv exe.win-amd64-3.12 inf-notebook-installer
 
+      - name: Zip
+        run: Compress-Archive -Path build/inf-notebook-installer -DestinationPath ./inf-notebook-installer.zip
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: inf-notebook-installer
-          path: build
+          name: zipfile-installer
+          path: inf-notebook-installer.zip
           retention-days: 1
 
   windows-build:
@@ -85,12 +88,52 @@ jobs:
       - name: Delete no use file googleapi
         working-directory: build\inf-notebook\lib\googleapiclient\discovery_cache\documents\
         run: Get-ChildItem -Recurse -File | Where-Object { $_.Name -ne "drive.v3.json" } | Remove-Item -Force
-      
+
+      - name: Zip
+        run: Compress-Archive -Path build/inf-notebook -DestinationPath ./inf-notebook.zip
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: inf-notebook
-          path: build
+          name: zipfile
+          path: inf-notebook.zip
+          retention-days: 1
+
+      - name: Install pyinstaller
+        run: pip install pyinstaller==6.21.0
+    
+      - name: Build Installer Standalone
+        run: pyinstaller
+          --onefile
+          --add-data="version.txt:."
+          --add-data="icon.ico:."
+          --add-data="inf-notebook.zip:."
+          --icon=icon.ico
+          --name="inf-notebook-installer-standalone.exe"
+          installer_standalone.pyw
+
+      - name: Upload Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-standalone
+          path: dist/inf-notebook-installer-standalone.exe
+          retention-days: 1
+
+      - name: Build Installer Standalone Debug
+        run: pyinstaller
+          --onefile
+          --add-data="version.txt:."
+          --add-data="icon.ico:."
+          --add-data="inf-notebook.zip:."
+          --icon=icon.ico
+          --name="inf-notebook-installer-standalone-debug.exe"
+          installer_standalone_debug.pyw
+
+      - name: Upload Installer Debug
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-standalone-debug
+          path: dist/inf-notebook-installer-standalone-debug.exe
           retention-days: 1
 
   release:
@@ -106,29 +149,45 @@ jobs:
 
       - name: Set Environpment Zip File Name
         run: |
-          echo "zipfilename=inf-notebook-${{ github.ref_name }}.zip" >> "$GITHUB_ENV"
-          echo "zipfilename_installer=inf-notebook-installer${{ env.installer_version }}.zip" >> "$GITHUB_ENV"
+          echo "filename_zip=inf-notebook-${{ github.ref_name }}.zip" >> "$GITHUB_ENV"
+          echo "filename_installer_standalone=inf-notebook${{ github.ref_name }}-installer-standalone.exe" >> "$GITHUB_ENV"
+          echo "filename_installer_standalone_debug=inf-notebook${{ github.ref_name }}-installer-standalone-debug.exe" >> "$GITHUB_ENV"
+          echo "filename_installer_zip=inf-notebook-installer${{ env.installer_version }}.zip" >> "$GITHUB_ENV"
 
       - name: Download
         uses: actions/download-artifact@v4
         with:
-          name: inf-notebook
+          name: zipfile
 
-      - name: Zip
-        run: zip -r ${{ env.zipfilename }} inf-notebook
+      - name: Download installer standalone
+        uses: actions/download-artifact@v4
+        with:
+          name: installer-standalone
+
+      - name: Download installer standalone debug
+        uses: actions/download-artifact@v4
+        with:
+          name: installer-standalone-debug
 
       - name: Download installer
         uses: actions/download-artifact@v4
         with:
-          name: inf-notebook-installer
+          name: zipfile-installer
 
-      - name: Zip Installer
-        run: zip -r ${{ env.zipfilename_installer }} inf-notebook-installer
+      - name: Rename
+        run: |
+          ls -R ./
+          mv inf-notebook.zip ${{ env.filename_zip }}
+          mv inf-notebook-installer-standalone.exe ${{ env.filename_installer_standalone }}
+          mv inf-notebook-installer-standalone-debug.exe ${{ env.filename_installer_standalone_debug }}
+          mv inf-notebook-installer.zip ${{ env.filename_installer_zip }}
+          ls -R ./
 
       - name: Edit Release Description
         run: |
-          sed -i -e "s/&&zipfilename&&/${{ env.zipfilename }}/" RELEASE_DESCRIPTION
-          sed -i -e "s/&&zipfilename_installer&&/${{ env.zipfilename_installer }}/" RELEASE_DESCRIPTION
+          sed -i -e "s/&&filename_zip&&/${{ env.filename_zip }}/" RELEASE_DESCRIPTION
+          sed -i -e "s/&&filename_installer_standalone&&/${{ env.filename_installer_standalone }}/" RELEASE_DESCRIPTION
+          sed -i -e "s/&&filename_installer_zip&&/${{ env.filename_installer_zip }}/" RELEASE_DESCRIPTION
 
       - name: Create Release
         id: create_release
@@ -148,9 +207,29 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.zipfilename }}
-          asset_name: ${{ env.zipfilename }}
+          asset_path: ./${{ env.filename_zip }}
+          asset_name: ${{ env.filename_zip }}
           asset_content_type: application/zip
+
+      - name: Append Binary Installer Standalone
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.filename_installer_standalone }}
+          asset_name: ${{ env.filename_installer_standalone }}
+          asset_content_type: application/x-msdownload
+
+      - name: Append Binary Installer Standalone Debug
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.filename_installer_standalone_debug }}
+          asset_name: ${{ env.filename_installer_standalone_debug }}
+          asset_content_type: application/x-msdownload
 
       - name: Append Binary Installer
         uses: actions/upload-release-asset@v1
@@ -158,6 +237,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.zipfilename_installer }}
-          asset_name: ${{ env.zipfilename_installer }}
+          asset_path: ./${{ env.filename_installer_zip }}
+          asset_name: ${{ env.filename_installer_zip }}
           asset_content_type: application/zip
