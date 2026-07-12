@@ -145,7 +145,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: Set Environpment Installer Version
-        run: echo "installer_version=$(grep -E "(.*)version_installer(.*)=" installer.py | awk -F'=' '{print $2}' | sed 's/[ '\'']//g')" >> "$GITHUB_ENV"
+        run: echo "installer_version=$(grep -E "(.*)version_installer(.*)=" installer.pyw | awk -F'=' '{print $2}' | sed 's/[ '\'']//g')" >> "$GITHUB_ENV"
 
       - name: Set Environpment Zip File Name
         run: |
@@ -176,12 +176,10 @@ jobs:
 
       - name: Rename
         run: |
-          ls -R ./
           mv inf-notebook.zip ${{ env.filename_zip }}
           mv inf-notebook-installer-standalone.exe ${{ env.filename_installer_standalone }}
           mv inf-notebook-installer-standalone-debug.exe ${{ env.filename_installer_standalone_debug }}
           mv inf-notebook-installer.zip ${{ env.filename_installer_zip }}
-          ls -R ./
 
       - name: Edit Release Description
         run: |
