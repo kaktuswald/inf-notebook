@@ -80,10 +80,7 @@ from export import (
     csssetting_filepath,
 )
 from export import output as output_summary
-from windows import (
-    show_messagebox,
-    get_filename,
-)
+from windows import show_messagebox
 import image
 from image import (
     generate_scoretype,
@@ -2665,6 +2662,26 @@ def load_overlayimages():
             ),
         }
 
+def wait_windowopen() -> bool:
+    '''ウィンドウが開かれたことを確認できるまで待つ
+
+    Returns:
+        (bool): ウィンドウが確認できた
+    '''
+    starttime = time()
+    elapsedtime = 0
+    
+    while not newwindow.win32_get_hwnd():
+        elapsedtime = time() - starttime
+        if elapsedtime >= 5:
+            logger.exception(f'window not detected')
+            return False
+
+        sleep(0.1)
+    
+    logger.debug(f'window opened: {elapsedtime}')
+    return True
+
 if __name__ == '__main__':
     processes = []
     for process in process_iter(['name']):
@@ -2752,6 +2769,39 @@ if __name__ == '__main__':
     browser = newwindow.get_best_browser()
     newwindow.show('index.html')
 
+    logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
+    logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
+    logger.debug(f'get parent process id: {newwindow.get_parent_process_id()}')
+    logger.debug(f'get child process id: {newwindow.get_child_process_id()}')
+    logger.debug(f'get window id: {newwindow.get_window_id}')
+
+    if not wait_windowopen():
+        logger.exception('start failed.')
+
+        show_messagebox('起動に失敗しました。', windowtitle)
+
+        if newwindow.is_shown():
+            newwindow.close()
+        newwindow.destroy()
+
+        webui.clean()
+
+        googleapi_accesor.close()
+        socket_server.stop()
+        thread_capture.event_close.set()
+
+        if socket_server is not None and socket_server.is_alive():
+            socket_server.join()
+        if thread_capture is not None and thread_capture.is_alive():
+            thread_capture.join()
+
+        exit()
+
+    logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
+    logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
+    logger.debug(f'get parent process id: {newwindow.get_parent_process_id()}')
+    logger.debug(f'get child process id: {newwindow.get_child_process_id()}')
+    logger.debug(f'get window id: {newwindow.get_window_id}')
     logger.addHandler(LoggingHandler())
 
     hotkeys = Hotkeys()
@@ -2762,6 +2812,12 @@ if __name__ == '__main__':
 
     logger.debug('start mainloop')
     mainloop()
+
+    logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
+    logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
+    logger.debug(f'get parent process id: {newwindow.get_parent_process_id()}')
+    logger.debug(f'get child process id: {newwindow.get_child_process_id()}')
+    logger.debug(f'get window id: {newwindow.get_window_id}')
 
     socket_server.stop()
     thread_capture.event_close.set()
@@ -2787,6 +2843,12 @@ if __name__ == '__main__':
             newwindow.destroy()
             
             webui.clean()
+
+            logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
+            logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
+            logger.debug(f'get parent process id: {newwindow.get_parent_process_id()}')
+            logger.debug(f'get child process id: {newwindow.get_child_process_id()}')
+            logger.debug(f'get window id: {newwindow.get_window_id}')
 
             output_summary(notebook_summary)
             output_notesradarcsv(notesradar)
