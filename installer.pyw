@@ -1,3 +1,4 @@
+import sys
 from sys import argv
 from os.path import exists
 from tkinter import Tk,StringVar,TOP,BOTTOM,LEFT,E,NORMAL,DISABLED
@@ -11,10 +12,10 @@ from zipfile import ZipFile
 from io import BytesIO
 from subprocess import Popen
 
-from infnotebook import productname,exe_filename,icon_filename
+from infnotebook import productname,exe_filename
 from appdata import LocalConfig
 
-version_installer: str = '2.1.0.0'
+version_installer: str = '3.0.0.0'
 
 version_filename: str = 'version.txt'
 '''バージョンファイル
@@ -40,12 +41,20 @@ class InstallerWindow:
         else:
             self.target_dirpath = WindowsPath(argv[0])
         
+        if hasattr(sys, '_MEIPASS'):
+            resourcedirpath = WindowsPath(sys._MEIPASS)
+        else:
+            resourcedirpath = WindowsPath(WindowsPath.cwd())
+        
         self.root = Tk()
         self.root.title(f'リザルト手帳 インストーラ {version_installer}')
-        self.root.iconbitmap(icon_filename)
         self.root.resizable(0, 0)
         self.root.protocol('WM_DELETE_WINDOW', self.onclick_close)
     
+        icon_filepath = resourcedirpath.joinpath('icon.ico')
+        if icon_filepath.exists():
+            self.root.iconbitmap(icon_filepath)
+
         self.add_frame_displays()
         self.add_frame_releases()
         self.add_frame_message()

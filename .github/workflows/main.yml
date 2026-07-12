@@ -31,24 +31,22 @@ jobs:
       - name: Install modules
         run: pip install -r installer_requirements.txt
 
-      - name: Install cx_Freeze
-        run: pip install cx_Freeze==7.0.0
+      - name: Install pyinstaller
+        run: pip install pyinstaller==6.21.0
     
-      - name: Build
-        run: python installer_setup.py build
-      
-      - name: Rename
-        working-directory: build\
-        run: mv exe.win-amd64-3.12 inf-notebook-installer
+      - name: Build Installer Standalone
+        run: pyinstaller
+          --onefile
+          --add-data="icon.ico:."
+          --icon=icon.ico
+          --name="inf-notebook-installer.exe"
+          installer.pyw
 
-      - name: Zip
-        run: Compress-Archive -Path build/inf-notebook-installer -DestinationPath ./inf-notebook-installer.zip
-
-      - name: Upload
+      - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
-          name: zipfile-installer
-          path: inf-notebook-installer.zip
+          name: installer
+          path: dist/inf-notebook-installer.exe
           retention-days: 1
 
   windows-build:
@@ -149,10 +147,15 @@ jobs:
 
       - name: Set Environpment Zip File Name
         run: |
+          echo "filename_installer=inf-notebook-installer${{ env.installer_version }}.exe" >> "$GITHUB_ENV"
           echo "filename_zip=inf-notebook-${{ github.ref_name }}.zip" >> "$GITHUB_ENV"
           echo "filename_installer_standalone=inf-notebook${{ github.ref_name }}-installer-standalone.exe" >> "$GITHUB_ENV"
           echo "filename_installer_standalone_debug=inf-notebook${{ github.ref_name }}-installer-standalone-debug.exe" >> "$GITHUB_ENV"
-          echo "filename_installer_zip=inf-notebook-installer${{ env.installer_version }}.zip" >> "$GITHUB_ENV"
+
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: installer
 
       - name: Download
         uses: actions/download-artifact@v4
@@ -169,23 +172,18 @@ jobs:
         with:
           name: installer-standalone-debug
 
-      - name: Download installer
-        uses: actions/download-artifact@v4
-        with:
-          name: zipfile-installer
-
       - name: Rename
         run: |
+          mv inf-notebook-installer.exe ${{ env.filename_installer }}
           mv inf-notebook.zip ${{ env.filename_zip }}
           mv inf-notebook-installer-standalone.exe ${{ env.filename_installer_standalone }}
           mv inf-notebook-installer-standalone-debug.exe ${{ env.filename_installer_standalone_debug }}
-          mv inf-notebook-installer.zip ${{ env.filename_installer_zip }}
 
       - name: Edit Release Description
         run: |
+          sed -i -e "s/&&filename_installer&&/${{ env.filename_installer }}/" RELEASE_DESCRIPTION
           sed -i -e "s/&&filename_zip&&/${{ env.filename_zip }}/" RELEASE_DESCRIPTION
           sed -i -e "s/&&filename_installer_standalone&&/${{ env.filename_installer_standalone }}/" RELEASE_DESCRIPTION
-          sed -i -e "s/&&filename_installer_zip&&/${{ env.filename_installer_zip }}/" RELEASE_DESCRIPTION
 
       - name: Create Release
         id: create_release
@@ -198,6 +196,16 @@ jobs:
           body_path: RELEASE_DESCRIPTION
           draft: true
           prerelease: false
+
+      - name: Append Binary Installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.filename_installer }}
+          asset_name: ${{ env.filename_installer }}
+          asset_content_type: application/x-msdownload
 
       - name: Append Binary
         uses: actions/upload-release-asset@v1
@@ -228,13 +236,3 @@ jobs:
           asset_path: ./${{ env.filename_installer_standalone_debug }}
           asset_name: ${{ env.filename_installer_standalone_debug }}
           asset_content_type: application/x-msdownload
-
-      - name: Append Binary Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.filename_installer_zip }}
-          asset_name: ${{ env.filename_installer_zip }}
-          asset_content_type: application/zip
