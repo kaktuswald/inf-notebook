@@ -26,6 +26,7 @@ class InstallerWindow:
     product_dirpath: WindowsPath = None
     targetversion: str = None
     zipfilepath: WindowsPath = None
+    is_installing = False
 
     def __init__(self, config: LocalConfig, debug=False):
         self.config = config
@@ -43,6 +44,7 @@ class InstallerWindow:
         
         self.root = Tk()
         self.root.resizable(0, 0)
+        self.root.protocol('WM_DELETE_WINDOW', self.onclick_close)
     
         if debug:
             self.add_frame_is_debug_enabled()
@@ -68,6 +70,10 @@ class InstallerWindow:
 
             self.button_install['state'] = DISABLED
 
+    def onclick_close(self):
+        if not self.is_installing:
+            self.root.destroy()
+    
     def add_frame_is_debug_enabled(self):
         frame = Frame(
             self.root,
@@ -140,7 +146,7 @@ class InstallerWindow:
             command=self.launch_install,
             padding=10,
         )
-        self.button_install.pack(side=LEFT)
+        self.button_install.pack(side=LEFT, padx=10)
 
         self.button_close = Button(
             frame,
@@ -152,7 +158,7 @@ class InstallerWindow:
 
         self.button_close_and_start = Button(
             frame,
-            text='閉じて起動する',
+            text='閉じてリザルト手帳を起動する',
             command=self.close_and_start,
             padding=10,
         )
@@ -229,6 +235,8 @@ class InstallerWindow:
         Thread(target=self.install).start()
     
     def install(self):
+        self.is_installing = True
+
         lib_dirpath = self.product_dirpath.joinpath('lib')
         if lib_dirpath.exists():
             self.var_message.set('不要なファイルを削除しています...')
@@ -236,19 +244,24 @@ class InstallerWindow:
                 rmtree(lib_dirpath)
             except Exception as ex:
                 self.var_message.set('不要なファイルの削除に失敗しました。')
+                self.is_installing = False
                 self.button_close['state'] = NORMAL
-                self.button_close_and_start['state'] = NORMAL
                 return
 
-        if self.zipfilepath and self.zipfilepath.exists():
-            self.var_message.set('圧縮ファイルを解凍・コピーしています...')
-            with ZipFile(self.zipfilepath) as z:
-                z.extractall(self.installtarget_dirpath)
-
-            self.var_message.set(f'バージョン {self.targetversion} のインストールが完了しました。')
-        else:
+        if not self.zipfilepath or not self.zipfilepath.exists():
             self.var_message.set(f'インストールするファイルが見つかりませんでした。')
+            self.is_installing = False
+            self.button_close['state'] = NORMAL
+            return
 
+        self.var_message.set('圧縮ファイルを解凍・コピーしています...')
+        with ZipFile(self.zipfilepath) as z:
+            z.extractall(self.installtarget_dirpath)
+        
+        self.var_message.set(f'バージョン {self.targetversion} のインストールが完了しました。')
+        
+        self.is_installing = False
+        
         debug_filepath = self.product_dirpath.joinpath('DEBUG')
         if self.debug:
             if not exists(debug_filepath):

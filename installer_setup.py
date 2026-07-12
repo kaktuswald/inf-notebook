@@ -21,13 +21,13 @@ if sys.platform == 'win32':
 executables = (
     [
         Executable(
-            'installer.py',
+            'installer.pyw',
             copyright='Copyright (C) 2024-2026',
             base=base,
             shortcut_name=u'リザルト手帳 インストーラ',
             shortcut_dir=u'リザルト手帳 インストーラ',
             icon=icon_filename,
-            target_name='infnotebook_installer'
+            target_name='infnotebook_installer',
         )
     ]
 )
@@ -37,5 +37,5 @@ setup(
     version=version_installer,
     description=u'INF NOTEBOOK installer',
     options={'build_exe': build_exe_options},
-    executables=executables
+    executables=executables,
 )

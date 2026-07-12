@@ -1,7 +1,7 @@
 from sys import argv
 from os.path import exists
-from tkinter import Tk,BooleanVar,StringVar,TOP,BOTTOM,LEFT,E,NORMAL,DISABLED
-from tkinter.ttk import Frame,Entry,Label,Button,Combobox,Checkbutton
+from tkinter import Tk,StringVar,TOP,BOTTOM,LEFT,E,NORMAL,DISABLED
+from tkinter.ttk import Frame,Entry,Label,Button,Combobox
 from tkinter import filedialog
 from shutil import rmtree
 from threading import Thread
@@ -14,7 +14,7 @@ from subprocess import Popen
 from infnotebook import productname,exe_filename,icon_filename
 from appdata import LocalConfig
 
-version_installer: str = '2.0.0.0'
+version_installer: str = '2.1.0.0'
 
 version_filename: str = 'version.txt'
 '''バージョンファイル
@@ -29,6 +29,8 @@ get_connectiontimeout = 5
 get_downloadtimeout = 60
 
 class InstallerWindow:
+    is_installing = False
+    
     def __init__(self, config: LocalConfig):
         self.config = config
         self.releases = {}
@@ -42,13 +44,17 @@ class InstallerWindow:
         self.root.title(f'リザルト手帳 インストーラ {version_installer}')
         self.root.iconbitmap(icon_filename)
         self.root.resizable(0, 0)
+        self.root.protocol('WM_DELETE_WINDOW', self.onclick_close)
     
         self.add_frame_displays()
         self.add_frame_releases()
         self.add_frame_message()
-        self.add_frame_checkbutton()
         self.add_frame_buttons()
 
+    def onclick_close(self):
+        if not self.is_installing:
+            self.root.destroy()
+    
     def add_frame_displays(self):
         self.var_target_dirpath = StringVar(value=str(self.target_dirpath))
         self.var_message = StringVar()
@@ -125,22 +131,6 @@ class InstallerWindow:
 
         frame.pack(side=TOP)
 
-    def add_frame_checkbutton(self):
-        frame = Frame(
-            self.root,
-            padding=20,
-        )
-
-        self.var_starttool = BooleanVar(value=True)
-
-        Checkbutton(
-            frame,
-            text='終了時にリザルト手帳を起動する',
-            variable=self.var_starttool,
-        ).pack(side=LEFT)
-
-        frame.pack(side=TOP)
-    
     def add_frame_buttons(self):
         frame = Frame(
             self.root,
@@ -153,7 +143,7 @@ class InstallerWindow:
             command=self.launch_install,
             padding=10,
         )
-        self.button_install.pack(side=LEFT)
+        self.button_install.pack(side=LEFT, padx=10)
 
         self.button_close = Button(
             frame,
@@ -162,6 +152,14 @@ class InstallerWindow:
             padding=10,
         )
         self.button_close.pack(side=LEFT)
+
+        self.button_close_and_start = Button(
+            frame,
+            text='閉じてリザルト手帳を起動する',
+            command=self.close_and_start,
+            padding=10,
+        )
+        self.button_close_and_start.pack(side=LEFT)
 
         if len(self.releases) == 0:
             self.button_install['state'] = DISABLED
@@ -205,10 +203,12 @@ class InstallerWindow:
             self.check_is_installed()
     
     def close(self):
-        if self.var_starttool.get():
-            exe_filepath = self.product_dirpath.joinpath(exe_filename)
-            if exe_filepath.exists():
-                Popen([exe_filepath], cwd=exe_filepath.parent)
+        self.root.destroy()
+    
+    def close_and_start(self):
+        exe_filepath = self.product_dirpath.joinpath(exe_filename)
+        if exe_filepath.exists():
+            Popen([exe_filepath], cwd=exe_filepath.parent)
         
         self.root.destroy()
     
@@ -256,10 +256,12 @@ class InstallerWindow:
         self.combobox_version['state'] = DISABLED
         self.button_install['state'] = DISABLED
         self.button_close['state'] = DISABLED
+        self.button_close_and_start['state'] = DISABLED
 
         Thread(target=self.install).start()
     
     def install(self):
+        self.is_installing = True
         downloadurl = self.releases[self.var_selected_release.get()]
 
         zipdata: bytes | None = None
@@ -289,9 +291,14 @@ class InstallerWindow:
                 zipdata = buffer
             else:
                 self.var_message.set(f'ダウンロードに失敗しました。({response.content})')
+                self.is_installing = False
+                self.button_close['state'] = NORMAL
+                return
 
         except Exception as e:
             self.var_message.set(f'ダウンロードに失敗しました。({e})')
+            self.is_installing = False
+            self.button_close['state'] = NORMAL
             return
         
         if zipdata is None:
@@ -304,6 +311,7 @@ class InstallerWindow:
                 rmtree(lib_dirpath)
             except Exception as ex:
                 self.var_message.set('不要なファイルの削除に失敗しました。')
+                self.is_installing = False
                 self.button_close['state'] = NORMAL
                 return
 
@@ -313,10 +321,13 @@ class InstallerWindow:
 
         self.var_message.set(f'バージョン {self.get_version()} のインストールが完了しました。')
 
+        self.is_installing = False
+
         self.config.installed_dirpath = self.target_dirpath
         self.config.save()
 
         self.button_close['state'] = NORMAL
+        self.button_close_and_start['state'] = NORMAL
 
 if __name__ == '__main__':
     config = LocalConfig()
