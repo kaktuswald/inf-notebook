@@ -196,6 +196,10 @@ QueryFullProcessImageNameW = windll.kernel32.QueryFullProcessImageNameW
 QueryFullProcessImageNameW.argtypes = (HANDLE, DWORD, LPWSTR, LPDWORD,)
 QueryFullProcessImageNameW.restype = BOOL
 
+IsWindow = windll.user32.IsWindow
+IsWindow.argtypes = (HWND,)
+IsWindow.restype = BOOL
+
 IsHungAppWindow = windll.user32.IsHungAppWindow
 IsHungAppWindow.argtypes = (HWND,)
 IsHungAppWindow.restype = BOOL
@@ -264,11 +268,16 @@ rectsizes = (
 いずれかに一致していたらOKとする
 '''
 
-def get_filename(hwnd:int) -> str:
+def get_iswindow(hwnd:int) -> bool:
+    return bool(IsWindow(hwnd))
+
+def get_filename(hwnd:int) -> str|None:
     '''ウィンドウのハンドルから実行ファイル名を取得
     
     Args:
         hwnd(int): 対象のウィンドウのハンドル
+    Returns:
+        str|None: ウィンドウのタイトル 見つからなかった場合はNone
     '''
     processid = c_ulong()
     threadid = GetWindowThreadProcessId(hwnd, pointer(processid))
@@ -291,22 +300,36 @@ def get_filename(hwnd:int) -> str:
     except:
         return None
 
-def get_windowtitle(hwnd:HWND) -> str:
-    '''ウィンドウのハンドルからウィンドウのタイトルを取得
+def findwindow_bykeywords(keywords: list[str]) -> list[int]:
+    '''条件に一致するウィンドウを探す
     
     Args:
-        hwnd(int): 対象のウィンドウのハンドル
+        keywords(list): タイトルに含まれるキーワードのリスト
+    Returns:
+        list[int]: 条件に一致したハンドルのリスト
     '''
-    length = GetWindowTextLengthW(hwnd)
-    if not length:
-        return None
+    def foreach_window(hwnd:HWND, lParam:LPARAM) -> bool:
+        if IsHungAppWindow(hwnd):
+            return True
+        
+        length = GetWindowTextLengthW(hwnd)
+        if not length:
+            return True
+        
+        title = create_unicode_buffer(length + 1)
+        length = GetWindowTextW(hwnd, title, length + 1)
+
+        if all([keyword in title.value for keyword in keywords]):
+            handles.append(hwnd)
+
+        return True
     
-    title = create_unicode_buffer(length + 1)
-    length = GetWindowTextW(hwnd, title, length + 1)
+    handles = []
+    EnumWindows(enumWindowsProc(foreach_window), 0)
 
-    return title.value
+    return handles
 
-def find_gamewindow(title:str, filename:str) -> int:
+def findwindow_bytitle(title:str, filename:str) -> int:
     '''条件に一致するウィンドウを探す
     
     Args:
@@ -483,4 +506,4 @@ if __name__ == '__main__':
     gamewindowtitle = 'beatmania IIDX INFINITAS'
     exename = 'bm2dx.exe'
 
-    print(find_gamewindow(gamewindowtitle, exename))
+    print(findwindow_bytitle(gamewindowtitle, exename))

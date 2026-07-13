@@ -20,7 +20,7 @@ from define import define
 from resources import resource
 from recog import Recognition as recog
 from setting import Setting
-from windows import find_gamewindow,get_rect,check_rectsize
+from windows import findwindow_bytitle,get_rect,check_rectsize
 from collection_uploader import CollectionUploader
 from capture import (
     Screen,
@@ -205,7 +205,7 @@ class ThreadCapture(Thread):
 
     def routine(self):
         if self.handle == 0:
-            self.handle = find_gamewindow(self.windowtitle, self.exename)
+            self.handle = findwindow_bytitle(self.windowtitle, self.exename)
             if self.handle == 0:
                 return
 

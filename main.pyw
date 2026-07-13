@@ -56,6 +56,7 @@ logger.getChild('googleapi').setLevel(WARNING)
 logger.getChild('googleapiclient').setLevel(WARNING)
 logger.getChild('dxcam').setLevel(DEBUG)
 
+from infnotebook import title,exe_filename
 from version import version
 from general import get_imagevalue,save_imagevalue,imagesize
 from define import Playmodes,Playtypes,NotesradarAttributes,define
@@ -80,7 +81,7 @@ from export import (
     csssetting_filepath,
 )
 from export import output as output_summary
-from windows import show_messagebox
+from windows import show_messagebox,get_iswindow,findwindow_bykeywords
 import image
 from image import (
     generate_scoretype,
@@ -1946,8 +1947,8 @@ class ChartSelection():
 
 def mainloop():
     while True:
-        if not newwindow.win32_get_hwnd():
-            webui.exit()
+        if not get_iswindow(handle):
+            return
         if not newwindow.is_shown():
             return
         
@@ -2495,7 +2496,7 @@ def check_latest_version():
             cwd = filepath.parent
             def action():
                 Popen([filepath], cwd=cwd)
-                newwindow.close()
+                webui.exit()
             message = find_latest_version_message_has_installer
     
     if action is None:
@@ -2662,30 +2663,44 @@ def load_overlayimages():
             ),
         }
 
-def wait_windowopen() -> bool:
+def wait_windowopen() -> int|None:
     '''ウィンドウが開かれたことを確認できるまで待つ
 
     Returns:
-        (bool): ウィンドウが確認できた
+        int: 取得できたウィンドウのハンドル
     '''
     starttime = time()
-    elapsedtime = 0
+    elapsedtime = None
+    handles = None
     
-    while not newwindow.win32_get_hwnd():
+    while not handles:
         elapsedtime = time() - starttime
-        if elapsedtime >= 5:
-            logger.exception(f'window not detected')
-            return False
 
-        sleep(0.1)
+        handles = findwindow_bykeywords(('インフィニタス', title, version,))
+        if handles:
+            break
+
+        if elapsedtime < 10:
+            sleep(0.5)
+            continue
+
+        logger.exception(f'window not detected')
+        show_messagebox('リザルト手帳のウィンドウが確認できませんでした。', windowtitle)
+        return None
     
-    logger.debug(f'window opened: {elapsedtime}')
-    return True
+    logger.debug(f'window detected: {elapsedtime}')
+
+    if len(handles) >= 2:
+        logger.exception(f'duplicate window detected')
+        show_messagebox('リザルト手帳のウィンドウが特定できませんでした。', windowtitle)
+        return None
+    
+    return handles[0]
 
 if __name__ == '__main__':
     processes = []
     for process in process_iter(['name']):
-        if process.info['name'] and process.info['name'] == 'infnotebook.exe':
+        if process.info['name'] and process.info['name'] == exe_filename:
             processes.append(process)
     
     if len(processes) >= 2:
@@ -2771,19 +2786,12 @@ if __name__ == '__main__':
 
     logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
     logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
-    logger.debug(f'get parent process id: {newwindow.get_parent_process_id()}')
-    logger.debug(f'get child process id: {newwindow.get_child_process_id()}')
-    logger.debug(f'get window id: {newwindow.get_window_id}')
 
-    if not wait_windowopen():
+    handle = wait_windowopen()
+    if not handle:
         logger.exception('start failed.')
 
-        show_messagebox('起動に失敗しました。', windowtitle)
-
-        if newwindow.is_shown():
-            newwindow.close()
-        newwindow.destroy()
-
+        webui.exit()
         webui.clean()
 
         googleapi_accesor.close()
@@ -2797,11 +2805,12 @@ if __name__ == '__main__':
 
         exit()
 
+    logger.debug(f'getted window handle: {handle}')
+
     logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
     logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
-    logger.debug(f'get parent process id: {newwindow.get_parent_process_id()}')
-    logger.debug(f'get child process id: {newwindow.get_child_process_id()}')
-    logger.debug(f'get window id: {newwindow.get_window_id}')
+    logger.debug(f'handle {handle} is {'' if get_iswindow(handle) else 'not '}window')
+
     logger.addHandler(LoggingHandler())
 
     hotkeys = Hotkeys()
@@ -2815,9 +2824,7 @@ if __name__ == '__main__':
 
     logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
     logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
-    logger.debug(f'get parent process id: {newwindow.get_parent_process_id()}')
-    logger.debug(f'get child process id: {newwindow.get_child_process_id()}')
-    logger.debug(f'get window id: {newwindow.get_window_id}')
+    logger.debug(f'handle {handle} is {'' if get_iswindow(handle) else 'not'} window')
 
     socket_server.stop()
     thread_capture.event_close.set()
@@ -2838,17 +2845,8 @@ if __name__ == '__main__':
             except Exception as ex:
                 logger.exception(ex)
             
-            if newwindow.is_shown():
-                newwindow.close()
-            newwindow.destroy()
-            
+            webui.exit()
             webui.clean()
-
-            logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
-            logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
-            logger.debug(f'get parent process id: {newwindow.get_parent_process_id()}')
-            logger.debug(f'get child process id: {newwindow.get_child_process_id()}')
-            logger.debug(f'get window id: {newwindow.get_window_id}')
 
             output_summary(notebook_summary)
             output_notesradarcsv(notesradar)
@@ -2867,4 +2865,8 @@ if __name__ == '__main__':
                 sleep(1 - elapsedtime)
         
         endwindow.open(task)
+
+    logger.debug(f'get hwnd: {newwindow.get_hwnd()}')
+    logger.debug(f'get win32 hwnd: {newwindow.win32_get_hwnd()}')
+    logger.debug(f'handle {handle} is {'' if get_iswindow(handle) else 'not'} window')
 
