@@ -2,11 +2,11 @@ import sys
 from sys import argv
 from os import remove
 from os.path import exists
-from tkinter import Tk,StringVar,TOP,BOTTOM,LEFT,E,NORMAL,DISABLED
-from tkinter.ttk import Frame,Entry,Label,Button
+from tkinter import Tk,BooleanVar,StringVar,TOP,BOTTOM,LEFT,E,NORMAL,DISABLED
+from tkinter.ttk import Frame,Entry,Label,Button,Checkbutton
 from tkinter import filedialog
 from shutil import rmtree
-from threading import Thread
+from threading import Thread,Event
 from pathlib import WindowsPath
 from zipfile import ZipFile
 from subprocess import Popen
@@ -50,6 +50,7 @@ class InstallerWindow:
             self.add_frame_is_debug_enabled()
         self.add_frame_displays()
         self.add_frame_message()
+        self.add_frame_checkbutton()
         self.add_frame_buttons()
 
         if resourcedirpath.exists():
@@ -72,7 +73,7 @@ class InstallerWindow:
 
     def onclick_close(self):
         if not self.is_installing:
-            self.root.destroy()
+            self.close()
     
     def add_frame_is_debug_enabled(self):
         frame = Frame(
@@ -134,6 +135,29 @@ class InstallerWindow:
 
         frame.pack(side=TOP)
 
+    def add_frame_checkbutton(self):
+        frame = Frame(
+            self.root,
+            padding=20,
+        )
+
+        self.var_autoclose = BooleanVar(value=True)
+        self.var_starttool = BooleanVar(value=True)
+
+        Checkbutton(
+            frame,
+            text='インストールの完了でインストーラを終了する',
+            variable=self.var_autoclose,
+        ).pack(side=LEFT)
+
+        Checkbutton(
+            frame,
+            text='終了時にリザルト手帳を起動する',
+            variable=self.var_starttool,
+        ).pack(side=LEFT)
+
+        frame.pack(side=TOP)
+    
     def add_frame_buttons(self):
         frame = Frame(
             self.root,
@@ -146,7 +170,7 @@ class InstallerWindow:
             command=self.launch_install,
             padding=10,
         )
-        self.button_install.pack(side=LEFT, padx=10)
+        self.button_install.pack(side=LEFT)
 
         self.button_close = Button(
             frame,
@@ -155,14 +179,6 @@ class InstallerWindow:
             padding=10,
         )
         self.button_close.pack(side=LEFT)
-
-        self.button_close_and_start = Button(
-            frame,
-            text='閉じてリザルト手帳を起動する',
-            command=self.close_and_start,
-            padding=10,
-        )
-        self.button_close_and_start.pack(side=LEFT)
 
         frame.pack(side=BOTTOM, anchor=E)
 
@@ -178,12 +194,10 @@ class InstallerWindow:
             self.check_is_installed()
     
     def close(self):
-        self.root.destroy()
-    
-    def close_and_start(self):
-        exe_filepath = self.product_dirpath.joinpath(exe_filename)
-        if exe_filepath.exists():
-            Popen([exe_filepath], cwd=exe_filepath.parent)
+        if self.var_starttool.get():
+            exe_filepath = self.product_dirpath.joinpath(exe_filename)
+            if exe_filepath.exists():
+                Popen([exe_filepath], cwd=exe_filepath.parent)
         
         self.root.destroy()
     
@@ -230,13 +244,16 @@ class InstallerWindow:
         self.button_select['state'] = DISABLED
         self.button_install['state'] = DISABLED
         self.button_close['state'] = DISABLED
-        self.button_close_and_start['state'] = DISABLED
 
-        Thread(target=self.install).start()
-    
-    def install(self):
         self.is_installing = True
 
+        self.event_complete = Event()
+        self.event_failure = Event()
+        Thread(target=self.install).start()
+
+        self.wait_complete()
+    
+    def install(self):
         lib_dirpath = self.product_dirpath.joinpath('lib')
         if lib_dirpath.exists():
             self.var_message.set('不要なファイルを削除しています...')
@@ -244,14 +261,18 @@ class InstallerWindow:
                 rmtree(lib_dirpath)
             except Exception as ex:
                 self.var_message.set('不要なファイルの削除に失敗しました。')
-                self.is_installing = False
-                self.button_close['state'] = NORMAL
+                self.event_failure.set()
                 return
 
-        if not self.zipfilepath or not self.zipfilepath.exists():
+        if self.zipfilepath and self.zipfilepath.exists():
+            self.var_message.set('圧縮ファイルを解凍・コピーしています...')
+            with ZipFile(self.zipfilepath) as z:
+                z.extractall(self.installtarget_dirpath)
+
+            self.var_message.set(f'バージョン {self.targetversion} のインストールが完了しました。')
+        else:
             self.var_message.set(f'インストールするファイルが見つかりませんでした。')
-            self.is_installing = False
-            self.button_close['state'] = NORMAL
+            self.event_failure.set()
             return
 
         self.var_message.set('圧縮ファイルを解凍・コピーしています...')
@@ -259,22 +280,32 @@ class InstallerWindow:
             z.extractall(self.installtarget_dirpath)
         
         self.var_message.set(f'バージョン {self.targetversion} のインストールが完了しました。')
+
+        self.event_complete.set()
+        
+    def wait_complete(self):
+        if not self.event_complete.is_set() and not self.event_failure.is_set():
+            self.root.after(100, self.wait_complete)
+            return
         
         self.is_installing = False
-        
-        debug_filepath = self.product_dirpath.joinpath('DEBUG')
-        if self.debug:
-            if not exists(debug_filepath):
-                open(debug_filepath, 'w').close()
-        else:
-            if exists(debug_filepath):
-                remove(debug_filepath)
-
-        self.config.installed_dirpath = self.installtarget_dirpath
-        self.config.save()
 
         self.button_close['state'] = NORMAL
-        self.button_close_and_start['state'] = NORMAL
+
+        if self.event_complete.is_set():
+            debug_filepath = self.product_dirpath.joinpath('DEBUG')
+            if self.debug:
+                if not exists(debug_filepath):
+                    open(debug_filepath, 'w').close()
+            else:
+                if exists(debug_filepath):
+                    remove(debug_filepath)
+
+            self.config.installed_dirpath = self.installtarget_dirpath
+            self.config.save()
+            
+            if self.var_autoclose.get():
+                self.close()
 
 def open_installer_window(debug=False):
     config = LocalConfig()
