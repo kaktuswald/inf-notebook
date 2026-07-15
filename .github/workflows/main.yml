@@ -164,8 +164,8 @@ jobs:
         run: |
           echo "filename_installer=inf-notebook-installer${{ env.installer_version }}.exe" >> "$GITHUB_ENV"
           echo "filename_zip=inf-notebook-${{ github.ref_name }}.zip" >> "$GITHUB_ENV"
-          echo "filename_installer_standalone=inf-notebook${{ github.ref_name }}-installer-standalone.exe" >> "$GITHUB_ENV"
-          echo "filename_installer_standalone_debug=inf-notebook${{ github.ref_name }}-installer-standalone-debug.exe" >> "$GITHUB_ENV"
+          echo "filename_installer_standalone=inf-notebook-${{ github.ref_name }}-installer-standalone.exe" >> "$GITHUB_ENV"
+          echo "filename_installer_standalone_debug=inf-notebook-${{ github.ref_name }}-installer-standalone-debug.exe" >> "$GITHUB_ENV"
 
       - name: Download installer
         uses: actions/download-artifact@v4

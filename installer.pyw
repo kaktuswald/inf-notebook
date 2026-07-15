@@ -343,7 +343,7 @@ class InstallerWindow:
 
         self.var_message.set('圧縮ファイルを解凍・コピーしています...')
         with ZipFile(zipdata) as z:
-            z.extractall(self.target_dirpath)
+            z.extractall(self.installtarget_dirpath)
 
         self.var_message.set(f'バージョン {self.get_version()} のインストールが完了しました。')
 
