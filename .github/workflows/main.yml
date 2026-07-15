@@ -31,15 +31,22 @@ jobs:
       - name: Install modules
         run: pip install -r installer_requirements.txt
 
+      - name: Install pyinstaller_versionfile
+        run: pip install pyinstaller_versionfile==3.1.0
+    
+      - name: Generate version file
+        run: python generate_versionfile_installer.py installer
+      
       - name: Install pyinstaller
         run: pip install pyinstaller==6.21.0
     
-      - name: Build Installer Standalone
+      - name: Build Installer
         run: pyinstaller
           --onefile
           --add-data="icon.ico:."
           --icon=icon.ico
           --name="inf-notebook-installer.exe"
+          --version-file="versionfile_installer.txt"
           installer.pyw
 
       - name: Upload Installer
@@ -97,6 +104,12 @@ jobs:
           path: inf-notebook.zip
           retention-days: 1
 
+      - name: Install pyinstaller_versionfile
+        run: pip install pyinstaller_versionfile==3.1.0
+    
+      - name: Generate version file
+        run: python generate_versionfile_installer.py standalone
+      
       - name: Install pyinstaller
         run: pip install pyinstaller==6.21.0
     
@@ -108,6 +121,7 @@ jobs:
           --add-data="inf-notebook.zip:."
           --icon=icon.ico
           --name="inf-notebook-installer-standalone.exe"
+          --version-file="versionfile_installer_standalone.txt"
           installer_standalone.pyw
 
       - name: Upload Installer
@@ -125,6 +139,7 @@ jobs:
           --add-data="inf-notebook.zip:."
           --icon=icon.ico
           --name="inf-notebook-installer-standalone-debug.exe"
+          --version-file="versionfile_installer_standalone_debug.txt"
           installer_standalone_debug.pyw
 
       - name: Upload Installer Debug
