@@ -12,7 +12,7 @@ def generate_versionfile_installer():
         file_description='Install INF NOTEBOOK',
         internal_name='INF NOTEBOOK installer',
         legal_copyright='© 2024-2026 kaktuswald',
-        original_filename='inf-notebook-installer.exe',
+        original_filename=f'inf-notebook-installer{version_installer}.exe',
         product_name='INF NOTEBOOK',
         translations=(0, 1200, 1041, 1200,),
     )

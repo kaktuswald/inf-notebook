@@ -254,6 +254,11 @@ class InstallerWindow:
         self.wait_complete()
     
     def install(self):
+        if not self.zipfilepath or not self.zipfilepath.exists():
+            self.var_message.set(f'インストールするファイルが見つかりませんでした。')
+            self.event_failure.set()
+            return
+
         lib_dirpath = self.product_dirpath.joinpath('lib')
         if lib_dirpath.exists():
             self.var_message.set('不要なファイルを削除しています...')
@@ -264,21 +269,10 @@ class InstallerWindow:
                 self.event_failure.set()
                 return
 
-        if self.zipfilepath and self.zipfilepath.exists():
-            self.var_message.set('圧縮ファイルを解凍・コピーしています...')
-            with ZipFile(self.zipfilepath) as z:
-                z.extractall(self.installtarget_dirpath)
-
-            self.var_message.set(f'バージョン {self.targetversion} のインストールが完了しました。')
-        else:
-            self.var_message.set(f'インストールするファイルが見つかりませんでした。')
-            self.event_failure.set()
-            return
-
         self.var_message.set('圧縮ファイルを解凍・コピーしています...')
         with ZipFile(self.zipfilepath) as z:
             z.extractall(self.installtarget_dirpath)
-        
+
         self.var_message.set(f'バージョン {self.targetversion} のインストールが完了しました。')
 
         self.event_complete.set()
@@ -301,9 +295,6 @@ class InstallerWindow:
                 if exists(debug_filepath):
                     remove(debug_filepath)
 
-            self.config.installed_dirpath = self.installtarget_dirpath
-            self.config.save()
-            
             if self.var_autoclose.get():
                 self.close()
 
