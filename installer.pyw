@@ -15,7 +15,7 @@ from subprocess import Popen
 from infnotebook import productname,exe_filename
 from appdata import LocalConfig
 
-version_installer: str = '3.0.0.1'
+version_installer: str = '3.0.1.0'
 
 version_filename: str = 'version.txt'
 '''バージョンファイル
@@ -214,7 +214,7 @@ class InstallerWindow:
                 continue
 
             for asset in target['assets']:
-                if target['tag_name'] in asset['name']:
+                if f'{target['tag_name']}.zip' in asset['name']:
                     self.releases[target['name']] = asset['browser_download_url']
                     break
         
