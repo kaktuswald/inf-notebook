@@ -1483,10 +1483,10 @@ async function display_chartresult() {
   }
 
   if(chartresult.best != null) {
-    display_best_cleartype(chartresult.best.clear_type);
-    display_best_djlevel(chartresult.best.dj_level);
-    display_best_score(chartresult.best.score);
-    display_best_misscount(chartresult.best.miss_count);
+    display_best(chartresult.best.clear_type, 'cleartype');
+    display_best(chartresult.best.dj_level, 'djlevel');
+    display_best(chartresult.best.score, 'score');
+    display_best(chartresult.best.miss_count, 'misscount');
 
     if(selected_chart.playtype == 'SP' && chartresult.best.score && chartresult.best.score.value) {
       const bpi = JSON.parse(await webui.bpim2_calculate(
@@ -1577,11 +1577,14 @@ async function display_playresult(playtype, songname, difficulty, timestamp) {
 
   if(playresult.options != null) {
     const options = [
-      playresult.options.arrange != null ? playresult.options.arrange : '',
-      playresult.options.flip != null ? playresult.options.flip : '',
-      playresult.options.assist != null ? playresult.options.assist : '',
+      playresult.options.arrange,
+      playresult.options.flip,
+      playresult.options.assist,
     ];
-    $('#playresult_options').text(options.join(' '));
+    if(options.some(v => v != null))
+      $('#playresult_options').text(options.filter(Boolean).join(' '));
+    else
+      $('#playresult_options').text('---------');
   }
   else {
     $('#playresult_options').text('不明');
@@ -1705,138 +1708,49 @@ function refresh_discordwebhook_settings(settings) {
  * 譜面のベスト記録の表示をすべてクリアする
  */
 function clear_bests() {
-  display_best_cleartype(null);
-  display_best_djlevel(null);
-  display_best_score(null);
-  display_best_misscount(null);
+  display_best(null, 'cleartype');
+  display_best(null, 'djlevel');
+  display_best(null, 'score');
+  display_best(null, 'misscount');
   $('#best_bpi').text('');
 }
 
-function display_best_cleartype(values) {
-  if(values != null) {
-    if(values.value != null)
-      $('#best_cleartype').text(values.value);
+function display_best(target, key) {
+  if(target != null) {
+    if(target.value != null)
+      $(`#best_${key}`).text(target.value);
     else
-      $('#best_cleartype').text('');
+      $(`#best_${key}`).text('');
 
-    if(values.timestamp != null) {
-      const t = values.timestamp;
-      $('#best_cleartype_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
+    if(target.timestamp != null) {
+      const t = target.timestamp;
+      $(`#best_${key}_timestamp`).text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
     }
     else {
-      $('#best_cleartype_timestamp').text('?????');
+      $(`#best_${key}_timestamp`).text('?????');
     }
 
-    if(values.options != null) {
-      if(values.options.arrange != null)
-        $('#best_cleartype_option').text(values.options.arrange);
-      else
-        $('#best_cleartype_option').text('---------');
+    if(target.options != null) {
+      const options = [
+        target.options.arrange,
+        target.options.flip,
+        target.options.assist,
+      ];
+
+      if(options.some(v => v != null))
+        $(`#best_${key}_option`).text(options.filter(Boolean).join(' '));
+      else {
+        $(`#best_${key}_option`).text('---------');
+      }
     }
     else {
-      $('#best_cleartype_option').text('?????');
+      $(`#best_${key}_option`).text('?????');
     }
   }
   else {
-    $('#best_cleartype').text('');
-    $('#best_cleartype_option').text('');
-    $('#best_cleartype_timestamp').text('');
-  }
-}
-
-function display_best_djlevel(values) {
-  if(values != null) {
-    if(values.value != null)
-      $('#best_djlevel').text(values.value);
-    else
-      $('#best_djlevel').text('');
-
-    if(values.timestamp != null) {
-      const t = values.timestamp;
-      $('#best_djlevel_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
-    }
-    else {
-      $('#best_djlevel_timestamp').text('?????');
-    }
-
-    if(values.options != null) {
-      if(values.options.arrange != null)
-        $('#best_djlevel_option').text(values.options.arrange);
-      else
-        $('#best_djlevel_option').text('---------');
-    }
-    else {
-      $('#best_djlevel_option').text('?????');
-    }
-  }
-  else {
-    $('#best_djlevel').text('');
-    $('#best_djlevel_option').text('');
-    $('#best_djlevel_timestamp').text('');
-  }
-}
-
-function display_best_score(values) {
-  if(values != null) {
-    if(values.value != null)
-      $('#best_score').text(values.value);
-    else
-      $('#best_score').text('');
-
-    if(values.timestamp != null) {
-      const t = values.timestamp;
-      $('#best_score_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
-    }
-    else {
-      $('#best_score_timestamp').text('?????');
-    }
-
-    if(values.options != null) {
-      if(values.options.arrange != null)
-        $('#best_score_option').text(values.options.arrange);
-      else
-        $('#best_score_option').text('---------');
-    }
-    else {
-      $('#best_score_option').text('?????');
-    }
-  }
-  else {
-    $('#best_score').text('');
-    $('#best_score_option').text('');
-    $('#best_score_timestamp').text('');
-  }
-}
-
-function display_best_misscount(values) {
-  if(values != null) {
-    if(values.value != null)
-      $('#best_misscount').text(values.value);
-    else
-      $('#best_misscount').text('');
-
-    if(values.timestamp != null) {
-      const t = values.timestamp;
-      $('#best_misscount_timestamp').text(`${t.slice(0, 4)}年${t.slice(4, 6)}月${t.slice(6, 8)}日`);
-    }
-    else {
-      $('#best_misscount_timestamp').text('?????');
-    }
-
-    if(values.options != null) {
-      if(values.options.arrange != null)
-        $('#best_misscount_option').text(values.options.arrange);
-      else
-        $('#best_misscount_option').text('---------');
-    }
-    else {
-      $('#best_misscount_option').text('?????');
-    }
-  }
-  else {
-    $('#best_misscount').text('');
-    $('#best_misscount_option').text('');
-    $('#best_misscount_timestamp').text('');
+    $(`#best_${key}`).text('');
+    $(`#best_${key}_option`).text('');
+    $(`#best_${key}_timestamp`).text('');
   }
 }
 
