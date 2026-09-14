@@ -206,6 +206,18 @@ class NotebookMusic(Notebook):
             },
             'options': options,
             'playspeed': result.informations.playspeed,
+            'judges': {
+                'pgreat': result.judges.pgreat,
+                'great': result.judges.great,
+                'good': result.judges.good,
+                'bad': result.judges.bad,
+                'poor': result.judges.poor,
+            },
+            'timings': {
+                'fast': result.timings.fast,
+                'slow': result.timings.slow,
+            },
+            'combobreak': result.combobreak,
         }
 
     def insert_history(self, target: dict[int | dict[str, dict | list]], result: Result, options: dict[str, str | bool | None]):
@@ -234,6 +246,18 @@ class NotebookMusic(Notebook):
             },
             'options': options,
             'playspeed': result.informations.playspeed,
+            'judges': {
+                'pgreat': result.judges.pgreat,
+                'great': result.judges.great,
+                'good': result.judges.good,
+                'bad': result.judges.bad,
+                'poor': result.judges.poor,
+            },
+            'timings': {
+                'fast': result.timings.fast,
+                'slow': result.timings.slow,
+            },
+            'combobreak': result.combobreak,
         }
 
     def update_best_result(self, target: dict[int | dict[str, dict | list]], result: Result, options: dict[str, str | bool | None]):

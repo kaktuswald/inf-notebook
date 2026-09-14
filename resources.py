@@ -35,6 +35,7 @@ class Resource():
         self.load_resource_informations()
         self.load_resource_details()
         self.load_resource_resultothers()
+        self.load_resource_resultrecognition()
         self.load_resource_musicselect()
         self.load_resource_notesradar()
         self.load_resource_unofficialdifficulty()
@@ -68,6 +69,11 @@ class Resource():
         resourcename = f'resultothers{define.resultothers_recognition_version}'
         
         self.resultothers = load_resource_serialized(resourcename, True)
+
+    def load_resource_resultrecognition(self):
+        resourcename = f'resultrecognition{define.resultrecognition_version}'
+        
+        self.resultrecognition = load_resource_serialized(resourcename, True)
 
     def load_resource_musicselect(self):
         resourcename = f'musicselect{define.musicselect_recognition_version}'

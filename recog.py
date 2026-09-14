@@ -9,7 +9,7 @@ logger.debug(f'loaded {logger.name}')
 
 from define import Graphtypes,Options,ResultTabs,define
 from resources import resource
-from result import ResultInformations,ResultValues,ResultDetails,ResultOptions,ResultOthers,Result
+from result import ResultInformations,ResultValues,ResultDetails,ResultJudges,ResultTimings,ResultOptions,ResultOthers,Result
 from capture import Screen
 
 class Recognition():
@@ -376,6 +376,86 @@ class Recognition():
                 
                 return resource.details['graphtarget'][mode][tablekey]
 
+        class Judges():
+            @classmethod
+            def get(cls, key, np_value) -> int|None:
+                if resource.resultrecognition is None:
+                    return None
+                if resource.resultrecognition['judges'] is None:
+                    return None
+                if not key in resource.resultrecognition['judges']['trims'].keys():
+                    return None
+                
+                trimmed = np_value[resource.resultrecognition['judges']['trims'][key]]
+                value = None
+                for dig in range(resource.resultrecognition['judges']['digitcount']):
+                    splitted = np.hsplit(trimmed, resource.resultrecognition['judges']['digitcount'])
+                    trimmed_once = splitted[-(dig+1)][resource.resultrecognition['judges']['digittrim']]
+                    bins = np.where(trimmed_once==resource.resultrecognition['judges']['maskvalue'], 1, 0)
+                    packed = np.packbits(bins)
+                    tablekey = packed.tobytes().hex()
+                    if not tablekey in resource.resultrecognition['judges']['table'].keys():
+                        break
+                    if value is None:
+                        value = 0
+                    value += 10 ** dig * resource.resultrecognition['judges']['table'][tablekey]
+                
+                return value
+            
+            @classmethod
+            def get_pgreat(cls, np_value) -> int|None:
+                return cls.get('pgreat', np_value)
+            
+            @classmethod
+            def get_great(cls, np_value) -> int|None:
+                return cls.get('great', np_value)
+            
+            @classmethod
+            def get_good(cls, np_value) -> int|None:
+                return cls.get('good', np_value)
+            
+            @classmethod
+            def get_bad(cls, np_value) -> int|None:
+                return cls.get('bad', np_value)
+            
+            @classmethod
+            def get_poor(cls, np_value) -> int|None:
+                return cls.get('poor', np_value)
+
+        class Timings():
+            @classmethod
+            def get(cls, key, np_value) -> int|None:
+                if resource.resultrecognition is None:
+                    return None
+                if resource.resultrecognition['timings'] is None:
+                    return None
+                if not key in resource.resultrecognition['timings']['trims'].keys():
+                    return None
+                
+                trimmed = np_value[resource.resultrecognition['timings']['trims'][key]]
+                value = None
+                for dig in range(resource.resultrecognition['timings']['digitcount']):
+                    splitted = np.hsplit(trimmed, resource.resultrecognition['timings']['digitcount'])
+                    trimmed_once = splitted[-(dig+1)][resource.resultrecognition['timings']['digittrim']]
+                    bins = np.where(trimmed_once==resource.resultrecognition['timings']['maskvalue'], 1, 0)
+                    packed = np.packbits(bins)
+                    tablekey = packed.tobytes().hex()
+                    if not tablekey in resource.resultrecognition['timings']['table'].keys():
+                        break
+                    if value is None:
+                        value = 0
+                    value += 10 ** dig * resource.resultrecognition['timings']['table'][tablekey]
+                
+                return value
+            
+            @classmethod
+            def get_fast(cls, np_value) -> int|None:
+                return cls.get('fast', np_value)
+            
+            @classmethod
+            def get_slow(cls, np_value) -> int|None:
+                return cls.get('slow', np_value)
+        
         class Others():
             @staticmethod
             def get_tab(np_value) -> str|None:
@@ -583,6 +663,46 @@ class Recognition():
             graphtarget = cls.Details.get_graphtarget(np_value)
 
             return ResultDetails(graphtype, options, cleartype, djlevel, score, misscount, graphtarget)
+
+        @classmethod
+        def get_judges(cls, np_value) -> ResultJudges|None:
+            pgreat = cls.Judges.get_pgreat(np_value)
+            great = cls.Judges.get_great(np_value)
+            good = cls.Judges.get_good(np_value)
+            bad = cls.Judges.get_bad(np_value)
+            poor = cls.Judges.get_poor(np_value)
+
+            return ResultJudges(pgreat, great, good, bad, poor)
+        
+        @classmethod
+        def get_timings(cls, np_value) -> ResultTimings|None:
+            fast = cls.Timings.get_fast(np_value)
+            slow = cls.Timings.get_slow(np_value)
+
+            return ResultTimings(fast, slow)
+        
+        @classmethod
+        def get_combobreak(cls, np_value) -> int|None:
+            if resource.resultrecognition is None:
+                return None
+            if resource.resultrecognition['combobreak'] is None:
+                return None
+            
+            trimmed = np_value[resource.resultrecognition['combobreak']['trim']]
+            value = None
+            for dig in range(resource.resultrecognition['combobreak']['digitcount']):
+                splitted = np.hsplit(trimmed, resource.resultrecognition['combobreak']['digitcount'])
+                trimmed_once = splitted[-(dig+1)][resource.resultrecognition['combobreak']['digittrim']]
+                bins = np.where(trimmed_once==resource.resultrecognition['combobreak']['maskvalue'], 1, 0)
+                packed = np.packbits(bins)
+                tablekey = packed.tobytes().hex()
+                if not tablekey in resource.resultrecognition['combobreak']['table'].keys():
+                    break
+                if value is None:
+                    value = 0
+                value += 10 ** dig * resource.resultrecognition['combobreak']['table'][tablekey]
+            
+            return value
         
     class MusicSelect():
         DIFFICULTY_TRIMAREAS: dict[str, tuple[int, slice]] = {
@@ -847,6 +967,9 @@ class Recognition():
             cls.Result.get_is_dead(screen.np_value, playside),
             cls.Result.get_informations(screen.np_value[define.areas_np['informations']]),
             cls.Result.get_details(screen.np_value[define.areas_np['details'][playside]]),
+            cls.Result.get_judges(screen.np_value[define.areas_np['judges'][playside]]),
+            cls.Result.get_timings(screen.np_value[define.areas_np['timings'][playside]]),
+            cls.Result.get_combobreak(screen.np_value[define.areas_np['combobreak'][playside]]),
         )
 
         otherstrimmed = screen.np_value[define.areas_np['resultothers'][playside]]

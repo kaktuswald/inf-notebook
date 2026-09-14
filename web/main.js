@@ -1219,6 +1219,9 @@ function clear_playresult() {
   $('#playresult_score').text('');
   $('#playresult_misscount').text('');
   $('#playresult_options').text('');
+  $('#playresult_judges').text('');
+  $('#playresult_timings').text('');
+  $('#playresult_combobreak').text('');
 
   $('div#moredetailbox').css('display', 'none');
   $('div#moredetailbox').find('ul').empty();
@@ -1589,6 +1592,13 @@ async function display_playresult(playtype, songname, difficulty, timestamp) {
   else {
     $('#playresult_options').text('不明');
   }
+
+  if(playresult.judges != null)
+    $('#playresult_judges').text(Object.values(playresult.judges).join(','));
+  if(playresult.timings != null)
+    $('#playresult_timings').text(Object.values(playresult.timings).join(','));
+  if(playresult.combobreak != null)
+    $('#playresult_combobreak').text(playresult.combobreak);
 
   let specials = [];
   if(playresult.playspeed != null)

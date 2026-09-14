@@ -29,12 +29,16 @@ bucket_name_details = 'bucket-inf-notebook-details'
 bucket_name_resultothers = 'bucket-inf-notebook-resultothers'
 bucket_name_musicselect = 'bucket-inf-notebook-musicselect'
 bucket_name_notesradarvalue = 'bucket-inf-notebook-notesradarvalue'
+bucket_name_collections = 'bucket-inf-notebook-collections'
 bucket_name_resources = 'bucket-inf-notebook-resources2'
 bucket_name_discordwebhooks = 'bucket-inf-notebook-discordwebhook2'
 
 informations_dirname = 'informations'
 details_dirname = 'details'
 resultothers_dirname = 'resultothers'
+resultjudges_dirname = 'resultjudges'
+resulttimings_dirname = 'resulttimings'
+resultcombobreak_dirname = 'resultcombobreak'
 musicselect_dirname = 'musicselect'
 
 notesradarvalues_filename = 'notesradarvalues.json'
@@ -85,6 +89,7 @@ class StorageAccessor():
     bucket_resultothers = None
     bucket_musicselect = None
     bucket_notesradarvalue = None
+    bucket_collections = None
     bucket_resources = None
     bucket_discordwebhooks = None
     blob_musics = None
@@ -185,6 +190,18 @@ class StorageAccessor():
         except Exception as ex:
             logger.exception(ex)
 
+    def connect_bucket_collections(self):
+        if self.client is None:
+            self.connect_client()
+        if self.client is None:
+            return
+        
+        try:
+            self.bucket_collections = self.client.get_bucket(bucket_name_collections)
+            logger.debug('connect bucket collections')
+        except Exception as ex:
+            logger.exception(ex)
+    
     def upload_image(self, blob, image):
         bytes = io.BytesIO()
         image.save(bytes, 'PNG')
@@ -253,6 +270,19 @@ class StorageAccessor():
             blob = self.bucket_notesradarvalue.blob(object_name)
             blob.upload_from_string(dumps(data))
             logger.debug(f'upload notesradar value {object_name}')
+        except Exception as ex:
+            logger.exception(ex)
+
+    def upload_collection(self, object_name, image):
+        if self.bucket_collections is None:
+            self.connect_bucket_collections()
+        if self.bucket_collections is None:
+            return
+
+        try:
+            blob = self.bucket_collections.blob(object_name)
+            self.upload_image(blob, image)
+            logger.debug(f'upload collections image {object_name}')
         except Exception as ex:
             logger.exception(ex)
 
@@ -345,6 +375,66 @@ class StorageAccessor():
         object_name = generate_filename('json')
 
         self.worker.pushfunc(self.upload_notesradarvalue, object_name, data)
+        if not self.worker.is_alive():
+            self.worker.start()
+    
+    def start_uploadresultjudges(self, image: Image.Image, playside: str):
+        '''リザルト画面の判定情報の収集画像をアップロードする
+
+        Args:
+            image (Image): 対象のリザルト画像(PIL.Image)
+        '''
+        if not playside:
+            return
+        
+        self.connect_client()
+        if self.client is None:
+            return
+        
+        object_name = f'resultjudges_{generate_filename('png')}'
+
+        trim = image.crop(define.resultrecognition_trimareas['judges'][playside])
+        self.worker.pushfunc(self.upload_collection, object_name, trim)
+        if not self.worker.is_alive():
+            self.worker.start()
+    
+    def start_uploadresulttimings(self, image: Image.Image, playside: str):
+        '''リザルト画面のタイミング情報の収集画像をアップロードする
+
+        Args:
+            image (Image): 対象のリザルト画像(PIL.Image)
+        '''
+        if not playside:
+            return
+        
+        self.connect_client()
+        if self.client is None:
+            return
+        
+        object_name = f'resulttimings_{generate_filename('png')}'
+
+        trim = image.crop(define.resultrecognition_trimareas['timings'][playside])
+        self.worker.pushfunc(self.upload_collection, object_name, trim)
+        if not self.worker.is_alive():
+            self.worker.start()
+    
+    def start_uploadresultcombobreak(self, image: Image.Image, playside: str):
+        '''リザルト画面のタイミング情報の収集画像をアップロードする
+
+        Args:
+            image (Image): 対象のリザルト画像(PIL.Image)
+        '''
+        if not playside:
+            return
+        
+        self.connect_client()
+        if self.client is None:
+            return
+        
+        object_name = f'resultcombobreak_{generate_filename('png')}'
+
+        trim = image.crop(define.resultrecognition_trimareas['combobreak'][playside])
+        self.worker.pushfunc(self.upload_collection, object_name, trim)
         if not self.worker.is_alive():
             self.worker.start()
     
@@ -473,6 +563,9 @@ class StorageAccessor():
 
         informations_dirpath = join(basedir, informations_dirname)
         details_dirpath = join(basedir, details_dirname)
+        resultjudges_dirpath = join(basedir, resultjudges_dirname)
+        resulttimings_dirpath = join(basedir, resulttimings_dirname)
+        resultcombobreak_dirpath = join(basedir, resultcombobreak_dirname)
         resultothers_dirpath = join(basedir, resultothers_dirname)
         musicselect_dirpath = join(basedir, musicselect_dirname)
 
@@ -537,3 +630,32 @@ class StorageAccessor():
         with open(notesradarvalues_filepath, 'w') as f:
             dump(notesradarvalues, f, indent=2)
 
+        count_resultjudges = 0
+        count_resulttimings = 0
+        count_resultcombobreak = 0
+        blobs: list[Blob] = self.client.list_blobs(bucket_name_collections)
+        for blob in blobs:
+            downloaded: bool = False
+
+            if 'resultjudges' in blob.name:
+                self.save_image(resultjudges_dirpath, blob)
+                downloaded = True
+                count_resultjudges += 1
+            if 'resulttimings' in blob.name:
+                self.save_image(resulttimings_dirpath, blob)
+                downloaded = True
+                count_resulttimings += 1
+            if 'combobreak' in blob.name:
+                self.save_image(resultcombobreak_dirpath, blob)
+                downloaded = True
+                count_resultcombobreak += 1
+
+            if downloaded:
+                blob.delete()
+        
+        if count_resultjudges:
+            print(f'download result judges count: {count_resultjudges}')
+        if count_resulttimings:
+            print(f'download result timings count: {count_resulttimings}')
+        if count_resultcombobreak:
+            print(f'download result combobreak count: {count_resultcombobreak}')

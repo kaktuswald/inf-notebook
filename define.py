@@ -134,6 +134,7 @@ class Define():
     screenrecognition_version = '1.0'
     informations_recognition_version = '4.1'
     details_recognition_version = '3.2'
+    resultrecognition_version = '1.0'
     resultothers_recognition_version = '1.0'
     musicselect_recognition_version = '2.3'
     notesradar_version = '1.2'
@@ -155,9 +156,33 @@ class Define():
     details_playside_area = 5, slice(4, 548, 8), 0
     details_playside = {
         '0fffffffffffffffe': '1P',
-        '7fffffffffffffff0': '2P'
+        '7fffffffffffffff0': '2P',
     }
     details_graphtarget_name_area = (210, 622, 300, 644)
+
+    resultrecognition = {
+        'judges': {
+            'position': {
+                '1P': (293, 780,), 
+                '2P': (1642, 780,),
+            },
+            'size': (210, 140),
+        },
+        'timings': {
+            'position': {
+                '1P': (30, 959,), 
+                '2P': (1374, 959,),
+            },
+            'size': (264, 56),
+        },
+        'combobreak': {
+            'position': {
+                '1P': (318, 975,), 
+                '2P': (1668, 975,),
+            },
+            'size': (222, 32),
+        },
+    }
 
     resultothers_trimpos = {
         '1P': (1359, 62,), 
@@ -220,7 +245,7 @@ class Define():
         'resultothers': {
             '1P': (slice(62, 992), slice(1359, 1901)),
             '2P': (slice(62, 992), slice(19, 561)),
-        }
+        },
     }
 
     def __init__(self):
@@ -240,8 +265,30 @@ class Define():
                 self.details_trimpos[playside][0],
                 self.details_trimpos[playside][1],
                 self.details_trimpos[playside][0] + self.details_trimsize[0],
-                self.details_trimpos[playside][1] + self.details_trimsize[1]
+                self.details_trimpos[playside][1] + self.details_trimsize[1],
             )
+
+        self.resultrecognition_trimareas = {}
+        for key in self.resultrecognition.keys():
+            self.resultrecognition_trimareas[key] = {}
+            self.areas_np[key] = {}
+            for playside in self.resultrecognition[key]['position'].keys():
+                self.resultrecognition_trimareas[key][playside] = (
+                    self.resultrecognition[key]['position'][playside][0],
+                    self.resultrecognition[key]['position'][playside][1],
+                    self.resultrecognition[key]['position'][playside][0] + self.resultrecognition[key]['size'][0],
+                    self.resultrecognition[key]['position'][playside][1] + self.resultrecognition[key]['size'][1],
+                )
+                self.areas_np[key][playside] = (
+                    slice(
+                        self.resultrecognition[key]['position'][playside][1],
+                        self.resultrecognition[key]['position'][playside][1] + self.resultrecognition[key]['size'][1],
+                    ),
+                    slice(
+                        self.resultrecognition[key]['position'][playside][0],
+                        self.resultrecognition[key]['position'][playside][0] + self.resultrecognition[key]['size'][0],
+                    ),
+                )
 
         self.resultothers_trimareas = {}
         for playside in self.resultothers_trimpos.keys():
@@ -249,7 +296,7 @@ class Define():
                 self.resultothers_trimpos[playside][0],
                 self.resultothers_trimpos[playside][1],
                 self.resultothers_trimpos[playside][0] + self.resultothers_trimsize[0],
-                self.resultothers_trimpos[playside][1] + self.resultothers_trimsize[1]
+                self.resultothers_trimpos[playside][1] + self.resultothers_trimsize[1],
             )
 
         for key in self.filter_ranking_position.keys():
@@ -257,7 +304,7 @@ class Define():
                 self.filter_ranking_position[key][0],
                 self.filter_ranking_position[key][1],
                 self.filter_ranking_position[key][0] + self.filter_ranking_size[0],
-                self.filter_ranking_position[key][1] + self.filter_ranking_size[1]
+                self.filter_ranking_position[key][1] + self.filter_ranking_size[1],
             )
         
         for playside in self.filter_ranking_compact_positions['left'].keys():
@@ -268,7 +315,7 @@ class Define():
                     left,
                     top,
                     left + self.filter_ranking_compact_size[0],
-                    top + self.filter_ranking_compact_size[1]
+                    top + self.filter_ranking_compact_size[1],
                 ))
 
         for key in self.details_trimpos.keys():
@@ -276,7 +323,7 @@ class Define():
                 self.details_trimpos[key][0] + self.details_graphtarget_name_area[0],
                 self.details_trimpos[key][1] + self.details_graphtarget_name_area[1],
                 self.details_trimpos[key][0] + self.details_graphtarget_name_area[2],
-                self.details_trimpos[key][1] + self.details_graphtarget_name_area[3]
+                self.details_trimpos[key][1] + self.details_graphtarget_name_area[3],
             )
         
             self.overlay['rivalname']['positions'][key] = (

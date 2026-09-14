@@ -98,6 +98,27 @@ class ResultDetails():
         self.misscount = misscount
         self.graphtarget = graphtarget
 
+class ResultJudges():
+    def __init__(self, pgreat: int, great: int, good: int, bad: int, poor: int):
+        self.pgreat = pgreat
+        self.great = great
+        self.good = good
+        self.bad = bad
+        self.poor = poor
+
+    @property
+    def has_recognitionerror(self) -> bool:
+        return any(v is None for v in [self.pgreat, self.great, self.good, self.bad, self.poor])
+
+class ResultTimings():
+    def __init__(self, fast: int, slow: int):
+        self.fast = fast
+        self.slow = slow
+
+    @property
+    def has_recognitionerror(self) -> bool:
+        return any(v is None for v in [self.fast, self.slow])
+
 class ResultOthers():
     class ResultOthersRival():
         def __init__(self, rankbefore: int, ranknow: int, rankposition: int):
@@ -126,13 +147,16 @@ class Result():
 
     others: ResultOthers | None = None
 
-    def __init__(self, playside: str, has_loveletter: bool, is_dead: bool, informations: ResultInformations | None, details: ResultDetails | None):
+    def __init__(self, playside: str, has_loveletter: bool, is_dead: bool, informations: ResultInformations | None, details: ResultDetails | None, judges: ResultJudges | None, timings: ResultTimings | None, combobreak: int | None):
         self.playside: str = playside
         self.has_loveletter: bool = has_loveletter
         self.is_dead: bool = is_dead
 
         self.informations: ResultInformations | None = informations
         self.details: ResultDetails | None = details
+        self.judges: ResultJudges | None = judges
+        self.timings: ResultTimings | None = timings
+        self.combobreak: int | None = combobreak
 
         self.set_playtype()
 

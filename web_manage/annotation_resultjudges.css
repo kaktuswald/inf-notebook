@@ -1,0 +1,27 @@
+div.label {
+    width: 140px;
+}
+
+div.value {
+    display: inline-block;
+    width: 100px;
+}
+
+input.text {
+    width: 50px;
+}
+
+div#box_image {
+    width: 210px;
+    height: 146px;
+}
+
+div#container_keys {
+    width: 350px;
+    height: 400px;
+}
+
+img#image {
+    width: 210px;
+    height: 140px;
+}

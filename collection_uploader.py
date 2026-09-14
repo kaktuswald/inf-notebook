@@ -137,6 +137,13 @@ class CollectionUploader():
         
         if upload_details:
             self.storage.start_uploaddetails(image, result.playside)
+
+        if result.judges.has_recognitionerror:
+            self.storage.start_uploadresultjudges(image, result.playside)
+        if result.timings.has_recognitionerror:
+            self.storage.start_uploadresulttimings(image, result.playside)
+        if result.combobreak is None:
+            self.storage.start_uploadresultcombobreak(image, result.playside)
         
         return upload_informations and upload_details
 
