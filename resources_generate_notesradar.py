@@ -247,23 +247,23 @@ def load_collectiondata(filepath: str):
         ratio = Decimal(str(score)) / Decimal(str(notes * 2))
 
         predictedmaxlower = float((chartvalue/ratio).quantize(decimal_format, rounding=ROUND_UP))
-        if predictedmaxlower > data[playmode][songname][difficulty]['attributes'][attribute]['lower']:
-            data[playmode][songname][difficulty]['attributes'][attribute]['lower'] = predictedmaxlower
+        vl = float((Decimal(str(predictedmaxlower))*ratio).quantize(decimal_format, rounding=ROUND_DOWN))
+        if values['notesradar_chartvalue'] != vl:
+            report.error(f'Calculation error lower: {playmode} {songname} {difficulty} {attribute} {chartvalue}({ratio:.2f}%) {predictedmaxlower}～{predictedmaxupper}')
 
         predictedmaxupper = float(((chartvalue+decimal_delta)/ratio-decimal_delta).quantize(decimal_format, rounding=ROUND_UP))
-        if predictedmaxupper < data[playmode][songname][difficulty]['attributes'][attribute]['upper']:
-            data[playmode][songname][difficulty]['attributes'][attribute]['upper'] = predictedmaxupper
-
-        vl = float((Decimal(str(predictedmaxlower))*ratio).quantize(decimal_format, rounding=ROUND_DOWN))
         vu = float((Decimal(str(predictedmaxupper))*ratio).quantize(decimal_format, rounding=ROUND_DOWN))
-        if values['notesradar_chartvalue'] != vl:
-            report.error(f'Calculation error lower: {playmode} {songname} {difficulty} {attribute} {chartvalue} {predictedmaxlower} {predictedmaxupper}')
         if values['notesradar_chartvalue'] != vu:
-            report.error(f'Calculation error upper: {playmode} {songname} {difficulty} {attribute} {chartvalue} {predictedmaxlower} {predictedmaxupper}')
+            report.error(f'Calculation error upper: {playmode} {songname} {difficulty} {attribute} {chartvalue}({ratio:.2f}%) {predictedmaxlower}～{predictedmaxupper}')
             predictedmaxupper = float(((chartvalue+decimal_delta)/ratio-(decimal_delta*2)).quantize(decimal_format, rounding=ROUND_UP))
             vu2 = float((Decimal(str(predictedmaxupper))*ratio).quantize(decimal_format, rounding=ROUND_DOWN))
             if values['notesradar_chartvalue'] != vu2:
-                report.error(f'Calculation error upper2: {playmode} {songname} {difficulty} {attribute} {chartvalue} {predictedmaxlower} {predictedmaxupper}')
+                report.error(f'Calculation error upper2: {playmode} {songname} {difficulty} {attribute} {chartvalue}({ratio:.2f}%) {predictedmaxlower}～{predictedmaxupper}')
+
+        if predictedmaxlower > data[playmode][songname][difficulty]['attributes'][attribute]['lower']:
+            data[playmode][songname][difficulty]['attributes'][attribute]['lower'] = predictedmaxlower
+        if predictedmaxupper < data[playmode][songname][difficulty]['attributes'][attribute]['upper']:
+            data[playmode][songname][difficulty]['attributes'][attribute]['upper'] = predictedmaxupper
 
     return data
 
