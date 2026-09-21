@@ -65,7 +65,7 @@ class Report():
 
     def saveimage_errorvalue(self, value, filename):
         if self.count_errorvalue_save < error_output_count:
-            if value.shape[2] == 1:
+            if len(value.shape) == 3 and value.shape[2] == 1:
                 value = value.squeeze(axis=2)
             image = Image.fromarray(value)
             image.save(join(self.report_dirpath, filename))
