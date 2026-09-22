@@ -458,6 +458,8 @@ class GuiApi():
 
         window.bind('bpim2_calculate', self.bpim2_calculate)
 
+        window.bind('errormessage', self.errormessage)
+
     def get_url(self, event: webui.Event):
         event.return_string(self.window.get_url())
     
@@ -1514,6 +1516,13 @@ class GuiApi():
                     result = bpim2_getchartbpi(songname, difficulty, score)
         
         event.return_string(dumps(result))
+
+    def errormessage(self, event: webui.Event):
+        messages = loads(event.get_string_at(0))
+
+        logger.info('frontend error.')
+        for message in messages:
+            logger.info(f'\t{message}')
 
     def send_update_chartresult(self):
         '''フロントエンドに選択譜面記録の更新を送信する

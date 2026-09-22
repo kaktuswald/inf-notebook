@@ -2945,6 +2945,8 @@ function display_errormessage(messages) {
   });
 
   $('dialog#dialog_errormessage')[0].showModal();
+
+  webui.errormessage(JSON.stringify(messages));
 }
 
 /**
