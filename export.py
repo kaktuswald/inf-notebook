@@ -5,6 +5,7 @@ from csv import writer
 from decimal import Decimal
 import re
 from dataclasses import dataclass
+from math import ceil
 from logging import getLogger
 
 if __name__ == '__main__':
@@ -36,6 +37,9 @@ notesradar_csv_rankings_filepaths = {
 }
 
 settingcss_filepath = join(export_dirname, 'setting.css')
+
+ranks = ('F', 'E', 'D', 'C', 'B', 'A', 'AA', 'AAA', 'MAX',)
+ratioborders = {'F': 0, 'E': 2, 'D': 3, 'C': 4, 'B': 5, 'A': 6, 'AA': 7, 'AAA': 8, 'MAX': 9}
 
 class Recent():
     delete_delta_seconds = 60 * 60 * 12
@@ -181,6 +185,7 @@ class CsvRowData:
         'ALL-SCRDJレベル',
         'ノーツ数',
         'ノーツレーダー属性',
+        'スコア差分',
     ]
 
     def __init__(self, **kwargs):
@@ -199,6 +204,7 @@ class CsvRowData:
         self.achievement_allscratch = CsvRowData.Achievement()
         self.notes = None
         self.notesradar_attribute = None
+        self.score_difference = None
 
     def expand(self) -> list[str]:
         return [
@@ -227,6 +233,7 @@ class CsvRowData:
             self.achievement_allscratch.djlevel,
             self.notes,
             self.notesradar_attribute,
+            self.score_difference,
         ]
 
 def output(notebook: NotebookSummary):
@@ -347,7 +354,24 @@ def output(notebook: NotebookSummary):
                 if musicname in notesradar[playmode]['musics'].keys() and difficulty in notesradar[playmode]['musics'][musicname].keys():
                     rowdata.notes = notesradar[playmode]['musics'][musicname][difficulty]['notes']
                     rowdata.notesradar_attribute = '/'.join(notesradar[playmode]['musics'][musicname][difficulty]['attributes'])
-                
+
+                if rowdata.best_score is not None and rowdata.best_score.value is not None and rowdata.notes is not None:
+                    ratio = rowdata.best_score.value / (rowdata.notes * 2)
+                    if ratio <= 1:
+                        scoreborders = {k: ceil(rowdata.notes * 2 * ratioborders[k] * 1 / 9) for k in ranks}
+                        rankindex = len(tuple(v for v in scoreborders.values() if v <= rowdata.best_score.value)) - 1
+                        if len(scoreborders) == rankindex + 1 or rowdata.best_score.value - scoreborders[ranks[rankindex]] <= scoreborders[ranks[rankindex + 1]] - rowdata.best_score.value:
+                            baserank = ranks[rankindex]
+                            direction = '+'
+                            diff = rowdata.best_score.value - scoreborders[baserank]
+                        else:
+                            baserank = ranks[rankindex + 1]
+                            direction = '-'
+                            diff = scoreborders[baserank] - rowdata.best_score.value
+                        rowdata.score_difference = f'{baserank}{direction}{diff}'
+                    else:
+                        rowdata.score_difference = 'Error'
+
                 csv_output[playtype].append(rowdata)
 
     for playtype in Playtypes.values:
