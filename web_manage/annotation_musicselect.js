@@ -14,7 +14,11 @@ $(function() {
   $('input#check_onlyundefinedsongname').on('change', display_keytable);
   $('input#check_onlyundefinedversion').on('change', display_keytable);
   $('input#check_onlyignore').on('change', display_keytable);
+  $('input#check_onlyafter260312').on('change', display_keytable);
+  $('input#check_onlyleggendaria').on('change', display_keytable);
+  $('input#check_withoutleggendaria').on('change', display_keytable);
   $('input#text_songnamefilter').on('input', display_keytable);
+  $('input#check_songnamefilterexactmatch').on('change', display_keytable);
   $('input#text_keyfilter').on('input', display_keytable);
 
   $('input#text_songnamefilter').on('click', onclick_filter);
@@ -293,7 +297,11 @@ async function display_keytable() {
   const only_undefinedsongname = $('input#check_onlyundefinedsongname').prop('checked');
   const only_undefinedversion = $('input#check_onlyundefinedversion').prop('checked');
   const only_ignore = $('input#check_onlyignore').prop('checked');
+  const only_after260312 = $('input#check_onlyafter260312').prop('checked');
+  const only_leggendaria = $('input#check_onlyleggendaria').prop('checked');
+  const without_leggendaria = $('input#check_withoutleggendaria').prop('checked');
   const songnamefilter = $('input#text_songnamefilter').val();
+  const songnamefilter_exactmatch = $('input#check_songnamefilterexactmatch').prop('checked');
   const keyfilter = $('input#text_keyfilter').val();
 
   keys = JSON.parse(await webui.get_collectionkeys(JSON.stringify({
@@ -301,7 +309,11 @@ async function display_keytable() {
     'only_undefinedsongname': only_undefinedsongname,
     'only_undefinedversion': only_undefinedversion,
     'only_ignore': only_ignore,
+    'only_after260312': only_after260312,
+    'only_leggendaria': only_leggendaria,
+    'without_leggendaria': without_leggendaria,
     'songnamefilter': songnamefilter.length ? songnamefilter : null,
+    'songnamefilter_exactmatch': songnamefilter_exactmatch,
     'keyfilter': keyfilter.length ? keyfilter : null,
   })));
   for(const key of keys) {

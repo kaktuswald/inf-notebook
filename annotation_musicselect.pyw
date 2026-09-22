@@ -76,25 +76,35 @@ class GuiApi():
 
         if conditions['only_notannotation']:
             targetkeys = [key for key in targetkeys if not key in labels.keys()]
-
-        if conditions['only_undefinedsongname'] or conditions['only_undefinedversion'] or conditions['songnamefilter'] is not None:
+        else:
             targetkeys = [key for key in targetkeys if key in labels.keys()]
 
-        if conditions['only_undefinedsongname']:
-            targetkeys = [key for key in targetkeys if not 'songname' in labels[key].keys() or labels[key]['songname'] in [None, '']]
+            if conditions['only_undefinedsongname']:
+                targetkeys = [key for key in targetkeys if not 'songname' in labels[key].keys() or labels[key]['songname'] in [None, '']]
 
-        if conditions['only_undefinedversion']:
-            targetkeys = [key for key in targetkeys if not 'version' in labels[key].keys() or labels[key]['version'] in [None, '']]
+            if conditions['only_undefinedversion']:
+                targetkeys = [key for key in targetkeys if not 'version' in labels[key].keys() or labels[key]['version'] in [None, '']]
 
-        if conditions['only_ignore']:
-            targetkeys = [key for key in targetkeys if key in labels.keys() and 'ignore' in labels[key].keys() and labels[key]['ignore']]
+            if conditions['only_ignore']:
+                targetkeys = [key for key in targetkeys if 'ignore' in labels[key].keys() and labels[key]['ignore']]
 
-        if conditions['songnamefilter'] is not None:
-            targetkeys = [key for key in targetkeys if 'songname' in labels[key].keys() and labels[key]['songname'] is not None]
-            targetkeys = [key for key in targetkeys if conditions['songnamefilter'] in labels[key]['songname']]
+            if conditions['only_after260312']:
+                targetkeys = [key for key in targetkeys if 'after260312' in labels[key].keys() and labels[key]['after260312']]
 
-        if conditions['keyfilter'] is not None:
-            targetkeys = [key for key in targetkeys if conditions['keyfilter'] in key]
+            if conditions['only_leggendaria']:
+                targetkeys = [key for key in targetkeys if 'difficulty' in labels[key].keys() and labels[key]['difficulty'] == 'LEGGENDARIA']
+            if conditions['without_leggendaria']:
+                targetkeys = [key for key in targetkeys if 'difficulty' in labels[key].keys() and labels[key]['difficulty'] != 'LEGGENDARIA']
+
+            if conditions['songnamefilter'] is not None:
+                targetkeys = [key for key in targetkeys if 'songname' in labels[key].keys() and labels[key]['songname'] is not None]
+                if conditions['songnamefilter_exactmatch']:
+                    targetkeys = [key for key in targetkeys if labels[key]['songname'] == conditions['songnamefilter']]
+                else:
+                    targetkeys = [key for key in targetkeys if conditions['songnamefilter'] in labels[key]['songname']]
+
+            if conditions['keyfilter'] is not None:
+                targetkeys = [key for key in targetkeys if conditions['keyfilter'] in key]
 
         event.return_string(dumps(targetkeys))
     
