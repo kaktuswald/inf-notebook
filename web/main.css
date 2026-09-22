@@ -160,7 +160,7 @@ div#component_scorerecord {
 div#component_resultdetail {
     div.label {
         user-select: none;
-        width: 82px;
+        width: 92px;
     }
 
     div.datetime,

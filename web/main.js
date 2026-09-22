@@ -1593,10 +1593,22 @@ async function display_playresult(playtype, songname, difficulty, timestamp) {
     $('#playresult_options').text('不明');
   }
 
-  if(playresult.judges != null)
-    $('#playresult_judges').text(Object.values(playresult.judges).join(','));
-  if(playresult.timings != null)
-    $('#playresult_timings').text(Object.values(playresult.timings).join(','));
+  if(playresult.judges != null) {
+    $('#playresult_judges').text(
+      Object.entries(playresult.judges)
+        .map(([key, value]) => `${key[0].toUpperCase()}:${value}`)
+        .join(' ')
+    );
+  }
+
+  if(playresult.timings != null) {
+    $('#playresult_timings').text(
+      Object.entries(playresult.timings)
+        .map(([key, value]) => `${key.toUpperCase()}:${value}`)
+        .join(' ')
+    );
+  }
+
   if(playresult.combobreak != null)
     $('#playresult_combobreak').text(playresult.combobreak);
 
