@@ -1492,13 +1492,23 @@ async function display_chartresult() {
     display_best(chartresult.best.miss_count, 'misscount');
 
     if(selected_chart.playtype == 'SP' && chartresult.best.score && chartresult.best.score.value) {
-      const bpi = JSON.parse(await webui.bpim2_calculate(
+      const text = await webui.bpim2_calculate(
         selected_chart.songname,
         selected_chart.difficulty,
         chartresult.best.score.value
-      ));
+      );
 
-      $('#best_bpi').text(bpi ?? '');
+      try {
+        $('#best_bpi').text(JSON.parse(text));
+      }
+      catch(error) {
+        display_errormessage([
+          'BPI値の取得に失敗しました。',
+          `"${text}"`,
+          error.message
+        ]);
+        $('#best_bpi').text('');
+      }
     }
     else {
       $('#best_bpi').text('');
