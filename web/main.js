@@ -1929,7 +1929,22 @@ function onclick_recentresultitem(e) {
  * ブラウザでXのポストのページを開く
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_post_summary(e) {
+async function onclick_post_summary(e) {
+  const result = await show_common_dialog(
+    commondialogs.yesnocancel,
+    ['画像をクリップボードにコピーしますか？'],
+  );
+
+  if(!result || result == 'cancel') return;
+
+  if(result == 'yes') {
+    const blob = await (await fetch($('img#image_summary').get(0).src)).blob();
+
+    await navigator.clipboard.write([
+      new ClipboardItem({ [blob.type]: blob})
+    ]);
+  }
+
   webui.post_summary();
 }
 
@@ -1939,7 +1954,22 @@ function onclick_post_summary(e) {
  * ブラウザでXのポストのページを開く
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_post_notesradar(e) {
+async function onclick_post_notesradar(e) {
+  const result = await show_common_dialog(
+    commondialogs.yesnocancel,
+    ['画像をクリップボードにコピーしますか？'],
+  );
+
+  if(!result || result == 'cancel') return;
+
+  if(result == 'yes') {
+    const blob = await (await fetch($('img#image_chartnotesradar').get(0).src)).blob();
+
+    await navigator.clipboard.write([
+      new ClipboardItem({ [blob.type]: blob})
+    ]);
+  }
+
   webui.post_notesradar();
 }
 
@@ -1960,7 +1990,22 @@ function onclick_open_memopage(e) {
  * ブラウザでXのポストのページを開く
  * @param {ce.Event} e イベントハンドラ
  */
-function onclick_post_scoreinformation(e) {
+async function onclick_post_scoreinformation(e) {
+  const result = await show_common_dialog(
+    commondialogs.yesnocancel,
+    ['画像をクリップボードにコピーしますか？'],
+  );
+
+  if(!result || result == 'cancel') return;
+
+  if(result == 'yes') {
+    const blob = await (await fetch($('img#image_scoreinformation').get(0).src)).blob();
+
+    await navigator.clipboard.write([
+      new ClipboardItem({ [blob.type]: blob})
+    ]);
+  }
+
   webui.post_scoreinformation(
     selected_chart.playtype,
     selected_chart.songname,
