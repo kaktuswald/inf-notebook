@@ -292,6 +292,7 @@ ul#list_errormessages {
     border-style: solid;
     border-width: 1px;
     border-color: lightgrey;
+    overflow-y: auto;
 }
 
 textarea#textarea_memo {
