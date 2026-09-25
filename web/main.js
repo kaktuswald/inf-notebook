@@ -253,6 +253,8 @@ const components = {};
 
 let memourl = null;
 
+const commondialogs = {};
+
 $(function() {
   allcomponentids = $('#components').children().map(function() { return this.id;}).get();
 
@@ -335,6 +337,8 @@ $(function() {
   $('button#button_execute_findnewestversionaction').on('click', onclick_execute_findnewestversionaction);
 
   $('a').on('click', onclick_link);
+
+  commondialogs.yesnocancel = $('#dialog_yesnocancel');
 
   $('button.dialogclose').on('click', onclick_button_dialogclose);
 
@@ -3072,4 +3076,41 @@ function draw_text(ctx, text, x, y, args) {
   ctx.fillText(text, x, y, args.maxwidth);
 
   ctx.restore();
+}
+
+/**
+ * コモンダイアログのいずれかを表示して、選択したものを返す
+ * @param {JQuery} dialog 使用するダイアログ グローバルのcommondialogsの中から選択する
+ * @param {Array} messages 表示メッセージのリスト
+ * @returns {Promise} クリックしたボタンの内容 "yes" or "no" or "cancel"
+ */
+function show_common_dialog(dialog, messages) {
+  return new Promise(resolve => {
+    if(!Object.values(commondialogs).includes(dialog)) {
+      display_errormessage(
+        new Error('Unable to display the dialog box.').stack.split('\n'),
+      );
+      resolve(null);
+      return;
+    }
+
+    const $dialog = dialog.clone();
+
+    $dialog.attr('id', '');
+
+    const $messages_element = $dialog.find('.messages');
+    messages.forEach(message => {
+      $messages_element.append($('<li>').text(message));
+    });
+
+    $('body').append($dialog);
+
+    $dialog[0].showModal();
+
+    $dialog.on('close', () => {
+      const result = $dialog[0].returnValue;
+      $dialog.remove();
+      resolve(result);
+    });
+  });
 }
