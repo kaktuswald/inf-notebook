@@ -34,16 +34,16 @@ def post_summary(notebook: NotebookSummary, hashtags: str):
     for playmode in Playmodes.values:
         counts[playmode] = {'TOTAL': 0, 'F-COMBO': 0, 'AAA': 0, 'NO DATA': 0}
     
-    for musicname in resource.musictable['musics'].keys():
+    for songname in resource.musictable['musics'].keys():
         for playmode in Playmodes.values:
-            for difficulty in resource.musictable['musics'][musicname][playmode].keys():
+            for difficulty in resource.musictable['musics'][songname][playmode].keys():
                 counts[playmode]['TOTAL'] += 1
 
-                if not musicname in notebook.json['musics'].keys():
+                if not songname in notebook.json['musics'].keys():
                     counts[playmode]['NO DATA'] += 1
                     continue
                 
-                target = notebook.json['musics'][musicname]
+                target = notebook.json['musics'][songname]
 
                 if not playmode in target.keys():
                     counts[playmode]['NO DATA'] += 1
@@ -56,11 +56,14 @@ def post_summary(notebook: NotebookSummary, hashtags: str):
                     continue
 
                 target = target[difficulty]
-                    
-                if 'cleartype' in target.keys() and target['cleartype'] == 'F-COMBO':
-                    counts[playmode]['F-COMBO'] += 1
-                if 'djlevel' in target.keys() and target['djlevel'] == 'AAA':
-                    counts[playmode]['AAA'] += 1
+
+                if target.get('best') is not None:
+                    target = target = target['best']
+
+                    if target.get('cleartype') is not None and target['cleartype'].get('value') == 'F-COMBO':
+                        counts[playmode]['F-COMBO'] += 1
+                    if target.get('djlevel') is not None and target['djlevel'].get('value') == 'AAA':
+                        counts[playmode]['AAA'] += 1
 
     musics_text = []
     for playmode, value in counts.items():
