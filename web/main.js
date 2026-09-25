@@ -1609,8 +1609,8 @@ async function display_playresult(playtype, songname, difficulty, timestamp) {
 
   if(playresult.judges != null) {
     $('#playresult_judges').text(
-      Object.entries(playresult.judges)
-        .map(([key, value]) => `${key[0].toUpperCase()}:${value}`)
+      Object.entries({'pgreat': 'PG', 'great': 'GT', 'good': 'GD', 'bad': 'BD', 'poor': 'PR'})
+        .map(([key, value]) => `${value}:${playresult.judges[key]}`)
         .join(' ')
     );
   }
