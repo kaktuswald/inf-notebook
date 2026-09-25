@@ -1974,17 +1974,6 @@ async function onclick_post_notesradar(e) {
 }
 
 /**
- * メモページを開く
- * 
- * ブラウザでXのポストのページを開く
- * @param {ce.Event} e イベントハンドラ
- */
-function onclick_open_memopage(e) {
-  if(memourl)
-    webui.open_webpage(memourl);
-}
-
-/**
  * 譜面記録をポストする
  * 
  * ブラウザでXのポストのページを開く
@@ -2011,6 +2000,17 @@ async function onclick_post_scoreinformation(e) {
     selected_chart.songname,
     selected_chart.difficulty,
   );
+}
+
+/**
+ * メモページを開く
+ * 
+ * ブラウザでXのポストのページを開く
+ * @param {ce.Event} e イベントハンドラ
+ */
+function onclick_open_memopage(e) {
+  if(memourl)
+    webui.open_webpage(memourl);
 }
 
 /**
